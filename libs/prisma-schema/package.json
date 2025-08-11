@@ -13,5 +13,10 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "scripts": {
+    "prisma": "prisma",
+    "migrate": "prisma migrate dev",
+    "generate-types": "prisma generate"
+  }
 }
