@@ -1,0 +1,10 @@
+{
+  "name": "@dans-coding-world/public-blog-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "implicitDependencies": [
+      "@dans-coding-world/public-blog"
+    ]
+  }
+}
