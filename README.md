@@ -3,8 +3,8 @@
 A task project for The Odin Project (TOP).
 A basic blog full stack app with an express backend and two React front ends:
 
-- one for the user(s) creating the posts
-- one for the consumers
+- one for the author(s) writing the posts
+- one for the readers
 
 ## Project Setup
 
