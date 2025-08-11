@@ -2,7 +2,10 @@
   "name": "@dans-coding-world/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "create-db": "node tools/create-db.js"
+  },
+  "nx": {},
   "private": true,
   "dependencies": {
     "@prisma/client": "^6.13.0",
