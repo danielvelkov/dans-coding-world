@@ -23,6 +23,9 @@
     },
     {
       "path": "./libs/user-data-access"
+    },
+    {
+      "path": "./libs/util-auth"
     }
   ]
 }

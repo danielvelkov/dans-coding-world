@@ -35,7 +35,8 @@
       "exclude": [
         "libs/prisma-schema/*",
         "libs/util-interfaces/*",
-        "libs/user-data-access/*"
+        "libs/user-data-access/*",
+        "libs/util-auth/*"
       ]
     },
     {
@@ -100,7 +101,8 @@
       "include": [
         "libs/prisma-schema/*",
         "libs/util-interfaces/*",
-        "libs/user-data-access/*"
+        "libs/user-data-access/*",
+        "libs/util-auth/*"
       ],
       "options": {
         "typecheck": {
