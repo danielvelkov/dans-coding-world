@@ -1,6 +1,6 @@
 import { IUserService } from '@dans-coding-world/util-interfaces';
-import { prisma } from '@dans-coding-world/prisma-schema';
-export class PrismaUserDataAccess implements IUserService {
+import { UserWhereInput, prisma } from '@dans-coding-world/prisma-schema';
+class PrismaUserDataAccess implements IUserService {
   getById(id: string): Promise<{
     id: number;
     username: string;
@@ -13,6 +13,16 @@ export class PrismaUserDataAccess implements IUserService {
       },
     });
   }
+
+  get(where: UserWhereInput): Promise<{
+    id: number;
+    username: string;
+    email: string;
+    password: string;
+  } | null> {
+    return prisma.user.findFirst({ where });
+  }
+
   exists(username: string, email: string): boolean {
     return !!prisma.user.findFirst({
       where: {
@@ -42,3 +52,4 @@ export class PrismaUserDataAccess implements IUserService {
     return prisma.user.create({ data });
   }
 }
+export const client = new PrismaUserDataAccess();
