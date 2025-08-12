@@ -32,7 +32,11 @@
           "watchDepsName": "watch-deps"
         }
       },
-      "exclude": ["libs/prisma-schema/*"]
+      "exclude": [
+        "libs/prisma-schema/*",
+        "libs/util-interfaces/*",
+        "libs/user-data-access/*"
+      ]
     },
     {
       "plugin": "@nx/react/router-plugin",
@@ -93,7 +97,11 @@
     },
     {
       "plugin": "@nx/js/typescript",
-      "include": ["libs/prisma-schema/*"],
+      "include": [
+        "libs/prisma-schema/*",
+        "libs/util-interfaces/*",
+        "libs/user-data-access/*"
+      ],
       "options": {
         "typecheck": {
           "targetName": "typecheck"

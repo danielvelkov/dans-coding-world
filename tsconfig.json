@@ -17,6 +17,12 @@
     },
     {
       "path": "./libs/prisma-schema"
+    },
+    {
+      "path": "./libs/util-interfaces"
+    },
+    {
+      "path": "./libs/user-data-access"
     }
   ]
 }
