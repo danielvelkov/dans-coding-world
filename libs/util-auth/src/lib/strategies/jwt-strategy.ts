@@ -5,7 +5,7 @@ import {
   VerifyCallback,
 } from 'passport-jwt';
 
-import { client } from '@dans-coding-world/user-data-access';
+import { mockClient as client } from '@dans-coding-world/user-data-access';
 
 const opts: StrategyOptionsWithoutRequest = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
