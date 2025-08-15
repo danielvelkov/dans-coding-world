@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../user-data-access"
+    },
+    {
       "path": "./tsconfig.lib.json"
     }
   ]

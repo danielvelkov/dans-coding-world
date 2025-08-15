@@ -4,6 +4,12 @@
   "include": [],
   "references": [
     {
+      "path": "../../libs/user-data-access"
+    },
+    {
+      "path": "../../libs/util-auth"
+    },
+    {
       "path": "./tsconfig.app.json"
     },
     {

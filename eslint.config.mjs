@@ -24,6 +24,10 @@ export default [
               sourceTag: '*',
               onlyDependOnLibsWithTags: ['*'],
             },
+            {
+              sourceTag: 'type:app',
+              onlyDependOnLibsWithTags: ['type:lib'],
+            },
           ],
         },
       ],

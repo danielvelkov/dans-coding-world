@@ -1,44 +1,39 @@
 import { IUserService } from '@dans-coding-world/util-interfaces';
 import { UserWhereInput, prisma } from '@dans-coding-world/prisma-schema';
 class PrismaUserDataAccess implements IUserService {
-  getById(id: string): Promise<{
+  async getById(id: string): Promise<{
     id: number;
     username: string;
     email: string;
     password: string;
   } | null> {
-    return prisma.user.findFirst({
+    return await prisma.user.findFirst({
       where: {
         id: +id,
       },
     });
   }
 
-  get(where: UserWhereInput): Promise<{
+  async get(where: UserWhereInput): Promise<{
     id: number;
     username: string;
     email: string;
     password: string;
   } | null> {
-    return prisma.user.findFirst({ where });
+    return await prisma.user.findFirst({ where });
   }
 
-  exists(username: string, email: string): boolean {
-    return !!prisma.user.findFirst({
+  async exists(username: string, email: string): Promise<boolean> {
+    const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          {
-            username: username,
-          },
-          {
-            email: email,
-          },
-        ],
+        OR: [{ username }, { email }],
       },
     });
+
+    return !!user;
   }
 
-  create(
+  async create(
     data: Omit<
       { id: number; username: string; email: string; password: string },
       'id'
@@ -49,7 +44,7 @@ class PrismaUserDataAccess implements IUserService {
     email: string;
     password: string;
   }> {
-    return prisma.user.create({ data });
+    return await prisma.user.create({ data });
   }
 }
 export const client = new PrismaUserDataAccess();
