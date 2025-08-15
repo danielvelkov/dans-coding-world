@@ -6,6 +6,15 @@ A basic blog full stack app with an express backend and two React front ends:
 - one for the author(s) writing the posts
 - one for the readers
 
+## Architecture
+
+This is a monorepo containing:
+
+Backend: REST API built with Express
+Frontend 1 - Public Blog: Web app built with React
+Frontend 2 - Blog Editor: Web app built with React
+Database: PostgreSQL
+
 ## Project Setup
 
 ### Prerequisites
