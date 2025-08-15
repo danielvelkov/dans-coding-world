@@ -1,5 +1,6 @@
 import { IUserService } from '@dans-coding-world/util-interfaces';
 import { UserWhereInput } from '@dans-coding-world/prisma-schema';
+import bcrypt from 'bcryptjs';
 class MockUserDataAccess implements IUserService {
   users: {
     id: number;
@@ -11,7 +12,7 @@ class MockUserDataAccess implements IUserService {
       id: 1,
       username: 'moderator123',
       email: 'moderator123@gmail.com',
-      password: 'moderator123',
+      password: bcrypt.hashSync('moderator123', 10),
     },
   ];
   async getById(id: string): Promise<{
