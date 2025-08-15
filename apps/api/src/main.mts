@@ -1,8 +1,6 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import passport from 'passport';
 import { strategy } from '@dans-coding-world/util-auth';
-import { client } from '@dans-coding-world/user-data-access';
 import * as path from 'path';
 
 const app = express();
@@ -15,7 +13,7 @@ passport.use(strategy);
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to api!' });
+  res.send({ message: 'Welcome to dans coding world api!' });
 });
 
 const port = process.env.PORT || 3333;

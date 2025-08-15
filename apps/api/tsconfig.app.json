@@ -8,7 +8,7 @@
     "moduleResolution": "nodenext",
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/main.mts", "src/controllers/auth.controller.mts"],
   "exclude": [
     "out-tsc",
     "dist",
