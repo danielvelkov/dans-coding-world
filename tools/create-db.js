@@ -12,6 +12,7 @@ const pg = require('pg');
 const { Client } = pg;
 
 const DB_NAME = process.env.DB_NAME || 'blog_db';
+const E2E_DB_NAME = process.env.E2E_DB_NAME || 'blog_db_e2e';
 
 const pgConfig = {
   user: process.env.PG_USER,
@@ -39,21 +40,25 @@ async function main() {
 
     console.log('Successfully connected to the database server.');
 
-    const res = await client.query(
-      `SELECT 1 FROM pg_database WHERE datname = $1`,
-      [DB_NAME]
-    );
+    const dbNames = [DB_NAME, E2E_DB_NAME];
 
-    if (res.rowCount === 0) {
-      console.log(
-        `The database '${DB_NAME}' was not found. Creating it now...`
+    for (const dbName of dbNames) {
+      const res = await client.query(
+        `SELECT 1 FROM pg_database WHERE datname = $1`,
+        [dbName]
       );
-      await client.query(`CREATE DATABASE "${DB_NAME}";`);
-      console.log(`Successfully created database '${DB_NAME}'.`);
-    } else {
-      console.log(
-        `The database '${DB_NAME}' already exists. Skipping creation.`
-      );
+
+      if (res.rowCount === 0) {
+        console.log(
+          `The database '${dbName}' was not found. Creating it now...`
+        );
+        await client.query(`CREATE DATABASE "${dbName}";`);
+        console.log(`Successfully created database '${dbName}'.`);
+      } else {
+        console.log(
+          `The database '${dbName}' already exists. Skipping creation.`
+        );
+      }
     }
   } catch (error) {
     console.error('An error occurred during database setup:', error);

@@ -15,6 +15,9 @@
   "references": [
     {
       "path": "../user-data-access/tsconfig.lib.json"
+    },
+    {
+      "path": "../prisma-schema/tsconfig.lib.json"
     }
   ]
 }

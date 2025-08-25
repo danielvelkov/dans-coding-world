@@ -6,8 +6,6 @@ const swcJestConfig = JSON.parse(
   readFileSync(`${import.meta.dirname}/.spec.swcrc`, 'utf-8')
 );
 
-console.log(swcJestConfig);
-
 // Disable .swcrc look-up by SWC core because we're passing in swcJestConfig ourselves
 swcJestConfig.swcrc = false;
 

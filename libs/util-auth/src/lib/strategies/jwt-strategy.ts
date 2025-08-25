@@ -5,19 +5,17 @@ import {
   VerifyCallback,
 } from 'passport-jwt';
 
-import { mockClient as client } from '@dans-coding-world/user-data-access';
+import { client } from '@dans-coding-world/user-data-access';
 
 const opts: StrategyOptionsWithoutRequest = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.SECRET_KEY?.toString() ?? '',
+  secretOrKey: process.env.ACCESS_TOKEN_SECRET?.toString() ?? '',
 };
 
 const verify: VerifyCallback = async (jwt_payload, done) => {
   try {
     const user = await client.getById(jwt_payload.sub); //'sub' stands for subject
-    if (!user) return done(null, false, { message: 'Invalid token' });
-
-    done(null, user);
+    done(null, user || false); // `false` = no error, but no user
   } catch (error) {
     console.error(error);
     done(error);

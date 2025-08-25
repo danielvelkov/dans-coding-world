@@ -64,4 +64,5 @@ class MockUserDataAccess implements IUserService {
     return user;
   }
 }
-export const mockClient = new MockUserDataAccess();
+
+export const client = new MockUserDataAccess();

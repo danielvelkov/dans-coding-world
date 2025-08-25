@@ -2,6 +2,12 @@ import express from 'express';
 import passport from 'passport';
 import { strategy } from '@dans-coding-world/util-auth';
 import * as path from 'path';
+import authRouter from './routes/auth.router.js';
+
+console.log(
+  'API IN : ',
+  process.env.NODE_ENV === 'test' ? '### TEST ENV ###' : '### DEV ENV ###'
+);
 
 const app = express();
 
@@ -12,9 +18,11 @@ passport.use(strategy);
 
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
-app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to dans coding world api!' });
-});
+app.get('/api/v1', (req, res) =>
+  res.status(200).send({ message: 'Welcome to v1 of the api!' })
+);
+
+app.use('/api/v1/auth', authRouter);
 
 const port = process.env.PORT || 3333;
 const server = app.listen(port, () => {

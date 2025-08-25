@@ -1,5 +1,2 @@
-import { PrismaClient, Prisma } from '../generated/prisma/client.js';
-export type { User } from '../generated/prisma/client.js';
-
-export const prisma = new PrismaClient();
-export type UserWhereInput = Prisma.UserWhereInput;
+export { client } from './lib/client.js';
+export type { User, UserWhereInput } from './lib/prisma.types.js';

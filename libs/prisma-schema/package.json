@@ -10,7 +10,35 @@
       "layer:data-access",
       "scope:shared",
       "type:lib"
-    ]
+    ],
+    "targets": {
+      "migrate": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "prisma migrate dev"
+        }
+      },
+      "generate": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "prisma generate"
+        }
+      },
+      "migrate:e2e": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "prisma migrate dev",
+          "envFile": "../../.e2e.env"
+        }
+      },
+      "generate:e2e": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "prisma generate",
+          "envFile": "../../.e2e.env"
+        }
+      }
+    }
   },
   "exports": {
     ".": {
@@ -20,10 +48,5 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {},
-  "scripts": {
-    "prisma": "prisma",
-    "migrate": "prisma migrate dev",
-    "generate-types": "prisma generate"
-  }
+  "dependencies": {}
 }

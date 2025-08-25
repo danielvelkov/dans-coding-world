@@ -1,12 +1,11 @@
 import { IUserService } from '@dans-coding-world/util-interfaces';
-import { UserWhereInput, prisma } from '@dans-coding-world/prisma-schema';
+import {
+  UserWhereInput,
+  client as prisma,
+  User,
+} from '@dans-coding-world/prisma-schema';
 class PrismaUserDataAccess implements IUserService {
-  async getById(id: string): Promise<{
-    id: number;
-    username: string;
-    email: string;
-    password: string;
-  } | null> {
+  async getById(id: string): Promise<User | null> {
     return await prisma.user.findFirst({
       where: {
         id: +id,
@@ -14,12 +13,7 @@ class PrismaUserDataAccess implements IUserService {
     });
   }
 
-  async get(where: UserWhereInput): Promise<{
-    id: number;
-    username: string;
-    email: string;
-    password: string;
-  } | null> {
+  async get(where: UserWhereInput): Promise<User | null> {
     return await prisma.user.findFirst({ where });
   }
 
@@ -33,18 +27,12 @@ class PrismaUserDataAccess implements IUserService {
     return !!user;
   }
 
-  async create(
-    data: Omit<
-      { id: number; username: string; email: string; password: string },
-      'id'
-    >
-  ): Promise<{
-    id: number;
-    username: string;
-    email: string;
-    password: string;
-  }> {
+  async create(data: Omit<User, 'id'>): Promise<User> {
     return await prisma.user.create({ data });
   }
 }
+console.log(
+  'USER DATA ACCESS IN : ',
+  process.env.NODE_ENV === 'test' ? '### TEST ENV ###' : '### DEV ENV ###'
+);
 export const client = new PrismaUserDataAccess();

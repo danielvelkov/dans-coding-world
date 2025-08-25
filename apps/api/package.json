@@ -29,6 +29,23 @@
           }
         }
       },
+      "serve:e2e": {
+        "continuous": true,
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "e2e",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@dans-coding-world/api:build:development",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "e2e": {
+            "buildTarget": "@dans-coding-world/api:build:development"
+          }
+        }
+      },
       "test": {
         "options": {
           "passWithNoTests": true
