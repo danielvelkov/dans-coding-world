@@ -26,6 +26,9 @@
     },
     {
       "path": "./libs/util-auth"
+    },
+    {
+      "path": "./libs/test-utils"
     }
   ]
 }

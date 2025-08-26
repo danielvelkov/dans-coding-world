@@ -15,28 +15,38 @@
       "migrate": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "prisma migrate dev"
+          "command": "prisma migrate dev",
+          "cwd": "libs/prisma-schema/prisma"
         }
       },
-      "generate": {
+      "generate-types": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "prisma generate"
-        }
+          "command": "prisma generate",
+          "cwd": "libs/prisma-schema/prisma"
+        },
+        "dependsOn": [
+          "migrate"
+        ]
       },
       "migrate:e2e": {
         "executor": "nx:run-commands",
         "options": {
           "command": "prisma migrate dev",
-          "envFile": "../../.e2e.env"
-        }
+          "cwd": "libs/prisma-schema/prisma"
+        },
+        "defaultConfiguration": "e2e"
       },
-      "generate:e2e": {
+      "generate-types:e2e": {
         "executor": "nx:run-commands",
         "options": {
           "command": "prisma generate",
-          "envFile": "../../.e2e.env"
-        }
+          "cwd": "libs/prisma-schema/prisma"
+        },
+        "defaultConfiguration": "e2e",
+        "dependsOn": [
+          "migrate:e2e"
+        ]
       }
     }
   },

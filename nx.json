@@ -36,7 +36,8 @@
         "libs/prisma-schema/*",
         "libs/util-interfaces/*",
         "libs/user-data-access/*",
-        "libs/util-auth/*"
+        "libs/util-auth/*",
+        "libs/test-utils/*"
       ]
     },
     {
@@ -102,7 +103,8 @@
         "libs/prisma-schema/*",
         "libs/util-interfaces/*",
         "libs/user-data-access/*",
-        "libs/util-auth/*"
+        "libs/util-auth/*",
+        "libs/test-utils/*"
       ],
       "options": {
         "typecheck": {
