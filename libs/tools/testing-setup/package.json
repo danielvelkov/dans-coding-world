@@ -1,5 +1,5 @@
 {
-  "name": "@dans-coding-world/test-utils",
+  "name": "@dans-coding-world/testing-setup",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -17,8 +17,9 @@
   "nx": {
     "targets": {
       "seed-users": {
-        "command": "ts-node libs/test-utils/src/lib/seeders/seed-users.ts"
+        "command": "ts-node libs/tools/testing-setup/src/lib/seeders/seed-users.ts"
       }
-    }
+    },
+    "name": "@dans-coding-world/testing-setup"
   }
 }

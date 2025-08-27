@@ -91,6 +91,7 @@
   "workspaces": [
     "apps/*",
     "libs/*",
-    "libs/shared/data-access/*"
+    "libs/shared/data-access/*",
+    "libs/tools/*"
   ]
 }
