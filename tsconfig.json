@@ -19,9 +19,6 @@
       "path": "./libs/prisma-schema"
     },
     {
-      "path": "./libs/util-auth"
-    },
-    {
       "path": "./libs/shared/data-access/user-data-access"
     },
     {
@@ -29,6 +26,9 @@
     },
     {
       "path": "./libs/tools/testing-setup"
+    },
+    {
+      "path": "./libs/shared/util/util-auth"
     }
   ]
 }

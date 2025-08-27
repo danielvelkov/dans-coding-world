@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
     "rootDir": "src",
@@ -14,10 +14,10 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../shared/data-access/user-data-access/tsconfig.lib.json"
+      "path": "../../data-access/user-data-access/tsconfig.lib.json"
     },
     {
-      "path": "../prisma-schema/tsconfig.lib.json"
+      "path": "../../../prisma-schema/tsconfig.lib.json"
     }
   ]
 }

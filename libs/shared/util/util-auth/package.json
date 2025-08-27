@@ -1,5 +1,5 @@
 {
-  "name": "@dans-coding-world/util-auth",
+  "name": "@dans-coding-world/shared-util-auth",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -10,7 +10,8 @@
       "type:lib",
       "scope:auth",
       "layer:api"
-    ]
+    ],
+    "name": "@dans-coding-world/shared-util-auth"
   },
   "exports": {
     ".": {

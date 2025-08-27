@@ -92,6 +92,7 @@
     "apps/*",
     "libs/*",
     "libs/shared/data-access/*",
-    "libs/tools/*"
+    "libs/tools/*",
+    "libs/shared/util/*"
   ]
 }

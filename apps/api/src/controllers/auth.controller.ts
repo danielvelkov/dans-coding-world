@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { validPassword } from '@dans-coding-world/util-auth';
+import { validPassword } from '@dans-coding-world/shared-util-auth';
 import { client } from '@dans-coding-world/user-data-access';
 import { Request, Response } from 'express';
 

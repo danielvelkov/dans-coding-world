@@ -29,7 +29,7 @@
       "path": "../../libs/shared/data-access/user-data-access/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/util-auth/tsconfig.lib.json"
+      "path": "../../libs/shared/util/util-auth/tsconfig.lib.json"
     }
   ]
 }

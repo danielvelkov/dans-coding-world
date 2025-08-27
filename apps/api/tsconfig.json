@@ -7,7 +7,7 @@
       "path": "../../libs/shared/data-access/user-data-access"
     },
     {
-      "path": "../../libs/util-auth"
+      "path": "../../libs/shared/util/util-auth"
     },
     {
       "path": "./tsconfig.app.json"

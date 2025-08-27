@@ -1,6 +1,6 @@
 import express from 'express';
 import passport from 'passport';
-import { strategy } from '@dans-coding-world/util-auth';
+import { strategy } from '@dans-coding-world/shared-util-auth';
 import * as path from 'path';
 import authRouter from './routes/auth.router.js';
 
