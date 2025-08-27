@@ -12,7 +12,7 @@
       "type:lib"
     ],
     "targets": {
-      "migrate": {
+      "prisma-migrate": {
         "executor": "nx:run-commands",
         "options": {
           "command": "prisma migrate dev",
@@ -26,10 +26,10 @@
           "cwd": "libs/prisma-schema/prisma"
         },
         "dependsOn": [
-          "migrate"
+          "prisma-migrate"
         ]
       },
-      "migrate:e2e": {
+      "prisma-migrate:e2e": {
         "executor": "nx:run-commands",
         "options": {
           "command": "prisma migrate dev",
@@ -45,7 +45,7 @@
         },
         "defaultConfiguration": "e2e",
         "dependsOn": [
-          "migrate:e2e"
+          "prisma-migrate:e2e"
         ]
       }
     }
