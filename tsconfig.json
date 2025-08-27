@@ -22,13 +22,13 @@
       "path": "./libs/util-interfaces"
     },
     {
-      "path": "./libs/user-data-access"
-    },
-    {
       "path": "./libs/util-auth"
     },
     {
       "path": "./libs/test-utils"
+    },
+    {
+      "path": "./libs/shared/data-access/user-data-access"
     }
   ]
 }

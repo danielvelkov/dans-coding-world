@@ -4,7 +4,7 @@
   "include": [],
   "references": [
     {
-      "path": "../user-data-access"
+      "path": "../shared/data-access/user-data-access"
     },
     {
       "path": "../prisma-schema"

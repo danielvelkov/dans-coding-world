@@ -26,7 +26,7 @@
   ],
   "references": [
     {
-      "path": "../../libs/user-data-access/tsconfig.lib.json"
+      "path": "../../libs/shared/data-access/user-data-access/tsconfig.lib.json"
     },
     {
       "path": "../../libs/util-auth/tsconfig.lib.json"

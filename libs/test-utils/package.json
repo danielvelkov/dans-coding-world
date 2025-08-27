@@ -13,5 +13,12 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "nx": {
+    "targets": {
+      "seed-users": {
+        "command": "ts-node libs/test-utils/src/lib/seeders/seed-users.ts"
+      }
+    }
+  }
 }

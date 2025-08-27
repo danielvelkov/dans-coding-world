@@ -4,7 +4,7 @@
   "include": [],
   "references": [
     {
-      "path": "../../libs/user-data-access"
+      "path": "../../libs/shared/data-access/user-data-access"
     },
     {
       "path": "../../libs/util-auth"
