@@ -17,7 +17,7 @@
       "path": "../../../prisma-schema/tsconfig.lib.json"
     },
     {
-      "path": "../../../util-interfaces/tsconfig.lib.json"
+      "path": "../interfaces/tsconfig.lib.json"
     }
   ]
 }

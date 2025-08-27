@@ -1,5 +1,5 @@
 {
-  "name": "@dans-coding-world/util-interfaces",
+  "name": "@dans-coding-world/shared-data-access-interfaces",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -10,7 +10,8 @@
       "type:lib",
       "scope:shared",
       "layer:core"
-    ]
+    ],
+    "name": "@dans-coding-world/shared-data-access-interfaces"
   },
   "exports": {
     ".": {

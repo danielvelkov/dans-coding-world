@@ -1,4 +1,4 @@
-import { IUserService } from '@dans-coding-world/util-interfaces';
+import { IUserService } from '@dans-coding-world/shared-data-access-interfaces';
 import {
   UserWhereInput,
   client as prisma,

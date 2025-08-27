@@ -1,35 +1,21 @@
-import { IUserService } from '@dans-coding-world/util-interfaces';
-import { UserWhereInput } from '@dans-coding-world/prisma-schema';
+import { IUserService } from '@dans-coding-world/shared-data-access-interfaces';
+import { UserWhereInput, User } from '@dans-coding-world/prisma-schema';
 import bcrypt from 'bcryptjs';
 class MockUserDataAccess implements IUserService {
-  users: {
-    id: number;
-    username: string;
-    email: string;
-    password: string;
-  }[] = [
+  users: User[] = [
     {
       id: 1,
       username: 'moderator123',
       email: 'moderator123@gmail.com',
       password: bcrypt.hashSync('moderator123', 10),
+      role: 'MOD',
     },
   ];
-  async getById(id: string): Promise<{
-    id: number;
-    username: string;
-    email: string;
-    password: string;
-  } | null> {
+  async getById(id: string): Promise<User | null> {
     return this.users.find((u) => u.id === +id) ?? null;
   }
 
-  async get(where: UserWhereInput): Promise<{
-    id: number;
-    username: string;
-    email: string;
-    password: string;
-  } | null> {
+  async get(where: UserWhereInput): Promise<User | null> {
     return (
       this.users.find(
         (u) => u.username === where.username || u.email === where.email
@@ -45,17 +31,7 @@ class MockUserDataAccess implements IUserService {
     return !!user;
   }
 
-  async create(
-    data: Omit<
-      { id: number; username: string; email: string; password: string },
-      'id'
-    >
-  ): Promise<{
-    id: number;
-    username: string;
-    email: string;
-    password: string;
-  }> {
+  async create(data: Omit<User, 'id'>): Promise<User> {
     const user = {
       ...data,
       id: Math.random() * 1000000,

@@ -19,9 +19,6 @@
       "path": "./libs/prisma-schema"
     },
     {
-      "path": "./libs/util-interfaces"
-    },
-    {
       "path": "./libs/util-auth"
     },
     {
@@ -29,6 +26,9 @@
     },
     {
       "path": "./libs/shared/data-access/user-data-access"
+    },
+    {
+      "path": "./libs/shared/data-access/interfaces"
     }
   ]
 }
