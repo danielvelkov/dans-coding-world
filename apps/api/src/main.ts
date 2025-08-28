@@ -4,11 +4,6 @@ import { strategy } from '@dans-coding-world/shared-util-auth';
 import * as path from 'path';
 import authRouter from './routes/auth.router.js';
 
-console.log(
-  'API IN : ',
-  process.env.NODE_ENV === 'test' ? '### TEST ENV ###' : '### DEV ENV ###'
-);
-
 const app = express();
 
 app.use(express.urlencoded({ extended: false }));

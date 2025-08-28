@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../shared/util/util-auth"
+    },
+    {
       "path": "../../prisma-schema"
     },
     {

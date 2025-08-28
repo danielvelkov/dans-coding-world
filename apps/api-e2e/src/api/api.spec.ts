@@ -1,11 +1,12 @@
 import axios from 'axios';
+import { seedUsers } from '@dans-coding-world/testing-setup';
 
-// console.log(
-//   'E2E test IN:',
-//   process.env.NODE_ENV === 'test' ? '### TEST ENV ###' : '### DEV ENV ###'
-// );
+if (process.env.NODE_ENV !== 'test') throw new Error('NODE_ENV not in "test"');
 
 describe('GET /api/v1', () => {
+  beforeEach(async () => {
+    await seedUsers();
+  });
   it('should return a message', async () => {
     const res = await axios.get(`/api/v1`);
 

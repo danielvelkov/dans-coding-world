@@ -31,8 +31,5 @@ class PrismaUserDataAccess implements IUserService {
     return await prisma.user.create({ data });
   }
 }
-console.log(
-  'USER DATA ACCESS IN : ',
-  process.env.NODE_ENV === 'test' ? '### TEST ENV ###' : '### DEV ENV ###'
-);
+
 export const client = new PrismaUserDataAccess();
