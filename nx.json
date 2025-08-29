@@ -38,7 +38,8 @@
         "libs/user-data-access/*",
         "libs/util-auth/*",
         "libs/test-utils/*",
-        "libs/shared/util/shared-constants/*"
+        "libs/shared/util/shared-constants/*",
+        "libs/shared/util/exceptions/*"
       ]
     },
     {
@@ -106,7 +107,8 @@
         "libs/user-data-access/*",
         "libs/util-auth/*",
         "libs/test-utils/*",
-        "libs/shared/util/shared-constants/*"
+        "libs/shared/util/shared-constants/*",
+        "libs/shared/util/exceptions/*"
       ],
       "options": {
         "typecheck": {

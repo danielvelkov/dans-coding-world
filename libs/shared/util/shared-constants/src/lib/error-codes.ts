@@ -10,7 +10,7 @@ export const ERROR_CODES = {
   },
 } as const;
 
-type ErrorCode = ValueOf<ValueOf<typeof ERROR_CODES>>;
+export type ErrorCode = ValueOf<ValueOf<typeof ERROR_CODES>>;
 
 /**
  * Centralized default error messages for the app.
