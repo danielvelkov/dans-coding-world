@@ -26,6 +26,9 @@
   ],
   "references": [
     {
+      "path": "../../libs/shared/util/exceptions/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/shared/data-access/user-data-access/tsconfig.lib.json"
     },
     {

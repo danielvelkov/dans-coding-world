@@ -4,7 +4,7 @@ import {
   ERROR_HTTP_STATUS,
 } from '@dans-coding-world/shared-constants';
 
-class ApiException<D> {
+export class ApiException<D> {
   public readonly details: D | null;
   public readonly errorCode: ErrorCode;
   public readonly message: string;
@@ -20,5 +20,3 @@ class ApiException<D> {
     this.statusCode = ERROR_HTTP_STATUS[errorCode] || 500;
   }
 }
-
-export default ApiException;

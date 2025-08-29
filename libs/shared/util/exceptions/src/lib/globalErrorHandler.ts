@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import ApiException from './api.exception.js';
+import { ApiException } from './api.exception.js';
 
-function globalErrorHandler(
+export function globalErrorHandler(
   err: unknown,
   req: Request,
   res: Response,
@@ -21,5 +21,3 @@ function globalErrorHandler(
   }
   next();
 }
-
-export default globalErrorHandler;

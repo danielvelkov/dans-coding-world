@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../libs/shared/util/exceptions"
+    },
+    {
       "path": "../../libs/shared/data-access/user-data-access"
     },
     {
