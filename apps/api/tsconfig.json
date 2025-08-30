@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../libs/shared/util/shared-constants"
+    },
+    {
       "path": "../../libs/shared/util/exceptions"
     },
     {

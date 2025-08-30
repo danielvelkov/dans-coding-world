@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { seedUsers } from '@dans-coding-world/testing-setup';
 
 if (process.env.NODE_ENV !== 'test') throw new Error('NODE_ENV not in "test"');
@@ -30,5 +30,47 @@ describe('POST /api/v1/auth/login', () => {
     expect(res.status).toBe(200);
     expect(res.data).toHaveProperty('message', 'Login successful');
     expect(res.data).toHaveProperty('token');
+  });
+
+  it('should return an error message on invalid credentials', async () => {
+    const data = new URLSearchParams();
+    data.append('email', 'onomatopoeia@gmail.com');
+    data.append('password', 'onomatopoeia123');
+
+    try {
+      await axios.post('/api/v1/auth/login', data, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+    } catch (err) {
+      const error = err as AxiosError;
+      expect(error.status).toBe(401);
+      expect(error.response?.data).toHaveProperty(
+        'message',
+        'Provided credentials are invalid'
+      );
+    }
+  });
+
+  it('should return an error message on wrong password provided', async () => {
+    const data = new URLSearchParams();
+    data.append('email', 'moderator123@gmail.com');
+    data.append('password', 'onomatopoeia123');
+
+    try {
+      await axios.post('/api/v1/auth/login', data, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+    } catch (err) {
+      const error = err as AxiosError;
+      expect(error.status).toBe(401);
+      expect(error.response?.data).toHaveProperty(
+        'message',
+        'Provided password is wrong'
+      );
+    }
   });
 });

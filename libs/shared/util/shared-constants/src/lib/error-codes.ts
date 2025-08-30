@@ -10,6 +10,7 @@ type ValueOf<T> = T extends object ? T[keyof T] : never;
 export const ERROR_CODES = {
   AUTH: {
     INVALID_CREDENTIALS: 'AUTH001',
+    INVALID_PASSWORD: 'AUTH002',
   },
   SERVER: {
     INTERNAL_ERROR: 'SER001',
@@ -24,6 +25,7 @@ export type ErrorCode = ValueOf<ValueOf<typeof ERROR_CODES>>;
  */
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AUTH001: 'Provided credentials are invalid',
+  AUTH002: 'Provided password is wrong',
 
   SER001: 'Internal Server Error',
   SER002: 'Resource not found',
@@ -34,6 +36,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
  */
 export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   AUTH001: 401,
+  AUTH002: 401,
 
   SER001: 500,
   SER002: 404,

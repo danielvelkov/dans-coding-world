@@ -1,15 +1,21 @@
 import jwt from 'jsonwebtoken';
 import { validPassword } from '@dans-coding-world/shared-util-auth';
 import { client } from '@dans-coding-world/user-data-access';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import { ApiException } from '@dans-coding-world/exceptions';
+import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 
 // Login route for generating JWT
-export const login = async (req: Request, res: Response) => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { email, password } = req.body;
   const user = await client.get({ email });
 
   if (!user)
-    return res.status(401).json({ message: 'No such user/email found' });
+    return next(new ApiException(ERROR_CODES.AUTH.INVALID_CREDENTIALS));
 
   const isPasswordValid = await validPassword(password, user.password);
 
@@ -21,6 +27,6 @@ export const login = async (req: Request, res: Response) => {
     });
     return res.json({ message: 'Login successful', token });
   } else {
-    return res.status(401).json({ message: 'Passwords did not match' });
+    return next(new ApiException(ERROR_CODES.AUTH.INVALID_PASSWORD));
   }
 };
