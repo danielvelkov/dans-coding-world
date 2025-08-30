@@ -1,3 +1,4 @@
+import { HTTP_STATUSES } from './http-statuses.js';
 // T extends object: This is a conditional type. It checks if T is an object type (i.e., not a primitive like string, number, etc.).
 // keyof T: Gets all the keys of T as a union of string/number/symbol literals.
 // T[keyof T]: Indexes into T using all its keys, resulting in a union of all the values.
@@ -35,9 +36,9 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
  * Centralized http status codes for errors
  */
 export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
-  AUTH001: 401,
-  AUTH002: 401,
+  AUTH001: HTTP_STATUSES.UNAUTHORIZED,
+  AUTH002: HTTP_STATUSES.UNAUTHORIZED,
 
-  SER001: 500,
-  SER002: 404,
+  SER001: HTTP_STATUSES.INTERNAL_SERVER_ERROR,
+  SER002: HTTP_STATUSES.NOT_FOUND,
 };
