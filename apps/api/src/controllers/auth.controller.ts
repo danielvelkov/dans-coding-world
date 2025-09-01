@@ -3,10 +3,8 @@ import { validPassword } from '@dans-coding-world/shared-util-auth';
 import { client } from '@dans-coding-world/user-data-access';
 import { NextFunction, Request, Response } from 'express';
 import { ApiException } from '@dans-coding-world/exceptions';
-import {
-  ERROR_CODES,
-  HTTP_STATUSES,
-} from '@dans-coding-world/shared-constants';
+import { ERROR_CODES } from '@dans-coding-world/shared-constants';
+import { StatusCodes } from 'http-status-codes';
 
 // Login route for generating JWT
 export const login = async (
@@ -29,7 +27,7 @@ export const login = async (
       expiresIn: '1d',
     });
     return res
-      .status(HTTP_STATUSES.OK)
+      .status(StatusCodes.OK)
       .json({ message: 'Login successful', token });
   } else {
     return next(new ApiException(ERROR_CODES.AUTH.INVALID_PASSWORD));
