@@ -9,12 +9,14 @@ export function globalErrorHandler(
 ) {
   if (err instanceof ApiException) {
     res.status(err.statusCode).json({
+      status: err.statusCode,
       errorCode: err.errorCode,
       message: err.message,
-      details: err.details,
+      details: err.details ?? undefined,
     });
   } else {
     res.status(500).json({
+      status: 500,
       errorCode: 'INTERNAL_SERVER_ERROR',
       message: 'Something went wrong.',
     });
