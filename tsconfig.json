@@ -35,6 +35,12 @@
     },
     {
       "path": "./libs/shared/util/exceptions"
+    },
+    {
+      "path": "./libs/api/auth"
+    },
+    {
+      "path": "./libs/shared/auth/dtos"
     }
   ]
 }

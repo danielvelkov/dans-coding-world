@@ -39,7 +39,10 @@
         "libs/util-auth/*",
         "libs/test-utils/*",
         "libs/shared/util/shared-constants/*",
-        "libs/shared/util/exceptions/*"
+        "libs/shared/util/exceptions/*",
+        "api/auth/*",
+        "libs/api/auth/*",
+        "libs/shared/auth/dtos/*"
       ]
     },
     {
@@ -108,7 +111,10 @@
         "libs/util-auth/*",
         "libs/test-utils/*",
         "libs/shared/util/shared-constants/*",
-        "libs/shared/util/exceptions/*"
+        "libs/shared/util/exceptions/*",
+        "api/auth/*",
+        "libs/api/auth/*",
+        "libs/shared/auth/dtos/*"
       ],
       "options": {
         "typecheck": {
@@ -120,6 +126,11 @@
   "targetDefaults": {
     "test": {
       "dependsOn": ["^build"]
+    },
+    "@nx/js:tsc": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "generators": {

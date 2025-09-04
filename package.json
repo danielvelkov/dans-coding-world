@@ -78,6 +78,7 @@
     "jest-util": "^30.0.2",
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
+    "jsonc-eslint-parser": "^2.1.0",
     "nx": "21.3.11",
     "prettier": "^2.6.2",
     "prisma": "^6.13.0",
@@ -98,6 +99,11 @@
     "libs/*",
     "libs/shared/data-access/*",
     "libs/tools/*",
-    "libs/shared/util/*"
+    "libs/shared/util/*",
+    "libs/api/*",
+    "api/*",
+    "libs/shared/auth/*",
+    "@dans-coding-world/*",
+    "lib/*"
   ]
 }
