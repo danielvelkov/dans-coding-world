@@ -1,15 +1,41 @@
 import tokenService from './token.service.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { User } from '@dans-coding-world/prisma-schema';
+
 describe('Token service', () => {
-  describe('Should generate a JWT access token', () => {
+  const payload = { sub: '1' };
+  const user = {
+    id: 1,
+  };
+  const tokenSecret = crypto.randomBytes(64).toString('hex');
+
+  testJwtGeneration(
+    'Should generate JWT access token',
+    () => tokenService.generateAccessToken(payload, tokenSecret),
+    tokenSecret,
+    payload
+  );
+
+  testJwtGeneration(
+    'Should generate JWT refresh token',
+    () => tokenService.generateRefreshToken(user as User, tokenSecret),
+    tokenSecret,
+    payload
+  );
+});
+
+function testJwtGeneration(
+  description: string,
+  generateToken: (...args: any[]) => string,
+  secret: string,
+  payload: any
+) {
+  describe(description, () => {
     let token: string;
 
-    const payload = { id: 1 };
-    const tokenSecret = crypto.randomBytes(64).toString('hex');
-
-    beforeEach(() => {
-      token = tokenService.generateAccessToken(payload, tokenSecret);
+    beforeEach(async () => {
+      token = generateToken();
     });
 
     it('should contain 3 parts - header, payload, signature', () => {
@@ -21,7 +47,7 @@ describe('Token service', () => {
     });
 
     it('should provide payload on valid signature', () => {
-      expect(jwt.verify(token, tokenSecret)).toEqual(
+      expect(jwt.verify(token, secret)).toEqual(
         expect.objectContaining(payload)
       );
     });
@@ -38,4 +64,4 @@ describe('Token service', () => {
       }).toThrow('secretOrPrivateKey must have a value');
     });
   });
-});
+}

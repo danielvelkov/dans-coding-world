@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { RefreshToken } from '@dans-coding-world/prisma-schema';
+import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 import { ITokenService } from '../interfaces/token-service.interface.js';
 import config, { AuthConfiguration } from '../config/auth.config.js';
 
@@ -14,15 +14,15 @@ export class TokenService implements ITokenService {
     secret: string = this.authConfig.options.accessSecret,
     expiresIn: number = this.authConfig.options.accessExpiration
   ): string {
-    return jwt.sign(payload, secret, { expiresIn: expiresIn });
+    return jwt.sign(payload, secret, { expiresIn });
   }
 
-  async generateRefreshToken(
-    sub: string,
+  generateRefreshToken(
+    user: User,
     secret: string = this.authConfig.options.refreshSecret,
     expiresIn: number = this.authConfig.options.refreshExpiration
-  ): Promise<string> {
-    return jwt.sign({ sub }, secret, { expiresIn: expiresIn });
+  ): string {
+    return jwt.sign({ sub: user.id.toString() }, secret, { expiresIn });
   }
 
   revokeRefreshToken(token: string): Promise<RefreshToken> {

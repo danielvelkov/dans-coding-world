@@ -4,6 +4,12 @@
   "include": [],
   "references": [
     {
+      "path": "../../../prisma-schema"
+    },
+    {
+      "path": "../../../shared/data-access/interfaces"
+    },
+    {
       "path": "./tsconfig.lib.json"
     }
   ]
