@@ -42,7 +42,8 @@
         "libs/shared/util/exceptions/*",
         "api/auth/*",
         "libs/api/auth/*",
-        "libs/shared/auth/dtos/*"
+        "libs/shared/auth/dtos/*",
+        "libs/api/data-access/token/*"
       ]
     },
     {
@@ -114,7 +115,8 @@
         "libs/shared/util/exceptions/*",
         "api/auth/*",
         "libs/api/auth/*",
-        "libs/shared/auth/dtos/*"
+        "libs/shared/auth/dtos/*",
+        "libs/api/data-access/token/*"
       ],
       "options": {
         "typecheck": {

@@ -41,6 +41,9 @@
     },
     {
       "path": "./libs/api/data-access/user"
+    },
+    {
+      "path": "./libs/api/data-access/token"
     }
   ]
 }
