@@ -14,7 +14,19 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../../shared/data-access/user-data-access/tsconfig.lib.json"
+      "path": "../../shared/util/exceptions/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/util/shared-constants/tsconfig.lib.json"
+    },
+    {
+      "path": "../data-access/user/tsconfig.lib.json"
+    },
+    {
+      "path": "../../prisma-schema/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/auth/dtos/tsconfig.lib.json"
     }
   ],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]

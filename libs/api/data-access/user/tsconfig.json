@@ -7,7 +7,7 @@
       "path": "../../../prisma-schema"
     },
     {
-      "path": "../interfaces"
+      "path": "../../../shared/data-access/interfaces"
     }
   ]
 }

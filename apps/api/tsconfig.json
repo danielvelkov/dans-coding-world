@@ -10,7 +10,7 @@
       "path": "../../libs/shared/util/exceptions"
     },
     {
-      "path": "../../libs/shared/data-access/user-data-access"
+      "path": "../../libs/api/data-access/user"
     },
     {
       "path": "../../libs/shared/util/util-auth"

@@ -32,4 +32,4 @@ class PrismaUserDataAccess implements IUserRepository {
   }
 }
 
-export const client = new PrismaUserDataAccess();
+export const userRepo = new PrismaUserDataAccess();

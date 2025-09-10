@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { validPassword } from '@dans-coding-world/shared-util-auth';
-import { client } from '@dans-coding-world/user-data-access';
+import { userRepo } from '@dans-coding-world/user-data-access';
 import { NextFunction, Request, Response } from 'express';
 import { ApiException } from '@dans-coding-world/exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
@@ -13,7 +13,7 @@ export const login = async (
   next: NextFunction
 ) => {
   const { email, password } = req.body;
-  const user = await client.get({ email });
+  const user = await userRepo.get({ email });
 
   if (!user)
     return next(new ApiException(ERROR_CODES.AUTH.INVALID_CREDENTIALS));

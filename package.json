@@ -104,6 +104,7 @@
     "api/*",
     "libs/shared/auth/*",
     "@dans-coding-world/*",
-    "lib/*"
+    "lib/*",
+    "libs/api/data-access/*"
   ]
 }

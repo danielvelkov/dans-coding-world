@@ -4,7 +4,19 @@
   "include": [],
   "references": [
     {
-      "path": "../../shared/data-access/user-data-access"
+      "path": "../../shared/util/exceptions"
+    },
+    {
+      "path": "../../shared/util/shared-constants"
+    },
+    {
+      "path": "../data-access/user"
+    },
+    {
+      "path": "../../prisma-schema"
+    },
+    {
+      "path": "../../shared/auth/dtos"
     },
     {
       "path": "./tsconfig.lib.json"

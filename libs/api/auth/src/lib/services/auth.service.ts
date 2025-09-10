@@ -1,6 +1,6 @@
 import { IAuthService } from '../interfaces/auth-service.interface.js';
 import { ITokenService } from '../interfaces/token-service.interface.js';
-import { client } from '@dans-coding-world/user-data-access';
+import { userRepo } from '@dans-coding-world/user-data-access';
 import { LoginDto, LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { ApiException } from '@dans-coding-world/exceptions';
@@ -15,7 +15,7 @@ class AuthService implements IAuthService {
   ) {}
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const { email, password } = dto;
-    const user = await client.get({ email });
+    const user = await userRepo.get({ email });
 
     if (!user) throw new ApiException(ERROR_CODES.AUTH.INVALID_CREDENTIALS);
 
