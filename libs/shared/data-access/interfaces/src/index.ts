@@ -1,1 +1,1 @@
-export * from './lib/user-service.interface.js';
+export * from './lib/user-repository.interface.js';

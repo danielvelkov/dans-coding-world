@@ -1,10 +1,10 @@
-import { IUserService } from '@dans-coding-world/shared-data-access-interfaces';
+import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import {
   UserWhereInput,
   client as prisma,
   User,
 } from '@dans-coding-world/prisma-schema';
-class PrismaUserDataAccess implements IUserService {
+class PrismaUserDataAccess implements IUserRepository {
   async getById(id: string): Promise<User | null> {
     return await prisma.user.findFirst({
       where: {

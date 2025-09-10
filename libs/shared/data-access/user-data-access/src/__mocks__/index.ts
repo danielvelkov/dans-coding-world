@@ -1,7 +1,7 @@
-import { IUserService } from '@dans-coding-world/shared-data-access-interfaces';
+import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { UserWhereInput, User } from '@dans-coding-world/prisma-schema';
 import bcrypt from 'bcryptjs';
-class MockUserDataAccess implements IUserService {
+class MockUserDataAccess implements IUserRepository {
   users: User[] = [
     {
       id: 1,
