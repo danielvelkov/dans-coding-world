@@ -4,9 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../data-access/user-data-access"
-    },
-    {
       "path": "../../../prisma-schema"
     },
     {
