@@ -12,17 +12,34 @@ describe('Token service', () => {
 
   testJwtGeneration(
     'Should generate JWT access token',
-    () => tokenService.generateAccessToken(payload, tokenSecret),
+    () =>
+      tokenService.generateAccessToken(payload, {
+        secret: tokenSecret,
+        expiresIn: 1,
+      }),
     tokenSecret,
     payload
   );
 
   testJwtGeneration(
     'Should generate JWT refresh token',
-    () => tokenService.generateRefreshToken(user as User, tokenSecret),
+    () =>
+      tokenService.generateRefreshToken(user as User, {
+        secret: tokenSecret,
+        expiresIn: 1,
+      }),
     tokenSecret,
     payload
   );
+
+  it('should throw when secret is empty', async () => {
+    expect(() => {
+      tokenService.generateAccessToken(payload, {
+        secret: '',
+        expiresIn: 1,
+      });
+    }).toThrow('secretOrPrivateKey must have a value');
+  });
 });
 
 function testJwtGeneration(
@@ -56,12 +73,6 @@ function testJwtGeneration(
       expect(() => {
         jwt.verify(token, 'INVALID SECRET');
       }).toThrow('invalid signature');
-    });
-
-    it('should throw when secret is empty', async () => {
-      expect(() => {
-        tokenService.generateAccessToken({ userId: 1 }, '', 1);
-      }).toThrow('secretOrPrivateKey must have a value');
     });
   });
 }

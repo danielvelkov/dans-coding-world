@@ -6,7 +6,7 @@ import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
  * @example
  * ```typescript
  * export class TokenService implements ITokenService {
- *   async generateAccessToken(payload: unknown, secret: string, expiresIn:number): Promise<string> {
+ *   async generateAccessToken(payload: unknown, options?: TokenOptions): Promise<string> {
  *     // Implementation
  *   }
  *   // ...
@@ -19,24 +19,21 @@ import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 export interface ITokenService {
   /**
    * Generates user access tokens for JWT short-term authentication.
-   * @param payload The JWT token payload data. Could be anything.
-   * @param secret Access token secret.
-   * @param expiresIn Time till expiration in ms.
+   * @param payload The token payload data. Could be anything.
+   * @param options Token related options like secret, time till expiration, etc.
    * @returns The generated token as string.
    * @example
    * ```typescript
    * const accessToken = await tokenService.generateAccessToken(
    *    {sub:user.id, user},
-   *    ACCESS_TOKEN_SECRET,
-   *    1000 * 60 * 15 // 15 mins
+   *    {
+   *      secret:ACCESS_TOKEN_SECRET,
+   *      expiresIn: 1000 * 60 * 15 // 15 mins
+   *    }
    * );
    * ```
    */
-  generateAccessToken(
-    payload: unknown,
-    secret: string,
-    expiresIn: number
-  ): string;
+  generateAccessToken(payload: unknown, options?: TokenOptions): string;
 
   /**
    * Generates user refresh token for JWT long-term authentication.
@@ -48,14 +45,21 @@ export interface ITokenService {
    * ```typescript
    * const refreshToken = await tokenService.generateRefreshToken(
    *    user.id,
-   *    REFRESH_TOKEN_SECRET,
-   *    1000 * 60 * 60 * 24 * 30 // 1 month
+   *    {
+   *      secret:REFRESH_TOKEN_SECRET,
+   *      expiresIn: 1000 * 60 * 60 * 24 * 30 // 1 month
+   *    }
    * );
    * ```
    */
-  generateRefreshToken(user: User, secret: string, expiresIn: number): string;
+  generateRefreshToken(user: User, options?: TokenOptions): string;
 
   revokeRefreshToken(token: string): Promise<RefreshToken>;
   revokeAllUserRefreshTokens(userId: string): Promise<RefreshToken[]>;
   revokeAllRefreshTokens(): Promise<RefreshToken[]>;
 }
+
+export type TokenOptions = {
+  secret: string;
+  expiresIn: number;
+};

@@ -1,28 +1,37 @@
 import jwt from 'jsonwebtoken';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
-import { ITokenService } from '../interfaces/token-service.interface.js';
+import {
+  ITokenService,
+  TokenOptions,
+} from '../interfaces/token-service.interface.js';
 import config, { AuthConfiguration } from '../config/auth.config.js';
 
 /**
  * @implements {ITokenService}
  */
 export class TokenService implements ITokenService {
-  constructor(public authConfig: AuthConfiguration = config) {}
+  constructor(private authConfig: AuthConfiguration = config) {}
 
   generateAccessToken(
     payload: object,
-    secret: string = this.authConfig.options.accessSecret,
-    expiresIn: number = this.authConfig.options.accessExpiration
+    options: TokenOptions = {
+      secret: this.authConfig.options.accessSecret,
+      expiresIn: this.authConfig.options.accessExpiration,
+    }
   ): string {
-    return jwt.sign(payload, secret, { expiresIn });
+    return jwt.sign(payload, options.secret, { expiresIn: options.expiresIn });
   }
 
   generateRefreshToken(
     user: User,
-    secret: string = this.authConfig.options.refreshSecret,
-    expiresIn: number = this.authConfig.options.refreshExpiration
+    options: TokenOptions = {
+      secret: this.authConfig.options.refreshSecret,
+      expiresIn: this.authConfig.options.refreshExpiration,
+    }
   ): string {
-    return jwt.sign({ sub: user.id.toString() }, secret, { expiresIn });
+    return jwt.sign({ sub: user.id.toString() }, options.secret, {
+      expiresIn: options.expiresIn,
+    });
   }
 
   revokeRefreshToken(token: string): Promise<RefreshToken> {
