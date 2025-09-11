@@ -41,4 +41,4 @@ class MockUserDataAccess implements IUserRepository {
   }
 }
 
-export const client = new MockUserDataAccess();
+export const userRepo = new MockUserDataAccess();
