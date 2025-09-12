@@ -9,10 +9,14 @@ export function globalErrorHandler(
 ) {
   if (err instanceof ApiException) {
     res.status(err.statusCode).json({
-      status: err.statusCode,
-      errorCode: err.errorCode,
-      message: err.message,
-      details: err.details ?? undefined,
+      success: false,
+      data: null,
+      error: {
+        status: err.statusCode,
+        errorCode: err.errorCode,
+        message: err.message,
+        details: err.details ?? undefined,
+      },
     });
   } else {
     res.status(500).json({
