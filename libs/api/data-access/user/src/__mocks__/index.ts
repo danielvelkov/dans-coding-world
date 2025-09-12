@@ -1,13 +1,14 @@
 import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { UserWhereInput, User } from '@dans-coding-world/prisma-schema';
 import bcrypt from 'bcryptjs';
-class MockUserDataAccess implements IUserRepository {
+
+export class MockUserDataAccess implements IUserRepository {
   users: User[] = [
     {
       id: 1,
-      username: 'moderator123',
-      email: 'moderator123@gmail.com',
-      password: bcrypt.hashSync('moderator123', 10),
+      username: 'fakeUser123',
+      email: 'fakeUser123@gmail.com',
+      password: bcrypt.hashSync('fakeUser123', 10),
       role: 'MOD',
     },
   ];
@@ -40,5 +41,3 @@ class MockUserDataAccess implements IUserRepository {
     return user;
   }
 }
-
-export const userRepo = new MockUserDataAccess();

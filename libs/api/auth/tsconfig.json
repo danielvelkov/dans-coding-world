@@ -10,13 +10,16 @@
       "path": "../../shared/util/shared-constants"
     },
     {
-      "path": "../data-access/user"
+      "path": "../../shared/data-access/interfaces"
     },
     {
       "path": "../../prisma-schema"
     },
     {
       "path": "../../shared/auth/dtos"
+    },
+    {
+      "path": "../data-access/user"
     },
     {
       "path": "./tsconfig.lib.json"

@@ -1,1 +1,7 @@
-export * from './lib/auth.controller.js';
+import 'reflect-metadata';
+export * from './lib/services/auth.service.js';
+export * from './lib/services/token.service.js';
+export * from './lib/auth.module.js';
+export * from './lib/config/auth.config.js';
+export * from './lib/interfaces/auth-service.interface.js';
+export * from './lib/helper/password.helper.js';

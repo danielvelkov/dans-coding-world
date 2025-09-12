@@ -29,7 +29,9 @@ describe('POST /api/v1/auth/login', () => {
 
     expect(res.status).toBe(200);
     expect(res.data).toHaveProperty('message', 'Login successful');
-    expect(res.data).toHaveProperty('token');
+    expect(res.data).toHaveProperty('accessToken');
+    expect(res.data).toHaveProperty('refreshToken');
+    expect(res.data).toHaveProperty('user');
   });
 
   it('should return an error message on invalid credentials', async () => {

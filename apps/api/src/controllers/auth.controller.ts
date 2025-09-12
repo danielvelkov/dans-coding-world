@@ -1,35 +1,22 @@
-import jwt from 'jsonwebtoken';
-import { validPassword } from '@dans-coding-world/shared-util-auth';
-import { userRepo } from '@dans-coding-world/user-data-access';
 import { NextFunction, Request, Response } from 'express';
-import { ApiException } from '@dans-coding-world/exceptions';
-import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { StatusCodes } from 'http-status-codes';
+import { IAuthService } from '@dans-coding-world/api-auth';
+import { LoginDto } from '@dans-coding-world/shared-auth-dto';
 
-// Login route for generating JWT
-export const login = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { email, password } = req.body;
-  const user = await userRepo.get({ email });
+export class AuthController {
+  constructor(private authService: IAuthService) {}
+  // Login route for generating JWT
+  login = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const loginDto: LoginDto = req.body;
 
-  if (!user)
-    return next(new ApiException(ERROR_CODES.AUTH.INVALID_CREDENTIALS));
+      const result = await this.authService.login(loginDto);
 
-  const isPasswordValid = await validPassword(password, user.password);
-
-  if (isPasswordValid) {
-    const payload = { sub: user.id };
-
-    const token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET ?? '', {
-      expiresIn: '1d',
-    });
-    return res
-      .status(StatusCodes.OK)
-      .json({ message: 'Login successful', token });
-  } else {
-    return next(new ApiException(ERROR_CODES.AUTH.INVALID_PASSWORD));
-  }
-};
+      return res
+        .status(StatusCodes.OK)
+        .json({ message: 'Login successful', ...result });
+    } catch (error) {
+      return next(error);
+    }
+  };
+}

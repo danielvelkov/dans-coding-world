@@ -1,6 +1,4 @@
 import express from 'express';
-import passport from 'passport';
-import { strategy } from '@dans-coding-world/shared-util-auth';
 import {
   ApiException,
   globalErrorHandler,
@@ -16,7 +14,7 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-passport.use(strategy);
+// passport.use(strategy);
 
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 

@@ -1,17 +1,23 @@
 import { IAuthService } from '../interfaces/auth-service.interface.js';
-import { ITokenService } from '../interfaces/token-service.interface.js';
-import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
-import { userRepo } from '@dans-coding-world/user-data-access';
+import type { ITokenService } from '../interfaces/token-service.interface.js';
+import type { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { LoginDto, LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { ApiException } from '@dans-coding-world/exceptions';
 import { validPassword } from '../helper/password.helper.js';
-import TokenService from './token.service.js';
+import { Inject, Injectable } from 'injection-js';
 
+export const TOKEN_SERVICE_TOKEN = 'ITokenService';
+export const USER_REPOSITORY_TOKEN = 'IUserRepository';
+// export const REFRESH_TOKEN_REPOSITORY_TOKEN = 'IRefreshTokenRepository';
+
+@Injectable()
 export class AuthService implements IAuthService {
   constructor(
-    public tokenService: ITokenService = TokenService,
-    public users: IUserRepository = userRepo
+    @Inject(TOKEN_SERVICE_TOKEN)
+    public tokenService: ITokenService,
+    @Inject(USER_REPOSITORY_TOKEN)
+    public users: IUserRepository
   ) {}
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const { email, password } = dto;
@@ -21,13 +27,15 @@ export class AuthService implements IAuthService {
 
     const isPasswordValid = await validPassword(password, user.password);
 
-    if (isPasswordValid) {
-      const payload = { sub: user.id };
+    if (!isPasswordValid)
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_PASSWORD);
 
-      const accessToken = this.tokenService.generateAccessToken(payload);
-      const refreshToken = this.tokenService.generateRefreshToken(user);
-      return { accessToken, refreshToken, user };
-    } else throw new ApiException(ERROR_CODES.AUTH.INVALID_PASSWORD);
+    const payload = { sub: user.id };
+
+    const accessToken = this.tokenService.generateAccessToken(payload);
+    const refreshToken = this.tokenService.generateRefreshToken(user);
+
+    return { accessToken, refreshToken, user };
   }
 
   async refreshToken(
@@ -37,5 +45,3 @@ export class AuthService implements IAuthService {
     throw new Error('Method not implemented.');
   }
 }
-
-export default new AuthService();

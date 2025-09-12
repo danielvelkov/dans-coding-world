@@ -10,10 +10,10 @@
       "path": "../../libs/shared/util/exceptions"
     },
     {
-      "path": "../../libs/api/data-access/user"
+      "path": "../../libs/shared/auth/dtos"
     },
     {
-      "path": "../../libs/shared/util/util-auth"
+      "path": "../../libs/api/auth"
     },
     {
       "path": "./tsconfig.app.json"

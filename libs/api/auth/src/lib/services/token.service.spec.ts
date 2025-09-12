@@ -1,7 +1,17 @@
-import tokenService from './token.service.js';
+import 'reflect-metadata';
+import { TokenService, AUTH_CONFIG_TOKEN } from './token.service.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { User } from '@dans-coding-world/prisma-schema';
+import { ReflectiveInjector } from 'injection-js';
+import config from '../config/auth.config.js';
+
+const injector = ReflectiveInjector.resolveAndCreate([
+  TokenService,
+  { provide: AUTH_CONFIG_TOKEN, useValue: config },
+]);
+
+const tokenService = injector.get(TokenService) as TokenService;
 
 describe('Token service', () => {
   const payload = { sub: '1' };
@@ -41,6 +51,8 @@ describe('Token service', () => {
     }).toThrow('secretOrPrivateKey must have a value');
   });
 });
+
+///// TEST HELPERS /////
 
 function testJwtGeneration(
   description: string,

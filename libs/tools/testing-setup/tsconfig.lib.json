@@ -14,7 +14,7 @@
   "include": ["src/**/*.ts", "src/**/*.json"],
   "references": [
     {
-      "path": "../../shared/util/util-auth/tsconfig.lib.json"
+      "path": "../../api/auth/tsconfig.lib.json"
     },
     {
       "path": "../../prisma-schema/tsconfig.lib.json"

@@ -1,6 +1,6 @@
 import users from '../data/users.json' with {type: "json"};
 import { client, Role } from '@dans-coding-world/prisma-schema';
-import { hashPassword } from '@dans-coding-world/shared-util-auth'
+import { hashPassword } from '@dans-coding-world/api-auth'
 
  export const  seedUsers = async () => {
   try {

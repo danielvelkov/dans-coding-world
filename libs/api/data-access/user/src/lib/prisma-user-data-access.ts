@@ -4,7 +4,7 @@ import {
   client as prisma,
   User,
 } from '@dans-coding-world/prisma-schema';
-class PrismaUserDataAccess implements IUserRepository {
+export class PrismaUserDataAccess implements IUserRepository {
   async getById(id: string): Promise<User | null> {
     return await prisma.user.findFirst({
       where: {
@@ -31,5 +31,3 @@ class PrismaUserDataAccess implements IUserRepository {
     return await prisma.user.create({ data });
   }
 }
-
-export const userRepo = new PrismaUserDataAccess();

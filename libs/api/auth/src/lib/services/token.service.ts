@@ -1,16 +1,24 @@
+import { Injectable, Inject } from 'injection-js';
 import jwt from 'jsonwebtoken';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 import {
   ITokenService,
   TokenOptions,
 } from '../interfaces/token-service.interface.js';
-import config, { AuthConfiguration } from '../config/auth.config.js';
+import type { AuthConfiguration } from '../config/auth.config.js';
+import config from '../config/auth.config.js';
+
+export const AUTH_CONFIG_TOKEN = 'AuthConfiguration';
 
 /**
  * @implements {ITokenService}
  */
+@Injectable()
 export class TokenService implements ITokenService {
-  constructor(private authConfig: AuthConfiguration = config) {}
+  constructor(
+    @Inject(AUTH_CONFIG_TOKEN)
+    private authConfig: AuthConfiguration = config
+  ) {}
 
   generateAccessToken(
     payload: object,
@@ -44,5 +52,3 @@ export class TokenService implements ITokenService {
     throw new Error('Method not implemented.');
   }
 }
-
-export default new TokenService();

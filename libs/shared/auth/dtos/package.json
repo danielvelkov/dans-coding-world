@@ -14,7 +14,12 @@
     "./package.json": "./package.json"
   },
   "nx": {
-    "name": "@dans-coding-world/shared-auth-dto"
+    "name": "@dans-coding-world/shared-auth-dto",
+    "tags": [
+      "layer:api",
+      "scope:auth",
+      "type:lib"
+    ]
   },
   "dependencies": {}
 }

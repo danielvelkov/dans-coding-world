@@ -32,10 +32,10 @@
       "path": "../../libs/shared/util/exceptions/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/api/data-access/user/tsconfig.lib.json"
+      "path": "../../libs/shared/auth/dtos/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/shared/util/util-auth/tsconfig.lib.json"
+      "path": "../../libs/api/auth/tsconfig.lib.json"
     }
   ]
 }

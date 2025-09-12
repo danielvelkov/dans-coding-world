@@ -1,5 +1,8 @@
 import { Router } from 'express';
-import { login } from '../controllers/auth.controller.js';
+import { authInjector, AuthService } from '@dans-coding-world/api-auth';
+import { AuthController } from '../controllers/auth.controller';
+
+const authController = new AuthController(authInjector.get(AuthService));
 
 const authRouter = Router();
 
@@ -67,7 +70,7 @@ const authRouter = Router();
  *   post:
  *     tags: [Authentication]
  *     summary: Login a user, using his/her credentials.
- *     description: Checks against provided user credentials and if valid, generates an access token.
+ *     description: Checks against provided user credentials and if valid, provides an access and refresh tokens.
  *     requestBody:
  *       required: true
  *       content:
@@ -87,12 +90,16 @@ const authRouter = Router();
  *                 message:
  *                   type: string
  *                   description: Success message
- *                 token:
+ *                 accessToken:
  *                   type: string
- *                   description: The signed JWT access token
+ *                   description: The signed short-term JWT access token
+ *                 refreshToken:
+ *                   type: string
+ *                   description: The signed long-term JWT refresh token
  *               example:
  *                 message: Login successful
- *                 token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+ *                 accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+ *                 refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
  *       401:
  *         description: Unauthorized - wrong credentials
  *         content:
@@ -102,6 +109,6 @@ const authRouter = Router();
  *                 - $ref: '#/components/schemas/WrongCredentialsError'
  *                 - $ref: '#/components/schemas/WrongPasswordError'
  */
-authRouter.post('/login', login);
+authRouter.post('/login', authController.login);
 
 export default authRouter;
