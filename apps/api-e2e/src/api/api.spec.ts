@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { seedUsers } from '@dans-coding-world/testing-setup';
 import { BaseResponse } from '@dans-coding-world/api-types';
+import { LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
 
 if (process.env.NODE_ENV !== 'test') throw new Error('NODE_ENV not in "test"');
 
@@ -30,6 +31,7 @@ describe('POST /api/v1/auth/login', () => {
 
     expect(res.status).toBe(200);
     const { data } = res.data as BaseResponse;
+    expect((data as LoginResponseDto).user).not.toHaveProperty('password');
     expect(data).toHaveProperty('message', 'Login successful');
     expect(data).toHaveProperty('accessToken');
     expect(data).toHaveProperty('refreshToken');

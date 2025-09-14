@@ -4,6 +4,6 @@ export class LoginResponseDto {
   constructor(
     public accessToken: string,
     public refreshToken: string,
-    public user: User
+    public user: Omit<User, 'password'>
   ) {}
 }

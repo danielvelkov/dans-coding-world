@@ -35,7 +35,9 @@ export class AuthService implements IAuthService {
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken(user);
 
-    return { accessToken, refreshToken, user };
+    const { password: _, ...userWithoutPass } = user;
+
+    return { accessToken, refreshToken, user: userWithoutPass };
   }
 
   async refreshToken(
