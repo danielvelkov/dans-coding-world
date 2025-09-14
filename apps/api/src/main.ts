@@ -1,13 +1,12 @@
 import express from 'express';
-import {
-  ApiException,
-  globalErrorHandler,
-} from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/exceptions';
 import * as path from 'path';
 import authRouter from './routes/auth.router.js';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
+import { responseWrapper } from './middlewares/response-wrapper.middleware.js';
+import { errorHandler } from './middlewares/error-handler.middleware.js';
 
 const app = express();
 
@@ -22,6 +21,7 @@ app.get('/api/v1', (req, res) =>
   res.status(200).send({ message: 'Welcome to v1 of the api!' })
 );
 
+app.use(responseWrapper);
 app.use('/api/v1/auth', authRouter);
 
 const swaggerDocOptions = {
@@ -56,7 +56,7 @@ app.use((req, res, next) => {
   next(new ApiException(ERROR_CODES.SERVER.NOT_FOUND));
 });
 
-app.use(globalErrorHandler);
+app.use(errorHandler);
 
 const port = process.env.PORT || 3333;
 const server = app.listen(port, () => {

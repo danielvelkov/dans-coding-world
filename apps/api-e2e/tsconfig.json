@@ -9,6 +9,9 @@
   "include": ["jest.config.ts", "src/**/*.ts"],
   "references": [
     {
+      "path": "../../libs/shared/util/api-types"
+    },
+    {
       "path": "../../libs/tools/testing-setup"
     }
   ]

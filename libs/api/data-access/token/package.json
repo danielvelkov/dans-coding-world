@@ -13,8 +13,5 @@
     },
     "./package.json": "./package.json"
   },
-  "nx": {
-    "name": "token-data-access"
-  },
   "dependencies": {}
 }

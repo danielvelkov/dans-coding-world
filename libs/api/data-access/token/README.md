@@ -1,3 +1,3 @@
-# token-data-access
+# @dans-coding-world/token-data-access
 
 This library was generated with [Nx](https://nx.dev).

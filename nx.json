@@ -43,7 +43,8 @@
         "api/auth/*",
         "libs/api/auth/*",
         "libs/shared/auth/dtos/*",
-        "libs/api/data-access/token/*"
+        "libs/api/data-access/token/*",
+        "libs/shared/util/api-types/*"
       ]
     },
     {
@@ -116,7 +117,8 @@
         "api/auth/*",
         "libs/api/auth/*",
         "libs/shared/auth/dtos/*",
-        "libs/api/data-access/token/*"
+        "libs/api/data-access/token/*",
+        "libs/shared/util/api-types/*"
       ],
       "options": {
         "typecheck": {

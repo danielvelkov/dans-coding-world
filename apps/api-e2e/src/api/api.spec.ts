@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { seedUsers } from '@dans-coding-world/testing-setup';
+import { BaseResponse } from '@dans-coding-world/api-types';
 
 if (process.env.NODE_ENV !== 'test') throw new Error('NODE_ENV not in "test"');
 
@@ -17,21 +18,22 @@ describe('GET /api/v1', () => {
 
 describe('POST /api/v1/auth/login', () => {
   it('should return an access token on valid credentials', async () => {
-    const data = new URLSearchParams();
-    data.append('email', 'moderator123@gmail.com');
-    data.append('password', 'moderator123');
+    const urlSearchParams = new URLSearchParams();
+    urlSearchParams.append('email', 'moderator123@gmail.com');
+    urlSearchParams.append('password', 'moderator123');
 
-    const res = await axios.post('/api/v1/auth/login', data, {
+    const res = await axios.post('/api/v1/auth/login', urlSearchParams, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
 
     expect(res.status).toBe(200);
-    expect(res.data).toHaveProperty('message', 'Login successful');
-    expect(res.data).toHaveProperty('accessToken');
-    expect(res.data).toHaveProperty('refreshToken');
-    expect(res.data).toHaveProperty('user');
+    const { data } = res.data as BaseResponse;
+    expect(data).toHaveProperty('message', 'Login successful');
+    expect(data).toHaveProperty('accessToken');
+    expect(data).toHaveProperty('refreshToken');
+    expect(data).toHaveProperty('user');
   });
 
   it('should return an error message on invalid credentials', async () => {
@@ -48,7 +50,9 @@ describe('POST /api/v1/auth/login', () => {
     } catch (err) {
       const error = err as AxiosError;
       expect(error.status).toBe(401);
-      expect(error.response?.data).toHaveProperty(
+
+      const response = error.response?.data as BaseResponse;
+      expect(response.error).toHaveProperty(
         'message',
         'Provided credentials are invalid'
       );
@@ -68,8 +72,9 @@ describe('POST /api/v1/auth/login', () => {
       });
     } catch (err) {
       const error = err as AxiosError;
+      const response = error.response?.data as BaseResponse;
       expect(error.status).toBe(401);
-      expect(error.response?.data).toHaveProperty(
+      expect(response.error).toHaveProperty(
         'message',
         'Provided password is wrong'
       );

@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../libs/shared/util/api-types"
+    },
+    {
       "path": "../../libs/shared/util/shared-constants"
     },
     {

@@ -44,6 +44,9 @@
     },
     {
       "path": "./libs/api/data-access/token"
+    },
+    {
+      "path": "./libs/shared/util/api-types"
     }
   ]
 }
