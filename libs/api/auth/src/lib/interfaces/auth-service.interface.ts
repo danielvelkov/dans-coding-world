@@ -33,7 +33,7 @@ export interface IAuthService {
 
   /**
    * Reauthenticate an user by providing valid refresh token.
-   * After invalidating old token, returns new access and refresh tokens .
+   * After invalidating the old token, returns new access and refresh tokens .
    * @param refreshToken User refresh token.
    * @param userId User Id.
    * @returns Authentication response with access and refresh tokens, alongside user data

@@ -19,6 +19,9 @@
       "path": "../../shared/auth/dtos"
     },
     {
+      "path": "../data-access/token"
+    },
+    {
       "path": "../data-access/user"
     },
     {

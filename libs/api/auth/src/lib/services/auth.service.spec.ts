@@ -6,6 +6,7 @@ import {
   AuthService,
   TOKEN_SERVICE_TOKEN,
   USER_REPOSITORY_TOKEN,
+  REFRESH_TOKEN_REPOSITORY_TOKEN,
 } from './auth.service.js';
 import config from '../config/auth.config.js';
 import { hashPassword } from '../helper/password.helper.js';
@@ -18,8 +19,15 @@ const mockUserRepo = {
   })),
 };
 
+const mockRefreshTokenRepo = {
+  create: jest.fn(async () => ({
+    token: '',
+  })),
+};
+
 const injector = ReflectiveInjector.resolveAndCreate([
   AuthService,
+  { provide: REFRESH_TOKEN_REPOSITORY_TOKEN, useValue: mockRefreshTokenRepo },
   { provide: TOKEN_SERVICE_TOKEN, useClass: TokenService },
   { provide: USER_REPOSITORY_TOKEN, useValue: mockUserRepo },
   { provide: AUTH_CONFIG_TOKEN, useValue: config },

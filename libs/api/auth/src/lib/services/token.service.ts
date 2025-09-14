@@ -6,7 +6,6 @@ import {
   TokenOptions,
 } from '../interfaces/token-service.interface.js';
 import type { AuthConfiguration } from '../config/auth.config.js';
-import config from '../config/auth.config.js';
 
 export const AUTH_CONFIG_TOKEN = 'AuthConfiguration';
 
@@ -17,7 +16,7 @@ export const AUTH_CONFIG_TOKEN = 'AuthConfiguration';
 export class TokenService implements ITokenService {
   constructor(
     @Inject(AUTH_CONFIG_TOKEN)
-    private authConfig: AuthConfiguration = config
+    private authConfig: AuthConfiguration
   ) {}
 
   generateAccessToken(

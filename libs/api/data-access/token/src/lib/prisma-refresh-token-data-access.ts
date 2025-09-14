@@ -4,7 +4,7 @@ import {
 } from '@dans-coding-world/prisma-schema';
 import { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
 
-class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
+export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
   async get(token: string): Promise<RefreshToken | null> {
     return await prisma.refreshToken.findFirst({
       where: {
@@ -12,6 +12,7 @@ class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
       },
     });
   }
+
   create(
     token: string,
     userId: string,
@@ -29,5 +30,3 @@ class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
     throw new Error('Method not implemented.');
   }
 }
-
-export const refreshTokenRepo = new PrismaRefreshTokenDataAccess();

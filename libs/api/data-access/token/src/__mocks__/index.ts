@@ -1,6 +1,6 @@
 import { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { RefreshToken } from '@dans-coding-world/prisma-schema';
-class MockRefreshTokenDataAccess implements IRefreshTokenRepository {
+export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
   tokens: RefreshToken[] = [
     {
       token: '',
@@ -37,5 +37,3 @@ class MockRefreshTokenDataAccess implements IRefreshTokenRepository {
     throw new Error('Method not implemented.');
   }
 }
-
-export const client = new MockRefreshTokenDataAccess();
