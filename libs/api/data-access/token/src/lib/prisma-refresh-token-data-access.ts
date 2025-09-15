@@ -29,4 +29,11 @@ export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
   update(data: RefreshToken): Promise<RefreshToken> {
     throw new Error('Method not implemented.');
   }
+  async delete(data: RefreshToken): Promise<RefreshToken> {
+    return await prisma.refreshToken.delete({
+      where: {
+        ...data,
+      },
+    });
+  }
 }

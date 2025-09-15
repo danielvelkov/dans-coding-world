@@ -36,4 +36,8 @@ export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
   update(data: RefreshToken): Promise<RefreshToken> {
     throw new Error('Method not implemented.');
   }
+  delete(data: RefreshToken): Promise<RefreshToken> {
+    this.tokens = this.tokens.filter((t) => t.token !== data.token);
+    return Promise.resolve(data);
+  }
 }
