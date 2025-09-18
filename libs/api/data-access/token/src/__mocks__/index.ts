@@ -1,6 +1,6 @@
 import { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { RefreshToken } from '@dans-coding-world/prisma-schema';
-export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
+export class MockRefreshTokenDataAccess implements IRefreshTokenRepository {
   tokens: RefreshToken[] = [
     {
       token: '',
@@ -12,6 +12,9 @@ export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
   ];
   async get(token: string): Promise<RefreshToken | null> {
     return this.tokens.find((t) => t.token === token) ?? null;
+  }
+  async getUserTokens(userId: string): Promise<RefreshToken[] | null> {
+    return this.tokens.filter((t) => t.userId.toString() === userId);
   }
   async create(
     token: string,

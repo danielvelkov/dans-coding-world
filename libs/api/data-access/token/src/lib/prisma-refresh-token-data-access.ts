@@ -13,6 +13,12 @@ export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
     });
   }
 
+  async getUserTokens(userId: string): Promise<RefreshToken[] | null> {
+    return await prisma.refreshToken.findMany({
+      where: { userId: Number(userId) },
+    });
+  }
+
   create(
     token: string,
     userId: string,
