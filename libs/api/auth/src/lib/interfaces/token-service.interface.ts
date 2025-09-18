@@ -1,4 +1,5 @@
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
+import { JwtPayload } from 'jsonwebtoken';
 /**
  * Token generation and control service which provides:
  * - generation of user access and refresh tokens
@@ -38,8 +39,7 @@ export interface ITokenService {
   /**
    * Generates user refresh token for JWT long-term authentication.
    * @param user User object containing id
-   * @param secret Refresh token secret.
-   * @param expiresIn Time till expiration in ms.
+   * @param options Token related options like secret, time till expiration, etc.
    * @returns The generated token as string.
    * @example
    * ```typescript
@@ -53,6 +53,7 @@ export interface ITokenService {
    * ```
    */
   generateRefreshToken(user: User, options?: TokenOptions): string;
+  verifyRefreshToken(token: string, options?: TokenOptions): JwtPayload;
 
   revokeRefreshToken(token: string): Promise<RefreshToken>;
   revokeAllUserRefreshTokens(userId: string): Promise<RefreshToken[]>;
