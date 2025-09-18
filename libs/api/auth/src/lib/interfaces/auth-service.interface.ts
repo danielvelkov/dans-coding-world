@@ -32,19 +32,15 @@ export interface IAuthService {
   login(dto: LoginDto): Promise<LoginResponseDto>;
 
   /**
-   * Reauthenticate an user by providing valid refresh token.
-   * After invalidating the old token, returns new access and refresh tokens .
+   * Reauthenticate an user by providing a valid refresh token.
+   * After invalidating the old token, returns new access and refresh tokens.
    * @param refreshToken User refresh token.
-   * @param userId User Id.
    * @returns Authentication response with access and refresh tokens, alongside user data
    * @throws {AppException} When refresh token is invalid, expired or revoked (AUTH003).
    * @example
    * ```typescript
-   * const { accessToken, refreshToken, user } = await authService.login({
-   *    username: 'user123gmail.com',
-   *    password: 'user123',
-   * });
+   * const { accessToken, refreshToken, user } = await authService.refreshToken(refreshToken);
    * ```
    */
-  refreshToken(refreshToken: string, userId: string): Promise<LoginResponseDto>;
+  refreshToken(refreshToken: string): Promise<LoginResponseDto>;
 }

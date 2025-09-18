@@ -10,6 +10,7 @@ import { ApiException } from '@dans-coding-world/exceptions';
 import { validPassword, hashPassword } from '../helper/password.helper.js';
 import { Inject, Injectable } from 'injection-js';
 import type { AuthConfiguration } from '../config/auth.config.js';
+import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 
 export const AUTH_CONFIG_TOKEN = 'AuthConfiguration';
 export const TOKEN_SERVICE_TOKEN = 'ITokenService';
@@ -39,8 +40,21 @@ export class AuthService implements IAuthService {
     if (!isPasswordValid)
       throw new ApiException(ERROR_CODES.AUTH.INVALID_PASSWORD);
 
-    const payload = { sub: user.id };
+    return this.generateLoginResponse(user);
+  }
+  async refreshToken(token: string): Promise<LoginResponseDto> {
+    const [user, refreshToken] = await this.validateAndGetRefreshToken(token);
 
+    // Clean up the old refresh token
+    if (refreshToken) {
+      await this.refreshTokens.delete(refreshToken);
+    }
+
+    return this.generateLoginResponse(user);
+  }
+
+  private async generateLoginResponse(user: User): Promise<LoginResponseDto> {
+    const payload = { sub: user.id };
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken(user);
 
@@ -51,14 +65,11 @@ export class AuthService implements IAuthService {
 
     const { password: _, ...userWithoutPass } = user;
 
-    return { accessToken, refreshToken, user: userWithoutPass };
-  }
-
-  async refreshToken(
-    refreshToken: string,
-    userId: string
-  ): Promise<LoginResponseDto> {
-    throw new Error('Method not implemented.');
+    return {
+      accessToken,
+      refreshToken,
+      user: userWithoutPass,
+    };
   }
 
   private async storeUserRefreshToken(
@@ -69,5 +80,66 @@ export class AuthService implements IAuthService {
       Date.now() + this.authConfig.options.refreshExpiration
     );
     await this.refreshTokens.create(token, userId, expiresAt);
+  }
+
+  private async validateAndGetRefreshToken(
+    token: string
+  ): Promise<[User, RefreshToken]> {
+    const payload = this.tokenService.verifyRefreshToken(token);
+    const userId = payload.sub;
+
+    if (!userId) {
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
+    }
+
+    const user = await this.users.getById(userId.toString());
+    if (!user) {
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
+    }
+
+    const refreshToken = await this.findUserRefreshTokenEntry(token, userId);
+    if (!refreshToken) {
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
+    }
+
+    this.validateRefreshTokenState(refreshToken);
+
+    return [user, refreshToken];
+  }
+
+  private async findUserRefreshTokenEntry(
+    token: string,
+    userId: string
+  ): Promise<RefreshToken | null> {
+    const refreshTokens = await this.refreshTokens.getUserTokens(userId);
+
+    if (!refreshTokens?.length) {
+      return null;
+    }
+
+    for (const rt of refreshTokens) {
+      try {
+        const isValid = await validPassword(token, rt.token);
+        if (isValid) {
+          return rt;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return null;
+  }
+
+  private validateRefreshTokenState(refreshToken: RefreshToken): void {
+    const now = new Date();
+
+    if (refreshToken.revoked) {
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
+    }
+
+    if (refreshToken.expiresAt < now) {
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
+    }
   }
 }
