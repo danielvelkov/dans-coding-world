@@ -1,15 +1,8 @@
 import { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { RefreshToken } from '@dans-coding-world/prisma-schema';
 export class MockRefreshTokenDataAccess implements IRefreshTokenRepository {
-  tokens: RefreshToken[] = [
-    {
-      token: '',
-      userId: 1,
-      revoked: false,
-      expiresAt: new Date(),
-      createdAt: new Date(),
-    },
-  ];
+  tokens: RefreshToken[] = [];
+
   async get(token: string): Promise<RefreshToken | null> {
     return this.tokens.find((t) => t.token === token) ?? null;
   }

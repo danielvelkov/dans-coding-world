@@ -1,17 +1,8 @@
 import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { UserWhereInput, User } from '@dans-coding-world/prisma-schema';
-import bcrypt from 'bcryptjs';
 
 export class MockUserDataAccess implements IUserRepository {
-  users: User[] = [
-    {
-      id: 1,
-      username: 'fakeUser123',
-      email: 'fakeUser123@gmail.com',
-      password: bcrypt.hashSync('fakeUser123', 10),
-      role: 'MOD',
-    },
-  ];
+  users: User[] = [];
   async getById(id: string): Promise<User | null> {
     return this.users.find((u) => u.id === +id) ?? null;
   }
@@ -34,8 +25,7 @@ export class MockUserDataAccess implements IUserRepository {
 
   async create(data: Omit<User, 'id'>): Promise<User> {
     const user = {
-      ...data,
-      id: Math.random() * 1000000,
+      ...(data as User),
     };
     this.users.push(user);
     return user;

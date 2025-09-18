@@ -7,7 +7,10 @@ import type {
 import { LoginDto, LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { ApiException } from '@dans-coding-world/exceptions';
-import { validPassword, hashPassword } from '../helper/password.helper.js';
+import {
+  validPassword as validHash,
+  hashPassword as hash,
+} from '../helper/password.helper.js';
 import { Inject, Injectable } from 'injection-js';
 import type { AuthConfiguration } from '../config/auth.config.js';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
@@ -35,7 +38,7 @@ export class AuthService implements IAuthService {
 
     if (!user) throw new ApiException(ERROR_CODES.AUTH.INVALID_CREDENTIALS);
 
-    const isPasswordValid = await validPassword(password, user.password);
+    const isPasswordValid = await validHash(password, user.password);
 
     if (!isPasswordValid)
       throw new ApiException(ERROR_CODES.AUTH.INVALID_PASSWORD);
@@ -59,7 +62,7 @@ export class AuthService implements IAuthService {
     const refreshToken = this.tokenService.generateRefreshToken(user);
 
     await this.storeUserRefreshToken(
-      await hashPassword(refreshToken),
+      await hash(refreshToken),
       user.id.toString()
     );
 
@@ -93,6 +96,7 @@ export class AuthService implements IAuthService {
     }
 
     const user = await this.users.getById(userId.toString());
+
     if (!user) {
       throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
     }
@@ -119,7 +123,7 @@ export class AuthService implements IAuthService {
 
     for (const rt of refreshTokens) {
       try {
-        const isValid = await validPassword(token, rt.token);
+        const isValid = await validHash(token, rt.token);
         if (isValid) {
           return rt;
         }

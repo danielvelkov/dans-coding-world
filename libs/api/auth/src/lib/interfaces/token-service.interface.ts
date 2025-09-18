@@ -53,6 +53,21 @@ export interface ITokenService {
    * ```
    */
   generateRefreshToken(user: User, options?: TokenOptions): string;
+  /**
+   * Verify token and return its payload.
+   * @param token User token.
+   * @param options Token related options like secret, time till expiration, etc.
+   * @returns The verified token's payload
+   * @example
+   * ```typescript
+   * const payload = await tokenService.verifyRefreshToken(
+   *    token,
+   *    {
+   *      secret:REFRESH_TOKEN_SECRET,
+   *    }
+   * );
+   * ```
+   */
   verifyRefreshToken(token: string, options?: TokenOptions): JwtPayload;
 
   revokeRefreshToken(token: string): Promise<RefreshToken>;
