@@ -36,6 +36,7 @@ export class AuthService implements IAuthService {
     @Inject(AUTH_CONFIG_TOKEN)
     private authConfig: AuthConfiguration
   ) {}
+
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const { email, password } = dto;
     const user = await this.users.get({ email });
@@ -49,6 +50,7 @@ export class AuthService implements IAuthService {
 
     return this.generateLoginResponse(user);
   }
+
   async refreshToken(dto: RefreshTokenDto): Promise<LoginResponseDto> {
     const [user, refreshToken] = await this.validateAndGetRefreshToken(
       dto.token

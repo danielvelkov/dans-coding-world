@@ -72,7 +72,8 @@ describe('Auth service', () => {
         email: 'DOES_NOT_EXIST@gmail.com',
         password: MOCK_USER.password,
       };
-      authService.login(loginDto).catch((err) => {
+      expect.assertions(1);
+      return authService.login(loginDto).catch((err) => {
         expect(err.message).toMatch(/credentials.*invalid/);
       });
     });
@@ -82,7 +83,8 @@ describe('Auth service', () => {
         email: MOCK_USER.email,
         password: 'WRONG_PASS',
       };
-      authService.login(loginDto).catch((err) => {
+      expect.assertions(1);
+      return authService.login(loginDto).catch((err) => {
         expect(err.message).toMatch(/password.*wrong/);
       });
     });
@@ -139,9 +141,10 @@ describe('Auth service', () => {
         expiresAt: new Date(Date.now() + 1000 * 60 * 60),
       });
 
-      authService.refreshToken({ token: mockToken }).catch((err) => {
-        expect(err.message).toMatch(/invalid token/i);
-      });
+      expect.assertions(1);
+      return authService
+        .refreshToken({ token: mockToken })
+        .catch((error) => expect(error.message).toMatch(/invalid token/i));
     });
     it('should throw if refresh token is expired', async () => {
       const tokenService = injector.get(TOKEN_SERVICE_TOKEN) as TokenService;
@@ -159,9 +162,10 @@ describe('Auth service', () => {
         expiresAt: new Date(Date.now() + 1000),
       });
 
-      authService.refreshToken({ token: mockToken }).catch((err) => {
-        expect(err.message).toMatch(/expired/i);
-      });
+      expect.assertions(1);
+      return authService
+        .refreshToken({ token: mockToken })
+        .catch((error) => expect(error.message).toMatch(/expired/i));
     });
     it('should throw if refresh token db entry is expired', async () => {
       const tokenService = injector.get(TOKEN_SERVICE_TOKEN) as TokenService;
@@ -176,9 +180,10 @@ describe('Auth service', () => {
         expiresAt: new Date(Date.now() - 100000000),
       });
 
-      authService.refreshToken({ token: mockToken }).catch((err) => {
-        expect(err.message).toMatch(/invalid/i);
-      });
+      expect.assertions(1);
+      return authService
+        .refreshToken({ token: mockToken })
+        .catch((error) => expect(error.message).toMatch(/invalid/i));
     });
 
     it('should throw if refresh token owner does not exist', async () => {
@@ -197,9 +202,10 @@ describe('Auth service', () => {
         expiresAt: new Date(Date.now() + 1000),
       });
 
-      authService.refreshToken({ token: mockToken }).catch((err) => {
-        expect(err.message).toMatch(/invalid/i);
-      });
+      expect.assertions(1);
+      return authService
+        .refreshToken({ token: mockToken })
+        .catch((error) => expect(error.message).toMatch(/invalid/i));
     });
   });
 });
