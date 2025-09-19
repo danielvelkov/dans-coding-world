@@ -1,4 +1,8 @@
-import { LoginDto, LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  RefreshTokenDto,
+} from '@dans-coding-world/shared-auth-dto';
 /**
  * User authentication service which provides:
  * - user credentials validation
@@ -34,7 +38,7 @@ export interface IAuthService {
   /**
    * Reauthenticate an user by providing a valid refresh token.
    * After invalidating the old token, returns new access and refresh tokens.
-   * @param refreshToken User refresh token.
+   * @param dto User refresh token dto.
    * @returns Authentication response with access and refresh tokens, alongside user data
    * @throws {AppException} When refresh token is invalid, expired or revoked (AUTH003).
    * @example
@@ -42,5 +46,5 @@ export interface IAuthService {
    * const { accessToken, refreshToken, user } = await authService.refreshToken(refreshToken);
    * ```
    */
-  refreshToken(refreshToken: string): Promise<LoginResponseDto>;
+  refreshToken(dto: RefreshTokenDto): Promise<LoginResponseDto>;
 }

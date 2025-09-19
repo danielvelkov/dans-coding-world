@@ -97,7 +97,9 @@ describe('Auth service', () => {
 
       const { accessToken, refreshToken } = loginResponse;
 
-      const refreshResponse = await authService.refreshToken(refreshToken);
+      const refreshResponse = await authService.refreshToken({
+        token: refreshToken,
+      });
 
       expect(mockRefreshTokenRepo.delete).toHaveBeenCalledTimes(1);
       expect(refreshResponse.accessToken).not.toBe(accessToken);
@@ -116,7 +118,9 @@ describe('Auth service', () => {
         createdAt: new Date(),
         expiresAt: new Date(Date.now() + config.options.refreshExpiration),
       });
-      const refreshResponse = await authService.refreshToken(mockToken);
+      const refreshResponse = await authService.refreshToken({
+        token: mockToken,
+      });
 
       expect(mockRefreshTokenRepo.delete).toHaveBeenCalledTimes(1);
       expect(refreshResponse.refreshToken).not.toBe(mockToken);
@@ -135,7 +139,7 @@ describe('Auth service', () => {
         expiresAt: new Date(Date.now() + 1000 * 60 * 60),
       });
 
-      authService.refreshToken(mockToken).catch((err) => {
+      authService.refreshToken({ token: mockToken }).catch((err) => {
         expect(err.message).toMatch(/invalid token/i);
       });
     });
@@ -155,7 +159,7 @@ describe('Auth service', () => {
         expiresAt: new Date(Date.now() + 1000),
       });
 
-      authService.refreshToken(mockToken).catch((err) => {
+      authService.refreshToken({ token: mockToken }).catch((err) => {
         expect(err.message).toMatch(/expired/i);
       });
     });
@@ -172,7 +176,7 @@ describe('Auth service', () => {
         expiresAt: new Date(Date.now() - 100000000),
       });
 
-      authService.refreshToken(mockToken).catch((err) => {
+      authService.refreshToken({ token: mockToken }).catch((err) => {
         expect(err.message).toMatch(/invalid/i);
       });
     });
@@ -193,7 +197,7 @@ describe('Auth service', () => {
         expiresAt: new Date(Date.now() + 1000),
       });
 
-      authService.refreshToken(mockToken).catch((err) => {
+      authService.refreshToken({ token: mockToken }).catch((err) => {
         expect(err.message).toMatch(/invalid/i);
       });
     });

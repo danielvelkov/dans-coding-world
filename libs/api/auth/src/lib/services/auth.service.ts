@@ -4,7 +4,11 @@ import type {
   IRefreshTokenRepository,
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
-import { LoginDto, LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  RefreshTokenDto,
+} from '@dans-coding-world/shared-auth-dto';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { ApiException } from '@dans-coding-world/exceptions';
 import {
@@ -45,8 +49,10 @@ export class AuthService implements IAuthService {
 
     return this.generateLoginResponse(user);
   }
-  async refreshToken(token: string): Promise<LoginResponseDto> {
-    const [user, refreshToken] = await this.validateAndGetRefreshToken(token);
+  async refreshToken(dto: RefreshTokenDto): Promise<LoginResponseDto> {
+    const [user, refreshToken] = await this.validateAndGetRefreshToken(
+      dto.token
+    );
 
     // Clean up the old refresh token
     if (refreshToken) {
