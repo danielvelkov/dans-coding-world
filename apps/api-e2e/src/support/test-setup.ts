@@ -1,6 +1,8 @@
 /* eslint-disable */
 import axios from 'axios';
 
+if (process.env.NODE_ENV !== 'test') throw new Error('NODE_ENV not in "test"');
+
 module.exports = async function () {
   // Configure axios for tests to use.
   const host = process.env.HOST ?? 'localhost';
