@@ -28,7 +28,7 @@ export type ErrorCode = ValueOf<ValueOf<typeof ERROR_CODES>>;
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AUTH001: 'Provided credentials are invalid',
   AUTH002: 'Provided password is wrong',
-  AUTH003: 'Invalid token.',
+  AUTH003: 'Invalid or expired token.',
 
   SER001: 'Internal Server Error',
   SER002: 'Resource not found',

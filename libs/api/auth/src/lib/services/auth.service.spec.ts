@@ -150,7 +150,9 @@ describe('Auth service', () => {
       expect.assertions(1);
       return authService
         .refreshToken({ token: mockToken })
-        .catch((error) => expect(error.message).toMatch(/invalid token/i));
+        .catch((error) =>
+          expect(error.message).toMatch(/invalid or expired token/i)
+        );
     });
     it('should throw if refresh token is expired', async () => {
       const tokenService = injector.get(TOKEN_SERVICE_TOKEN) as TokenService;
