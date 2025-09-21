@@ -38,7 +38,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
  * Centralized http status codes for errors
  */
 export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
-  AUTH001: StatusCodes.OK,
+  AUTH001: StatusCodes.UNAUTHORIZED,
   AUTH002: StatusCodes.UNAUTHORIZED,
   AUTH003: StatusCodes.UNAUTHORIZED,
 
