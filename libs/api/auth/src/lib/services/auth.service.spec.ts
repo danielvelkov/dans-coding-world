@@ -90,6 +90,12 @@ describe('Auth service', () => {
     });
   });
   describe('refresh token', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+    afterEach(() => {
+      jest.useRealTimers();
+    });
     it('should provide new access and refresh tokens on valid refresh token provided', async () => {
       const loginDto: LoginDto = {
         email: MOCK_USER.email,
@@ -183,6 +189,46 @@ describe('Auth service', () => {
       expect.assertions(1);
       return authService
         .refreshToken({ token: mockToken })
+        .catch((error) => expect(error.message).toMatch(/invalid/i));
+    });
+
+    it('should throw if refresh token has expired with time', async () => {
+      const tokenService = injector.get(TOKEN_SERVICE_TOKEN) as TokenService;
+
+      const mockToken = tokenService.generateRefreshToken(MOCK_USER);
+      const expirationMs = config.options.refreshExpiration;
+
+      const expirationDate = new Date(Date.now() + expirationMs);
+
+      const tokenEntry = {
+        token: await hashPassword(mockToken),
+        revoked: false,
+        userId: MOCK_USER.id,
+        createdAt: new Date(),
+        expiresAt: expirationDate,
+      };
+      (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push(
+        tokenEntry
+      );
+
+      // Advance to just before expiration
+      jest.advanceTimersByTime(expirationMs - 5000);
+
+      // Expect to run without fail
+      const refreshResponse = await authService.refreshToken({
+        token: mockToken,
+      });
+
+      expect.assertions(3);
+      expect(mockRefreshTokenRepo.delete).toHaveBeenCalledWith(tokenEntry);
+      expect(refreshResponse.refreshToken).not.toBe(mockToken);
+
+      // Advance to just past expiration
+      jest.advanceTimersByTime(expirationMs + 5000); // 5s + 1s buffer
+
+      // Expect to fail as token has expired
+      return authService
+        .refreshToken({ token: refreshResponse.refreshToken })
         .catch((error) => expect(error.message).toMatch(/invalid/i));
     });
 
