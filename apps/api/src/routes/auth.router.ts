@@ -110,5 +110,6 @@ const authRouter = Router();
  *                 - $ref: '#/components/schemas/WrongPasswordError'
  */
 authRouter.post('/login', authController.login);
+authRouter.post('/refresh', authController.refresh);
 
 export default authRouter;

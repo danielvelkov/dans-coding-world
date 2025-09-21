@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { IAuthService } from '@dans-coding-world/api-auth';
-import { LoginDto } from '@dans-coding-world/shared-auth-dto';
+import { LoginDto, RefreshTokenDto } from '@dans-coding-world/shared-auth-dto';
 
 export class AuthController {
   constructor(private authService: IAuthService) {}
@@ -15,6 +15,20 @@ export class AuthController {
       return res
         .status(StatusCodes.OK)
         .json({ message: 'Login successful', ...result });
+    } catch (error) {
+      return next(error);
+    }
+  };
+  // Refresh route for generating new access/refresh token pair
+  refresh = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const refreshDto: RefreshTokenDto = req.body;
+
+      const result = await this.authService.refreshToken(refreshDto);
+
+      return res
+        .status(StatusCodes.OK)
+        .json({ message: 'New access and refresh token issued', ...result });
     } catch (error) {
       return next(error);
     }
