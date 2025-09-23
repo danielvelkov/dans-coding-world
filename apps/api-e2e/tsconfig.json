@@ -9,6 +9,9 @@
   "include": ["jest.config.ts", "src/**/*.ts"],
   "references": [
     {
+      "path": "../../libs/prisma-schema"
+    },
+    {
       "path": "../../libs/shared/auth/dtos"
     },
     {
