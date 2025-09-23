@@ -8,6 +8,7 @@ import {
 import type { AuthConfiguration } from '../config/auth.config.js';
 
 export const AUTH_CONFIG_TOKEN = 'AuthConfiguration';
+export const TOKEN_SERVICE_TOKEN = 'ITokenService';
 
 /**
  * @implements {ITokenService}

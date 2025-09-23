@@ -18,9 +18,8 @@ import {
 import { Inject, Injectable } from 'injection-js';
 import type { AuthConfiguration } from '../config/auth.config.js';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
+import { AUTH_CONFIG_TOKEN, TOKEN_SERVICE_TOKEN } from './token.service.js';
 
-export const AUTH_CONFIG_TOKEN = 'AuthConfiguration';
-export const TOKEN_SERVICE_TOKEN = 'ITokenService';
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 export const REFRESH_TOKEN_REPOSITORY_TOKEN = 'IRefreshTokenRepository';
 
@@ -96,7 +95,12 @@ export class AuthService implements IAuthService {
   private async validateAndGetRefreshToken(
     token: string
   ): Promise<[User, RefreshToken]> {
-    const payload = this.tokenService.verifyRefreshToken(token);
+    let payload;
+    try {
+      payload = this.tokenService.verifyRefreshToken(token);
+    } catch (_) {
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
+    }
     const userId = payload.sub;
 
     if (!userId) {

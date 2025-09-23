@@ -1,14 +1,17 @@
 import 'reflect-metadata';
 import { LoginDto } from '@dans-coding-world/shared-auth-dto';
 import { ReflectiveInjector } from 'injection-js';
-import { TokenService, AUTH_CONFIG_TOKEN } from './token.service.js';
+import {
+  TokenService,
+  AUTH_CONFIG_TOKEN,
+  TOKEN_SERVICE_TOKEN,
+} from './token.service.js';
 import {
   AuthService,
-  TOKEN_SERVICE_TOKEN,
   USER_REPOSITORY_TOKEN,
   REFRESH_TOKEN_REPOSITORY_TOKEN,
 } from './auth.service.js';
-import config from '../config/auth.config.js';
+import { config } from '../config/auth.config.js';
 import {
   IRefreshTokenRepository,
   IUserRepository,

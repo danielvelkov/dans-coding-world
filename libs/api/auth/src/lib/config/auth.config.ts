@@ -11,7 +11,7 @@ export type AuthConfiguration = Required<
   Readonly<JwtConfiguration & ValidationConfiguration>
 >;
 
-const config: AuthConfiguration = {
+export const config: AuthConfiguration = {
   options: {
     accessSecret: tryGet('ACCESS_TOKEN_SECRET'),
     accessExpiration: 1000 * 60 * 15, // 15 min in ms
@@ -25,5 +25,3 @@ const config: AuthConfiguration = {
     passwordMaxLength: 32,
   },
 };
-
-export default config;

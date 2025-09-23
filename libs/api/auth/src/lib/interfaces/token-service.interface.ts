@@ -58,6 +58,7 @@ export interface ITokenService {
    * @param token User token.
    * @param options Token related options like secret, time till expiration, etc.
    * @returns The verified token's payload
+   * @throws {Error} An error when the token is invalid or expired
    * @example
    * ```typescript
    * const payload = await tokenService.verifyRefreshToken(
