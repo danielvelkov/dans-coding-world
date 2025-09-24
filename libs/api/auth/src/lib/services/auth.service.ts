@@ -19,6 +19,7 @@ import { Inject, Injectable } from 'injection-js';
 import type { AuthConfiguration } from '../config/auth.config.js';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 import { AUTH_CONFIG_TOKEN, TOKEN_SERVICE_TOKEN } from './token.service.js';
+import { validateDto } from '@dans-coding-world/validation';
 
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 export const REFRESH_TOKEN_REPOSITORY_TOKEN = 'IRefreshTokenRepository';
@@ -37,6 +38,7 @@ export class AuthService implements IAuthService {
   ) {}
 
   async login(dto: LoginDto): Promise<LoginResponseDto> {
+    await validateDto(dto, LoginDto);
     const { email, password } = dto;
     const user = await this.users.get({ email });
 
@@ -51,6 +53,7 @@ export class AuthService implements IAuthService {
   }
 
   async refreshToken(dto: RefreshTokenDto): Promise<LoginResponseDto> {
+    await validateDto(dto, RefreshTokenDto);
     const [user, refreshToken] = await this.validateAndGetRefreshToken(
       dto.token
     );

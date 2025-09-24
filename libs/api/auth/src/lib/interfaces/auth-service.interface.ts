@@ -23,6 +23,7 @@ export interface IAuthService {
    * Generates access and refresh tokens upon successful authentication.
    * @param dto Login credentials, containing email and password.
    * @returns Authentication response with access and refresh tokens, alongside user data
+   * @throws {AppException} When email or password fields are invalid (VAL0001)
    * @throws {AppException} When no such user with this email exists (AUTH001)
    * @throws {AppException} When password does not match email credential (AUTH002)
    * @example
@@ -40,6 +41,7 @@ export interface IAuthService {
    * After invalidating the old token, returns new access and refresh tokens.
    * @param dto User refresh token dto.
    * @returns Authentication response with access and refresh tokens, alongside user data
+   * @throws {AppException} When passed token is missing or not a JWT token (VAL0001)
    * @throws {AppException} When refresh token is invalid, expired or revoked (AUTH003).
    * @example
    * ```typescript
