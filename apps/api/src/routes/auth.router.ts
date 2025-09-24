@@ -88,12 +88,6 @@ const authRouter = Router();
  *     LoginSuccessData:
  *       type: object
  *       properties:
- *         accessToken:
- *           type: string
- *           description: The signed short-term JWT access token
- *         refreshToken:
- *           type: string
- *           description: The signed long-term JWT refresh token
  *         user:
  *           type: object
  *           description: User information
@@ -111,8 +105,6 @@ const authRouter = Router();
  *               type: string
  *               description: User role
  *       example:
- *         accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
- *         refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
  *         user:
  *           id: "12345"
  *           email: user123@gmail.com
@@ -128,8 +120,6 @@ const authRouter = Router();
  *       example:
  *         success: true
  *         data:
- *           accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
- *           refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
  *           user:
  *             id: "12345"
  *             email: user123@gmail.com
@@ -244,7 +234,7 @@ const authRouter = Router();
  *   post:
  *     tags: [Authentication]
  *     summary: Login a user using their credentials
- *     description: Validates user credentials and returns access and refresh tokens if successful
+ *     description: Validates user credentials, then returns user data with access and refresh tokens set in "Set-Cookie" header.
  *     requestBody:
  *       required: true
  *       content:
@@ -257,6 +247,11 @@ const authRouter = Router();
  *     responses:
  *       200:
  *         description: Login successful
+ *         headers:
+ *           Set-Cookie:
+ *             description:
+ *               Stores the access_token and refresh_token as HttpOnly cookies.
+ *               These cookies are automatically included in subsequent requests and used by the server to authenticate the user.
  *         content:
  *           application/json:
  *             schema:
@@ -297,7 +292,7 @@ authRouter.post('/login', authController.login);
  *   post:
  *     tags: [Authentication]
  *     summary: Refresh access and refresh tokens
- *     description: Generate new access and refresh tokens using a valid refresh token
+ *     description: Validates provided refresh token, then returns user data with access and refresh tokens as cookies.
  *     requestBody:
  *       required: true
  *       content:
@@ -310,6 +305,11 @@ authRouter.post('/login', authController.login);
  *     responses:
  *       200:
  *         description: Token refresh successful
+ *         headers:
+ *           Set-Cookie:
+ *             description:
+ *               Stores the access_token and refresh_token as HttpOnly cookies.
+ *               These cookies are automatically included in subsequent requests and used by the server to authenticate the user.
  *         content:
  *           application/json:
  *             schema:

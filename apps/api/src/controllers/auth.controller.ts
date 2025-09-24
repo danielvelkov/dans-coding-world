@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { IAuthService } from '@dans-coding-world/api-auth';
+import { IAuthService, config } from '@dans-coding-world/api-auth';
 import { LoginDto, RefreshTokenDto } from '@dans-coding-world/shared-auth-dto';
 
 export class AuthController {
@@ -12,9 +12,19 @@ export class AuthController {
 
       const result = await this.authService.login(loginDto);
 
+      res.cookie('access_token', result.accessToken, {
+        httpOnly: true,
+        maxAge: config.options.accessExpiration,
+      });
+
+      res.cookie('refresh_token', result.refreshToken, {
+        httpOnly: true,
+        maxAge: config.options.refreshExpiration,
+      });
+
       return res
         .status(StatusCodes.OK)
-        .json({ message: 'Login successful', ...result });
+        .json({ message: 'Login successful', user: result.user });
     } catch (error) {
       return next(error);
     }
@@ -26,9 +36,22 @@ export class AuthController {
 
       const result = await this.authService.refreshToken(refreshDto);
 
+      res.cookie('access_token', result.accessToken, {
+        httpOnly: true,
+        maxAge: config.options.accessExpiration,
+      });
+
+      res.cookie('refresh_token', result.refreshToken, {
+        httpOnly: true,
+        maxAge: config.options.refreshExpiration,
+      });
+
       return res
         .status(StatusCodes.OK)
-        .json({ message: 'New access and refresh token issued', ...result });
+        .json({
+          message: 'New access and refresh token issued',
+          user: result.user,
+        });
     } catch (error) {
       return next(error);
     }
