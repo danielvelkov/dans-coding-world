@@ -1,3 +1,5 @@
+import { IsJWT } from 'class-validator';
 export class RefreshTokenDto {
-  constructor(public token: string) {}
+  @IsJWT()
+  token: string;
 }

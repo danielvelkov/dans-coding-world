@@ -1,9 +1,7 @@
 import { User } from '@dans-coding-world/prisma-schema';
 
 export class LoginResponseDto {
-  constructor(
-    public accessToken: string,
-    public refreshToken: string,
-    public user: Omit<User, 'password'>
-  ) {}
+  accessToken: string;
+  refreshToken: string;
+  user: Omit<User, 'password'>;
 }
