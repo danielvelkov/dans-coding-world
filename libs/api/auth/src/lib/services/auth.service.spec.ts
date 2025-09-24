@@ -170,10 +170,10 @@ describe('Auth service', () => {
 
       (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
         token: await hashPassword(mockToken),
-        revoked: true,
+        revoked: true, // token is 'revoked'
         userId: MOCK_USER.id,
         createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60),
+        expiresAt: new Date(Date.now() + config.options.refreshExpiration),
       });
 
       expect.assertions(1);
@@ -196,7 +196,7 @@ describe('Auth service', () => {
         revoked: true,
         userId: MOCK_USER.id,
         createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 1000),
+        expiresAt: new Date(Date.now() - 1000),
       });
 
       expect.assertions(1);
@@ -214,7 +214,7 @@ describe('Auth service', () => {
         revoked: true,
         userId: MOCK_USER.id,
         createdAt: new Date(),
-        expiresAt: new Date(Date.now() - 100000000),
+        expiresAt: new Date(Date.now() - 10000),
       });
 
       expect.assertions(1);

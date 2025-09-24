@@ -9,6 +9,7 @@ import {
 } from '../helper/authentication.js';
 import { createErrorResponse } from '../helper/error-response.js';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
+import { TOKEN_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
 let users: User[];
 let tokens: RefreshToken[];
@@ -87,12 +88,16 @@ describe('/api/v1/auth', () => {
           userId: userWithExpiredToken.id,
         },
         {
-          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+          expiresAt: new Date(
+            Date.now() + TOKEN_CONSTRAINTS.REFRESH_TOKEN_EXPIRATION
+          ),
           revoked: true,
           userId: userWithRevokedToken.id,
         },
         {
-          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+          expiresAt: new Date(
+            Date.now() + TOKEN_CONSTRAINTS.REFRESH_TOKEN_EXPIRATION
+          ),
           revoked: false,
           userId: userWithValidToken.id,
         },
