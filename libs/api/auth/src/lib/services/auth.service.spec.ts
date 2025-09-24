@@ -70,7 +70,19 @@ describe('Auth service', () => {
       expect(response.user.email).toBe(loginDto.email);
     });
 
-    it('should throw an error on invalid credentials', async () => {
+    it('should throw an error on missing credentials', async () => {
+      const loginDto: LoginDto = {
+        email: '',
+        password: '',
+      };
+
+      expect.assertions(1);
+      return authService.login(loginDto).catch((err) => {
+        expect(err.message).toMatch(/Validation Failed/i);
+      });
+    });
+
+    it('should throw an error on wrong credentials', async () => {
       const loginDto: LoginDto = {
         email: 'DOES_NOT_EXIST@gmail.com',
         password: MOCK_USER.password,
@@ -135,6 +147,20 @@ describe('Auth service', () => {
 
       expect(mockRefreshTokenRepo.delete).toHaveBeenCalledTimes(1);
       expect(refreshResponse.refreshToken).not.toBe(mockToken);
+    });
+
+    test.each([
+      '', // empty string
+      '123.456', // missing third part
+      'header.payload.signature.extra', // too many parts
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9', // only header
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.payload', // missing signature
+      'not.a.jwt.token', // invalid format
+    ])('should throw if passed token is not even JWT', async (token) => {
+      expect.assertions(1);
+      return authService.refreshToken({ token }).catch((error) => {
+        expect(error.message).toMatch(/Validation failed/i);
+      });
     });
 
     it('should throw if refresh token is revoked', async () => {

@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../shared/util/validation"
+    },
+    {
       "path": "../../shared/util/exceptions"
     },
     {

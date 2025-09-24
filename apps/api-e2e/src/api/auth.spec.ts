@@ -42,6 +42,19 @@ describe('/api/v1/auth', () => {
       expect(refreshTokenCookie).toContain('HttpOnly');
     });
 
+    test.each([
+      ['', ''],
+      ['user123@email.com', ''],
+      ['', 'password123'],
+    ])(
+      'should return an error message on missing required fields',
+      async ([username, password]) => {
+        await expect(login(username, password)).rejects.toMatchObject(
+          createErrorResponse(400, 'Validation failed')
+        );
+      }
+    );
+
     it('should return an error message on invalid credentials', async () => {
       await expect(
         login('onomatopoeia@gmail.com', 'onomatopoeia123')
@@ -135,6 +148,12 @@ describe('/api/v1/auth', () => {
         'message',
         'New access and refresh token issued'
       );
+    });
+
+    it('should return validation error message if string is not JWT token', async () => {
+      return await expect(
+        renewAuthToken('123.12312.123.3123')
+      ).rejects.toMatchObject(createErrorResponse(400, 'Validation failed'));
     });
 
     it('should return an error message on an expired token', async () => {
