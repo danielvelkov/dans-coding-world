@@ -4,6 +4,12 @@
   "include": [],
   "references": [
     {
+      "path": "../shared-constants"
+    },
+    {
+      "path": "../exceptions"
+    },
+    {
       "path": "./tsconfig.lib.json"
     }
   ]

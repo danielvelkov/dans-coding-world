@@ -18,6 +18,9 @@ export const ERROR_CODES = {
     INTERNAL_ERROR: 'SER001',
     NOT_FOUND: 'SER002',
   },
+  VALIDATION: {
+    VALIDATION_ERROR: 'VAL001',
+  },
 } as const;
 
 export type ErrorCode = ValueOf<ValueOf<typeof ERROR_CODES>>;
@@ -32,6 +35,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 
   SER001: 'Internal Server Error',
   SER002: 'Resource not found',
+
+  VAL001: 'Validation failed',
 };
 
 /**
@@ -44,4 +49,6 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
 
   SER001: StatusCodes.INTERNAL_SERVER_ERROR,
   SER002: StatusCodes.NOT_FOUND,
+
+  VAL001: StatusCodes.BAD_REQUEST,
 };
