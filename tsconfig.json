@@ -47,6 +47,9 @@
     },
     {
       "path": "./libs/shared/util/api-types"
+    },
+    {
+      "path": "./libs/shared/util/validation"
     }
   ]
 }
