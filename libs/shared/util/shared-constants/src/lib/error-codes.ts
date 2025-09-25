@@ -20,6 +20,7 @@ export const ERROR_CODES = {
   },
   VALIDATION: {
     VALIDATION_ERROR: 'VAL001',
+    USER_EXISTS: 'VAL002',
   },
 } as const;
 
@@ -37,6 +38,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SER002: 'Resource not found',
 
   VAL001: 'Validation failed',
+  VAL002: 'User with this email or username already exists',
 };
 
 /**
@@ -51,4 +53,5 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   SER002: StatusCodes.NOT_FOUND,
 
   VAL001: StatusCodes.BAD_REQUEST,
+  VAL002: StatusCodes.BAD_REQUEST,
 };

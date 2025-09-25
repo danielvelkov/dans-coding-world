@@ -4,6 +4,7 @@ import {
   USER_REPOSITORY_TOKEN,
   REFRESH_TOKEN_REPOSITORY_TOKEN,
 } from './services/auth.service.js';
+import { RegistrationService } from './services/registration.service.js';
 import {
   TokenService,
   AUTH_CONFIG_TOKEN,
@@ -16,6 +17,7 @@ import { config } from './config/auth.config.js';
 // Define providers
 const authProviders: Provider[] = [
   AuthService,
+  RegistrationService,
   { provide: TOKEN_SERVICE_TOKEN, useClass: TokenService },
   { provide: USER_REPOSITORY_TOKEN, useClass: UserRepository },
   { provide: REFRESH_TOKEN_REPOSITORY_TOKEN, useClass: RefreshTokenRepository },
