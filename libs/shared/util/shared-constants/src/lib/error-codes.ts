@@ -53,5 +53,5 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   SER002: StatusCodes.NOT_FOUND,
 
   VAL001: StatusCodes.BAD_REQUEST,
-  VAL002: StatusCodes.BAD_REQUEST,
+  VAL002: StatusCodes.CONFLICT,
 };

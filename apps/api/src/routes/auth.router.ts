@@ -1,8 +1,15 @@
 import { Router } from 'express';
-import { authInjector, AuthService } from '@dans-coding-world/api-auth';
+import {
+  authInjector,
+  AuthService,
+  RegistrationService,
+} from '@dans-coding-world/api-auth';
 import { AuthController } from '../controllers/auth.controller';
 
-const authController = new AuthController(authInjector.get(AuthService));
+const authController = new AuthController(
+  authInjector.get(AuthService),
+  authInjector.get(RegistrationService)
+);
 
 const authRouter = Router();
 
@@ -10,41 +17,43 @@ const authRouter = Router();
  * @openapi
  * tags:
  *   name: Authentication
- *   description: Endpoints for user login, token generation, and access control
+ *   description: Endpoints for user login, token generation, registration and access control
  */
 
 /**
  * @openapi
  * components:
  *   schemas:
- *     BaseSuccessResponse:
+ *     BaseResponse:
  *       type: object
  *       properties:
  *         success:
  *           type: boolean
  *           description: Indicates if the request was successful
- *           example: true
  *         data:
  *           type: object
+ *           nullable: true
  *           description: The response data (null on error)
  *         error:
  *           type: object
  *           nullable: true
  *           description: Error details (null on success)
- *           example: null
  *
- *     BaseErrorResponse:
- *       type: object
+ *     SuccessResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/BaseResponse'
  *       properties:
  *         success:
- *           type: boolean
- *           description: Indicates if the request was successful
- *           example: false
- *         data:
- *           type: object
- *           nullable: true
- *           description: The response data (null on error)
+ *           example: true
+ *         error:
  *           example: null
+ *
+ *     ErrorResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/BaseResponse'
+ *       properties:
+ *         success:
+ *           example: false
  *         error:
  *           type: object
  *           properties:
@@ -57,6 +66,9 @@ const authRouter = Router();
  *             message:
  *               type: string
  *               description: Human-readable error message
+ *             details:
+ *               type: object
+ *               description: Error details
  *
  *     LoginDTO:
  *       type: object
@@ -73,6 +85,34 @@ const authRouter = Router();
  *       example:
  *         email: user123@gmail.com
  *         password: my_password_123
+ *
+ *     RegistrationDTO:
+ *       type: object
+ *       required:
+ *         - email
+ *         - username
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email
+ *         username:
+ *           type: string
+ *           description: User's username
+ *           minLength: 8
+ *           maxLength: 32
+ *           pattern: '^[a-zA-z0-9_]+$'
+ *         password:
+ *           type: string
+ *           format: password
+ *           description: User's password
+ *           minLength: 8
+ *           maxLength: 32
+ *       example:
+ *         email: user_123@gmail.com
+ *         username: username132
+ *         password: Password_123
  *
  *     RefreshTokenDTO:
  *       type: object
@@ -104,32 +144,28 @@ const authRouter = Router();
  *             role:
  *               type: string
  *               description: User role
+ *         message:
+ *           type: string
+ *           description: Login success message
  *       example:
  *         user:
  *           id: "12345"
  *           email: user123@gmail.com
- *           name: John Doe
+ *           username: user123
+ *           role: 'USER'
+ *         message: 'Login successful'
  *
  *     LoginSuccessResponse:
  *       allOf:
- *         - $ref: '#/components/schemas/BaseSuccessResponse'
+ *         - $ref: '#/components/schemas/SuccessResponse'
  *         - type: object
  *           properties:
  *             data:
  *               $ref: '#/components/schemas/LoginSuccessData'
- *       example:
- *         success: true
- *         data:
- *           user:
- *             id: "12345"
- *             email: user123@gmail.com
- *             username: user123
- *             role: USER
- *         error: null
  *
  *     WrongCredentialsError:
  *       allOf:
- *         - $ref: '#/components/schemas/BaseErrorResponse'
+ *         - $ref: '#/components/schemas/ErrorResponse'
  *         - type: object
  *           properties:
  *             error:
@@ -144,17 +180,10 @@ const authRouter = Router();
  *                 message:
  *                   type: string
  *                   example: Provided credentials are invalid
- *       example:
- *         success: false
- *         data: null
- *         error:
- *           status: 401
- *           errorCode: AUTH001
- *           message: Provided credentials are invalid
  *
  *     WrongPasswordError:
  *       allOf:
- *         - $ref: '#/components/schemas/BaseErrorResponse'
+ *         - $ref: '#/components/schemas/ErrorResponse'
  *         - type: object
  *           properties:
  *             error:
@@ -169,17 +198,10 @@ const authRouter = Router();
  *                 message:
  *                   type: string
  *                   example: Provided password is wrong
- *       example:
- *         success: false
- *         data: null
- *         error:
- *           status: 401
- *           errorCode: AUTH002
- *           message: Provided password is wrong
  *
  *     InvalidTokenError:
  *       allOf:
- *         - $ref: '#/components/schemas/BaseErrorResponse'
+ *         - $ref: '#/components/schemas/ErrorResponse'
  *         - type: object
  *           properties:
  *             error:
@@ -194,17 +216,10 @@ const authRouter = Router();
  *                 message:
  *                   type: string
  *                   example: Invalid or expired token
- *       example:
- *         success: false
- *         data: null
- *         error:
- *           status: 401
- *           errorCode: AUTH003
- *           message: Invalid or expired token
  *
  *     InternalServerError:
  *       allOf:
- *         - $ref: '#/components/schemas/BaseErrorResponse'
+ *         - $ref: '#/components/schemas/ErrorResponse'
  *         - type: object
  *           properties:
  *             error:
@@ -269,7 +284,7 @@ const authRouter = Router();
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/BaseErrorResponse'
+ *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
  *               success: false
  *               data: null
@@ -325,7 +340,7 @@ authRouter.post('/login', authController.login);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/BaseErrorResponse'
+ *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
  *               success: false
  *               data: null
@@ -341,5 +356,63 @@ authRouter.post('/login', authController.login);
  *               $ref: '#/components/schemas/InternalServerError'
  */
 authRouter.post('/refresh', authController.refresh);
+
+/**
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Register a user.
+ *     description: Validates signup data, then creates and returns the new user.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegistrationDTO'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/RegistrationDTO'
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginSuccessResponse'
+ *       400:
+ *         description: Bad Request - Validation Failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: Validation Failed
+ *       409:
+ *         description: Conflict - User already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 409
+ *                 errorCode: VAL002
+ *                 message: User with this email or username already exists
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+authRouter.post('/register', authController.register);
 
 export default authRouter;

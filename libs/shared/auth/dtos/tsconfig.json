@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../util/shared-constants"
+    },
+    {
       "path": "../../../prisma-schema"
     },
     {

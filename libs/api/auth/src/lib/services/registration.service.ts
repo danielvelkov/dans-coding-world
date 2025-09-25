@@ -25,6 +25,8 @@ export class RegistrationService implements IRegistrationService {
       password: await hashPassword(dto.password),
       role: 'USER',
     });
-    return { user };
+
+    const { password: _, ...userWithoutPass } = user;
+    return { user: userWithoutPass };
   }
 }

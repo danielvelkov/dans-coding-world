@@ -1,10 +1,35 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { IAuthService, config } from '@dans-coding-world/api-auth';
-import { LoginDto, RefreshTokenDto } from '@dans-coding-world/shared-auth-dto';
+import {
+  IAuthService,
+  config,
+  IRegistrationService,
+} from '@dans-coding-world/api-auth';
+import {
+  LoginDto,
+  RefreshTokenDto,
+  RegisterDto,
+} from '@dans-coding-world/shared-auth-dto';
 
 export class AuthController {
-  constructor(private authService: IAuthService) {}
+  constructor(
+    private authService: IAuthService,
+    private registrationService: IRegistrationService
+  ) {}
+  // User sign up route
+  register = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const registerDto: RegisterDto = req.body;
+
+      const result = await this.registrationService.register(registerDto);
+
+      return res
+        .status(StatusCodes.CREATED)
+        .json({ message: 'User registered successfully', user: result.user });
+    } catch (error) {
+      return next(error);
+    }
+  };
   // Login route for generating JWT
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -46,12 +71,10 @@ export class AuthController {
         maxAge: config.options.refreshExpiration,
       });
 
-      return res
-        .status(StatusCodes.OK)
-        .json({
-          message: 'New access and refresh token issued',
-          user: result.user,
-        });
+      return res.status(StatusCodes.OK).json({
+        message: 'New access and refresh token issued',
+        user: result.user,
+      });
     } catch (error) {
       return next(error);
     }
