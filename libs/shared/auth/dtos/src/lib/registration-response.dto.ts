@@ -1,4 +1,4 @@
 import { User } from '@dans-coding-world/prisma-schema';
 export class RegistrationResponseDto {
-  constructor(public user: User) {}
+  user: Omit<User, 'password'>;
 }

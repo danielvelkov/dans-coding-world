@@ -19,10 +19,10 @@ import {
 export interface IRegistrationService {
   /**
    * Registers an user with the app upon validating provided input.
-   * @param dto Account data containing email and password.
+   * @param dto Account data containing fields like email, username, password, etc.
    * @returns The created user entry with id.
-   * @throws {AppException} When an user with this email already exists.
-   * @throws {AppException} When register data validation fails
+   * @throws {AppException} When register data validation fails (VAL001)
+   * @throws {AppException} When an user with this email already exists (VAL002)
    * @example
    * ```typescript
    * const { user } = await registrationService.register({
