@@ -1,4 +1,22 @@
 import axios, { AxiosResponse } from 'axios';
+
+export async function register(
+  email: string,
+  password: string,
+  username: string
+) {
+  const urlSearchParams = new URLSearchParams();
+  urlSearchParams.append('email', email);
+  urlSearchParams.append('password', password);
+  urlSearchParams.append('username', username);
+
+  return await axios.post('/api/v1/auth/register', urlSearchParams, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+}
+
 export async function login(email: string, password: string) {
   const urlSearchParams = new URLSearchParams();
   urlSearchParams.append('email', email);

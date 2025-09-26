@@ -25,7 +25,6 @@ export const seedRefreshTokens = async (
     const seeded: RefreshToken[] = [];
     if (options.clearExisting) {
       await client.refreshToken.deleteMany();
-      console.debug('Deleted records in RefreshToken table');
     }
 
     if (customTokens) {
@@ -58,7 +57,6 @@ export const seedRefreshTokens = async (
       });
     }
 
-    console.debug('Added tokens');
     return seeded;
   } catch (e) {
     console.error(e);

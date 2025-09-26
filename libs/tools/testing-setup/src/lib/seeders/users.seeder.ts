@@ -12,8 +12,7 @@ export const seedUsers = async (
 
     if (options.clearExisting) {
       await client.user.deleteMany();
-      console.debug('Deleted records in user table');
-      await client.$queryRaw`ALTER SEQUENCE public."User_id_seq" RESTART WITH 1;`;
+      await client.$queryRaw`ALTER SEQUENCE "User_id_seq" RESTART WITH 1;`;
     }
 
     if (options.useDefaults) {
@@ -42,7 +41,6 @@ export const seedUsers = async (
         ),
       });
     }
-    console.debug('Added user data');
     return seeded;
   } catch (e) {
     console.error(e);
