@@ -12,17 +12,28 @@ export class RegisterDto {
     USER_CONSTRAINTS.MIN_USERNAME_LENGTH,
     USER_CONSTRAINTS.MAX_USERNAME_LENGTH
   )
-  @Matches(/^[a-zA-z0-9_]+$/)
+  @Matches(/^[a-zA-z0-9_]+$/, {
+    message(validationArguments) {
+      return `${validationArguments.property} can only include letters and numbers (no spaces or special characters)`;
+    },
+  })
   username: string;
 
   @IsEmail()
   email: string;
 
-  @IsStrongPassword({
-    minNumbers: USER_CONSTRAINTS.MIN_PASSWORD_NUMBER,
-    minSymbols: USER_CONSTRAINTS.MIN_PASSWORD_SYMBOL,
-    minUppercase: USER_CONSTRAINTS.MIN_PASSWORD_UPPERCASE,
-  })
+  @IsStrongPassword(
+    {
+      minNumbers: USER_CONSTRAINTS.MIN_PASSWORD_NUMBER,
+      minSymbols: USER_CONSTRAINTS.MIN_PASSWORD_SYMBOL,
+      minUppercase: USER_CONSTRAINTS.MIN_PASSWORD_UPPERCASE,
+    },
+    {
+      message(validationArguments) {
+        return `${validationArguments.property} must contain at least 1 upper case, 1 number and 1 symbol`;
+      },
+    }
+  )
   @Length(
     USER_CONSTRAINTS.MIN_PASSWORD_LENGTH,
     USER_CONSTRAINTS.MAX_PASSWORD_LENGTH
