@@ -1,15 +1,24 @@
 import { seedUsers, seedRefreshTokens } from '@dans-coding-world/testing-setup';
 import { BaseResponse } from '@dans-coding-world/api-types';
-import { LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
+import {
+  LoginResponseDto,
+  RegistrationResponseDto,
+} from '@dans-coding-world/shared-auth-dto';
 import {
   login,
   renewAuthToken,
   findSetCookie,
   getJwtToken,
+  register,
 } from '../helper/authentication.js';
-import { createErrorResponse } from '../helper/error-response.js';
+import {
+  createErrorResponse,
+  createValidationErrorResponse,
+} from '../helper/error-response.js';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 import { TOKEN_CONSTRAINTS } from '@dans-coding-world/shared-constants';
+import { passwordGenerator } from '@dans-coding-world/api-auth';
+import { IS_EMAIL, IS_LENGTH, MATCHES } from 'class-validator';
 
 let users: User[];
 let tokens: RefreshToken[];
@@ -18,7 +27,6 @@ describe('/api/v1/auth', () => {
   afterAll(async () => {
     // Cleanup
     await seedUsers([], { clearExisting: true, useDefaults: false });
-    await seedRefreshTokens([], { clearExisting: true, useDefaults: false });
   });
   describe('POST /api/v1/auth/login', () => {
     beforeAll(async () => {
@@ -73,7 +81,7 @@ describe('/api/v1/auth', () => {
     });
   });
 
-  describe('POST api/v1/auth/refresh', () => {
+  describe('POST /api/v1/auth/refresh', () => {
     let userWithExpiredToken: User,
       userWithRevokedToken: User,
       userWithValidToken: User;
@@ -186,5 +194,141 @@ describe('/api/v1/auth', () => {
         createErrorResponse(401, 'Invalid or expired token.')
       );
     });
+  });
+
+  describe('POST /api/v1/auth/register', () => {
+    const VALID_USER_DATA = {
+      email: 'totalyValidEmail@gmail.com',
+      password: 'totallyValidPass_123',
+      username: 'totallyValid',
+    };
+    beforeAll(async () => {
+      await seedUsers([], { clearExisting: true, useDefaults: false });
+    });
+    it('should return created user data on valid registration data', async () => {
+      const res = await register(
+        VALID_USER_DATA.email,
+        VALID_USER_DATA.password,
+        VALID_USER_DATA.username
+      );
+
+      expect(res.status).toBe(201); // 201 CREATED
+      const { data } = res.data as BaseResponse;
+      expect((data as RegistrationResponseDto).user).not.toHaveProperty(
+        'password'
+      );
+      expect(data).toHaveProperty('message', 'User registered successfully');
+    });
+    it('should return an error when trying to register an existing user with the same username or email', async () => {
+      await seedUsers([{ ...VALID_USER_DATA, id: 1, role: 'USER' }], {
+        clearExisting: true,
+        useDefaults: false,
+      });
+
+      // Same username
+      await expect(
+        register(
+          'mockEmail13@gmail.com',
+          VALID_USER_DATA.password,
+          VALID_USER_DATA.username
+        )
+      ).rejects.toMatchObject(
+        createErrorResponse(
+          409,
+          'User with this email or username already exists'
+        )
+      );
+
+      // Same email
+      await expect(
+        register(
+          VALID_USER_DATA.email,
+          VALID_USER_DATA.password,
+          'veryCoolUser13'
+        )
+      ).rejects.toMatchObject(
+        createErrorResponse(
+          409,
+          'User with this email or username already exists'
+        )
+      );
+    });
+
+    test.each([
+      [
+        'email is empty',
+        'username123',
+        passwordGenerator(9),
+        '',
+        'email',
+        { [IS_EMAIL]: 'email must be an email' },
+      ],
+      [
+        'email is invalid',
+        'username123',
+        passwordGenerator(9),
+        'invalid-email',
+        'email',
+        { [IS_EMAIL]: 'email must be an email' },
+      ],
+      [
+        'username is empty',
+        '',
+        passwordGenerator(9),
+        'valid@email.com',
+        'username',
+        {
+          [IS_LENGTH]: 'username must be longer than or equal to 8 characters',
+        },
+      ],
+      [
+        'username is too short',
+        'us',
+        passwordGenerator(9),
+        'valid@email.com',
+        'username',
+        {
+          [IS_LENGTH]: 'username must be longer than or equal to 8 characters',
+        },
+      ],
+      [
+        'username is not alphanumeric',
+        'username@123',
+        passwordGenerator(9),
+        'valid@email.com',
+        'username',
+        {
+          [MATCHES]:
+            'username can only include letters and numbers (no spaces or special characters)',
+        },
+      ],
+      [
+        'password is empty',
+        'username123',
+        '',
+        'valid@email.com',
+        'password',
+        {
+          [IS_LENGTH]: 'password must be longer than or equal to 8 characters',
+        },
+      ],
+      [
+        'password is too short',
+        'username123',
+        passwordGenerator(3),
+        'valid@email.com',
+        'password',
+        {
+          [IS_LENGTH]: 'password must be longer than or equal to 8 characters',
+        },
+      ],
+    ])(
+      'should return validation error when %s',
+      async (_, username, password, email, property, constraints) => {
+        await expect(register(email, password, username)).rejects.toMatchObject(
+          createValidationErrorResponse([{ property, constraints }])
+        );
+      }
+    );
   });
 });
