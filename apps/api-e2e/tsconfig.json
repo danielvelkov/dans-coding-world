@@ -9,6 +9,12 @@
   "include": ["jest.config.ts", "src/**/*.ts"],
   "references": [
     {
+      "path": "../../libs/shared/util/exceptions"
+    },
+    {
+      "path": "../../libs/api/auth"
+    },
+    {
       "path": "../../libs/shared/util/shared-constants"
     },
     {

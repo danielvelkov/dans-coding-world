@@ -2,7 +2,7 @@ import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import {
   ApiException,
-  createValidationErrorDetails,
+  createValidationErrorDetailsList,
 } from '@dans-coding-world/exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 
@@ -17,7 +17,7 @@ export async function validateDto<T>(
     throw new ApiException(
       ERROR_CODES.VALIDATION.VALIDATION_ERROR,
       undefined,
-      createValidationErrorDetails(errors)
+      createValidationErrorDetailsList(errors)
     );
   }
   return dtoInstance;
