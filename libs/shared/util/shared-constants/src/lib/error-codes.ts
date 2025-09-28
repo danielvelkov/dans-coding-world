@@ -37,7 +37,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SER001: 'Internal Server Error',
   SER002: 'Resource not found',
 
-  VAL001: 'Validation failed',
+  VAL001: 'One or more fields failed validation',
   VAL002: 'User with this email or username already exists',
 };
 
