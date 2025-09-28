@@ -64,7 +64,7 @@ describe('Registration service', () => {
       expect(mockUserRepo.create).not.toHaveBeenCalled();
 
       return registrationService.register(registerDto).catch((err) => {
-        expect(err.message).toMatch(/Validation failed/i);
+        expect(err.message).toMatch(/failed.*validation/i);
       });
     });
 
@@ -115,7 +115,7 @@ describe('Registration service', () => {
       expect.assertions(2);
       expect(mockUserRepo.create).not.toHaveBeenCalled();
       return registrationService.register(registerDto).catch((err) => {
-        expect(err.message).toMatch(/Validation failed/);
+        expect(err.message).toMatch(/failed.*validation/);
       });
     });
 
@@ -140,7 +140,7 @@ describe('Registration service', () => {
       expect.assertions(2);
       expect(mockUserRepo.create).not.toHaveBeenCalled();
       return registrationService.register(registerDto).catch((err) => {
-        expect(err.message).toMatch(/Validation failed/);
+        expect(err.message).toMatch(/failed.*validation/);
       });
     });
 
@@ -186,7 +186,7 @@ describe('Registration service', () => {
       expect.assertions(2);
       expect(mockUserRepo.create).not.toHaveBeenCalled();
       return registrationService.register(registerDto).catch((err) => {
-        expect(err.message).toMatch(/Validation failed/);
+        expect(err.message).toMatch(/failed.*validation/);
       });
     });
   });

@@ -12,13 +12,18 @@ import {
   register,
 } from '../helper/authentication.js';
 import {
-  createErrorResponse,
+  createErrorCodeResponse,
   createValidationErrorResponse,
 } from '../helper/error-response.js';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
-import { TOKEN_CONSTRAINTS } from '@dans-coding-world/shared-constants';
+import {
+  TOKEN_CONSTRAINTS,
+  USER_CONSTRAINTS,
+  VALIDATION_MESSAGES,
+} from '@dans-coding-world/shared-constants';
 import { passwordGenerator } from '@dans-coding-world/api-auth';
-import { IS_EMAIL, IS_LENGTH, MATCHES } from 'class-validator';
+import { IS_EMAIL, MIN_LENGTH, MATCHES } from 'class-validator';
+import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 
 let users: User[];
 let tokens: RefreshToken[];
@@ -59,7 +64,7 @@ describe('/api/v1/auth', () => {
       'should return an error message on missing required fields',
       async ([username, password]) => {
         await expect(login(username, password)).rejects.toMatchObject(
-          createErrorResponse(400, 'Validation failed')
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
         );
       }
     );
@@ -68,7 +73,7 @@ describe('/api/v1/auth', () => {
       await expect(
         login('onomatopoeia@gmail.com', 'onomatopoeia123')
       ).rejects.toMatchObject(
-        createErrorResponse(401, 'Provided credentials are invalid')
+        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_CREDENTIALS)
       );
     });
 
@@ -76,7 +81,7 @@ describe('/api/v1/auth', () => {
       await expect(
         login(users[0].email, 'onomatopoeia123')
       ).rejects.toMatchObject(
-        createErrorResponse(401, 'Provided password is wrong')
+        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_PASSWORD)
       );
     });
   });
@@ -166,7 +171,9 @@ describe('/api/v1/auth', () => {
     it('should return validation error message if string is not JWT token', async () => {
       return await expect(
         renewAuthToken('123.12312.123.3123')
-      ).rejects.toMatchObject(createErrorResponse(400, 'Validation failed'));
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
     });
 
     it('should return an error message on an expired token', async () => {
@@ -178,7 +185,7 @@ describe('/api/v1/auth', () => {
       return await expect(
         renewAuthToken(expiredTokenObj.token)
       ).rejects.toMatchObject(
-        createErrorResponse(401, 'Invalid or expired token.')
+        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_TOKEN)
       );
     });
 
@@ -191,7 +198,7 @@ describe('/api/v1/auth', () => {
       return await expect(
         renewAuthToken(revokedTokenObj.token)
       ).rejects.toMatchObject(
-        createErrorResponse(401, 'Invalid or expired token.')
+        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_TOKEN)
       );
     });
   });
@@ -233,10 +240,7 @@ describe('/api/v1/auth', () => {
           VALID_USER_DATA.username
         )
       ).rejects.toMatchObject(
-        createErrorResponse(
-          409,
-          'User with this email or username already exists'
-        )
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.USER_EXISTS)
       );
 
       // Same email
@@ -247,10 +251,7 @@ describe('/api/v1/auth', () => {
           'veryCoolUser13'
         )
       ).rejects.toMatchObject(
-        createErrorResponse(
-          409,
-          'User with this email or username already exists'
-        )
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.USER_EXISTS)
       );
     });
 
@@ -261,7 +262,7 @@ describe('/api/v1/auth', () => {
         passwordGenerator(9),
         '',
         'email',
-        { [IS_EMAIL]: 'email must be an email' },
+        { [IS_EMAIL]: VALIDATION_MESSAGES.email.invalidEmail },
       ],
       [
         'email is invalid',
@@ -269,7 +270,7 @@ describe('/api/v1/auth', () => {
         passwordGenerator(9),
         'invalid-email',
         'email',
-        { [IS_EMAIL]: 'email must be an email' },
+        { [IS_EMAIL]: VALIDATION_MESSAGES.email.invalidEmail },
       ],
       [
         'username is empty',
@@ -278,7 +279,9 @@ describe('/api/v1/auth', () => {
         'valid@email.com',
         'username',
         {
-          [IS_LENGTH]: 'username must be longer than or equal to 8 characters',
+          [MIN_LENGTH]: VALIDATION_MESSAGES.minLength(
+            USER_CONSTRAINTS.MIN_USERNAME_LENGTH
+          ),
         },
       ],
       [
@@ -288,7 +291,9 @@ describe('/api/v1/auth', () => {
         'valid@email.com',
         'username',
         {
-          [IS_LENGTH]: 'username must be longer than or equal to 8 characters',
+          [MIN_LENGTH]: VALIDATION_MESSAGES.minLength(
+            USER_CONSTRAINTS.MIN_USERNAME_LENGTH
+          ),
         },
       ],
       [
@@ -298,8 +303,7 @@ describe('/api/v1/auth', () => {
         'valid@email.com',
         'username',
         {
-          [MATCHES]:
-            'username can only include letters and numbers (no spaces or special characters)',
+          [MATCHES]: VALIDATION_MESSAGES.username.invalid,
         },
       ],
       [
@@ -309,7 +313,9 @@ describe('/api/v1/auth', () => {
         'valid@email.com',
         'password',
         {
-          [IS_LENGTH]: 'password must be longer than or equal to 8 characters',
+          [MIN_LENGTH]: VALIDATION_MESSAGES.minLength(
+            USER_CONSTRAINTS.MIN_PASSWORD_LENGTH
+          ),
         },
       ],
       [
@@ -319,14 +325,16 @@ describe('/api/v1/auth', () => {
         'valid@email.com',
         'password',
         {
-          [IS_LENGTH]: 'password must be longer than or equal to 8 characters',
+          [MIN_LENGTH]: VALIDATION_MESSAGES.minLength(
+            USER_CONSTRAINTS.MIN_PASSWORD_LENGTH
+          ),
         },
       ],
     ])(
       'should return validation error when %s',
       async (_, username, password, email, property, constraints) => {
         await expect(register(email, password, username)).rejects.toMatchObject(
-          createValidationErrorResponse([{ property, constraints }])
+          createValidationErrorResponse([{ field: property, constraints }])
         );
       }
     );

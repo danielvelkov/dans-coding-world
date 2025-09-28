@@ -78,7 +78,7 @@ describe('Auth service', () => {
 
       expect.assertions(1);
       return authService.login(loginDto).catch((err) => {
-        expect(err.message).toMatch(/Validation Failed/i);
+        expect(err.message).toMatch(/failed.*validation/i);
       });
     });
 
@@ -159,7 +159,7 @@ describe('Auth service', () => {
     ])('should throw if passed token is not even JWT', async (token) => {
       expect.assertions(1);
       return authService.refreshToken({ token }).catch((error) => {
-        expect(error.message).toMatch(/Validation failed/i);
+        expect(error.message).toMatch(/failed.*validation/i);
       });
     });
 
