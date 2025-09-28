@@ -1,6 +1,12 @@
 import { ResponseErrorDetails } from '@dans-coding-world/api-types';
 import { AxiosError } from 'axios';
 import { ValidationErrorDetails } from '@dans-coding-world/exceptions';
+import {
+  ErrorCode,
+  ERROR_HTTP_STATUS,
+  ERROR_MESSAGES,
+  ERROR_CODES,
+} from '@dans-coding-world/shared-constants';
 
 export type AxiosApiErrorResponse = Partial<Omit<AxiosError, 'response'>> & {
   response: {
@@ -9,15 +15,14 @@ export type AxiosApiErrorResponse = Partial<Omit<AxiosError, 'response'>> & {
   };
 };
 
-export const createErrorResponse = (
-  statusCode: number,
-  message?: string
+export const createErrorCodeResponse = (
+  error: ErrorCode
 ): AxiosApiErrorResponse => ({
   response: {
-    status: statusCode,
+    status: ERROR_HTTP_STATUS[error],
     data: {
       error: {
-        message,
+        message: ERROR_MESSAGES[error],
       },
     },
   },
@@ -26,7 +31,7 @@ export const createErrorResponse = (
 export const createValidationErrorResponse = (
   errors: ValidationErrorDetails[]
 ): AxiosApiErrorResponse => {
-  const res = createErrorResponse(400, 'Validation failed');
+  const res = createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR);
   res.response.data.error.details = errors;
   return res;
 };

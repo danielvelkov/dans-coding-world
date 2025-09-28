@@ -1,5 +1,5 @@
 export type ValidationErrorDetails = {
-  property: string;
+  field: string;
   constraints: {
     [type: string]: string;
   };

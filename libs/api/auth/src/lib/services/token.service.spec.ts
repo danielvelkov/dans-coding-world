@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { User } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
-import config from '../config/auth.config.js';
+import { config } from '../config/auth.config.js';
 
 const injector = ReflectiveInjector.resolveAndCreate([
   TokenService,
