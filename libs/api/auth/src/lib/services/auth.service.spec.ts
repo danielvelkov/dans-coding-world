@@ -20,6 +20,7 @@ import { MockUserDataAccess as MockUserRepository } from '@dans-coding-world/use
 import { MockRefreshTokenDataAccess as MockRefreshTokenRepository } from '@dans-coding-world/token-data-access';
 import { hashPassword } from '../helper/password.helper.js';
 import { User } from '@dans-coding-world/prisma-schema';
+import { decode, JwtPayload } from 'jsonwebtoken';
 
 let mockUserRepo: IUserRepository;
 let mockRefreshTokenRepo: IRefreshTokenRepository;
@@ -134,8 +135,10 @@ describe('Auth service', () => {
 
       const mockToken = tokenService.generateRefreshToken(MOCK_USER);
 
+      const jti = getJti(mockToken);
+
       (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        token: await hashPassword(mockToken),
+        jti,
         revoked: false,
         userId: MOCK_USER.id,
         createdAt: new Date(),
@@ -167,9 +170,10 @@ describe('Auth service', () => {
       const tokenService = injector.get(TOKEN_SERVICE_TOKEN) as TokenService;
 
       const mockToken = tokenService.generateRefreshToken(MOCK_USER);
+      const jti = getJti(mockToken);
 
       (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        token: await hashPassword(mockToken),
+        jti,
         revoked: true, // token is 'revoked'
         userId: MOCK_USER.id,
         createdAt: new Date(),
@@ -190,9 +194,10 @@ describe('Auth service', () => {
         expiresIn: -1000,
         secret: config.options.refreshSecret,
       });
+      const jti = getJti(mockToken);
 
       (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        token: await hashPassword(mockToken),
+        jti,
         revoked: true,
         userId: MOCK_USER.id,
         createdAt: new Date(),
@@ -208,9 +213,10 @@ describe('Auth service', () => {
       const tokenService = injector.get(TOKEN_SERVICE_TOKEN) as TokenService;
 
       const mockToken = tokenService.generateRefreshToken(MOCK_USER);
+      const jti = getJti(mockToken);
 
       (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        token: await hashPassword(mockToken),
+        jti,
         revoked: true,
         userId: MOCK_USER.id,
         createdAt: new Date(),
@@ -227,12 +233,13 @@ describe('Auth service', () => {
       const tokenService = injector.get(TOKEN_SERVICE_TOKEN) as TokenService;
 
       const mockToken = tokenService.generateRefreshToken(MOCK_USER);
+      const jti = getJti(mockToken);
       const expirationMs = config.options.refreshExpiration;
 
       const expirationDate = new Date(Date.now() + expirationMs);
 
       const tokenEntry = {
-        token: await hashPassword(mockToken),
+        jti,
         revoked: false,
         userId: MOCK_USER.id,
         createdAt: new Date(),
@@ -251,7 +258,7 @@ describe('Auth service', () => {
       });
 
       expect.assertions(3);
-      expect(mockRefreshTokenRepo.delete).toHaveBeenCalledWith(tokenEntry);
+      expect(mockRefreshTokenRepo.delete).toHaveBeenCalledWith(jti);
       expect(refreshResponse.refreshToken).not.toBe(mockToken);
 
       // Advance to just past expiration
@@ -270,9 +277,10 @@ describe('Auth service', () => {
         ...MOCK_USER,
         id: -9999,
       });
+      const jti = getJti(mockToken);
 
       (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        token: await hashPassword(mockToken),
+        jti,
         revoked: true,
         userId: -9999,
         createdAt: new Date(),
@@ -286,3 +294,9 @@ describe('Auth service', () => {
     });
   });
 });
+
+const getJti = (token: string) => {
+  const res = decode(token) as JwtPayload;
+  if (!res.jti) throw new Error('Invalid token');
+  return res.jti;
+};
