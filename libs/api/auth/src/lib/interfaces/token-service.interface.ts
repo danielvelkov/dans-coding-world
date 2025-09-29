@@ -71,8 +71,45 @@ export interface ITokenService {
    */
   verifyRefreshToken(token: string, options?: TokenOptions): JwtPayload;
 
+  /**
+   * Mark specific refresh token as revoked.
+   * @param token User token.
+   * @returns The revoked token
+   * @throws {Error} An error when the token does not exist
+   * @example
+   * ```typescript
+   * const payload = await tokenService.revokeRefreshToken(
+   *    token,
+   * );
+   * ```
+   */
   revokeRefreshToken(token: string): Promise<RefreshToken>;
+
+  /**
+   * Mark all user refresh token as revoked.
+   * @param userId User id.
+   * @returns The revoked tokens
+   * @throws {Error} An error when the user does not exist
+   * @example
+   * ```typescript
+   * const payload = await tokenService.revokeAllUserRefreshTokens(
+   *    token,
+   * );
+   * ```
+   */
   revokeAllUserRefreshTokens(userId: string): Promise<RefreshToken[]>;
+
+  /**
+   * Mark ALL refresh token as revoked.
+   * @description Admin-only operation. Requires elevated privileges.
+   * @returns The revoked tokens
+   * @example
+   * ```typescript
+   * const payload = await tokenService.revokeAllRefreshTokens(
+   *    token,
+   * );
+   * ```
+   */
   revokeAllRefreshTokens(): Promise<RefreshToken[]>;
 }
 

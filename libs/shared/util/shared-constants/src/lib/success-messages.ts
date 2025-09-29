@@ -6,5 +6,6 @@ export const SUCCESS_MESSAGES = {
     login: 'Login successful',
     register: 'User registered successfully',
     token: 'New access and refresh token issued',
+    revoke: 'User token/tokens revoked',
   },
 };
