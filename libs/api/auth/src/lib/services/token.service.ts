@@ -27,8 +27,9 @@ export class TokenService implements ITokenService {
       expiresIn: this.authConfig.options.accessExpiration,
     }
   ): string {
-    return jwt.sign({ jti: crypto.randomUUID(), ...payload }, options.secret, {
+    return jwt.sign(payload, options.secret, {
       expiresIn: options.expiresIn,
+      jwtid: crypto.randomUUID(),
     });
   }
 
@@ -39,13 +40,11 @@ export class TokenService implements ITokenService {
       expiresIn: this.authConfig.options.refreshExpiration,
     }
   ): string {
-    return jwt.sign(
-      { sub: user.id.toString(), jti: crypto.randomUUID() },
-      options.secret,
-      {
-        expiresIn: options.expiresIn,
-      }
-    );
+    return jwt.sign(user, options.secret, {
+      expiresIn: options.expiresIn,
+      jwtid: crypto.randomUUID(),
+      subject: user.id.toString(),
+    });
   }
 
   verifyRefreshToken(
