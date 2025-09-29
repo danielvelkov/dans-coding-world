@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
+import { decode, JwtPayload } from 'jsonwebtoken';
 
 export async function register(
   email: string,
@@ -58,3 +59,9 @@ export function getJwtToken(string: string) {
   if (!match?.[1]) throw new Error('Missing refresh token');
   return match[1];
 }
+
+export const getJti = (token: string) => {
+  const payload: JwtPayload = decode(token) as JwtPayload;
+  if (!payload.jti) throw new Error('Missing jti');
+  return payload.jti;
+};
