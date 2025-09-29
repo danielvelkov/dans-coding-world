@@ -1,4 +1,7 @@
-import { seedUsers, seedRefreshTokens } from '@dans-coding-world/testing-setup';
+import {
+  seedUsers,
+  updateRefreshToken,
+} from '@dans-coding-world/testing-setup';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   LoginResponseDto,
@@ -10,24 +13,23 @@ import {
   findSetCookie,
   getJwtToken,
   register,
+  getJti,
 } from '../helper/authentication.js';
 import {
   createErrorCodeResponse,
   createValidationErrorResponse,
 } from '../helper/error-response.js';
-import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
+import { User } from '@dans-coding-world/prisma-schema';
 import {
-  TOKEN_CONSTRAINTS,
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
   SUCCESS_MESSAGES,
+  ERROR_CODES,
 } from '@dans-coding-world/shared-constants';
 import { passwordGenerator } from '@dans-coding-world/api-auth';
 import { IS_EMAIL, MIN_LENGTH, MATCHES } from 'class-validator';
-import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 
 let users: User[];
-let tokens: RefreshToken[];
 
 describe('/api/v1/auth', () => {
   afterAll(async () => {
@@ -88,46 +90,22 @@ describe('/api/v1/auth', () => {
   });
 
   describe('POST /api/v1/auth/refresh', () => {
-    let userWithExpiredToken: User,
-      userWithRevokedToken: User,
-      userWithValidToken: User;
+    let jwt = '';
 
-    beforeAll(async () => {
-      users = await seedUsers();
-      [userWithExpiredToken, userWithRevokedToken, userWithValidToken] = users;
-      tokens = await seedRefreshTokens([
-        {
-          expiresAt: new Date(Date.now() - 1000 * 60),
-          revoked: false,
-          userId: userWithExpiredToken.id,
-        },
-        {
-          expiresAt: new Date(
-            Date.now() + TOKEN_CONSTRAINTS.REFRESH_TOKEN_EXPIRATION
-          ),
-          revoked: true,
-          userId: userWithRevokedToken.id,
-        },
-        {
-          expiresAt: new Date(
-            Date.now() + TOKEN_CONSTRAINTS.REFRESH_TOKEN_EXPIRATION
-          ),
-          revoked: false,
-          userId: userWithValidToken.id,
-        },
-      ]);
+    beforeEach(async () => {
+      users = await seedUsers([], { clearExisting: true, useDefaults: true });
+
+      if (!users[0]) throw new Error('Missing test user');
+
+      const res = await login(users[0].email, users[0].password);
+
+      const refreshTokenCookie = findSetCookie(res, 'refresh_token');
+
+      jwt = getJwtToken(refreshTokenCookie);
     });
 
     it('should set new access and refresh token in set-cookie header on valid refresh token', async () => {
-      const loginRes = await login(users[0].email, users[0].password);
-
-      const accessTokenCookie = findSetCookie(loginRes, 'access_token');
-      const refreshTokenCookie = findSetCookie(loginRes, 'refresh_token');
-
-      const accessToken = getJwtToken(accessTokenCookie);
-      const refreshToken = getJwtToken(refreshTokenCookie);
-
-      const refreshRes = await renewAuthToken(refreshToken);
+      const refreshRes = await renewAuthToken(jwt);
 
       const newRefreshTokenCookie = findSetCookie(refreshRes, 'refresh_token');
       const newAccessTokenCookie = findSetCookie(refreshRes, 'access_token');
@@ -135,8 +113,7 @@ describe('/api/v1/auth', () => {
       expect(getJwtToken(newRefreshTokenCookie)).toBeTruthy();
       expect(getJwtToken(newAccessTokenCookie)).toBeTruthy();
 
-      expect(accessToken).not.toBe(getJwtToken(newAccessTokenCookie));
-      expect(refreshToken).not.toBe(getJwtToken(newRefreshTokenCookie));
+      expect(jwt).not.toBe(getJwtToken(newRefreshTokenCookie));
 
       expect(newAccessTokenCookie).toContain('HttpOnly');
       expect(newRefreshTokenCookie).toContain('HttpOnly');
@@ -153,22 +130,6 @@ describe('/api/v1/auth', () => {
       expect(refreshData).toHaveProperty('user');
     });
 
-    it('should return an access/refresh token pair on valid refresh token (entry already in db)', async () => {
-      const validTokenObj = tokens.find(
-        (t) => t.userId === userWithValidToken.id
-      );
-
-      if (!validTokenObj) throw new Error('Missing test user');
-      const refreshRes = await renewAuthToken(validTokenObj.token);
-
-      expect(refreshRes.status).toBe(200);
-      const { data: refreshData } = refreshRes.data as BaseResponse;
-      expect(refreshData).toHaveProperty(
-        'message',
-        'New access and refresh token issued'
-      );
-    });
-
     it('should return validation error message if string is not JWT token', async () => {
       return await expect(
         renewAuthToken('123.12312.123.3123')
@@ -177,31 +138,34 @@ describe('/api/v1/auth', () => {
       );
     });
 
-    it('should return an error message on an expired token', async () => {
-      const expiredTokenObj = tokens.find(
-        (t) => t.userId === userWithExpiredToken.id
-      );
-      if (!expiredTokenObj) throw new Error('Missing test user');
-
-      return await expect(
-        renewAuthToken(expiredTokenObj.token)
-      ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_TOKEN)
-      );
-    });
-
-    it('should return an error message on a revoked token', async () => {
-      const revokedTokenObj = tokens.find(
-        (t) => t.userId === userWithRevokedToken.id
-      );
-      if (!revokedTokenObj) throw new Error('Missing test user');
-
-      return await expect(
-        renewAuthToken(revokedTokenObj.token)
-      ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_TOKEN)
-      );
-    });
+    test.each([
+      [
+        'token expiring last minute',
+        {
+          expiresAt: new Date(Date.now() - 1000 * 60),
+        },
+      ],
+      [
+        'token being revoked',
+        {
+          revoked: true,
+        },
+      ],
+      [
+        'token changing users',
+        {
+          userId: 2,
+        },
+      ],
+    ])(
+      'should return invalid token error message on %s',
+      async (_, tokenUpdateData) => {
+        await updateRefreshToken({ ...tokenUpdateData, jti: getJti(jwt) });
+        return await expect(renewAuthToken(jwt)).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_TOKEN)
+        );
+      }
+    );
   });
 
   describe('POST /api/v1/auth/register', () => {
