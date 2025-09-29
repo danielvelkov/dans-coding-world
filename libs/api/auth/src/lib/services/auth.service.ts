@@ -11,10 +11,7 @@ import {
 } from '@dans-coding-world/shared-auth-dto';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { ApiException } from '@dans-coding-world/exceptions';
-import {
-  validPassword as validHash,
-  hashPassword as hash,
-} from '../helper/password.helper.js';
+import { validPassword } from '../helper/password.helper.js';
 import { Inject, Injectable } from 'injection-js';
 import type { AuthConfiguration } from '../config/auth.config.js';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
@@ -44,7 +41,7 @@ export class AuthService implements IAuthService {
 
     if (!user) throw new ApiException(ERROR_CODES.AUTH.INVALID_CREDENTIALS);
 
-    const isPasswordValid = await validHash(password, user.password);
+    const isPasswordValid = await validPassword(password, user.password);
 
     if (!isPasswordValid)
       throw new ApiException(ERROR_CODES.AUTH.INVALID_PASSWORD);
@@ -54,14 +51,17 @@ export class AuthService implements IAuthService {
 
   async refreshToken(dto: RefreshTokenDto): Promise<LoginResponseDto> {
     await validateDto(dto, RefreshTokenDto);
-    const [user, refreshToken] = await this.validateAndGetRefreshToken(
-      dto.token
-    );
+    const refreshToken = await this.validateAndGetRefreshToken(dto.token);
 
     // Clean up the old refresh token
-    await this.refreshTokens.delete(refreshToken);
+    await this.refreshTokens.delete(refreshToken.jti);
 
-    return this.generateLoginResponse(user);
+    const user = await this.users.getById(refreshToken.userId.toString());
+    if (!user) {
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
+    }
+
+    return await this.generateLoginResponse(user);
   }
 
   private async generateLoginResponse(user: User): Promise<LoginResponseDto> {
@@ -69,10 +69,7 @@ export class AuthService implements IAuthService {
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken(user);
 
-    await this.storeUserRefreshToken(
-      await hash(refreshToken),
-      user.id.toString()
-    );
+    await this.storeUserRefreshToken(refreshToken, user.id.toString());
 
     const { password: _, ...userWithoutPass } = user;
 
@@ -87,65 +84,37 @@ export class AuthService implements IAuthService {
     token: string,
     userId: string
   ): Promise<void> {
+    const { jti } = this.tokenService.verifyRefreshToken(token);
+
+    if (!jti) throw new ApiException(ERROR_CODES.SERVER.INTERNAL_ERROR);
+
     const expiresAt = new Date(
       Date.now() + this.authConfig.options.refreshExpiration
     );
-    await this.refreshTokens.create(token, userId, expiresAt);
+    await this.refreshTokens.create(jti, userId, expiresAt);
   }
 
   private async validateAndGetRefreshToken(
     token: string
-  ): Promise<[User, RefreshToken]> {
+  ): Promise<RefreshToken> {
     let payload;
     try {
       payload = this.tokenService.verifyRefreshToken(token);
     } catch (_) {
       throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
     }
-    const userId = payload.sub;
+    const { jti, sub: userId } = payload;
 
-    if (!userId) {
+    if (!userId || !jti) {
       throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
     }
 
-    const user = await this.users.getById(userId.toString());
-
-    if (!user) {
+    const refreshToken = await this.refreshTokens.getById(jti);
+    if (!refreshToken || refreshToken.userId !== +userId)
       throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
-    }
-
-    const refreshToken = await this.findUserRefreshTokenEntry(token, userId);
-    if (!refreshToken) {
-      throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
-    }
 
     this.validateRefreshTokenState(refreshToken);
-
-    return [user, refreshToken];
-  }
-
-  private async findUserRefreshTokenEntry(
-    token: string,
-    userId: string
-  ): Promise<RefreshToken | null> {
-    const refreshTokens = await this.refreshTokens.getUserTokens(userId);
-
-    if (!refreshTokens?.length) {
-      return null;
-    }
-
-    for (const rt of refreshTokens) {
-      try {
-        const isValid = await validHash(token, rt.token);
-        if (isValid) {
-          return rt;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    return null;
+    return refreshToken;
   }
 
   private validateRefreshTokenState(refreshToken: RefreshToken): void {
