@@ -38,3 +38,14 @@ export const seedRefreshTokens = async (
     await client.$disconnect();
   }
 };
+
+export const updateRefreshToken = async (
+  data: RequireOnly<RefreshToken, 'jti'>
+): Promise<RefreshToken> =>
+  await client.refreshToken.update({
+    where: { jti: data.jti },
+    data,
+  });
+
+  type RequireOnly<T, K extends keyof T> =
+  Partial<T> & Pick<T, K>;
