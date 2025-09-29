@@ -5,10 +5,10 @@ import {
 import { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
 
 export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
-  async get(token: string): Promise<RefreshToken | null> {
+  async getById(jti: string): Promise<RefreshToken | null> {
     return await prisma.refreshToken.findFirst({
       where: {
-        token,
+        jti,
       },
     });
   }
@@ -19,26 +19,31 @@ export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
     });
   }
 
-  create(
-    token: string,
+  async create(
+    jti: string,
     userId: string,
     expiresAt: Date
   ): Promise<RefreshToken> {
-    return prisma.refreshToken.create({
+    return await prisma.refreshToken.create({
       data: {
-        token,
+        jti,
         userId: Number(userId),
         expiresAt,
       },
     });
   }
-  update(data: RefreshToken): Promise<RefreshToken> {
-    throw new Error('Method not implemented.');
+  async update(data: RefreshToken): Promise<RefreshToken> {
+    return await prisma.refreshToken.update({
+      where: {
+        jti: data.jti,
+      },
+      data,
+    });
   }
-  async delete(data: RefreshToken): Promise<RefreshToken> {
+  async delete(jti: string): Promise<RefreshToken> {
     return await prisma.refreshToken.delete({
       where: {
-        ...data,
+        jti,
       },
     });
   }
