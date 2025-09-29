@@ -3,23 +3,23 @@ import { RefreshToken } from '@dans-coding-world/prisma-schema';
 export class MockRefreshTokenDataAccess implements IRefreshTokenRepository {
   tokens: RefreshToken[] = [];
 
-  async get(token: string): Promise<RefreshToken | null> {
-    return this.tokens.find((t) => t.token === token) ?? null;
+  async getById(jti: string): Promise<RefreshToken | null> {
+    return this.tokens.find((t) => t.jti === jti) ?? null;
   }
   async getUserTokens(userId: string): Promise<RefreshToken[] | null> {
     return this.tokens.filter((t) => t.userId.toString() === userId);
   }
   async create(
-    token: string,
+    jti: string,
     userId: string,
     expiresAt: Date
   ): Promise<RefreshToken> {
-    const existingToken = await this.get(token);
+    const existingToken = await this.getById(jti);
 
     if (existingToken) throw new Error('Refresh token already exists');
 
     const newToken = {
-      token,
+      jti,
       userId: Number(userId),
       revoked: false,
       expiresAt,
@@ -29,11 +29,18 @@ export class MockRefreshTokenDataAccess implements IRefreshTokenRepository {
     this.tokens.push(newToken);
     return newToken;
   }
-  update(data: RefreshToken): Promise<RefreshToken> {
-    throw new Error('Method not implemented.');
+  async update(data: RefreshToken): Promise<RefreshToken> {
+    const existingToken = await this.getById(data.jti);
+
+    if (!existingToken) throw new Error('Refresh token does not exist');
+    this.tokens = this.tokens.map((t) => (t.jti === data.jti ? data : t));
+    return existingToken;
   }
-  delete(data: RefreshToken): Promise<RefreshToken> {
-    this.tokens = this.tokens.filter((t) => t.token !== data.token);
-    return Promise.resolve(data);
+  async delete(jti: string): Promise<RefreshToken> {
+    const existingToken = await this.getById(jti);
+
+    if (!existingToken) throw new Error('Refresh token does not exist');
+    this.tokens = this.tokens.filter((t) => t.jti !== jti);
+    return existingToken;
   }
 }

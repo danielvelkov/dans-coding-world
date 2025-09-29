@@ -1,24 +1,9 @@
 import users from '../data/users.json' with {type: "json"};
 import { client, RefreshToken } from '@dans-coding-world/prisma-schema';
-import { hashPassword } from '@dans-coding-world/api-auth';
 import { SeedOptions } from './types/seed-options.js';
-import {
-  TokenService,
-  config,
-  AUTH_CONFIG_TOKEN,
-} from '@dans-coding-world/api-auth';
-
-import { ReflectiveInjector } from 'injection-js';
-
-const injector = ReflectiveInjector.resolveAndCreate([
-  TokenService,
-  { provide: AUTH_CONFIG_TOKEN, useValue: config },
-]);
-
-const tokenService = injector.get(TokenService) as TokenService;
 
 export const seedRefreshTokens = async (
-  customTokens?: Omit<RefreshToken, 'createdAt' | 'token'>[],
+  customTokens?: Omit<RefreshToken, 'createdAt'>[],
   options: SeedOptions = { clearExisting: true, useDefaults: false }
 ): Promise<RefreshToken[]> => {
   try {
@@ -34,13 +19,6 @@ export const seedRefreshTokens = async (
           return {
             ...t,
             createdAt: new Date(),
-            token: tokenService.generateRefreshToken(
-              { ...user, role: 'USER' },
-              {
-                expiresIn: config.options.refreshExpiration,
-                secret: config.options.refreshSecret,
-              }
-            ),
           };
         else throw new Error('Non-existent test user');
       });
@@ -48,12 +26,7 @@ export const seedRefreshTokens = async (
       seeded.push(...tokens);
 
       await client.refreshToken.createMany({
-        data: await Promise.all(
-          tokens.map(async (t) => ({
-            ...t,
-            token: await hashPassword(t.token),
-          }))
-        ),
+        data: tokens,
       });
     }
 
