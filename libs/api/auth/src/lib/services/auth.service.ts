@@ -59,9 +59,7 @@ export class AuthService implements IAuthService {
     );
 
     // Clean up the old refresh token
-    if (refreshToken) {
-      await this.refreshTokens.delete(refreshToken);
-    }
+    await this.refreshTokens.delete(refreshToken);
 
     return this.generateLoginResponse(user);
   }

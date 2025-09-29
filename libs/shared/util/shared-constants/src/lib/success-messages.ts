@@ -1,0 +1,10 @@
+/**
+ * Centralized default messages for successful actions
+ */
+export const SUCCESS_MESSAGES = {
+  AUTH: {
+    login: 'Login successful',
+    register: 'User registered successfully',
+    token: 'New access and refresh token issued',
+  },
+};

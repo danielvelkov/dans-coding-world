@@ -34,7 +34,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AUTH002: 'Provided password is wrong',
   AUTH003: 'Invalid or expired token.',
 
-  SER001: 'Internal Server Error',
+  SER001: 'Something went wrong',
   SER002: 'Resource not found',
 
   VAL001: 'One or more fields failed validation',

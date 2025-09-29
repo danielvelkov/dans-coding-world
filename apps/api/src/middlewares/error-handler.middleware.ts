@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiException } from '@dans-coding-world/exceptions';
 import { BaseResponse } from '@dans-coding-world/api-types';
+import {
+  ERROR_CODES,
+  ERROR_MESSAGES,
+  ERROR_HTTP_STATUS,
+} from '@dans-coding-world/shared-constants';
 
 export function errorHandler(
   err: unknown,
@@ -25,13 +30,15 @@ export function errorHandler(
       success: false,
       data: null,
       error: {
-        status: 500,
-        errorCode: 'INTERNAL_SERVER_ERROR',
-        message: 'Something went wrong.',
+        status: ERROR_HTTP_STATUS[ERROR_CODES.SERVER.INTERNAL_ERROR],
+        errorCode: ERROR_CODES.SERVER.INTERNAL_ERROR,
+        message: ERROR_MESSAGES[ERROR_CODES.SERVER.INTERNAL_ERROR],
         details: undefined,
       },
     };
-    res.status(500).json(response);
+    res
+      .status(ERROR_HTTP_STATUS[ERROR_CODES.SERVER.INTERNAL_ERROR])
+      .json(response);
   }
   next();
 }

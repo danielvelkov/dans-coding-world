@@ -20,6 +20,7 @@ import {
   TOKEN_CONSTRAINTS,
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
+  SUCCESS_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { passwordGenerator } from '@dans-coding-world/api-auth';
 import { IS_EMAIL, MIN_LENGTH, MATCHES } from 'class-validator';
@@ -44,7 +45,7 @@ describe('/api/v1/auth', () => {
       expect(res.status).toBe(200);
       const { data } = res.data as BaseResponse;
       expect((data as LoginResponseDto).user).not.toHaveProperty('password');
-      expect(data).toHaveProperty('message', 'Login successful');
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.login);
 
       const refreshTokenCookie = findSetCookie(res, 'refresh_token');
       const accessTokenCookie = findSetCookie(res, 'access_token');
@@ -147,7 +148,7 @@ describe('/api/v1/auth', () => {
       );
       expect(refreshData).toHaveProperty(
         'message',
-        'New access and refresh token issued'
+        SUCCESS_MESSAGES.AUTH.token
       );
       expect(refreshData).toHaveProperty('user');
     });
@@ -206,8 +207,8 @@ describe('/api/v1/auth', () => {
   describe('POST /api/v1/auth/register', () => {
     const VALID_USER_DATA = {
       email: 'totalyValidEmail@gmail.com',
-      password: 'totallyValidPass_123',
-      username: 'totallyValid',
+      password: passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1),
+      username: 'totallyValid13',
     };
     beforeAll(async () => {
       await seedUsers([], { clearExisting: true, useDefaults: false });
@@ -224,7 +225,7 @@ describe('/api/v1/auth', () => {
       expect((data as RegistrationResponseDto).user).not.toHaveProperty(
         'password'
       );
-      expect(data).toHaveProperty('message', 'User registered successfully');
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.register);
     });
     it('should return an error when trying to register an existing user with the same username or email', async () => {
       await seedUsers([{ ...VALID_USER_DATA, id: 1, role: 'USER' }], {
@@ -259,7 +260,7 @@ describe('/api/v1/auth', () => {
       [
         'email is empty',
         'username123',
-        passwordGenerator(9),
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1),
         '',
         'email',
         { [IS_EMAIL]: VALIDATION_MESSAGES.email.invalidEmail },
@@ -267,7 +268,7 @@ describe('/api/v1/auth', () => {
       [
         'email is invalid',
         'username123',
-        passwordGenerator(9),
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1),
         'invalid-email',
         'email',
         { [IS_EMAIL]: VALIDATION_MESSAGES.email.invalidEmail },
@@ -275,7 +276,7 @@ describe('/api/v1/auth', () => {
       [
         'username is empty',
         '',
-        passwordGenerator(9),
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1),
         'valid@email.com',
         'username',
         {
@@ -287,7 +288,7 @@ describe('/api/v1/auth', () => {
       [
         'username is too short',
         'us',
-        passwordGenerator(9),
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1),
         'valid@email.com',
         'username',
         {
@@ -299,7 +300,7 @@ describe('/api/v1/auth', () => {
       [
         'username is not alphanumeric',
         'username@123',
-        passwordGenerator(9),
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1),
         'valid@email.com',
         'username',
         {
@@ -321,7 +322,7 @@ describe('/api/v1/auth', () => {
       [
         'password is too short',
         'username123',
-        passwordGenerator(3),
+        passwordGenerator(USER_CONSTRAINTS.MIN_USERNAME_LENGTH - 1),
         'valid@email.com',
         'password',
         {

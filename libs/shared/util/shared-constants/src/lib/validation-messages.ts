@@ -1,3 +1,6 @@
+/**
+ * Centralized default messages for field validation errors
+ */
 export const VALIDATION_MESSAGES = {
   required: 'This field is required',
   minLength: (min: number) =>

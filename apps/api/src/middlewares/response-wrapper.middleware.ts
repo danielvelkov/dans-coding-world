@@ -1,6 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { BaseResponse } from '@dans-coding-world/api-types';
 
+/**
+ * Express middleware that wraps a successful JSON response in a
+ * specific structure.
+ * @example
+ * ```
+ * app.use(responseWrapper)
+ * ```
+ */
 export function responseWrapper(
   req: Request,
   res: Response,

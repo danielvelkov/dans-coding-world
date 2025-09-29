@@ -10,6 +10,7 @@ import {
   RefreshTokenDto,
   RegisterDto,
 } from '@dans-coding-world/shared-auth-dto';
+import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 
 export class AuthController {
   constructor(
@@ -25,7 +26,7 @@ export class AuthController {
 
       return res
         .status(StatusCodes.CREATED)
-        .json({ message: 'User registered successfully', user: result.user });
+        .json({ message: SUCCESS_MESSAGES.AUTH.register, user: result.user });
     } catch (error) {
       return next(error);
     }
@@ -49,7 +50,7 @@ export class AuthController {
 
       return res
         .status(StatusCodes.OK)
-        .json({ message: 'Login successful', user: result.user });
+        .json({ message: SUCCESS_MESSAGES.AUTH.login, user: result.user });
     } catch (error) {
       return next(error);
     }
@@ -72,7 +73,7 @@ export class AuthController {
       });
 
       return res.status(StatusCodes.OK).json({
-        message: 'New access and refresh token issued',
+        message: SUCCESS_MESSAGES.AUTH.token,
         user: result.user,
       });
     } catch (error) {
