@@ -4,4 +4,5 @@ export type {
   UserWhereInput,
   Role,
   RefreshToken,
+  RefreshTokenWhereInput,
 } from './lib/prisma.types.js';
