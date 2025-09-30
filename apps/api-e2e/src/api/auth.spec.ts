@@ -14,11 +14,11 @@ import {
   getJwtToken,
   register,
   getJti,
-} from '../helper/authentication.js';
+} from '../helper/authentication.helper.js';
 import {
   createErrorCodeResponse,
   createValidationErrorResponse,
-} from '../helper/error-response.js';
+} from '../helper/error-response.helper.js';
 import { User } from '@dans-coding-world/prisma-schema';
 import {
   USER_CONSTRAINTS,
