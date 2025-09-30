@@ -6,9 +6,13 @@ import {
   TokenOptions,
 } from '../interfaces/token-service.interface.js';
 import type { AuthConfiguration } from '../config/auth.config.js';
+import type { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
+import { ApiException } from '@dans-coding-world/exceptions';
+import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 
 export const AUTH_CONFIG_TOKEN = 'AuthConfiguration';
 export const TOKEN_SERVICE_TOKEN = 'ITokenService';
+export const REFRESH_TOKEN_REPOSITORY_TOKEN = 'IRefreshTokenRepository';
 
 /**
  * @implements {ITokenService}
@@ -17,7 +21,9 @@ export const TOKEN_SERVICE_TOKEN = 'ITokenService';
 export class TokenService implements ITokenService {
   constructor(
     @Inject(AUTH_CONFIG_TOKEN)
-    private authConfig: AuthConfiguration
+    private authConfig: AuthConfiguration,
+    @Inject(REFRESH_TOKEN_REPOSITORY_TOKEN)
+    private refreshTokens: IRefreshTokenRepository
   ) {}
 
   generateAccessToken(
@@ -57,13 +63,35 @@ export class TokenService implements ITokenService {
     return jwt.verify(token, options.secret) as jwt.JwtPayload;
   }
 
-  revokeRefreshToken(token: string): Promise<RefreshToken> {
-    throw new Error('Method not implemented.');
+  async revokeRefreshToken(jti: string): Promise<RefreshToken> {
+    const refreshToken = await this.refreshTokens.getById(jti);
+    if (!refreshToken)
+      throw new ApiException(
+        ERROR_CODES.SERVER.NOT_FOUND,
+        'Token no longer exists'
+      );
+
+    refreshToken.revoked = true;
+
+    return await this.refreshTokens.update(refreshToken);
   }
-  revokeAllUserRefreshTokens(userId: string): Promise<RefreshToken[]> {
-    throw new Error('Method not implemented.');
+  async revokeAllUserRefreshTokens(userId: string): Promise<RefreshToken[]> {
+    const userRefreshTokens =
+      (await this.refreshTokens.getUserTokens(userId)) ?? [];
+
+    for (const token of userRefreshTokens) {
+      token.revoked = true;
+    }
+    await this.refreshTokens.updateMany(userRefreshTokens);
+
+    return userRefreshTokens;
   }
-  revokeAllRefreshTokens(): Promise<RefreshToken[]> {
-    throw new Error('Method not implemented.');
+  async revokeAllRefreshTokens(): Promise<RefreshToken[]> {
+    const allRefreshTokens = await this.refreshTokens.getAll();
+    for (const token of allRefreshTokens) {
+      token.revoked = true;
+    }
+    await this.refreshTokens.updateMany(allRefreshTokens);
+    return allRefreshTokens;
   }
 }

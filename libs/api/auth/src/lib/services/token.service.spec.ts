@@ -1,5 +1,9 @@
 import 'reflect-metadata';
-import { TokenService, AUTH_CONFIG_TOKEN } from './token.service.js';
+import {
+  TokenService,
+  AUTH_CONFIG_TOKEN,
+  REFRESH_TOKEN_REPOSITORY_TOKEN,
+} from './token.service.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { User } from '@dans-coding-world/prisma-schema';

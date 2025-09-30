@@ -6,7 +6,7 @@ import {
 /**
  * User authentication service which provides:
  * - user credentials validation
- * - JWT authentication with access+response tokens
+ * - JWT authentication with access+refresh tokens
  * - extending of user session by refreshing access token
  * @example
  * ```typescript

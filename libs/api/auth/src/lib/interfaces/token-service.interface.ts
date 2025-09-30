@@ -73,7 +73,7 @@ export interface ITokenService {
 
   /**
    * Mark specific refresh token as revoked.
-   * @param token User token.
+   * @param jti Token jti
    * @returns The revoked token
    * @throws {Error} An error when the token does not exist
    * @example
@@ -83,13 +83,13 @@ export interface ITokenService {
    * );
    * ```
    */
-  revokeRefreshToken(token: string): Promise<RefreshToken>;
+  revokeRefreshToken(jti: string): Promise<RefreshToken>;
 
   /**
    * Mark all user refresh token as revoked.
    * @param userId User id.
-   * @returns The revoked tokens
-   * @throws {Error} An error when the user does not exist
+   * @returns The revoked tokens, if any
+   * @throws {Error} An error when the token does not exist
    * @example
    * ```typescript
    * const payload = await tokenService.revokeAllUserRefreshTokens(
@@ -102,7 +102,7 @@ export interface ITokenService {
   /**
    * Mark ALL refresh token as revoked.
    * @description Admin-only operation. Requires elevated privileges.
-   * @returns The revoked tokens
+   * @returns The revoked tokens, if any
    * @example
    * ```typescript
    * const payload = await tokenService.revokeAllRefreshTokens(

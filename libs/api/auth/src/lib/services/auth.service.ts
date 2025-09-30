@@ -15,11 +15,14 @@ import { validPassword } from '../helper/password.helper.js';
 import { Inject, Injectable } from 'injection-js';
 import type { AuthConfiguration } from '../config/auth.config.js';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
-import { AUTH_CONFIG_TOKEN, TOKEN_SERVICE_TOKEN } from './token.service.js';
+import {
+  AUTH_CONFIG_TOKEN,
+  TOKEN_SERVICE_TOKEN,
+  REFRESH_TOKEN_REPOSITORY_TOKEN,
+} from './token.service.js';
 import { validateDto } from '@dans-coding-world/validation';
 
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
-export const REFRESH_TOKEN_REPOSITORY_TOKEN = 'IRefreshTokenRepository';
 
 @Injectable()
 export class AuthService implements IAuthService {

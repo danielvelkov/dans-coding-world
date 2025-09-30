@@ -1,14 +1,11 @@
 import { ReflectiveInjector, Provider } from 'injection-js';
-import {
-  AuthService,
-  USER_REPOSITORY_TOKEN,
-  REFRESH_TOKEN_REPOSITORY_TOKEN,
-} from './services/auth.service.js';
+import { AuthService, USER_REPOSITORY_TOKEN } from './services/auth.service.js';
 import { RegistrationService } from './services/registration.service.js';
 import {
   TokenService,
   AUTH_CONFIG_TOKEN,
   TOKEN_SERVICE_TOKEN,
+  REFRESH_TOKEN_REPOSITORY_TOKEN,
 } from './services/token.service.js';
 import { PrismaUserDataAccess as UserRepository } from '@dans-coding-world/user-data-access';
 import { PrismaRefreshTokenDataAccess as RefreshTokenRepository } from '@dans-coding-world/token-data-access';
