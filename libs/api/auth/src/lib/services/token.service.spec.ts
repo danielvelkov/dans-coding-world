@@ -5,12 +5,16 @@ import {
   REFRESH_TOKEN_REPOSITORY_TOKEN,
 } from './token.service.js';
 import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { User } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import { config } from '../config/auth.config.js';
 import { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { MockRefreshTokenDataAccess as MockRefreshTokenRepository } from '@dans-coding-world/token-data-access';
+import {
+  ERROR_CODES,
+  ERROR_MESSAGES,
+} from '@dans-coding-world/shared-constants';
 
 let injector: ReflectiveInjector;
 let tokenService: TokenService;
@@ -65,12 +69,24 @@ describe('Token service', () => {
     });
   });
   describe('token revocation', () => {
-    const TEST_TOKEN_JTI = '1';
+    let token = '';
     const TEST_USER_ID = '1';
 
     beforeEach(async () => {
+      token = tokenService.generateRefreshToken({
+        email: 'example@email.com',
+        id: 1,
+        password: 'password',
+        role: 'USER',
+        username: 'example',
+      });
+
+      const { jti } = jwt.decode(token) as JwtPayload;
+      if (!jti) throw new Error('Missing jti');
+
       mockRefreshTokenRepo = new MockRefreshTokenRepository();
-      mockRefreshTokenRepo.create(TEST_TOKEN_JTI, TEST_USER_ID, new Date());
+      mockRefreshTokenRepo.create(jti, TEST_USER_ID, new Date());
+
       injector = ReflectiveInjector.resolveAndCreate([
         TokenService,
         { provide: AUTH_CONFIG_TOKEN, useValue: config },
@@ -85,20 +101,42 @@ describe('Token service', () => {
       jest.spyOn(mockRefreshTokenRepo, 'updateMany');
     });
 
-    it('should set "revoke" flag to false when revoking individual token', async () => {
-      const res = await tokenService.revokeRefreshToken(TEST_TOKEN_JTI);
+    it('should set "revoke" flag to false when revoking refresh token', async () => {
+      const res = await tokenService.revokeRefreshToken(token);
+
       expect(mockRefreshTokenRepo.update).toHaveBeenCalledTimes(1);
       expect(res.revoked).toBe(true);
+
+      const dbEntry = await mockRefreshTokenRepo.getById(res.jti);
+      expect(dbEntry?.revoked).toBe(true);
     });
 
-    it('should throw when no such token exists', async () => {
+    it('should throw when no such token id exists in db', async () => {
+      const randomToken = tokenService.generateRefreshToken({
+        email: 'example@email.com',
+        id: -9999,
+        password: 'password',
+        role: 'USER',
+        username: 'example',
+      });
       expect.assertions(1);
-      return tokenService.revokeRefreshToken('NON-existent').catch((err) => {
-        expect(err.message).toMatch(/token no longer exists/i);
+      return tokenService.revokeRefreshToken(randomToken).catch((err) => {
+        expect(err.message).toMatch(
+          ERROR_MESSAGES[ERROR_CODES.AUTH.TOKEN_NOT_FOUND]
+        );
       });
     });
 
-    it('should set "revoke" flag to false when revoking all user tokens', async () => {
+    it('should throw when token is invalid ', async () => {
+      expect.assertions(1);
+      return tokenService.revokeRefreshToken('bad.token').catch((err) => {
+        expect(err.message).toMatch(
+          ERROR_MESSAGES[ERROR_CODES.AUTH.INVALID_TOKEN]
+        );
+      });
+    });
+
+    it(`should set "revoke" flag to false when revoking user's tokens`, async () => {
       await mockRefreshTokenRepo.create('2', TEST_USER_ID, new Date());
       await mockRefreshTokenRepo.create('3', 'NOT TEST USER ID', new Date());
       const res = await tokenService.revokeAllUserRefreshTokens(TEST_USER_ID);
@@ -107,7 +145,7 @@ describe('Token service', () => {
       expect(res.some((t) => !t.revoked)).toBe(false);
     });
 
-    it('should set "revoke" flag to false when all user tokens are revoked', async () => {
+    it('should set "revoke" flag to false when all tokens are revoked', async () => {
       await mockRefreshTokenRepo.create('2', TEST_USER_ID, new Date());
       await mockRefreshTokenRepo.create('3', TEST_USER_ID, new Date());
       const res = await tokenService.revokeAllRefreshTokens();
