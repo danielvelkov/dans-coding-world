@@ -1,4 +1,6 @@
 import {
+  getTokenById,
+  seedRefreshTokens,
   seedUsers,
   updateRefreshToken,
 } from '@dans-coding-world/testing-setup';
@@ -14,6 +16,7 @@ import {
   getJwtToken,
   register,
   getJti,
+  revokeToken,
 } from '../helper/authentication.helper.js';
 import {
   createErrorCodeResponse,
@@ -303,5 +306,42 @@ describe('/api/v1/auth', () => {
         );
       }
     );
+  });
+  describe('POST /api/v1/auth/revokeToken', () => {
+    let jwt = '';
+
+    beforeEach(async () => {
+      users = await seedUsers([], { clearExisting: true, useDefaults: true });
+
+      if (!users[0]) throw new Error('Missing test user');
+
+      const res = await login(users[0].email, users[0].password);
+
+      const refreshTokenCookie = findSetCookie(res, 'refresh_token');
+
+      jwt = getJwtToken(refreshTokenCookie);
+    });
+    it('should mark token as "revoked" in the db', async () => {
+      expect((await getTokenById(getJti(jwt))).revoked).toBe(false);
+
+      const res = await revokeToken(jwt);
+
+      const { data: revokeData } = res.data as BaseResponse;
+      if (!revokeData) throw new Error('Missing data');
+
+      expect(revokeData).toHaveProperty(
+        'message',
+        SUCCESS_MESSAGES.AUTH.revoke
+      );
+      const updatedToken = await getTokenById(getJti(jwt));
+      expect(updatedToken.revoked).toBe(true);
+    });
+    it('should throw when token does not exist', async () => {
+      // clear tokens
+      await seedRefreshTokens([], { clearExisting: true, useDefaults: false });
+      return await expect(revokeToken(jwt)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.TOKEN_NOT_FOUND)
+      );
+    });
   });
 });

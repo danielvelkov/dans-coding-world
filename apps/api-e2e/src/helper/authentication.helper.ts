@@ -41,6 +41,17 @@ export async function renewAuthToken(token: string) {
   });
 }
 
+export async function revokeToken(token: string) {
+  const urlSearchParams = new URLSearchParams();
+  urlSearchParams.append('token', token);
+
+  return await axios.post('/api/v1/auth/revokeToken', urlSearchParams, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+}
+
 export function findSetCookie(res: AxiosResponse, key: string) {
   const setCookieHeader = res.headers['set-cookie'];
   if (!setCookieHeader)

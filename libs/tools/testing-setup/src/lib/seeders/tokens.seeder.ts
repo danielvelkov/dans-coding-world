@@ -39,6 +39,14 @@ export const seedRefreshTokens = async (
   }
 };
 
+export const getTokenById = async(jti: string) => {
+  return await client.refreshToken.findFirstOrThrow({
+    where:{
+      jti
+    }
+  })
+}
+
 export const updateRefreshToken = async (
   data: RequireOnly<RefreshToken, 'jti'>
 ): Promise<RefreshToken> =>

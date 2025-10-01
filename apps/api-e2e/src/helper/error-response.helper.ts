@@ -16,13 +16,14 @@ export type AxiosApiErrorResponse = Partial<Omit<AxiosError, 'response'>> & {
 };
 
 export const createErrorCodeResponse = (
-  error: ErrorCode
+  error: ErrorCode,
+  customMessage?: string
 ): AxiosApiErrorResponse => ({
   response: {
     status: ERROR_HTTP_STATUS[error],
     data: {
       error: {
-        message: ERROR_MESSAGES[error],
+        message: customMessage ?? ERROR_MESSAGES[error],
       },
     },
   },
