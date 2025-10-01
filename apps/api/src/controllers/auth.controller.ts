@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import {
   IAuthService,
   config,
+  ITokenService,
   IRegistrationService,
 } from '@dans-coding-world/api-auth';
 import {
@@ -15,7 +16,8 @@ import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 export class AuthController {
   constructor(
     private authService: IAuthService,
-    private registrationService: IRegistrationService
+    private registrationService: IRegistrationService,
+    private tokenService: ITokenService
   ) {}
   // User sign up route
   register = async (req: Request, res: Response, next: NextFunction) => {
@@ -75,6 +77,22 @@ export class AuthController {
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.AUTH.token,
         user: result.user,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  };
+  // Revoke token route for individual user refresh tokens
+  revokeToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const refreshDto: RefreshTokenDto = req.body;
+      const revokedToken = await this.tokenService.revokeRefreshToken(
+        refreshDto.token
+      );
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.AUTH.revoke,
+        token: revokedToken,
       });
     } catch (error) {
       return next(error);

@@ -3,12 +3,14 @@ import {
   authInjector,
   AuthService,
   RegistrationService,
+  TOKEN_SERVICE_TOKEN,
 } from '@dans-coding-world/api-auth';
 import { AuthController } from '../controllers/auth.controller';
 
 const authController = new AuthController(
   authInjector.get(AuthService),
-  authInjector.get(RegistrationService)
+  authInjector.get(RegistrationService),
+  authInjector.get(TOKEN_SERVICE_TOKEN)
 );
 
 const authRouter = Router();
@@ -20,10 +22,36 @@ const authRouter = Router();
  *   description: Endpoints for user login, token generation, registration and access control
  */
 
+// I don't understand the point of this but I hope its good practice.
+// There is probably a better way using swagger decorators or something.
+
 /**
  * @openapi
  * components:
  *   schemas:
+ *     RefreshToken:
+ *       type: object
+ *       properties:
+ *         jti:
+ *           type: string
+ *           description: Token Id in UUID format.
+ *           example: '47ae3c2b-0753-4480-89d9-6cf2e2c8796d'
+ *         userId:
+ *           type: number
+ *           description: The User Id
+ *         revoked:
+ *           type: boolean
+ *           description: Indicates if the token is revoked or not
+ *           example: false
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: When the token was created.
+ *         expiresAt:
+ *           type: string
+ *           format: date-time
+ *           description: When the token will expire created.
+ *
  *     BaseResponse:
  *       type: object
  *       properties:
@@ -414,5 +442,68 @@ authRouter.post('/refresh', authController.refresh);
  *               $ref: '#/components/schemas/InternalServerError'
  */
 authRouter.post('/register', authController.register);
+
+/**
+ * @openapi
+ * /auth/revokeToken:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: End a user session by revoking the refresh token.
+ *     description: Checks if valid JWT token is passed, then proceeds to set its status to 'revoked', making the token invalid.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RefreshTokenDTO'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/RefreshTokenDTO'
+ *     responses:
+ *       200:
+ *         description: Token revoked
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/RefreshToken'
+ *       400:
+ *         description: Bad Request - Validation Failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: Validation Failed
+ *       404:
+ *         description: Not Found - Token no longer exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: SER002
+ *                 message: Token no longer exists
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+authRouter.post('/revokeToken', authController.revokeToken);
 
 export default authRouter;
