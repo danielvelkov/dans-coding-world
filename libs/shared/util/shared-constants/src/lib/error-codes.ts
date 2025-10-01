@@ -13,6 +13,7 @@ export const ERROR_CODES = {
     INVALID_CREDENTIALS: 'AUTH001',
     INVALID_PASSWORD: 'AUTH002',
     INVALID_TOKEN: 'AUTH003',
+    TOKEN_NOT_FOUND: 'AUTH004',
   },
   SERVER: {
     INTERNAL_ERROR: 'SER001',
@@ -32,7 +33,8 @@ export type ErrorCode = ValueOf<ValueOf<typeof ERROR_CODES>>;
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AUTH001: 'Provided credentials are invalid',
   AUTH002: 'Provided password is wrong',
-  AUTH003: 'Invalid or expired token.',
+  AUTH003: 'Invalid or expired token',
+  AUTH004: 'Token no longer exists',
 
   SER001: 'Something went wrong',
   SER002: 'Resource not found',
@@ -48,6 +50,7 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   AUTH001: StatusCodes.UNAUTHORIZED,
   AUTH002: StatusCodes.UNAUTHORIZED,
   AUTH003: StatusCodes.UNAUTHORIZED,
+  AUTH004: StatusCodes.NOT_FOUND,
 
   SER001: StatusCodes.INTERNAL_SERVER_ERROR,
   SER002: StatusCodes.NOT_FOUND,

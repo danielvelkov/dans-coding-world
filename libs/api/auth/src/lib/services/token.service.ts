@@ -1,5 +1,5 @@
 import { Injectable, Inject } from 'injection-js';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 import {
   ITokenService,
@@ -63,16 +63,25 @@ export class TokenService implements ITokenService {
     return jwt.verify(token, options.secret) as jwt.JwtPayload;
   }
 
-  async revokeRefreshToken(jti: string): Promise<RefreshToken> {
+  async revokeRefreshToken(token: string): Promise<RefreshToken> {
+    let payload: JwtPayload;
+    try {
+      payload = this.verifyRefreshToken(token);
+    } catch (_) {
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
+    }
+
+    const { jti } = payload;
+    if (!jti) throw new ApiException(ERROR_CODES.AUTH.INVALID_TOKEN);
+
     const refreshToken = await this.refreshTokens.getById(jti);
-    if (!refreshToken)
-      throw new ApiException(
-        ERROR_CODES.SERVER.NOT_FOUND,
-        'Token no longer exists'
-      );
+    if (!refreshToken) throw new ApiException(ERROR_CODES.AUTH.TOKEN_NOT_FOUND);
+
+    if (refreshToken.revoked) {
+      return refreshToken;
+    }
 
     refreshToken.revoked = true;
-
     return await this.refreshTokens.update(refreshToken);
   }
   async revokeAllUserRefreshTokens(userId: string): Promise<RefreshToken[]> {

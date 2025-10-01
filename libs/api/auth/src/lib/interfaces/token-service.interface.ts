@@ -3,6 +3,7 @@ import { JwtPayload } from 'jsonwebtoken';
 /**
  * Token generation and control service which provides:
  * - generation of user access and refresh tokens
+ * - verification of jwt tokens
  * - revocation of user refresh tokens
  * @example
  * ```typescript
@@ -73,9 +74,9 @@ export interface ITokenService {
 
   /**
    * Mark specific refresh token as revoked.
-   * @param jti Token jti
+   * @param token Refresh token
    * @returns The revoked token
-   * @throws {Error} An error when the token does not exist
+   * @throws {Error} An error when the token does not exist. (SER002)
    * @example
    * ```typescript
    * const payload = await tokenService.revokeRefreshToken(
@@ -83,13 +84,12 @@ export interface ITokenService {
    * );
    * ```
    */
-  revokeRefreshToken(jti: string): Promise<RefreshToken>;
+  revokeRefreshToken(token: string): Promise<RefreshToken>;
 
   /**
    * Mark all user refresh token as revoked.
    * @param userId User id.
    * @returns The revoked tokens, if any
-   * @throws {Error} An error when the token does not exist
    * @example
    * ```typescript
    * const payload = await tokenService.revokeAllUserRefreshTokens(
