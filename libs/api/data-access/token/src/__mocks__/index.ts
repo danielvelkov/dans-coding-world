@@ -35,32 +35,34 @@ export class MockRefreshTokenDataAccess implements IRefreshTokenRepository {
     this.tokens.push(newToken);
     return newToken;
   }
-  async update(data: RefreshToken): Promise<RefreshToken> {
-    const existingToken = await this.getById(data.jti);
+  async update(jti: string, data: RefreshToken): Promise<RefreshToken> {
+    const existingToken = await this.getById(jti);
 
     if (!existingToken) throw new Error('Refresh token does not exist');
-    this.tokens = this.tokens.map((t) => (t.jti === data.jti ? data : t));
+    this.tokens = this.tokens.map((t) =>
+      t.jti === jti ? { ...t, ...data } : t
+    );
     return existingToken;
   }
-  async updateMany(data: RefreshToken[]): Promise<number> {
-    if (!data || data.length === 0) return 0;
+  async updateMany(
+    where: RefreshTokenWhereInput,
+    data: RefreshToken
+  ): Promise<number> {
+    const jtiForUpdate = this.tokens
+      .filter((t) => {
+        // TODO: this is not gonna work unfortunately
+        if ('userId' in where) return t.userId === where.userId;
+        else if ('revoked' in where) return t.revoked === where.revoked;
+        else if (Object.keys(where).length === 0) return true; // No where filter so get all
+        return false;
+      })
+      .map((t) => t.jti);
 
-    const updatesByJti = new Map<string, RefreshToken>();
-    for (const d of data) {
-      if (d?.jti) updatesByJti.set(d.jti, d);
-    }
-
-    let updatedCount = 0;
     this.tokens = this.tokens.map((t) => {
-      const update = updatesByJti.get(t.jti);
-      if (update) {
-        updatedCount += 1;
-        return update;
-      }
-      return t;
+      if (jtiForUpdate.includes(t.jti)) return { ...t, ...data };
+      else return t;
     });
-
-    return updatedCount;
+    return jtiForUpdate.length;
   }
   async delete(jti: string): Promise<RefreshToken> {
     const existingToken = await this.getById(jti);

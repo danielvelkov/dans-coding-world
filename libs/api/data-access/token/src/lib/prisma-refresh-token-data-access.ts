@@ -36,16 +36,25 @@ export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
       },
     });
   }
-  async update(data: RefreshToken): Promise<RefreshToken> {
+  async update(
+    jti: string,
+    data: Partial<RefreshToken>
+  ): Promise<RefreshToken> {
     return await prisma.refreshToken.update({
       where: {
-        jti: data.jti,
+        jti,
       },
       data,
     });
   }
-  async updateMany(data: RefreshToken[]): Promise<number> {
-    const { count } = await prisma.refreshToken.updateMany({ data });
+  async updateMany(
+    where: RefreshTokenWhereInput,
+    data: Partial<RefreshToken>
+  ): Promise<number> {
+    const { count } = await prisma.refreshToken.updateMany({
+      where,
+      data,
+    });
     return count;
   }
   async delete(jti: string): Promise<RefreshToken> {
