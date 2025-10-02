@@ -95,9 +95,10 @@ describe('/api/v1/auth', () => {
   describe('POST /api/v1/auth/refresh', () => {
     let jwt = '';
 
+    beforeAll(async () => {
+      users = await seedUsers();
+    });
     beforeEach(async () => {
-      users = await seedUsers([], { clearExisting: true, useDefaults: true });
-
       if (!users[0]) throw new Error('Missing test user');
 
       const res = await login(users[0].email, users[0].password);
@@ -178,6 +179,7 @@ describe('/api/v1/auth', () => {
       username: 'totallyValid13',
     };
     beforeAll(async () => {
+      // cleanup
       await seedUsers([], { clearExisting: true, useDefaults: false });
     });
     it('should return created user data on valid registration data', async () => {
@@ -310,9 +312,10 @@ describe('/api/v1/auth', () => {
   describe('POST /api/v1/auth/revokeToken', () => {
     let jwt = '';
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       users = await seedUsers([], { clearExisting: true, useDefaults: true });
-
+    });
+    beforeEach(async () => {
       if (!users[0]) throw new Error('Missing test user');
 
       const res = await login(users[0].email, users[0].password);

@@ -14,7 +14,8 @@
         ],
         "options": {
           "jestConfig": "apps/api-e2e/jest.config.ts",
-          "passWithNoTests": true
+          "passWithNoTests": true,
+          "runInBand": true
         },
         "dependsOn": [
           "@dans-coding-world/api:build",
