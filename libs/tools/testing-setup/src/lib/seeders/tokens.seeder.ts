@@ -1,4 +1,3 @@
-import users from '../data/users.json' with {type: "json"};
 import { client, RefreshToken } from '@dans-coding-world/prisma-schema';
 import { SeedOptions } from './types/seed-options.js';
 
@@ -14,13 +13,10 @@ export const seedRefreshTokens = async (
 
     if (customTokens) {
       const tokens = customTokens.map((t) => {
-        const user = users.find((u) => u.id === t.userId);
-        if (user)
-          return {
-            ...t,
-            createdAt: new Date(),
-          };
-        else throw new Error('Non-existent test user');
+        return {
+          ...t,
+          createdAt: new Date(),
+        };
       });
 
       seeded.push(...tokens);
@@ -39,13 +35,13 @@ export const seedRefreshTokens = async (
   }
 };
 
-export const getTokenById = async(jti: string) => {
+export const getTokenById = async (jti: string) => {
   return await client.refreshToken.findFirstOrThrow({
-    where:{
-      jti
-    }
-  })
-}
+    where: {
+      jti,
+    },
+  });
+};
 
 export const updateRefreshToken = async (
   data: RequireOnly<RefreshToken, 'jti'>
@@ -55,5 +51,4 @@ export const updateRefreshToken = async (
     data,
   });
 
-  type RequireOnly<T, K extends keyof T> =
-  Partial<T> & Pick<T, K>;
+type RequireOnly<T, K extends keyof T> = Partial<T> & Pick<T, K>;

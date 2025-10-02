@@ -1,20 +1,17 @@
 [
   {
-    "id": 1,
     "username": "admin123",
     "email": "admin123@gmail.com",
     "password": "admin123",
     "role": "ADMIN"
   },
   {
-    "id": 2,
     "username": "moderator123",
     "email": "moderator123@gmail.com",
     "password": "moderator123",
     "role": "MOD"
   },
   {
-    "id": 3,
     "username": "user123",
     "email": "user123@gmail.com",
     "password": "user123",

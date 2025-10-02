@@ -16,30 +16,13 @@ export const seedUsers = async (
     }
 
     if (options.useDefaults) {
-      const defaultUsers = users.map((u) => ({ ...u, role: u.role as Role }));
-
+      const defaultUsers = await createAndReturnUsersWithId(users)
       seeded.push(...defaultUsers);
-      await client.user.createMany({
-        data: await Promise.all(
-          defaultUsers.map(async (u) => ({
-            ...u,
-            password: await hashPassword(u.password),
-          }))
-        ),
-      });
     }
 
     if (customUsers) {
-      seeded.push(...customUsers);
-
-      await client.user.createMany({
-        data: await Promise.all(
-          customUsers.map(async (u) => ({
-            ...u,
-            password: await hashPassword(u.password),
-          }))
-        ),
-      });
+      const newUsers = await createAndReturnUsersWithId(customUsers)
+      seeded.push(...newUsers);
     }
     return seeded;
   } catch (e) {
@@ -48,4 +31,20 @@ export const seedUsers = async (
   } finally {
     await client.$disconnect();
   }
+};
+
+const createAndReturnUsersWithId = async (users: any[]) => {
+  if(!users.length)
+    return [];
+  const usersWithHashedPassword = await Promise.all(
+    users.map(async (u) => ({
+      ...u,
+      role: u.role as Role,
+      password: await hashPassword(u.password),
+    }))
+  );
+  const createdUsers = await client.$transaction(
+    usersWithHashedPassword.map((user) => client.user.create({ data: user }))
+  );
+  return createdUsers.map((u, i) => ({ ...u, password: users[i].password }));
 };
