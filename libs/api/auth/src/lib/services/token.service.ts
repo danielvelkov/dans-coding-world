@@ -82,25 +82,18 @@ export class TokenService implements ITokenService {
     }
 
     refreshToken.revoked = true;
-    return await this.refreshTokens.update(refreshToken);
+    return await this.refreshTokens.update(refreshToken.jti, refreshToken);
   }
-  async revokeAllUserRefreshTokens(userId: string): Promise<RefreshToken[]> {
-    const userRefreshTokens =
-      (await this.refreshTokens.getUserTokens(userId)) ?? [];
-
-    for (const token of userRefreshTokens) {
-      token.revoked = true;
-    }
-    await this.refreshTokens.updateMany(userRefreshTokens);
-
-    return userRefreshTokens;
+  async revokeAllUserRefreshTokens(userId: string): Promise<number> {
+    return await this.refreshTokens.updateMany(
+      { userId: +userId, revoked: false },
+      { revoked: true }
+    );
   }
-  async revokeAllRefreshTokens(): Promise<RefreshToken[]> {
-    const allRefreshTokens = await this.refreshTokens.getAll();
-    for (const token of allRefreshTokens) {
-      token.revoked = true;
-    }
-    await this.refreshTokens.updateMany(allRefreshTokens);
-    return allRefreshTokens;
+  async revokeAllRefreshTokens(): Promise<number> {
+    return await this.refreshTokens.updateMany(
+      { revoked: false },
+      { revoked: true }
+    );
   }
 }

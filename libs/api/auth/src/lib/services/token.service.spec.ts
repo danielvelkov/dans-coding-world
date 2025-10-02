@@ -136,22 +136,28 @@ describe('Token service', () => {
       });
     });
 
-    it(`should set "revoke" flag to false when revoking user's tokens`, async () => {
+    it(`should set each token's "revoke" flag to false when revoking all user's tokens`, async () => {
       await mockRefreshTokenRepo.create('2', TEST_USER_ID, new Date());
       await mockRefreshTokenRepo.create('3', 'NOT TEST USER ID', new Date());
-      const res = await tokenService.revokeAllUserRefreshTokens(TEST_USER_ID);
+      const count = await tokenService.revokeAllUserRefreshTokens(TEST_USER_ID);
       expect(mockRefreshTokenRepo.updateMany).toHaveBeenCalledTimes(1);
-      expect(res.length).toBe(2);
-      expect(res.some((t) => !t.revoked)).toBe(false);
+      expect(count).toBe(2);
+      expect(
+        (await mockRefreshTokenRepo.getUserTokens(TEST_USER_ID))?.some(
+          (t) => !t.revoked
+        )
+      ).toBe(false);
     });
 
-    it('should set "revoke" flag to false when all tokens are revoked', async () => {
+    it('should set "revoke" flag to false to every refresh token when all tokens are revoked', async () => {
       await mockRefreshTokenRepo.create('2', TEST_USER_ID, new Date());
       await mockRefreshTokenRepo.create('3', TEST_USER_ID, new Date());
-      const res = await tokenService.revokeAllRefreshTokens();
+      const count = await tokenService.revokeAllRefreshTokens();
       expect(mockRefreshTokenRepo.updateMany).toHaveBeenCalledTimes(1);
-      expect(res.length).toBe(3);
-      expect(res.some((t) => !t.revoked)).toBe(false);
+      expect(count).toBe(3);
+      expect(
+        (await mockRefreshTokenRepo.getAll())?.some((t) => !t.revoked)
+      ).toBe(false);
     });
   });
 });

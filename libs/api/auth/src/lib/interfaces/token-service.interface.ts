@@ -89,28 +89,28 @@ export interface ITokenService {
   /**
    * Mark all user refresh token as revoked.
    * @param userId User id.
-   * @returns The revoked tokens, if any
+   * @returns The number of revoked tokens, if any
    * @example
    * ```typescript
-   * const payload = await tokenService.revokeAllUserRefreshTokens(
+   * const count = await tokenService.revokeAllUserRefreshTokens(
    *    token,
    * );
    * ```
    */
-  revokeAllUserRefreshTokens(userId: string): Promise<RefreshToken[]>;
+  revokeAllUserRefreshTokens(userId: string): Promise<number>;
 
   /**
    * Mark ALL refresh token as revoked.
    * @description Admin-only operation. Requires elevated privileges.
-   * @returns The revoked tokens, if any
+   * @returns The number of revoked tokens, if any
    * @example
    * ```typescript
-   * const payload = await tokenService.revokeAllRefreshTokens(
+   * const count = await tokenService.revokeAllRefreshTokens(
    *    token,
    * );
    * ```
    */
-  revokeAllRefreshTokens(): Promise<RefreshToken[]>;
+  revokeAllRefreshTokens(): Promise<number>;
 }
 
 export type TokenOptions = {
