@@ -495,7 +495,7 @@ authRouter.post('/register', authController.register);
  *               data: null
  *               error:
  *                 status: 404
- *                 errorCode: SER002
+ *                 errorCode: AUTH004
  *                 message: Token no longer exists
  *       500:
  *         description: Internal Server Error

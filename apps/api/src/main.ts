@@ -7,6 +7,7 @@ import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import { responseWrapper } from './middlewares/response-wrapper.middleware.js';
 import { errorHandler } from './middlewares/error-handler.middleware.js';
+import { usersRouter } from './routes/users.router.js';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.get('/api/v1', (req, res) =>
 
 app.use(responseWrapper);
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', usersRouter);
 
 const swaggerDocOptions = {
   definition: {
