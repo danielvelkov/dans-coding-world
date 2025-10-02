@@ -98,4 +98,17 @@ export class AuthController {
       return next(error);
     }
   };
+  // Revoke all tokens route
+  revokeAllTokens = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const count = await this.tokenService.revokeAllRefreshTokens();
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.AUTH.revoke,
+        revokedCount: count,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  };
 }

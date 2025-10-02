@@ -506,4 +506,34 @@ authRouter.post('/register', authController.register);
  */
 authRouter.post('/revokeToken', authController.revokeToken);
 
+/**
+ * @openapi
+ * /auth/revokeAll:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: End all user session by revoking all refresh tokens
+ *     responses:
+ *       200:
+ *         description: Tokens revoked
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                           revokedCount:
+ *                             type: number
+ *                             description: Number of revoked tokens
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+authRouter.post('/revokeAll', authController.revokeAllTokens);
 export default authRouter;
