@@ -52,6 +52,10 @@ export async function revokeToken(token: string) {
   });
 }
 
+export async function revokeAllTokens() {
+  return await axios.post('/api/v1/auth/revokeAll');
+}
+
 export function findSetCookie(res: AxiosResponse, key: string) {
   const setCookieHeader = res.headers['set-cookie'];
   if (!setCookieHeader)

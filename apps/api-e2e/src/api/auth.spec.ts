@@ -17,6 +17,7 @@ import {
   register,
   getJti,
   revokeToken,
+  revokeAllTokens,
 } from '../helper/authentication.helper.js';
 import {
   createErrorCodeResponse,
@@ -313,7 +314,7 @@ describe('/api/v1/auth', () => {
     let jwt = '';
 
     beforeAll(async () => {
-      users = await seedUsers([], { clearExisting: true, useDefaults: true });
+      users = await seedUsers();
     });
     beforeEach(async () => {
       if (!users[0]) throw new Error('Missing test user');
@@ -345,6 +346,42 @@ describe('/api/v1/auth', () => {
       return await expect(revokeToken(jwt)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.TOKEN_NOT_FOUND)
       );
+    });
+  });
+  describe('POST /api/v1/auth/revokeAll', () => {
+    const tokens: string[] = [];
+
+    beforeAll(async () => {
+      users = await seedUsers();
+    });
+    beforeEach(async () => {
+      users.forEach(async (u) => {
+        const res = await login(u.email, u.password);
+
+        const refreshTokenCookie = findSetCookie(res, 'refresh_token');
+
+        tokens.push(getJwtToken(refreshTokenCookie));
+      });
+    });
+    it('should mark all tokens as revoked', async () => {
+      for (const token of tokens) {
+        expect((await getTokenById(getJti(token))).revoked).toBe(false);
+      }
+
+      const res = await revokeAllTokens();
+
+      const { data: revokeData } = res.data as BaseResponse;
+      if (!revokeData) throw new Error('Missing data');
+
+      expect(revokeData).toHaveProperty(
+        'message',
+        SUCCESS_MESSAGES.AUTH.revoke
+      );
+      expect(revokeData).toHaveProperty('revokedCount', tokens.length);
+      for (const token of tokens) {
+        const updatedToken = await getTokenById(getJti(token));
+        expect(updatedToken.revoked).toBe(true);
+      }
     });
   });
 });
