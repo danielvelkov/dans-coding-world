@@ -1,5 +1,9 @@
-import axios from 'axios';
+import { AxiosInstance } from 'axios';
 
-export async function revokeUserTokens(userId: string) {
-  return await axios.post(`/api/v1/users/${userId}/revokeUserTokens`);
+export function createUsersHelpers(axios: AxiosInstance) {
+  return {
+    async revokeUserTokens(userId: string) {
+      return await axios.post(`/api/v1/users/${userId}/revokeUserTokens`);
+    },
+  };
 }
