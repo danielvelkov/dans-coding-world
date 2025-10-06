@@ -88,6 +88,7 @@ export interface ITokenService {
 
   /**
    * Mark all user refresh token as revoked.
+   * @description Admin or Moderator-only operation. Requires elevated privileges.
    * @param userId User id.
    * @returns The number of revoked tokens, if any
    * @example
