@@ -14,10 +14,12 @@ export const ERROR_CODES = {
     INVALID_PASSWORD: 'AUTH002',
     INVALID_TOKEN: 'AUTH003',
     TOKEN_NOT_FOUND: 'AUTH004',
+    UNAUTHORIZED: 'AUTH005',
   },
   SERVER: {
     INTERNAL_ERROR: 'SER001',
     NOT_FOUND: 'SER002',
+    FORBIDDEN: 'SER003',
   },
   VALIDATION: {
     VALIDATION_ERROR: 'VAL001',
@@ -35,9 +37,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AUTH002: 'Provided password is wrong',
   AUTH003: 'Invalid or expired token',
   AUTH004: 'Token no longer exists',
+  AUTH005: 'You must be logged in to perform this action',
 
   SER001: 'Something went wrong',
   SER002: 'Resource not found',
+  SER003: 'You do not have permissions to perform this action',
 
   VAL001: 'One or more fields failed validation',
   VAL002: 'User with this email or username already exists',
@@ -51,9 +55,11 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   AUTH002: StatusCodes.UNAUTHORIZED,
   AUTH003: StatusCodes.UNAUTHORIZED,
   AUTH004: StatusCodes.NOT_FOUND,
+  AUTH005: StatusCodes.UNAUTHORIZED,
 
   SER001: StatusCodes.INTERNAL_SERVER_ERROR,
   SER002: StatusCodes.NOT_FOUND,
+  SER003: StatusCodes.FORBIDDEN,
 
   VAL001: StatusCodes.BAD_REQUEST,
   VAL002: StatusCodes.CONFLICT,
