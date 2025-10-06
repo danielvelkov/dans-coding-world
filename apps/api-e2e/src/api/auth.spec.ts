@@ -10,15 +10,12 @@ import {
   RegistrationResponseDto,
 } from '@dans-coding-world/shared-auth-dto';
 import {
-  login,
-  renewAuthToken,
+  createAuthHelpers,
   findSetCookie,
-  getJwtToken,
-  register,
   getJti,
-  revokeToken,
-  revokeAllTokens,
-} from '../helper/authentication.helper.js';
+  getJwtToken,
+} from '../helper/auth-request.helper.js';
+import { createAxiosClient } from '../helper/test-client.helper.js';
 import {
   createErrorCodeResponse,
   createValidationErrorResponse,
@@ -29,9 +26,12 @@ import {
   VALIDATION_MESSAGES,
   SUCCESS_MESSAGES,
   ERROR_CODES,
+  REFRESH_TOKEN_COOKIE,
+  ACCESS_TOKEN_COOKIE,
 } from '@dans-coding-world/shared-constants';
 import { passwordGenerator } from '@dans-coding-world/api-auth';
 import { IS_EMAIL, MIN_LENGTH, MATCHES } from 'class-validator';
+import { AxiosInstance } from 'axios';
 
 let users: User[];
 
@@ -41,6 +41,8 @@ describe('/api/v1/auth', () => {
     await seedUsers([], { clearExisting: true, useDefaults: false });
   });
   describe('POST /api/v1/auth/login', () => {
+    const client = createAxiosClient();
+    const { login } = createAuthHelpers(client);
     beforeAll(async () => {
       users = await seedUsers();
     });
@@ -53,8 +55,8 @@ describe('/api/v1/auth', () => {
       expect((data as LoginResponseDto).user).not.toHaveProperty('password');
       expect(data).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.login);
 
-      const refreshTokenCookie = findSetCookie(res, 'refresh_token');
-      const accessTokenCookie = findSetCookie(res, 'access_token');
+      const refreshTokenCookie = findSetCookie(res, REFRESH_TOKEN_COOKIE);
+      const accessTokenCookie = findSetCookie(res, ACCESS_TOKEN_COOKIE);
 
       expect(getJwtToken(refreshTokenCookie)).toBeTruthy();
       expect(getJwtToken(accessTokenCookie)).toBeTruthy();
@@ -93,7 +95,55 @@ describe('/api/v1/auth', () => {
     });
   });
 
+  describe('POST /api/v1/auth/logout', () => {
+    let client: AxiosInstance;
+    let login: ExtractMethod<ReturnType<typeof createAuthHelpers>, 'login'>,
+      logout: ExtractMethod<ReturnType<typeof createAuthHelpers>, 'logout'>;
+    beforeAll(async () => {
+      users = await seedUsers();
+    });
+    beforeEach(async () => {
+      client = createAxiosClient();
+      const authHelpers = createAuthHelpers(client);
+      login = authHelpers.login;
+      logout = authHelpers.logout;
+    });
+    it('should remove token data from set-cookie when logout successful', async () => {
+      await login(users[0].email, users[0].password);
+
+      const logoutRes = await logout();
+
+      const { data } = logoutRes.data as BaseResponse;
+      expect(logoutRes.status).toBe(200);
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.logout);
+
+      expect(() =>
+        getJwtToken(findSetCookie(logoutRes, ACCESS_TOKEN_COOKIE))
+      ).toThrow();
+      expect(() =>
+        getJwtToken(findSetCookie(logoutRes, REFRESH_TOKEN_COOKIE))
+      ).toThrow();
+    });
+    it('should revoke user refresh token when logout successful', async () => {
+      const res = await login(users[0].email, users[0].password);
+
+      await logout();
+
+      const jti = getJti(getJwtToken(findSetCookie(res, REFRESH_TOKEN_COOKIE)));
+
+      const token = await getTokenById(jti);
+      expect(token.revoked).toBe(true);
+    });
+    it('should return 401 Unauthorized when trying to access as a logged out user', async () => {
+      return await expect(logout).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+  });
+
   describe('POST /api/v1/auth/refresh', () => {
+    const client = createAxiosClient();
+    const { login, renewAuthToken } = createAuthHelpers(client);
     let jwt = '';
 
     beforeAll(async () => {
@@ -104,7 +154,7 @@ describe('/api/v1/auth', () => {
 
       const res = await login(users[0].email, users[0].password);
 
-      const refreshTokenCookie = findSetCookie(res, 'refresh_token');
+      const refreshTokenCookie = findSetCookie(res, REFRESH_TOKEN_COOKIE);
 
       jwt = getJwtToken(refreshTokenCookie);
     });
@@ -112,8 +162,14 @@ describe('/api/v1/auth', () => {
     it('should set new access and refresh token in set-cookie header on valid refresh token', async () => {
       const refreshRes = await renewAuthToken(jwt);
 
-      const newRefreshTokenCookie = findSetCookie(refreshRes, 'refresh_token');
-      const newAccessTokenCookie = findSetCookie(refreshRes, 'access_token');
+      const newRefreshTokenCookie = findSetCookie(
+        refreshRes,
+        REFRESH_TOKEN_COOKIE
+      );
+      const newAccessTokenCookie = findSetCookie(
+        refreshRes,
+        ACCESS_TOKEN_COOKIE
+      );
 
       expect(getJwtToken(newRefreshTokenCookie)).toBeTruthy();
       expect(getJwtToken(newAccessTokenCookie)).toBeTruthy();
@@ -174,6 +230,8 @@ describe('/api/v1/auth', () => {
   });
 
   describe('POST /api/v1/auth/register', () => {
+    const client = createAxiosClient();
+    const { register, login } = createAuthHelpers(client);
     const VALID_USER_DATA = {
       email: 'totalyValidEmail@gmail.com',
       password: passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1),
@@ -184,18 +242,27 @@ describe('/api/v1/auth', () => {
       await seedUsers([], { clearExisting: true, useDefaults: false });
     });
     it('should return created user data on valid registration data', async () => {
-      const res = await register(
+      const registerRes = await register(
         VALID_USER_DATA.email,
         VALID_USER_DATA.password,
         VALID_USER_DATA.username
       );
 
-      expect(res.status).toBe(201); // 201 CREATED
-      const { data } = res.data as BaseResponse;
+      expect(registerRes.status).toBe(201); // 201 CREATED
+      const { data } = registerRes.data as BaseResponse;
       expect((data as RegistrationResponseDto).user).not.toHaveProperty(
         'password'
       );
       expect(data).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.register);
+
+      const loginRes = await login(
+        VALID_USER_DATA.email,
+        VALID_USER_DATA.password
+      );
+
+      expect(loginRes.status).toBe(200);
+      const { data: loginData } = loginRes.data as BaseResponse;
+      expect(loginData).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.login);
     });
     it('should return an error when trying to register an existing user with the same username or email', async () => {
       await seedUsers([{ ...VALID_USER_DATA, id: 1, role: 'USER' }], {
@@ -311,7 +378,9 @@ describe('/api/v1/auth', () => {
     );
   });
   describe('POST /api/v1/auth/revokeToken', () => {
-    let jwt = '';
+    let userRefreshToken = '';
+    const client = createAxiosClient();
+    const { login, logout, revokeToken } = createAuthHelpers(client);
 
     beforeAll(async () => {
       users = await seedUsers();
@@ -321,14 +390,32 @@ describe('/api/v1/auth', () => {
 
       const res = await login(users[0].email, users[0].password);
 
-      const refreshTokenCookie = findSetCookie(res, 'refresh_token');
+      const refreshTokenCookie = findSetCookie(res, REFRESH_TOKEN_COOKIE);
 
-      jwt = getJwtToken(refreshTokenCookie);
+      userRefreshToken = getJwtToken(refreshTokenCookie);
+    });
+    it('should return 401 Unauthorized when trying to access as a logged out user', async () => {
+      await logout();
+
+      return await expect(revokeToken(userRefreshToken)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+    it('should return 403 forbidden when trying to access as a user', async () => {
+      const user = users.find((u) => u.role === 'USER');
+      if (!user) throw new Error('Missing test user');
+
+      await login(user.email, user.password);
+      return await expect(revokeToken(userRefreshToken)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
     });
     it('should mark token as "revoked" in the db', async () => {
-      expect((await getTokenById(getJti(jwt))).revoked).toBe(false);
+      expect((await getTokenById(getJti(userRefreshToken))).revoked).toBe(
+        false
+      );
 
-      const res = await revokeToken(jwt);
+      const res = await revokeToken(userRefreshToken);
 
       const { data: revokeData } = res.data as BaseResponse;
       if (!revokeData) throw new Error('Missing data');
@@ -337,37 +424,74 @@ describe('/api/v1/auth', () => {
         'message',
         SUCCESS_MESSAGES.AUTH.revoke
       );
-      const updatedToken = await getTokenById(getJti(jwt));
+      const updatedToken = await getTokenById(getJti(userRefreshToken));
       expect(updatedToken.revoked).toBe(true);
     });
     it('should throw when token does not exist', async () => {
       // clear tokens
       await seedRefreshTokens([], { clearExisting: true, useDefaults: false });
-      return await expect(revokeToken(jwt)).rejects.toMatchObject(
+      return await expect(revokeToken(userRefreshToken)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.TOKEN_NOT_FOUND)
       );
     });
   });
   describe('POST /api/v1/auth/revokeAll', () => {
-    const tokens: string[] = [];
+    let tokens: string[] = [];
+    const client = createAxiosClient();
+    const { login, logout, revokeAllTokens } = createAuthHelpers(client);
 
-    beforeAll(async () => {
-      users = await seedUsers();
-    });
     beforeEach(async () => {
+      // Cleanup
+      users = await seedUsers();
+      tokens = [];
+
       users.forEach(async (u) => {
         const res = await login(u.email, u.password);
 
-        const refreshTokenCookie = findSetCookie(res, 'refresh_token');
+        const refreshTokenCookie = findSetCookie(res, REFRESH_TOKEN_COOKIE);
 
         tokens.push(getJwtToken(refreshTokenCookie));
       });
     });
-    it('should mark all tokens as revoked', async () => {
+    it('should return 401 Unauthorized when trying to access as a logged out user', async () => {
+      const user = users.find((u) => u.role === 'USER');
+      if (!user) throw new Error('Missing test user');
+
+      await login(user.email, user.password);
+      await logout();
+
+      return await expect(revokeAllTokens).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+    it('should return 403 forbidden when trying to access as anything other than admin', async () => {
+      const user = users.find((u) => u.role === 'USER');
+      if (!user) throw new Error('Missing test user');
+
+      const moderator = users.find((u) => u.role === 'MOD');
+      if (!moderator) throw new Error('Missing test user');
+
+      expect.assertions(2);
+
+      await login(user.email, user.password);
+      await expect(revokeAllTokens).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+
+      await login(moderator.email, moderator.password);
+      await expect(revokeAllTokens).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+    it('should mark all tokens as revoked if called as admin', async () => {
       for (const token of tokens) {
         expect((await getTokenById(getJti(token))).revoked).toBe(false);
       }
 
+      const admin = users.find((u) => u.role === 'ADMIN');
+      if (!admin) throw new Error('Missing test user');
+
+      await login(admin.email, admin.password);
       const res = await revokeAllTokens();
 
       const { data: revokeData } = res.data as BaseResponse;
@@ -377,7 +501,7 @@ describe('/api/v1/auth', () => {
         'message',
         SUCCESS_MESSAGES.AUTH.revoke
       );
-      expect(revokeData).toHaveProperty('revokedCount', tokens.length);
+      expect(revokeData).toHaveProperty('revokedCount', tokens.length + 1); // +1 because admin logged in
       for (const token of tokens) {
         const updatedToken = await getTokenById(getJti(token));
         expect(updatedToken.revoked).toBe(true);
@@ -385,3 +509,7 @@ describe('/api/v1/auth', () => {
     });
   });
 });
+
+type ExtractMethod<T, K extends keyof T> = T[K] extends (...args: any[]) => any
+  ? T[K]
+  : never;
