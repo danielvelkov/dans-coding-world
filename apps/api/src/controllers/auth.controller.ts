@@ -11,7 +11,11 @@ import {
   RefreshTokenDto,
   RegisterDto,
 } from '@dans-coding-world/shared-auth-dto';
-import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
+import {
+  SUCCESS_MESSAGES,
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+} from '@dans-coding-world/shared-constants';
 
 export class AuthController {
   constructor(
@@ -40,12 +44,12 @@ export class AuthController {
 
       const result = await this.authService.login(loginDto);
 
-      res.cookie('access_token', result.accessToken, {
+      res.cookie(ACCESS_TOKEN_COOKIE, result.accessToken, {
         httpOnly: true,
         maxAge: config.options.accessExpiration,
       });
 
-      res.cookie('refresh_token', result.refreshToken, {
+      res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, {
         httpOnly: true,
         maxAge: config.options.refreshExpiration,
       });
@@ -64,12 +68,12 @@ export class AuthController {
 
       const result = await this.authService.refreshToken(refreshDto);
 
-      res.cookie('access_token', result.accessToken, {
+      res.cookie(ACCESS_TOKEN_COOKIE, result.accessToken, {
         httpOnly: true,
         maxAge: config.options.accessExpiration,
       });
 
-      res.cookie('refresh_token', result.refreshToken, {
+      res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, {
         httpOnly: true,
         maxAge: config.options.refreshExpiration,
       });
