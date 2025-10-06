@@ -8,3 +8,4 @@ export * from './lib/interfaces/auth-service.interface.js';
 export * from './lib/interfaces/registration-service.interface.js';
 export * from './lib/interfaces/token-service.interface.js';
 export * from './lib/helper/password.helper.js';
+export * from './lib/strategies/jwt.strategy.js';

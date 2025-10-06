@@ -10,11 +10,13 @@ import {
 import { PrismaUserDataAccess as UserRepository } from '@dans-coding-world/user-data-access';
 import { PrismaRefreshTokenDataAccess as RefreshTokenRepository } from '@dans-coding-world/token-data-access';
 import { config } from './config/auth.config.js';
+import { PassportJwtStrategy } from './strategies/jwt.strategy.js';
 
 // Define providers
 const authProviders: Provider[] = [
   AuthService,
   RegistrationService,
+  PassportJwtStrategy,
   { provide: TOKEN_SERVICE_TOKEN, useClass: TokenService },
   { provide: USER_REPOSITORY_TOKEN, useClass: UserRepository },
   { provide: REFRESH_TOKEN_REPOSITORY_TOKEN, useClass: RefreshTokenRepository },
