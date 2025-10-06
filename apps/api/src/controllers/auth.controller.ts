@@ -1,10 +1,12 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import {
   IAuthService,
   config,
   ITokenService,
   IRegistrationService,
+  Authorized,
+  RequiredRole,
 } from '@dans-coding-world/api-auth';
 import {
   LoginDto,
@@ -22,7 +24,11 @@ export class AuthController {
     private authService: IAuthService,
     private registrationService: IRegistrationService,
     private tokenService: ITokenService
-  ) {}
+  ) {
+    this.logout = this.logout.bind(this);
+    this.revokeToken = this.revokeToken.bind(this);
+    this.revokeAllTokens = this.revokeAllTokens.bind(this);
+  }
   // User sign up route
   register = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -61,6 +67,28 @@ export class AuthController {
       return next(error);
     }
   };
+  @Authorized()
+  async logout(req: Request, res: Response, next: NextFunction) {
+    try {
+      const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE];
+
+      await this.tokenService.revokeRefreshToken(refreshToken);
+
+      // Clear cookies
+      res.clearCookie(ACCESS_TOKEN_COOKIE, {
+        httpOnly: true,
+      });
+      res.clearCookie(REFRESH_TOKEN_COOKIE, {
+        httpOnly: true,
+      });
+
+      return res
+        .status(StatusCodes.OK)
+        .json({ message: SUCCESS_MESSAGES.AUTH.logout });
+    } catch (error) {
+      return next(error);
+    }
+  }
   // Refresh route for generating new access/refresh token pair
   refresh = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -86,8 +114,12 @@ export class AuthController {
       return next(error);
     }
   };
+  // NOTE! for decorators to work you must use methods not class fields
+  // NOTE! you must also bind the this
   // Revoke token route for individual user refresh tokens
-  revokeToken = async (req: Request, res: Response, next: NextFunction) => {
+  @Authorized()
+  @RequiredRole('MOD', 'ADMIN')
+  async revokeToken(req: Request, res: Response, next: NextFunction) {
     try {
       const refreshDto: RefreshTokenDto = req.body;
       const revokedToken = await this.tokenService.revokeRefreshToken(
@@ -101,9 +133,11 @@ export class AuthController {
     } catch (error) {
       return next(error);
     }
-  };
+  }
   // Revoke all tokens route
-  revokeAllTokens = async (req: Request, res: Response, next: NextFunction) => {
+  @Authorized()
+  @RequiredRole('ADMIN')
+  async revokeAllTokens(req: Request, res: Response, next: NextFunction) {
     try {
       const count = await this.tokenService.revokeAllRefreshTokens();
 
@@ -114,5 +148,5 @@ export class AuthController {
     } catch (error) {
       return next(error);
     }
-  };
+  }
 }
