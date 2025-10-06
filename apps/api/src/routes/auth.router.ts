@@ -245,6 +245,42 @@ const authRouter = Router();
  *                   type: string
  *                   example: Invalid or expired token
  *
+ *     UnauthorizedError:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ErrorResponse'
+ *         - type: object
+ *           properties:
+ *             error:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: number
+ *                   example: 401
+ *                 errorCode:
+ *                   type: string
+ *                   example: AUTH005
+ *                 message:
+ *                   type: string
+ *                   example: You must be logged in to perform this action.
+ * 
+ *     ForbiddenError:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ErrorResponse'
+ *         - type: object
+ *           properties:
+ *             error:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: number
+ *                   example: 403
+ *                 errorCode:
+ *                   type: string
+ *                   example: SERV003
+ *                 message:
+ *                   type: string
+ *                   example: You do not have permissions to perform this action.
+ *
  *     InternalServerError:
  *       allOf:
  *         - $ref: '#/components/schemas/ErrorResponse'
@@ -328,6 +364,44 @@ const authRouter = Router();
  *               $ref: '#/components/schemas/InternalServerError'
  */
 authRouter.post('/login', authController.login);
+
+/**
+ * @openapi
+ * /auth/logout:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Logout the currently logged-in user
+ *     description: Logs user out by revoking his refresh token and clearing 'set-cookie' header token values.
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *         headers:
+ *           Set-Cookie:
+ *             description:
+ *               Removes the access_token and refresh_token cookies.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *             example:
+ *               error: null
+ *               success: true
+ *               data:
+ *                 message: 'Logout successful'
+ *       401:
+ *         description: Unauthorized - Login first
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+authRouter.post('/logout', authController.logout);
 
 /**
  * @openapi
@@ -484,6 +558,18 @@ authRouter.post('/register', authController.register);
  *                 status: 400
  *                 errorCode: VAL001
  *                 message: Validation Failed
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
  *       404:
  *         description: Not Found - Token no longer exists
  *         content:
@@ -528,6 +614,18 @@ authRouter.post('/revokeToken', authController.revokeToken);
  *                           revokedCount:
  *                             type: number
  *                             description: Number of revoked tokens
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
  *       500:
  *         description: Internal Server Error
  *         content:

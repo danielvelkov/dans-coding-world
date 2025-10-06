@@ -45,6 +45,18 @@ export const usersRouter = Router();
  *                           revokedCount:
  *                             type: number
  *                             description: Number of revoked tokens
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
  *       500:
  *         description: Internal Server Error
  *         content:
