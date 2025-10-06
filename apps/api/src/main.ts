@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import { ApiException } from '@dans-coding-world/exceptions';
 import * as path from 'path';
 import authRouter from './routes/auth.router.js';
@@ -8,13 +9,31 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import { responseWrapper } from './middlewares/response-wrapper.middleware.js';
 import { errorHandler } from './middlewares/error-handler.middleware.js';
 import { usersRouter } from './routes/users.router.js';
+import {
+  authInjector,
+  PassportJwtStrategy,
+  JWT_STRATEGY_NAME,
+} from '@dans-coding-world/api-auth';
+import passport from 'passport';
+import cors from 'cors';
 
 const app = express();
 
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    exposedHeaders: ['set-cookie'],
+  })
+);
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// passport.use(strategy);
+const { strategy } = authInjector.get(
+  PassportJwtStrategy
+) as PassportJwtStrategy;
+passport.use(JWT_STRATEGY_NAME, strategy);
 
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
