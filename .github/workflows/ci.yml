@@ -12,85 +12,54 @@ permissions:
   contents: read
 
 jobs:
-  setup_db: # taken from https://github.com/karlhorky/github-tricks/#github-actions-start-preinstalled-postgresql-database-on-windows-macos-and-linux
-    name: Create PostgreSQL DB
-    runs-on: ubuntu-latest
-    env:
-      PGHOST: localhost
-      PGDATABASE: blogs_db
-      PGUSERNAME: username
-      PGPASSWORD: password
-    steps:
-      - name: Add PostgreSQL binaries to PATH
-        shell: bash
-        run: |
-          echo "$(pg_config --bindir)" >> $GITHUB_PATH
-      - name: Start preinstalled PostgreSQL
-        shell: bash
-        run: |
-          echo "Initializing database cluster..."
-
-          # Convert backslashes to forward slashes in RUNNER_TEMP for Windows Git Bash
-          export PGHOST="${RUNNER_TEMP//\\//}/postgres"
-          export PGDATA="$PGHOST/pgdata"
-          mkdir -p "$PGDATA"
-
-          # initdb requires file for password in non-interactive mode
-          export PWFILE="$RUNNER_TEMP/pwfile"
-          echo "postgres" > "$PWFILE"
-          initdb --pgdata="$PGDATA" --username="postgres" --pwfile="$PWFILE"
-
-          echo "Starting PostgreSQL..."
-          echo "unix_socket_directories = '$PGHOST'" >> "$PGDATA/postgresql.conf"
-          pg_ctl start
-
-          echo "Creating user..."
-          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="CREATE USER $PGUSERNAME PASSWORD '$PGPASSWORD'" --command="\du"
-
-          echo "Creating database..."
-          createdb --owner="$PGUSERNAME" --username="postgres" "$PGDATABASE"
-      - name: Set DATABASE_URL output
-        id: set-db-url
-        run: echo "db_url=postgresql://${PGUSERNAME}:${PGPASSWORD}@${PGHOST}/${PGDATABASE}" >> $GITHUB_OUTPUT
-    outputs:
-      db_url: ${{ steps.set-db-url.outputs.db_url }}
   main:
-    needs: setup_db
     runs-on: ubuntu-latest
+
+    # Add the database as a service container
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: username
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: blogs_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       NODE_ENV: test
-      DATABASE_URL: ${{ needs.setup_db.outputs.db_url }}
+      DATABASE_URL: postgresql://username:password@localhost:5432/blogs_db
       ACCESS_TOKEN_SECRET: 102j4102jas0f9j
       REFRESH_TOKEN_SECRET: 039j9309j3290j4
+
     steps:
-      # When you see "uses: actions/[name]" this is a marketplace action
-      # "checkout" action is defined here: https://github.com/marketplace/actions/checkout (the @4 is the version)
       - uses: actions/checkout@v4
         with:
-          filter: tree:0
           fetch-depth: 0
 
-      # This enables task distribution via Nx Cloud
-      # Run this command as early as possible, before dependencies are installed
-      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      # Uncomment this line to enable task distribution
-      # - run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e-ci"
-
-      # Cache node_modules
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
       - run: npm ci --legacy-peer-deps
+
       - run: npx cypress install
+
       # Generate prisma client
       - run: npx nx run @dans-coding-world/prisma-schema:generate-types:e2e
 
-      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
-      # - run: npx nx-cloud record -- echo Hello World
-      # When you enable task distribution, run the e2e-ci task instead of e2e
+      # Run Prisma migrations to set up the database schema
+      - run: npx prisma migrate deploy
+        # or if you need to specify the schema path:
+        # run: npx nx run @dans-coding-world/prisma-schema:migrate-deploy
+
       - run: npx nx run-many -t lint test build e2e
-      # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
+
       - run: npx nx fix-ci
         if: always()
