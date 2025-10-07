@@ -1,4 +1,5 @@
 name: CI
+run-name: ${{ github.actor }} is contributing to this pile of sh- 💩
 
 on:
   push:
@@ -11,9 +12,59 @@ permissions:
   contents: read
 
 jobs:
-  main:
+  setup_db: # taken from https://github.com/karlhorky/github-tricks/#github-actions-start-preinstalled-postgresql-database-on-windows-macos-and-linux
+    name: Create PostgreSQL DB
     runs-on: ubuntu-latest
+    env:
+      PGHOST: localhost
+      PGDATABASE: blogs_db
+      PGUSERNAME: username
+      PGPASSWORD: password
     steps:
+      - name: Add PostgreSQL binaries to PATH
+        shell: bash
+        run: |
+          echo "$(pg_config --bindir)" >> $GITHUB_PATH
+      - name: Start preinstalled PostgreSQL
+        shell: bash
+        run: |
+          echo "Initializing database cluster..."
+
+          # Convert backslashes to forward slashes in RUNNER_TEMP for Windows Git Bash
+          export PGHOST="${RUNNER_TEMP//\\//}/postgres"
+          export PGDATA="$PGHOST/pgdata"
+          mkdir -p "$PGDATA"
+
+          # initdb requires file for password in non-interactive mode
+          export PWFILE="$RUNNER_TEMP/pwfile"
+          echo "postgres" > "$PWFILE"
+          initdb --pgdata="$PGDATA" --username="postgres" --pwfile="$PWFILE"
+
+          echo "Starting PostgreSQL..."
+          echo "unix_socket_directories = '$PGHOST'" >> "$PGDATA/postgresql.conf"
+          pg_ctl start
+
+          echo "Creating user..."
+          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="CREATE USER $PGUSERNAME PASSWORD '$PGPASSWORD'" --command="\du"
+
+          echo "Creating database..."
+          createdb --owner="$PGUSERNAME" --username="postgres" "$PGDATABASE"
+      - name: Set DATABASE_URL output
+        id: set-db-url
+        run: echo "db_url=postgresql://${PGUSERNAME}:${PGPASSWORD}@${PGHOST}/${PGDATABASE}" >> $GITHUB_OUTPUT
+    outputs:
+      db_url: ${{ steps.set-db-url.outputs.db_url }}
+  main:
+    needs: setup_db
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DATABASE_URL: ${{ needs.setup_db.outputs.db_url }}
+      ACCESS_TOKEN_SECRET: 102j4102jas0f9j
+      REFRESH_TOKEN_SECRET: 039j9309j3290j4
+    steps:
+      # When you see "uses: actions/[name]" this is a marketplace action
+      # "checkout" action is defined here: https://github.com/marketplace/actions/checkout (the @4 is the version)
       - uses: actions/checkout@v4
         with:
           filter: tree:0
