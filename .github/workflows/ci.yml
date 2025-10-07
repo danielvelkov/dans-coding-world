@@ -54,11 +54,6 @@ jobs:
       # Generate prisma client
       - run: npx nx run @dans-coding-world/prisma-schema:generate-types:e2e
 
-      # Run Prisma migrations to set up the database schema
-      - run: npx prisma migrate deploy
-        # or if you need to specify the schema path:
-        # run: npx nx run @dans-coding-world/prisma-schema:migrate-deploy
-
       - run: npx nx run-many -t lint test build e2e
 
       - run: npx nx fix-ci
