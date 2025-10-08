@@ -6,7 +6,7 @@
     "noUnusedLocals": false,
     "noImplicitAny": false
   },
-  "include": ["jest.config.ts", "src/**/*.ts"],
+  "include": ["jest.config.cts", "src/**/*.ts"],
   "references": [
     {
       "path": "../../libs/shared/util/exceptions"
