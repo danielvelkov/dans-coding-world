@@ -1,4 +1,5 @@
 name: CI
+run-name: ${{ github.actor }} is contributing to this pile of sh- 💩
 
 on:
   push:
@@ -13,31 +14,46 @@ permissions:
 jobs:
   main:
     runs-on: ubuntu-latest
+
+    # Add the database as a service container
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: username
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: blogs_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://username:password@localhost:5432/blogs_db
+      ACCESS_TOKEN_SECRET: 102j4102jas0f9j
+      REFRESH_TOKEN_SECRET: 039j9309j3290j4
+      HOST: localhost
+      PORT: 3000
+
     steps:
       - uses: actions/checkout@v4
         with:
-          filter: tree:0
           fetch-depth: 0
 
-      # This enables task distribution via Nx Cloud
-      # Run this command as early as possible, before dependencies are installed
-      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      # Uncomment this line to enable task distribution
-      # - run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e-ci"
-
-      # Cache node_modules
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
       - run: npm ci --legacy-peer-deps
+
       - run: npx cypress install
 
-      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
-      # - run: npx nx-cloud record -- echo Hello World
-      # When you enable task distribution, run the e2e-ci task instead of e2e
+      # Generate prisma client
+      - run: npx nx run @dans-coding-world/prisma-schema:generate-types:e2e
+
       - run: npx nx run-many -t lint test build e2e
-      # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
-      - run: npx nx fix-ci
-        if: always()
