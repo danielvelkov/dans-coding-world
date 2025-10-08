@@ -14,7 +14,7 @@
           "{projectRoot}/test-output/jest/coverage"
         ],
         "options": {
-          "jestConfig": "apps/api-e2e/jest.config.cts",
+          "jestConfig": "apps/api-e2e/jest.config.cjs",
           "passWithNoTests": true,
           "runInBand": true
         },

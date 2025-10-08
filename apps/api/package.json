@@ -38,7 +38,10 @@
         ],
         "options": {
           "buildTarget": "@dans-coding-world/api:build:development",
-          "runBuildTargetDependencies": false
+          "runBuildTargetDependencies": false,
+           "env": {
+            "PORT": "3000"
+          }
         },
         "configurations": {
           "e2e": {
