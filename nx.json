@@ -45,7 +45,8 @@
         "libs/shared/auth/dtos/*",
         "libs/api/data-access/token/*",
         "libs/shared/util/api-types/*",
-        "libs/shared/util/validation/*"
+        "libs/shared/util/validation/*",
+        "libs/api/data-access/post/*"
       ]
     },
     {
@@ -120,7 +121,8 @@
         "libs/shared/auth/dtos/*",
         "libs/api/data-access/token/*",
         "libs/shared/util/api-types/*",
-        "libs/shared/util/validation/*"
+        "libs/shared/util/validation/*",
+        "libs/api/data-access/post/*"
       ],
       "options": {
         "typecheck": {

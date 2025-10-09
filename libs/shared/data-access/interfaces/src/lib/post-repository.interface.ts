@@ -10,7 +10,7 @@ export interface IPostRepository<Post, TWhereInput, TOrderBy> {
   create(data: Omit<Post, 'id'>): Promise<Post>;
   update(id: number, data: Partial<Post>): Promise<Post>;
   search(
-    where: TWhereInput,
+    where?: TWhereInput,
     orderBy?: TOrderBy,
     skip?: number,
     take?: number

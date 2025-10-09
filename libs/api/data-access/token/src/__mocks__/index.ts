@@ -42,7 +42,7 @@ export class MockRefreshTokenDataAccess implements IRefreshTokenRepository {
     this.tokens = this.tokens.map((t) =>
       t.jti === jti ? { ...t, ...data } : t
     );
-    return existingToken;
+    return { ...existingToken, ...data };
   }
   async updateMany(
     where: RefreshTokenWhereInput,

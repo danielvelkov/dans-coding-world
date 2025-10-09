@@ -50,6 +50,9 @@
     },
     {
       "path": "./libs/shared/util/validation"
+    },
+    {
+      "path": "./libs/api/data-access/post"
     }
   ]
 }
