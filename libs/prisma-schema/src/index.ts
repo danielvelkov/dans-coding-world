@@ -5,4 +5,7 @@ export type {
   Role,
   RefreshToken,
   RefreshTokenWhereInput,
+  Post,
+  PostStatus,
+  PostVisibility,
 } from './lib/prisma.types.js';
