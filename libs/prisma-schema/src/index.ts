@@ -8,4 +8,6 @@ export type {
   Post,
   PostStatus,
   PostVisibility,
+  PostWhereInput,
+  PostOrderByInput,
 } from './lib/prisma.types.js';
