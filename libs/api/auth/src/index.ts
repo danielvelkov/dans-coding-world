@@ -10,4 +10,5 @@ export * from './lib/interfaces/token-service.interface.js';
 export * from './lib/helper/password.helper.js';
 export * from './lib/guards/authorized.guard.js';
 export * from './lib/guards/required-role.guard.js';
+export * from './lib/guards/attach-user.guard.js';
 export * from './lib/strategies/jwt.strategy.js';
