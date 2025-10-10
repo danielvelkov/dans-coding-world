@@ -53,6 +53,9 @@
     },
     {
       "path": "./libs/api/data-access/post"
+    },
+    {
+      "path": "./libs/shared/post/dtos"
     }
   ]
 }

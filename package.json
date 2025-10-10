@@ -116,6 +116,7 @@
     "libs/shared/auth/*",
     "@dans-coding-world/*",
     "lib/*",
-    "libs/api/data-access/*"
+    "libs/api/data-access/*",
+    "libs/shared/post/*"
   ]
 }
