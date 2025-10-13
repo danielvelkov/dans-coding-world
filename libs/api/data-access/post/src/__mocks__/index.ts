@@ -70,4 +70,9 @@ export class MockPostDataAccess
     });
     return this.posts.length;
   }
+  async exists(title: string): Promise<boolean> {
+    return !!this.posts.find(
+      (p) => p.title.toLowerCase() === title.toLowerCase()
+    );
+  }
 }

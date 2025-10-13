@@ -55,4 +55,15 @@ export class PrismaPostDataAccess
     });
     return count;
   }
+  async exists(title: string): Promise<boolean> {
+    const post = await client.post.findFirst({
+      where: {
+        title: {
+          equals: title.toLowerCase(),
+          mode: 'insensitive', // Case-insensitive match
+        },
+      },
+    });
+    return !!post;
+  }
 }

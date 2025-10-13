@@ -17,4 +17,5 @@ export interface IPostRepository<Post, TWhereInput, TOrderBy> {
   ): Promise<Post[]>;
   delete(id: number): Promise<Post>;
   deleteMany(where: TWhereInput): Promise<number>;
+  exists(title: string): Promise<boolean>;
 }
