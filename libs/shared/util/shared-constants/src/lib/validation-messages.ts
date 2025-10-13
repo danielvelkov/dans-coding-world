@@ -17,7 +17,12 @@ export const VALIDATION_MESSAGES = {
     invalid:
       'Username can only include letters and numbers (no spaces or special characters)',
   },
+  posts: {
+    titleAlreadyExists: 'A post with this title already exists',
+  },
   token: {
     invalid: 'Refresh token must be a valid JWT',
   },
+  allowedValues: (values: string[] | number[]) =>
+    `Only the following values are allowed: ${values.join(', ')}`,
 };

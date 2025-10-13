@@ -13,5 +13,12 @@
     },
     "./package.json": "./package.json"
   },
+  "nx": {
+    "tags": [
+      "type:lib",
+      "layer:api",
+      "scope:post"
+    ]
+  },
   "dependencies": {}
 }
