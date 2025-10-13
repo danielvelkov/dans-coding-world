@@ -9,9 +9,36 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"]
+    "types": ["node"],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   },
   "include": ["src/**/*.ts"],
-  "references": [],
+  "references": [
+    {
+      "path": "../../shared/util/shared-constants/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/util/exceptions/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/util/validation/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/data-access/interfaces/tsconfig.lib.json"
+    },
+    {
+      "path": "../data-access/user/tsconfig.lib.json"
+    },
+    {
+      "path": "../data-access/post/tsconfig.lib.json"
+    },
+    {
+      "path": "../../prisma-schema/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/post/dtos/tsconfig.lib.json"
+    }
+  ],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
 }
