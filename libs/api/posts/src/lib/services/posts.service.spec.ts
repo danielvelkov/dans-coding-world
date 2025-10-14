@@ -33,6 +33,13 @@ let postsService: IPostsService;
 describe('posts service', () => {
   let user: User;
   let admin: User;
+  const validPostContent = {
+    title: 'Very valid title',
+    content: 'Very valid description',
+    createdAt: new Date(),
+    publishedAt: null,
+    updatedAt: new Date(),
+  };
 
   beforeEach(async () => {
     mockPostsRepo = new MockPostRepository();
@@ -66,17 +73,74 @@ describe('posts service', () => {
     postsService = injector.get(PostsService) as PostsService;
     jest.spyOn(mockPostsRepo, 'create');
   });
+  describe('getById()', () => {
+    it('should return post if it is published and public', async () => {
+      const createdPost = await mockPostsRepo.create({
+        ...validPostContent,
+        authorId: admin.id,
+        status: 'PUBLISHED',
+        visibility: 'PUBLIC',
+      });
+      const post = await postsService.getById({
+        id: createdPost.id,
+      });
+      expect(post).toBeTruthy();
+      expect(createdPost.id).toEqual(post.id);
+    });
+
+    it(`should return post with its content hidden if it is members only
+       and no logged in user is requesting it`, async () => {
+      const createdPost = await mockPostsRepo.create({
+        ...validPostContent,
+        authorId: admin.id,
+        status: 'PUBLISHED',
+        visibility: 'MEMBERS_ONLY',
+      });
+      const retrievedPost = await postsService.getById({
+        id: createdPost.id,
+      });
+      expect(retrievedPost).toBeTruthy();
+      expect(createdPost.id).toEqual(retrievedPost.id);
+      expect(retrievedPost.content).toEqual(VALIDATION_MESSAGES.posts.membersOnly);
+    });
+
+    it('should throw when the post is still a draft and the user requesting it is not the author', async () => {
+      const createdPost = await mockPostsRepo.create({
+        ...validPostContent,
+        authorId: admin.id,
+        status: 'DRAFT',
+        visibility: 'PUBLIC',
+      });
+
+      expect.assertions(1);
+      return postsService
+        .getById({
+          id: createdPost.id,
+          userId: user.id,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+          );
+        });
+    });
+
+    it('should throw when post with this id does not exist', async () => {
+      expect.assertions(1);
+      return postsService.getById({ id: -999 }).catch((error) => {
+        expect(error.message).toMatch(/.*not.*found/i);
+      });
+    });
+  });
   describe('create()', () => {
-    const validPostContent = {
-      title: 'Very valid title',
-      content: 'Very valid description',
+    const validPostCreateDto = {
+      ...validPostContent,
       isDraft: true,
       isMembersOnly: false,
     };
-
     it('should create a post when valid post data is provided', async () => {
       await postsService.create({
-        ...validPostContent,
+        ...validPostCreateDto,
         authorId: admin.id,
       });
       expect(mockPostsRepo.create).toHaveBeenCalled();
@@ -96,7 +160,7 @@ describe('posts service', () => {
       expect.assertions(1);
       return postsService
         .create({
-          ...validPostContent,
+          ...validPostCreateDto,
           authorId: admin.id,
           title,
         })
@@ -119,7 +183,7 @@ describe('posts service', () => {
       expect.assertions(1);
       return postsService
         .create({
-          ...validPostContent,
+          ...validPostCreateDto,
           authorId: admin.id,
           content,
         })
@@ -136,7 +200,7 @@ describe('posts service', () => {
       expect.assertions(1);
       return postsService
         .create({
-          ...validPostContent,
+          ...validPostCreateDto,
           authorId: id as any,
         })
         .catch((error) => {
@@ -148,7 +212,7 @@ describe('posts service', () => {
       expect.assertions(1);
       return postsService
         .create({
-          ...validPostContent,
+          ...validPostCreateDto,
           authorId: -999,
         })
         .catch((error) => {
@@ -160,7 +224,7 @@ describe('posts service', () => {
 
     it('should throw error when post with this title already exists', async () => {
       const createdPost = await postsService.create({
-        ...validPostContent,
+        ...validPostCreateDto,
         authorId: admin.id,
         isDraft: true,
         isMembersOnly: false,
@@ -184,7 +248,7 @@ describe('posts service', () => {
       expect.assertions(1);
       return postsService
         .create({
-          ...validPostContent,
+          ...validPostCreateDto,
           authorId: user.id,
           isDraft: true,
           isMembersOnly: false,

@@ -9,6 +9,7 @@ import {
   CreatePostDto,
   UpdatePostDto,
   DeletePostDto,
+  GetPostDto,
 } from '@dans-coding-world/shared-post-dto';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
 import { Inject, Injectable } from 'injection-js';
@@ -26,6 +27,13 @@ import {
 export const POST_REPOSITORY_TOKEN = 'IPostRepository';
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 
+/*
+  NOTE
+  I really don't like how this is turning out. 
+  A lot of implicit logic is happening behind the scenes of every method call here.
+  Should be refactored somehow. 
+ */
+
 @Injectable()
 export class PostsService implements IPostsService {
   constructor(
@@ -34,9 +42,22 @@ export class PostsService implements IPostsService {
     @Inject(USER_REPOSITORY_TOKEN)
     public users: IUserRepository
   ) {}
-  getById(id: number): Promise<Post> {
-    throw new Error('Method not implemented.');
+  async getById(dto: GetPostDto): Promise<Post> {
+    const post = await this.posts.getById(dto.id);
+    if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    // If the post is not published and the person requesting it is not the author
+    if (!this.isPublished(post) && !this.isAuthor(post, dto.userId as number))
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+
+    // If the post is MEMBERS_ONLY and the person requesting it is not a member
+    if (this.isMembersOnly(post) && !dto.userId) {
+      return { ...post, content: VALIDATION_MESSAGES.posts.membersOnly };
+    }
+
+    return post;
   }
+
   getAll(
     dto: Omit<SearchPostsDto, 'searchQuery'>
   ): Promise<PostSearchResponseDto> {
@@ -79,4 +100,8 @@ export class PostsService implements IPostsService {
   search(dto: SearchPostsDto): Promise<PostSearchResponseDto> {
     throw new Error('Method not implemented.');
   }
+
+  private isAuthor = (post: Post, userId: number) => post.authorId === userId;
+  private isPublished = (post: Post) => post.status === 'PUBLISHED';
+  private isMembersOnly = (post: Post) => post.visibility === 'MEMBERS_ONLY';
 }

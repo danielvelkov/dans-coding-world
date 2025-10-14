@@ -4,6 +4,7 @@ import {
   SearchPostsDto,
   UpdatePostDto,
   PostSearchResponseDto,
+  GetPostDto,
 } from '@dans-coding-world/shared-post-dto';
 import { Post, Role } from '@dans-coding-world/prisma-schema';
 /**
@@ -23,15 +24,17 @@ import { Post, Role } from '@dans-coding-world/prisma-schema';
 export interface IPostsService {
   /**
    * Retrieves a single post by its unique identifier.
-   * @param id The ID of the post to retrieve.
+   * - If no userId is passed and the post is not visible to the public, requesting it hides 'content' field
+   * @param dto Data transfer object containing post id and user id (optional).
    * @returns A promise that resolves to the matching Post object.
    * @example
    * ```typescript
-   * const post = await postsService.getById(42);
+   * const post = await postsService.getById({id: 42, userId: 1});
    * ```
    * @throws {Error} When the post with this ID is not found (SER002)
+   * @throws {Error} When the user requesting it is not the author and the post is not published (SERV003)
    */
-  getById(id: number): Promise<Post>;
+  getById(dto: GetPostDto): Promise<Post>;
 
   /**
    * Retrieves a paginated list of posts based on filtering criteria.

@@ -19,6 +19,7 @@ export const VALIDATION_MESSAGES = {
   },
   posts: {
     titleAlreadyExists: 'A post with this title already exists',
+    membersOnly: 'Please login to read the blog',
   },
   token: {
     invalid: 'Refresh token must be a valid JWT',

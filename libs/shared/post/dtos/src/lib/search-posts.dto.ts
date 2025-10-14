@@ -1,4 +1,4 @@
-import { MaxLength, IsBoolean, IsNumber, IsOptional } from 'class-validator';
+import { MaxLength } from 'class-validator';
 import {
   POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
