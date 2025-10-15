@@ -10,6 +10,7 @@ import {
   UpdatePostDto,
   DeletePostDto,
   GetPostDto,
+  GetPostsDto,
 } from '@dans-coding-world/shared-post-dto';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
 import { Inject, Injectable } from 'injection-js';
@@ -21,6 +22,7 @@ import { validateDto } from '@dans-coding-world/validation';
 import { ApiException } from '@dans-coding-world/exceptions';
 import {
   ERROR_CODES,
+  PAGINATION,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 
@@ -58,11 +60,46 @@ export class PostsService implements IPostsService {
     return post;
   }
 
-  getAll(
-    dto: Omit<SearchPostsDto, 'searchQuery'>
-  ): Promise<PostSearchResponseDto> {
-    throw new Error('Method not implemented.');
+  async getAll(dto?: GetPostsDto): Promise<PostSearchResponseDto> {
+    if (dto) await validateDto(dto, GetPostsDto);
+
+    const where = this.buildPostsWhereClause(dto?.viewerId);
+    const orderBy = { publishedAt: 'desc' } as PostOrderByInput;
+
+    const [posts, total] = await Promise.all([
+      this.posts.search(where, orderBy, {
+        skip: dto?.pageOffset ?? 0,
+        take: dto?.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
+      }),
+      this.posts.count(where),
+    ]);
+
+    const postsPerPage =
+      dto?.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE;
+    const currentPage = Math.floor((dto?.pageOffset ?? 0) / postsPerPage) + 1;
+    const totalPages = Math.ceil(total / postsPerPage);
+
+    // Hide Members-only content for guests
+    const items = posts.map((post) => {
+      if (this.isMembersOnly(post) && !dto?.viewerId) {
+        return { ...post, content: VALIDATION_MESSAGES.posts.membersOnly };
+      } else return post;
+    });
+
+    return {
+      items,
+      count: posts.length,
+      pagination: {
+        total,
+        limit: postsPerPage,
+        page: currentPage,
+        totalPages,
+        hasNext: currentPage < totalPages,
+        hasPrev: currentPage > 1,
+      },
+    };
   }
+
   async create(dto: CreatePostDto): Promise<Post> {
     await validateDto(dto, CreatePostDto);
 
@@ -106,6 +143,35 @@ export class PostsService implements IPostsService {
       throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
     }
   }
+
+  private buildPostsWhereClause(viewerId?: number): PostWhereInput {
+    const clauses: PostWhereInput[] = [
+      // Add PUBLISHED posts by default
+      {
+        status: 'PUBLISHED',
+      },
+    ];
+
+    // Add user's own drafts or archived posts
+    if (viewerId) {
+      clauses.push({
+        AND: [
+          {
+            OR: [
+              {
+                status: 'DRAFT',
+              },
+              { status: 'ARCHIVED' },
+            ],
+          },
+          { authorId: viewerId },
+        ],
+      });
+    }
+
+    return { OR: clauses };
+  }
+
   private isAuthor = (post: Post, userId?: number) =>
     userId !== undefined && post.authorId === userId;
   private isPublished = (post: Post) => post.status === 'PUBLISHED';
