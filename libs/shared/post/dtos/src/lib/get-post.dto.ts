@@ -5,5 +5,5 @@ export class GetPostDto {
 
   @IsNumber()
   @IsOptional()
-  userId?: number;
+  viewerId?: number;
 }

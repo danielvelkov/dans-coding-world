@@ -17,6 +17,10 @@ export const VALIDATION_MESSAGES = {
     invalid:
       'Username can only include letters and numbers (no spaces or special characters)',
   },
+  pagination: {
+    pageOffsetNotDivisibleByPageLimit:
+      'Page offset must be devisable by page size',
+  },
   posts: {
     titleAlreadyExists: 'A post with this title already exists',
     membersOnly: 'Please login to read the blog',

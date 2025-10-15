@@ -5,6 +5,7 @@ import {
   UpdatePostDto,
   PostSearchResponseDto,
   GetPostDto,
+  GetPostsDto,
 } from '@dans-coding-world/shared-post-dto';
 import { Post, Role } from '@dans-coding-world/prisma-schema';
 /**
@@ -37,18 +38,16 @@ export interface IPostsService {
   getById(dto: GetPostDto): Promise<Post>;
 
   /**
-   * Retrieves a paginated list of posts based on filtering criteria.
+   * Retrieves a paginated list of posts based on filtering, sorting and pagination criteria (if present).
    * Excludes title search.
-   * @param dto Data transfer object containing pagination and filter options.
+   * @param dto Data transfer object containing viewerId, pagination and filter options.
    * @returns A promise that resolves to a paginated response containing posts.
    * @example
    * ```typescript
-   * const posts = await postsService.getAll({ limit: 10, page: 1 });
+   * const {items, pagination, count} = await postsService.getAll({ limit: 10, page: 1 });
    * ```
    */
-  getAll(
-    dto: Omit<SearchPostsDto, 'searchQuery'>
-  ): Promise<PostSearchResponseDto>;
+  getAll(dto?: GetPostsDto): Promise<PostSearchResponseDto>;
 
   /**
    * Creates a new blog post with the provided data.
