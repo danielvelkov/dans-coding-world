@@ -21,6 +21,7 @@ import { MockUserDataAccess as MockUserRepository } from '@dans-coding-world/use
 import {
   ERROR_CODES,
   ERROR_MESSAGES,
+  PAGINATION,
   POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
@@ -143,6 +144,182 @@ describe('posts service', () => {
         expect(error.message).toMatch(/.*not.*found/i);
       });
     });
+  });
+  describe('getAll()', () => {
+    const NUM_OF_PUBLIC_PUBLISHED_POSTS = 15;
+    const NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS = 4;
+    const NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS = 3;
+    const NUM_OF_DRAFTS_POSTS = 2;
+    const NUM_OF_ARCHIVED_POSTS = 2;
+
+    beforeEach(async () => {
+      mockPostsRepo.deleteMany({});
+      for (let i = 0; i < NUM_OF_PUBLIC_PUBLISHED_POSTS; i++)
+        mockPostsRepo.create({
+          ...validPostContent,
+          title: `PUBLIC & PUBLISHED: #${i}`,
+          authorId: admin.id,
+          status: 'PUBLISHED',
+          visibility: 'PUBLIC',
+          publishedAt: new Date(
+            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+          ),
+        });
+
+      for (let i = 0; i < NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS; i++)
+        mockPostsRepo.create({
+          ...validPostContent,
+          title: `MEMBERS_ONLY & PUBLISHED: #${i}`,
+          authorId: admin.id,
+          status: 'PUBLISHED',
+          visibility: 'MEMBERS_ONLY',
+          publishedAt: new Date(
+            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+          ),
+        });
+
+      for (let i = 0; i < NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS; i++)
+        mockPostsRepo.create({
+          ...validPostContent,
+          title: `MEMBERS_ONLY & DRAFT: #${i}`,
+          authorId: admin.id,
+          status: 'DRAFT',
+          visibility: 'MEMBERS_ONLY',
+          publishedAt: new Date(
+            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+          ),
+        });
+
+      for (let i = 0; i < NUM_OF_DRAFTS_POSTS; i++)
+        mockPostsRepo.create({
+          ...validPostContent,
+          title: `DRAFT: #${i}`,
+          authorId: admin.id,
+          status: 'DRAFT',
+          visibility: 'PUBLIC',
+          publishedAt: new Date(
+            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+          ),
+        });
+
+      for (let i = 0; i < NUM_OF_ARCHIVED_POSTS; i++)
+        mockPostsRepo.create({
+          ...validPostContent,
+          title: `ARCHIVED: #${i}`,
+          authorId: admin.id,
+          status: 'ARCHIVED',
+          visibility: 'PUBLIC',
+          publishedAt: new Date(
+            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+          ),
+        });
+    });
+
+    test.each([
+      ['negative page size', -1, 0],
+      ['negative offset', 10, -1],
+      ['floating point page size', 0.1, 0],
+      ['floating point offset', 10, 2.5],
+      ['string as page size', '0', 0],
+      ['string as offset', 10, '0'],
+      ['page size that is not allowed', 99, 0],
+    ])('should throw when %s is set', async (_, pageSize, pageOffset) => {
+      expect.assertions(1);
+      // eslint-disable-next-line
+      // @ts-ignore
+      return postsService.getAll({ pageSize, pageOffset }).catch((error) => {
+        expect(error.message).toMatch(
+          ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+        );
+      });
+    });
+
+    it('should return PUBLISHED posts by default', async () => {
+      const resDto = await postsService.getAll();
+
+      expect(resDto.pagination.total).toBe(
+        NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS
+      );
+      expect(resDto.items.length).toBe(resDto.count);
+
+      // Default page when no offset provided is 1
+      expect(resDto.pagination.page).toBe(1);
+      expect(resDto.count).toBe(PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE);
+    });
+
+    it(`should hide post content for members-only posts when no viewerId provided`, async () => {
+      const resDto_WithoutViewerId = await postsService.getAll();
+      resDto_WithoutViewerId.items
+        .filter((p) => p.visibility === 'MEMBERS_ONLY')
+        .every((p) =>
+          expect(p.content).toBe(VALIDATION_MESSAGES.posts.membersOnly)
+        );
+
+      const resDto_WithViewerId = await postsService.getAll({
+        viewerId: user.id,
+      });
+      resDto_WithViewerId.items
+        .filter((p) => p.visibility === 'MEMBERS_ONLY')
+        .every((p) =>
+          expect(p.content).not.toBe(VALIDATION_MESSAGES.posts.membersOnly)
+        );
+    });
+
+    it(`should return user's DRAFT & ARCHIVED posts if viewerId matches their authorId`, async () => {
+      const resDto = await postsService.getAll({
+        viewerId: admin.id,
+        pageSize: 25,
+      });
+      expect(resDto.items.some((p) => p.status === 'DRAFT')).toBe(true);
+      expect(resDto.items.some((p) => p.status === 'ARCHIVED')).toBe(true);
+      expect(resDto.pagination.total).toBeGreaterThanOrEqual(
+        NUM_OF_DRAFTS_POSTS +
+          NUM_OF_ARCHIVED_POSTS +
+          NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS +
+          NUM_OF_PUBLIC_PUBLISHED_POSTS
+      );
+      expect(
+        resDto.items
+          .filter((p) => p.status === 'DRAFT' || p.status === 'ARCHIVED')
+          .every((p) => p.authorId === admin.id)
+      ).toBe(true);
+    });
+
+    const pageSizeOptions = PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS;
+
+    test.each([
+      [2, pageSizeOptions[0]],
+      [4, pageSizeOptions[0]],
+      [21, pageSizeOptions[1]],
+      [49, pageSizeOptions[2]],
+    ])(
+      'should throw when pagination offset (%s) is not devisable by page size (%s)',
+      async (pageOffset, pageSize) => {
+        expect.assertions(1);
+        return postsService.getAll({ pageOffset, pageSize }).catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+          );
+        });
+      }
+    );
+
+    test.each([
+      [1, 0, pageSizeOptions[0]],
+      [2, pageSizeOptions[0], pageSizeOptions[0]],
+      [3, pageSizeOptions[0] * 2, pageSizeOptions[0]],
+      [2, pageSizeOptions[1], pageSizeOptions[1]],
+    ])(
+      'should return page #%s when [ offset: %s ; pageLimit %s ]',
+      async (expectedPageNum, pageOffset, pageSize) => {
+        const resDto = await postsService.getAll({
+          pageOffset,
+          pageSize,
+        });
+        expect(resDto.pagination.limit).toBe(pageSize);
+        expect(resDto.pagination.page).toBe(expectedPageNum);
+      }
+    );
   });
   describe('create()', () => {
     const validPostCreateDto = {
