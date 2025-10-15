@@ -43,15 +43,15 @@ export class PostsService implements IPostsService {
     public users: IUserRepository
   ) {}
   async getById(dto: GetPostDto): Promise<Post> {
+    await validateDto(dto, GetPostDto);
     const post = await this.posts.getById(dto.id);
     if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
-    // If the post is not published and the person requesting it is not the author
-    if (!this.isPublished(post) && !this.isAuthor(post, dto.userId as number))
-      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+    // Authorization check
+    this.verifyPostAccess(post, dto.viewerId);
 
-    // If the post is MEMBERS_ONLY and the person requesting it is not a member
-    if (this.isMembersOnly(post) && !dto.userId) {
+    // Content masking for members-only posts
+    if (this.isMembersOnly(post) && !dto.viewerId) {
       return { ...post, content: VALIDATION_MESSAGES.posts.membersOnly };
     }
 
@@ -101,7 +101,13 @@ export class PostsService implements IPostsService {
     throw new Error('Method not implemented.');
   }
 
-  private isAuthor = (post: Post, userId: number) => post.authorId === userId;
+  private verifyPostAccess(post: Post, userId?: number): void {
+    if (!this.isPublished(post) && !this.isAuthor(post, userId)) {
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+    }
+  }
+  private isAuthor = (post: Post, userId?: number) =>
+    userId !== undefined && post.authorId === userId;
   private isPublished = (post: Post) => post.status === 'PUBLISHED';
   private isMembersOnly = (post: Post) => post.visibility === 'MEMBERS_ONLY';
 }
