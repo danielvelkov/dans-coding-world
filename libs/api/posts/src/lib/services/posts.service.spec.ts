@@ -88,8 +88,8 @@ describe('posts service', () => {
       expect(createdPost.id).toEqual(post.id);
     });
 
-    it(`should return post with its content hidden if it is members only
-       and no logged in user is requesting it`, async () => {
+    it(`should return post with its content hidden if it is members-only
+       and not a logged-in user is requesting it`, async () => {
       const createdPost = await mockPostsRepo.create({
         ...validPostContent,
         authorId: admin.id,
@@ -101,10 +101,13 @@ describe('posts service', () => {
       });
       expect(retrievedPost).toBeTruthy();
       expect(createdPost.id).toEqual(retrievedPost.id);
-      expect(retrievedPost.content).toEqual(VALIDATION_MESSAGES.posts.membersOnly);
+      expect(retrievedPost.content).toEqual(
+        VALIDATION_MESSAGES.posts.membersOnly
+      );
     });
 
-    it('should throw when the post is still a draft and the user requesting it is not the author', async () => {
+    it(`should throw when the post is a draft,
+      and the user requesting it is not the author`, async () => {
       const createdPost = await mockPostsRepo.create({
         ...validPostContent,
         authorId: admin.id,
@@ -112,11 +115,20 @@ describe('posts service', () => {
         visibility: 'PUBLIC',
       });
 
-      expect.assertions(1);
+      expect.assertions(2);
+
+      // Retrieve post when viewerId is author
+      const post = await postsService.getById({
+        id: createdPost.id,
+        viewerId: admin.id,
+      });
+      expect(post.id).toBeTruthy();
+
+      // Retrieve post as another user
       return postsService
         .getById({
           id: createdPost.id,
-          userId: user.id,
+          viewerId: user.id,
         })
         .catch((error) => {
           expect(error.message).toMatch(
