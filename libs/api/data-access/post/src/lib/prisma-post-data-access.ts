@@ -32,14 +32,16 @@ export class PrismaPostDataAccess
   async search(
     where: PostWhereInput,
     orderBy?: PostOrderByInput,
-    skip?: number,
-    take?: number
+    options?: {
+      skip?: number;
+      take?: number;
+    }
   ): Promise<Post[]> {
     return await client.post.findMany({
       where,
       orderBy,
-      skip,
-      take,
+      skip: options?.skip,
+      take: options?.take,
     });
   }
   async delete(id: number): Promise<Post> {
@@ -65,5 +67,8 @@ export class PrismaPostDataAccess
       },
     });
     return !!post;
+  }
+  async count(where: PostWhereInput): Promise<number> {
+    return await client.post.count({ where });
   }
 }

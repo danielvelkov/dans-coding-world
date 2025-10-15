@@ -12,10 +12,13 @@ export interface IPostRepository<Post, TWhereInput, TOrderBy> {
   search(
     where?: TWhereInput,
     orderBy?: TOrderBy,
-    skip?: number,
-    take?: number
+    options?: {
+      skip?: number;
+      take?: number;
+    }
   ): Promise<Post[]>;
   delete(id: number): Promise<Post>;
   deleteMany(where: TWhereInput): Promise<number>;
   exists(title: string): Promise<boolean>;
+  count(where?: TWhereInput): Promise<number>;
 }
