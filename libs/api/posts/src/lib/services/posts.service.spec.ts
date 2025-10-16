@@ -73,6 +73,7 @@ describe('posts service', () => {
     ]);
     postsService = injector.get(PostsService) as PostsService;
     jest.spyOn(mockPostsRepo, 'create');
+    jest.spyOn(mockPostsRepo, 'delete');
   });
   describe('getById()', () => {
     it('should return post if it is published and public', async () => {
@@ -447,6 +448,45 @@ describe('posts service', () => {
             ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
           );
         });
+    });
+  });
+  describe('delete()', () => {
+    let postForDeletion: Post;
+    beforeEach(async () => {
+      await mockPostsRepo.deleteMany({});
+      postForDeletion = await mockPostsRepo.create({
+        ...validPostContent,
+        authorId: admin.id,
+        status: 'PUBLISHED',
+        visibility: 'PUBLIC',
+      });
+    });
+    it('should throw when post is not found', async () => {
+      expect.assertions(1);
+      return postsService
+        .delete({ postId: 999, authorId: admin.id })
+        .catch((error) => {
+          expect(error.message).toBe(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          );
+        });
+    });
+    it(`should throw when post authorId doesn't match provided userId`, async () => {
+      expect.assertions(1);
+      return postsService
+        .delete({ postId: postForDeletion.id, authorId: user.id })
+        .catch((error) => {
+          expect(error.message).toBe(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+          );
+        });
+    });
+    it('should delete post when valid data is provided', async () => {
+      await postsService.delete({
+        postId: postForDeletion.id,
+        authorId: postForDeletion.authorId,
+      });
+      expect(mockPostsRepo.delete).toHaveBeenCalled();
     });
   });
 });
