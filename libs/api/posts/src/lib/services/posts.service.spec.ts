@@ -72,7 +72,9 @@ describe('posts service', () => {
       },
     ]);
     postsService = injector.get(PostsService) as PostsService;
+
     jest.spyOn(mockPostsRepo, 'create');
+    jest.spyOn(mockPostsRepo, 'update');
     jest.spyOn(mockPostsRepo, 'delete');
   });
   describe('getById()', () => {
@@ -336,6 +338,23 @@ describe('posts service', () => {
       expect(mockPostsRepo.create).toHaveBeenCalled();
     });
 
+    it('should set "publishedAt" date when creating a post with status "PUBLISHED"', async () => {
+      const post = await postsService.create({
+        ...validPostCreateDto,
+        authorId: admin.id,
+        isDraft: false,
+      });
+      expect(post.publishedAt).toStrictEqual(new Date());
+
+      const draft = await postsService.create({
+        ...validPostCreateDto,
+        title: 'NEW DRAFT',
+        authorId: admin.id,
+        isDraft: true,
+      });
+      expect(draft.publishedAt).toBe(null);
+    });
+
     test.each([
       [
         'is too long',
@@ -445,6 +464,116 @@ describe('posts service', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+          );
+        });
+    });
+  });
+  describe('update()', () => {
+    let postForUpdate: Post;
+    const validUpdateDto = {
+      title: 'New title',
+    };
+
+    beforeEach(async () => {
+      await mockPostsRepo.deleteMany({});
+      postForUpdate = await mockPostsRepo.create({
+        ...validPostContent,
+        authorId: admin.id,
+        status: 'DRAFT',
+        visibility: 'PUBLIC',
+        publishedAt: null,
+      });
+    });
+
+    it('should update the post when valid data is provided', async () => {
+      const updatedPost = await postsService.update({
+        ...validUpdateDto,
+        userId: admin.id,
+        postId: postForUpdate.id,
+        status: 'PUBLISHED',
+        visibility: 'MEMBERS_ONLY',
+      });
+      expect(mockPostsRepo.update).toHaveBeenCalled();
+      expect(updatedPost.title).not.toBe(postForUpdate.title);
+      expect(updatedPost.title).toBe(validUpdateDto.title);
+      // Expect the updatedAt field to change due to update
+      expect(updatedPost.updatedAt > postForUpdate.updatedAt).toBe(true);
+    });
+
+    it('should set published date when post status finally changes to "PUBLISHED"', async () => {
+      expect(postForUpdate.publishedAt).toBe(null);
+      const updatedPost = await postsService.update({
+        ...validUpdateDto,
+        userId: admin.id,
+        postId: postForUpdate.id,
+        status: 'PUBLISHED',
+      });
+      expect(updatedPost.publishedAt).toStrictEqual(new Date());
+
+      jest.useFakeTimers();
+      jest.advanceTimersByTime(1000 * 60); // 1 min
+      // does not change again
+      const repeatedUpdate = await postsService.update({
+        ...validUpdateDto,
+        userId: admin.id,
+        postId: postForUpdate.id,
+        status: 'PUBLISHED',
+      });
+      expect(repeatedUpdate.publishedAt).not.toStrictEqual(new Date());
+      jest.useRealTimers();
+    });
+
+    it(`should throw when trying to update the post title
+       to match another post's title`, async () => {
+      const existingTitle = 'Existing title';
+
+      // create a new post
+      mockPostsRepo.create({
+        ...validPostContent,
+        status: 'DRAFT',
+        visibility: 'PUBLIC',
+        title: existingTitle,
+        authorId: user.id,
+      });
+
+      expect.assertions(1);
+      // try to use the same title of another post
+      postsService
+        .update({
+          ...validUpdateDto,
+          userId: admin.id,
+          postId: postForUpdate.id,
+          title: existingTitle,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            VALIDATION_MESSAGES.posts.titleAlreadyExists
+          );
+        });
+    });
+
+    it('should throw when post is not found', async () => {
+      expect.assertions(1);
+      return postsService
+        .update({ postId: 999, userId: admin.id, title: 'New valid title' })
+        .catch((error) => {
+          expect(error.message).toBe(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          );
+        });
+    });
+
+    it(`should throw when post authorId doesn't match provided userId`, async () => {
+      expect.assertions(1);
+      return postsService
+        .update({
+          postId: postForUpdate.id,
+          userId: user.id,
+          title: 'New valid title',
+        })
+        .catch((error) => {
+          expect(error.message).toBe(
             ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
           );
         });
