@@ -4,14 +4,12 @@ import {
   PostWhereInput,
 } from '@dans-coding-world/prisma-schema';
 import {
-  SearchPostsDto,
   GetPostsResponseDto,
   CreatePostDto,
   UpdatePostDto,
   DeletePostDto,
   GetPostDto,
   GetPostsDto,
-  SearchPostsResponseDto,
 } from '@dans-coding-world/shared-post-dto';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
 import { Inject, Injectable } from 'injection-js';
@@ -64,8 +62,20 @@ export class PostsService implements IPostsService {
   async getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto> {
     if (dto) await validateDto(dto, GetPostsDto);
 
-    const where = this.buildPostsWhereClause(dto?.viewerId);
-    const orderBy = { publishedAt: 'desc' } as PostOrderByInput;
+    // console.log(dto);
+
+    // const test = await this.posts.search()
+    // console.log(test)
+
+    const where = this.buildPostsWhereClause(
+      dto?.viewerId,
+      dto?.filterBy ?? {
+        status: ['PUBLISHED'],
+        visibility: ['MEMBERS_ONLY', 'PUBLIC'],
+      },
+      dto?.searchQuery
+    );
+    const orderBy = { ...dto?.sortBy } as PostOrderByInput;
 
     const [posts, total] = await Promise.all([
       this.posts.search(where, orderBy, {
@@ -171,42 +181,69 @@ export class PostsService implements IPostsService {
     return await this.posts.delete(dto.postId);
   }
 
-  search(dto: SearchPostsDto): Promise<SearchPostsResponseDto> {
-    throw new Error('Method not implemented.');
-  }
-
   private verifyPostAccess(post: Post, userId?: number): void {
     if (!this.isPublished(post) && !this.isAuthor(post, userId)) {
       throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
     }
   }
 
-  private buildPostsWhereClause(viewerId?: number): PostWhereInput {
-    const clauses: PostWhereInput[] = [
-      // Add PUBLISHED posts by default
-      {
-        status: 'PUBLISHED',
-      },
-    ];
+  private buildPostsWhereClause(
+    viewerId?: number,
+    filters?: GetPostsDto['filterBy'],
+    searchQuery?: string
+  ): PostWhereInput {
+    const clauses: PostWhereInput[] = [];
 
-    // Add user's own drafts or archived posts
-    if (viewerId) {
+    if (filters) {
       clauses.push({
-        AND: [
-          {
-            OR: [
-              {
-                status: 'DRAFT',
+        AND: Object.entries(filters)
+          .filter(([_, arr]) => Array.isArray(arr) && arr.length)
+          .map(([key, value]) => {
+            return {
+              [key]: {
+                in: value,
               },
-              { status: 'ARCHIVED' },
-            ],
-          },
-          { authorId: viewerId },
-        ],
+            };
+          }),
       });
     }
 
-    return { OR: clauses };
+    if (
+      filters?.status &&
+      (filters.status.includes('ARCHIVED') ||
+        filters.status.includes('DRAFT')) &&
+      viewerId
+    )
+      clauses.push({
+        AND: {
+          authorId: viewerId,
+          status: {
+            in: ['ARCHIVED', 'DRAFT'],
+          },
+        },
+      });
+
+    // search for matches in title or post content
+    if (searchQuery)
+      clauses.push({
+        OR: [
+          {
+            content: {
+              contains: searchQuery,
+              mode: 'insensitive',
+            },
+          },
+          {
+            title: {
+              contains: searchQuery,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      });
+
+    // console.dir(clauses, { depth: 34 });
+    return { AND: clauses };
   }
 
   private isAuthor = (post: Post, userId?: number) =>

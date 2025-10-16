@@ -30,10 +30,19 @@
       "path": "../../libs/shared/util/api-types/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/shared/util/shared-constants/tsconfig.lib.json"
+      "path": "../../libs/shared/util/exceptions/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/shared/util/exceptions/tsconfig.lib.json"
+      "path": "../../libs/prisma-schema/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/post/dtos/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/api/posts/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/util/shared-constants/tsconfig.lib.json"
     },
     {
       "path": "../../libs/shared/auth/dtos/tsconfig.lib.json"

@@ -7,10 +7,19 @@
       "path": "../../libs/shared/util/api-types"
     },
     {
-      "path": "../../libs/shared/util/shared-constants"
+      "path": "../../libs/shared/util/exceptions"
     },
     {
-      "path": "../../libs/shared/util/exceptions"
+      "path": "../../libs/prisma-schema"
+    },
+    {
+      "path": "../../libs/shared/post/dtos"
+    },
+    {
+      "path": "../../libs/api/posts"
+    },
+    {
+      "path": "../../libs/shared/util/shared-constants"
     },
     {
       "path": "../../libs/shared/auth/dtos"

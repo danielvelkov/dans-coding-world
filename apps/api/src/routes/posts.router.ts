@@ -1,18 +1,31 @@
 import { Router } from 'express';
-import { authInjector, TOKEN_SERVICE_TOKEN } from '@dans-coding-world/api-auth';
-import { UsersController } from '../controllers/users.controller';
+import {
+  postsInjector,
+  POST_SERVICE_TOKEN,
+  COMMENT_SERVICE_TOKEN,
+} from '@dans-coding-world/api-posts';
+import { PostsController } from '../controllers/posts.controller';
 
-const usersController = new UsersController(
-  authInjector.get(TOKEN_SERVICE_TOKEN)
+const postsController = new PostsController(
+  postsInjector.get(POST_SERVICE_TOKEN),
+  postsInjector.get(COMMENT_SERVICE_TOKEN)
 );
 
-export const usersRouter = Router();
+export const postsRouter = Router();
+
+postsRouter.get('/', postsController.getAll);
+postsRouter
+  .route('/:id')
+  .get(postsController.get)
+  .post(postsController.create)
+  .patch(postsController.update)
+  .delete(postsController.delete);
 
 /**
  * @openapi
  * tags:
- *   name: Users
- *   description: Endpoints regarding users
+ *   name: Posts
+ *   description: Endpoints regarding posts
  */
 
 /**
@@ -21,7 +34,7 @@ export const usersRouter = Router();
  *   post:
  *     tags: [Users]
  *     summary: Revoke all user refresh tokens
- *     description: Gets all refresh tokens for an user given his id, then sets the token status to 'revoked', making each one invalid.
+ *     description: Gets all refresh tokens for an user given his id, then sets the token status to 'revoked', making each onec invalid.
  *     parameters:
  *       - in: path
  *         name: userId
@@ -64,4 +77,4 @@ export const usersRouter = Router();
  *             schema:
  *               $ref: '#/components/schemas/InternalServerError'
  */
-usersRouter.post('/:id/revokeUserTokens', usersController.revokeUserTokens);
+// usersRouter.post('/:id/revokeUserTokens', usersController.revokeUserTokens);

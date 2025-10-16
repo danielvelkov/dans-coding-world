@@ -6,9 +6,19 @@ import {
   registerDecorator,
   ValidationArguments,
   ValidationOptions,
+  MaxLength,
 } from 'class-validator';
-import { VALIDATION_MESSAGES } from '@dans-coding-world/shared-constants';
+import {
+  VALIDATION_MESSAGES,
+  POST_CONSTRAINTS,
+} from '@dans-coding-world/shared-constants';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
+import {
+  Post,
+  PostStatus,
+  PostVisibility,
+} from '@dans-coding-world/prisma-schema';
+
 export class GetPostsDto {
   @IsOptional()
   @IsInt()
@@ -21,7 +31,7 @@ export class GetPostsDto {
   @IsOffsetAlignedWithSize('pageSize', {
     message: VALIDATION_MESSAGES.pagination.pageOffsetNotDivisibleByPageLimit,
   })
-  pageOffset?: number = 0;
+  pageOffset?: number;
 
   @IsOptional()
   @IsIn(PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS, {
@@ -29,7 +39,27 @@ export class GetPostsDto {
       ...PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS,
     ]),
   })
-  pageSize?: AllowedPageSizes = PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE;
+  pageSize?: AllowedPageSizes;
+
+  @IsOptional()
+  sortBy?: Partial<
+    Record<
+      keyof Pick<Post, 'createdAt' | 'publishedAt' | 'updatedAt'>,
+      'asc' | 'desc'
+    >
+  >;
+
+  @IsOptional()
+  filterBy?: {
+    status?: PostStatus[];
+    visibility?: PostVisibility[];
+  };
+
+  @IsOptional()
+  @MaxLength(POST_CONSTRAINTS.MAX_TITLE_LENGTH, {
+    message: VALIDATION_MESSAGES.maxLength(POST_CONSTRAINTS.MAX_TITLE_LENGTH),
+  })
+  searchQuery?: string;
 }
 
 type AllowedPageSizes =

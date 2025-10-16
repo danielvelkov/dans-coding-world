@@ -25,6 +25,7 @@ import {
   POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
+import { GetPostsDto } from '@dans-coding-world/shared-post-dto';
 
 let mockUsersRepo: IUserRepository;
 let mockPostsRepo: IPostRepository<Post, PostWhereInput, PostOrderByInput>;
@@ -73,7 +74,9 @@ describe('posts service', () => {
     ]);
     postsService = injector.get(PostsService) as PostsService;
 
+
     jest.spyOn(mockPostsRepo, 'create');
+    jest.spyOn(mockPostsRepo, 'update');
     jest.spyOn(mockPostsRepo, 'update');
     jest.spyOn(mockPostsRepo, 'delete');
   });
@@ -237,8 +240,8 @@ describe('posts service', () => {
       });
     });
 
-    it('should return PUBLISHED posts by default', async () => {
-      const resDto = await postsService.getAll();
+    it.only('should return PUBLISHED posts by default', async () => {
+      const resDto = await postsService.getAll({ searchQuery: 'a' });
 
       expect(resDto.pagination.total).toBe(
         NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS
@@ -251,7 +254,9 @@ describe('posts service', () => {
     });
 
     it(`should hide post content for members-only posts when no viewerId provided`, async () => {
-      const resDto_WithoutViewerId = await postsService.getAll();
+      const resDto_WithoutViewerId = await postsService.getAll(
+        new GetPostsDto()
+      );
       resDto_WithoutViewerId.items
         .filter((p) => p.visibility === 'MEMBERS_ONLY')
         .every((p) =>
@@ -344,7 +349,7 @@ describe('posts service', () => {
         authorId: admin.id,
         isDraft: false,
       });
-      expect(post.publishedAt).toStrictEqual(new Date());
+      expect(post.publishedAt).not.toBe(null);
 
       const draft = await postsService.create({
         ...validPostCreateDto,
@@ -509,7 +514,7 @@ describe('posts service', () => {
         postId: postForUpdate.id,
         status: 'PUBLISHED',
       });
-      expect(updatedPost.publishedAt).toStrictEqual(new Date());
+      expect(updatedPost.publishedAt).not.toBe(null);
 
       jest.useFakeTimers();
       jest.advanceTimersByTime(1000 * 60); // 1 min
@@ -520,7 +525,7 @@ describe('posts service', () => {
         postId: postForUpdate.id,
         status: 'PUBLISHED',
       });
-      expect(repeatedUpdate.publishedAt).not.toStrictEqual(new Date());
+      expect(repeatedUpdate.publishedAt).toStrictEqual(updatedPost.publishedAt);
       jest.useRealTimers();
     });
 

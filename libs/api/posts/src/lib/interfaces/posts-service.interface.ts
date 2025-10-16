@@ -1,12 +1,10 @@
 import {
   CreatePostDto,
   DeletePostDto,
-  SearchPostsDto,
   UpdatePostDto,
   GetPostsResponseDto,
   GetPostDto,
   GetPostsDto,
-  SearchPostsResponseDto,
 } from '@dans-coding-world/shared-post-dto';
 import { Post, Role } from '@dans-coding-world/prisma-schema';
 /**
@@ -40,7 +38,6 @@ export interface IPostsService {
 
   /**
    * Retrieves a paginated list of posts based on filtering, sorting and pagination criteria (if present).
-   * Excludes title search.
    * @param dto Data transfer object containing viewerId, pagination and filter options.
    * @returns A promise that resolves to a paginated response containing posts.
    * @example
@@ -103,20 +100,4 @@ export interface IPostsService {
    * ```
    */
   delete(dto: DeletePostDto): Promise<Post>;
-
-  /**
-   * Performs a full-text search across posts using the provided query and filters.
-   * @param dto Data transfer object containing search query and pagination options.
-   * @returns A promise that resolves to a paginated response of matching posts.
-   * @throws {Error} When the pagination options are not set properly
-   * @example
-   * ```typescript
-   * const results = await postsService.search({
-   *   searchQuery: 'NX monorepo',
-   *   limit: 10,
-   *   page: 1
-   * });
-   * ```
-   */
-  search(dto: SearchPostsDto): Promise<SearchPostsResponseDto>;
 }
