@@ -130,8 +130,33 @@ export class PostsService implements IPostsService {
     return await this.posts.create(inputData);
   }
 
-  update(dto: UpdatePostDto): Promise<Post> {
-    throw new Error('Method not implemented.');
+  async update(dto: UpdatePostDto): Promise<Post> {
+    await validateDto(dto, UpdatePostDto);
+
+    const postForUpdate = await this.posts.getById(dto.postId);
+    if (!postForUpdate) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    if (postForUpdate.authorId !== dto.userId)
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+
+    if (
+      dto.title &&
+      postForUpdate.title.toLowerCase() !== dto.title.toLowerCase()
+    ) {
+      const postAlreadyExists = await this.posts.exists(dto.title);
+      if (postAlreadyExists)
+        throw new ApiException(
+          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
+          VALIDATION_MESSAGES.posts.titleAlreadyExists
+        );
+    }
+
+    return await this.posts.update(dto.postId, {
+      ...dto,
+      updatedAt: new Date(),
+      ...(!postForUpdate.publishedAt &&
+        dto.status === 'PUBLISHED' && { publishedAt: new Date() }),
+    });
   }
 
   async delete(dto: DeletePostDto): Promise<Post> {

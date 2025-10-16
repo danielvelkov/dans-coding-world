@@ -55,7 +55,6 @@ export interface IPostsService {
    * @param dto Data transfer object containing post creation details.
    * @returns A promise that resolves to the newly created Post object.
    * @throws {Error} When authorId does not correlate to an existing user (VAL003)
-   * @throws {Error} When authorId correlates to an user who is not an Admin. See {@link Role}. (SER003)
    * @throws {Error} When post with this title already exists
    * @example
    * ```typescript
@@ -72,17 +71,20 @@ export interface IPostsService {
 
   /**
    * Updates an existing post with new data.
+   *
+   * Modifies "updatedAt" field on successful update.
+   *
+   * Sets 'publishedAt' field to current date when post status
+   *  is changed for the first time to 'PUBLISHED'
    * @param dto Data transfer object containing updated post fields.
    * @returns A promise that resolves to the updated Post object.
    * @throws {Error} When the post with that id and authorId does not exist
-   * @throws {Error} When authorId does not correlate to an existing user (VAL003)
-   * @throws {Error} When authorId correlates to an user who is not an Admin. See {@link Role}. (SER003)
    * @throws {Error} When post with this title already exists
    * @example
    * ```typescript
    * const updatedPost = await postsService.update({
-   *   id: 42,
-   *   authorId: user.id,
+   *   postId: 42,
+   *   userId: user.id,
    *   title: 'Updated Title',
    *   content: 'Updated content...'
    * });
@@ -91,7 +93,7 @@ export interface IPostsService {
   update(dto: UpdatePostDto): Promise<Post>;
 
   /**
-   * Deletes a post by its identifier.
+   * Deletes a post by its identifier and author id.
    * @param dto Data transfer object containing the post ID to delete.
    * @returns A promise that resolves to the deleted post.
    * @throws {Error} When the post with that id and authorId does not exist
