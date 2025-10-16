@@ -5,12 +5,13 @@ import {
 } from '@dans-coding-world/prisma-schema';
 import {
   SearchPostsDto,
-  PostSearchResponseDto,
+  GetPostsResponseDto,
   CreatePostDto,
   UpdatePostDto,
   DeletePostDto,
   GetPostDto,
   GetPostsDto,
+  SearchPostsResponseDto,
 } from '@dans-coding-world/shared-post-dto';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
 import { Inject, Injectable } from 'injection-js';
@@ -60,7 +61,7 @@ export class PostsService implements IPostsService {
     return post;
   }
 
-  async getAll(dto?: GetPostsDto): Promise<PostSearchResponseDto> {
+  async getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto> {
     if (dto) await validateDto(dto, GetPostsDto);
 
     const where = this.buildPostsWhereClause(dto?.viewerId);
@@ -128,13 +129,24 @@ export class PostsService implements IPostsService {
 
     return await this.posts.create(inputData);
   }
+
   update(dto: UpdatePostDto): Promise<Post> {
     throw new Error('Method not implemented.');
   }
-  delete(dto: DeletePostDto): Promise<boolean> {
-    throw new Error('Method not implemented.');
+
+  async delete(dto: DeletePostDto): Promise<Post> {
+    await validateDto(dto, DeletePostDto);
+
+    const post = await this.posts.getById(dto.postId);
+
+    if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+    else if (post.authorId !== dto.authorId)
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+
+    return await this.posts.delete(dto.postId);
   }
-  search(dto: SearchPostsDto): Promise<PostSearchResponseDto> {
+
+  search(dto: SearchPostsDto): Promise<SearchPostsResponseDto> {
     throw new Error('Method not implemented.');
   }
 
