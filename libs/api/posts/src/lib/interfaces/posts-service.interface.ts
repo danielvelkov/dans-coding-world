@@ -3,9 +3,10 @@ import {
   DeletePostDto,
   SearchPostsDto,
   UpdatePostDto,
-  PostSearchResponseDto,
+  GetPostsResponseDto,
   GetPostDto,
   GetPostsDto,
+  SearchPostsResponseDto,
 } from '@dans-coding-world/shared-post-dto';
 import { Post, Role } from '@dans-coding-world/prisma-schema';
 /**
@@ -47,7 +48,7 @@ export interface IPostsService {
    * const {items, pagination, count} = await postsService.getAll({ limit: 10, page: 1 });
    * ```
    */
-  getAll(dto?: GetPostsDto): Promise<PostSearchResponseDto>;
+  getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto>;
 
   /**
    * Creates a new blog post with the provided data.
@@ -92,14 +93,14 @@ export interface IPostsService {
   /**
    * Deletes a post by its identifier.
    * @param dto Data transfer object containing the post ID to delete.
-   * @returns A promise that resolves to true if deletion was successful.
+   * @returns A promise that resolves to the deleted post.
    * @throws {Error} When the post with that id and authorId does not exist
    * @example
    * ```typescript
-   * const success = await postsService.delete({ id: 42, authorId: 1 });
+   *  await postsService.delete({ id: 42, authorId: 1 });
    * ```
    */
-  delete(dto: DeletePostDto): Promise<boolean>;
+  delete(dto: DeletePostDto): Promise<Post>;
 
   /**
    * Performs a full-text search across posts using the provided query and filters.
@@ -115,5 +116,5 @@ export interface IPostsService {
    * });
    * ```
    */
-  search(dto: SearchPostsDto): Promise<PostSearchResponseDto>;
+  search(dto: SearchPostsDto): Promise<SearchPostsResponseDto>;
 }

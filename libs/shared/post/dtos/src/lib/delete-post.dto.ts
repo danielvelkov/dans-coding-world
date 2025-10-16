@@ -1,7 +1,10 @@
-import { IsNumber } from 'class-validator';
+import { IsInt, Min } from 'class-validator';
 export class DeletePostDto {
-  @IsNumber()
+  @Min(0)
+  @IsInt()
   authorId: number;
-  @IsNumber()
+
+  @Min(0)
+  @IsInt()
   postId: number;
 }
