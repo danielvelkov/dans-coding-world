@@ -5,7 +5,6 @@ import {
   CreatePostDto,
   UpdatePostDto,
   DeletePostDto,
-  GetPostDto,
   GetPostsDto,
 } from '@dans-coding-world/shared-post-dto';
 import {

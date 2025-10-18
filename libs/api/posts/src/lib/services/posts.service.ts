@@ -62,11 +62,6 @@ export class PostsService implements IPostsService {
   async getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto> {
     if (dto) await validateDto(dto, GetPostsDto);
 
-    // console.log(dto);
-
-    // const test = await this.posts.search()
-    // console.log(test)
-
     const where = this.buildPostsWhereClause(
       dto?.viewerId,
       dto?.filterBy ?? {
@@ -129,12 +124,14 @@ export class PostsService implements IPostsService {
       );
 
     const inputData: Parameters<typeof this.posts.create>[0] = {
-      ...dto,
+      title: dto.title,
+      content: dto.content,
       visibility: dto.isMembersOnly ? 'MEMBERS_ONLY' : 'PUBLIC',
       status: dto.isDraft ? 'DRAFT' : 'PUBLISHED',
       publishedAt: dto.isDraft ? null : new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      authorId: dto.authorId,
     };
 
     return await this.posts.create(inputData);
@@ -161,8 +158,10 @@ export class PostsService implements IPostsService {
         );
     }
 
+    const filtered = filterObject(dto, Object.keys(postForUpdate));
+
     return await this.posts.update(dto.postId, {
-      ...dto,
+      ...filtered,
       updatedAt: new Date(),
       ...(!postForUpdate.publishedAt &&
         dto.status === 'PUBLISHED' && { publishedAt: new Date() }),
@@ -215,12 +214,14 @@ export class PostsService implements IPostsService {
       viewerId
     )
       clauses.push({
-        AND: {
-          authorId: viewerId,
-          status: {
-            in: ['ARCHIVED', 'DRAFT'],
+        AND: [
+          { authorId: viewerId },
+          {
+            status: {
+              in: ['ARCHIVED', 'DRAFT'],
+            },
           },
-        },
+        ],
       });
 
     // search for matches in title or post content
@@ -242,7 +243,6 @@ export class PostsService implements IPostsService {
         ],
       });
 
-    // console.dir(clauses, { depth: 34 });
     return { AND: clauses };
   }
 
@@ -250,4 +250,11 @@ export class PostsService implements IPostsService {
     userId !== undefined && post.authorId === userId;
   private isPublished = (post: Post) => post.status === 'PUBLISHED';
   private isMembersOnly = (post: Post) => post.visibility === 'MEMBERS_ONLY';
+}
+
+function filterObject<T extends Record<string, any>>(
+  obj: T,
+  allowedProps: string[]
+) {
+  return Object.fromEntries(allowedProps.map((key) => [key, obj[key]])) as T;
 }

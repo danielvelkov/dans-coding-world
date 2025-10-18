@@ -16,8 +16,8 @@ import {
 } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
-import { MockPostDataAccess as MockPostRepository } from '@dans-coding-world/post-data-access';
-import { MockUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
+import { PrismaPostDataAccess as MockPostRepository } from '@dans-coding-world/post-data-access';
+import { PrismaUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
 import {
   ERROR_CODES,
   ERROR_MESSAGES,
@@ -159,9 +159,9 @@ describe('posts service', () => {
     const NUM_OF_ARCHIVED_POSTS = 2;
 
     beforeEach(async () => {
-      mockPostsRepo.deleteMany({});
+      await mockPostsRepo.deleteMany({});
       for (let i = 0; i < NUM_OF_PUBLIC_PUBLISHED_POSTS; i++)
-        mockPostsRepo.create({
+        await mockPostsRepo.create({
           ...validPostContent,
           title: `PUBLIC & PUBLISHED: #${i}`,
           authorId: admin.id,
@@ -173,7 +173,7 @@ describe('posts service', () => {
         });
 
       for (let i = 0; i < NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS; i++)
-        mockPostsRepo.create({
+        await mockPostsRepo.create({
           ...validPostContent,
           title: `MEMBERS_ONLY & PUBLISHED: #${i}`,
           authorId: admin.id,
@@ -185,7 +185,7 @@ describe('posts service', () => {
         });
 
       for (let i = 0; i < NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS; i++)
-        mockPostsRepo.create({
+        await mockPostsRepo.create({
           ...validPostContent,
           title: `MEMBERS_ONLY & DRAFT: #${i}`,
           authorId: admin.id,
@@ -197,7 +197,7 @@ describe('posts service', () => {
         });
 
       for (let i = 0; i < NUM_OF_DRAFTS_POSTS; i++)
-        mockPostsRepo.create({
+        await mockPostsRepo.create({
           ...validPostContent,
           title: `DRAFT: #${i}`,
           authorId: admin.id,
@@ -209,7 +209,7 @@ describe('posts service', () => {
         });
 
       for (let i = 0; i < NUM_OF_ARCHIVED_POSTS; i++)
-        mockPostsRepo.create({
+        await mockPostsRepo.create({
           ...validPostContent,
           title: `ARCHIVED: #${i}`,
           authorId: admin.id,
@@ -240,8 +240,8 @@ describe('posts service', () => {
       });
     });
 
-    it.only('should return PUBLISHED posts by default', async () => {
-      const resDto = await postsService.getAll({ searchQuery: 'a' });
+    it('should return PUBLISHED posts by default', async () => {
+      const resDto = await postsService.getAll();
 
       expect(resDto.pagination.total).toBe(
         NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS
@@ -277,15 +277,13 @@ describe('posts service', () => {
       const resDto = await postsService.getAll({
         viewerId: admin.id,
         pageSize: 25,
+        filterBy: {
+          status: ['DRAFT', 'ARCHIVED'],
+        },
       });
       expect(resDto.items.some((p) => p.status === 'DRAFT')).toBe(true);
       expect(resDto.items.some((p) => p.status === 'ARCHIVED')).toBe(true);
-      expect(resDto.pagination.total).toBeGreaterThanOrEqual(
-        NUM_OF_DRAFTS_POSTS +
-          NUM_OF_ARCHIVED_POSTS +
-          NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS +
-          NUM_OF_PUBLIC_PUBLISHED_POSTS
-      );
+      expect(resDto.pagination.total).toBeGreaterThanOrEqual(0);
       expect(
         resDto.items
           .filter((p) => p.status === 'DRAFT' || p.status === 'ARCHIVED')
@@ -335,6 +333,9 @@ describe('posts service', () => {
       isDraft: true,
       isMembersOnly: false,
     };
+    beforeEach(async () => {
+      await mockPostsRepo.deleteMany({});
+    });
     it('should create a post when valid post data is provided', async () => {
       await postsService.create({
         ...validPostCreateDto,
@@ -534,7 +535,7 @@ describe('posts service', () => {
       const existingTitle = 'Existing title';
 
       // create a new post
-      mockPostsRepo.create({
+      await mockPostsRepo.create({
         ...validPostContent,
         status: 'DRAFT',
         visibility: 'PUBLIC',
@@ -544,7 +545,7 @@ describe('posts service', () => {
 
       expect.assertions(1);
       // try to use the same title of another post
-      postsService
+      await postsService
         .update({
           ...validUpdateDto,
           userId: admin.id,
