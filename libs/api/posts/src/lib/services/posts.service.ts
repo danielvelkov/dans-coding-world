@@ -45,6 +45,7 @@ export class PostsService implements IPostsService {
   ) {}
   async getById(dto: GetPostDto): Promise<Post> {
     await validateDto(dto, GetPostDto);
+
     const post = await this.posts.getById(dto.id);
     if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
@@ -64,10 +65,7 @@ export class PostsService implements IPostsService {
 
     const where = this.buildPostsWhereClause(
       dto?.viewerId,
-      dto?.filterBy ?? {
-        status: ['PUBLISHED'],
-        visibility: ['MEMBERS_ONLY', 'PUBLIC'],
-      },
+      dto?.filterBy,
       dto?.searchQuery
     );
     const orderBy = { ...dto?.sortBy } as PostOrderByInput;
@@ -193,55 +191,53 @@ export class PostsService implements IPostsService {
   ): PostWhereInput {
     const clauses: PostWhereInput[] = [];
 
+    // Get published public posts by default
+    if (!searchQuery && !filters)
+      filters = {
+        status: ['PUBLISHED'],
+        visibility: ['MEMBERS_ONLY', 'PUBLIC'],
+      };
+
     if (filters) {
+      const filterConditions = Object.entries(filters)
+        .filter(([_, arr]) => Array.isArray(arr) && arr.length)
+        .map(([key, value]) => ({
+          [key]: { in: value },
+        }));
+
+      clauses.push(...filterConditions);
+    }
+
+    const status = Array.isArray(filters?.status) ? filters.status : [];
+
+    // Get only 'ARCHIVED' OR 'DRAFT' posts with author id === viewerId
+    if ((status.includes('ARCHIVED') || status.includes('DRAFT')) && viewerId) {
       clauses.push({
-        AND: Object.entries(filters)
-          .filter(([_, arr]) => Array.isArray(arr) && arr.length)
-          .map(([key, value]) => {
-            return {
-              [key]: {
-                in: value,
-              },
-            };
-          }),
+        NOT: [
+          {
+            authorId: { notIn: [viewerId] },
+            status: { in: status.filter((s) => s !== 'PUBLISHED') },
+          },
+        ],
+      });
+    } else if (!viewerId) {
+      clauses.push({
+        NOT: [
+          {
+            status: { in: ['ARCHIVED', 'DRAFT'] },
+          },
+        ],
       });
     }
 
-    if (
-      filters?.status &&
-      (filters.status.includes('ARCHIVED') ||
-        filters.status.includes('DRAFT')) &&
-      viewerId
-    )
-      clauses.push({
-        AND: [
-          { authorId: viewerId },
-          {
-            status: {
-              in: ['ARCHIVED', 'DRAFT'],
-            },
-          },
-        ],
-      });
-
-    // search for matches in title or post content
-    if (searchQuery)
+    if (searchQuery) {
       clauses.push({
         OR: [
-          {
-            content: {
-              contains: searchQuery,
-              mode: 'insensitive',
-            },
-          },
-          {
-            title: {
-              contains: searchQuery,
-              mode: 'insensitive',
-            },
-          },
+          { content: { contains: searchQuery.trim(), mode: 'insensitive' } },
+          { title: { contains: searchQuery.trim(), mode: 'insensitive' } },
         ],
       });
+    }
 
     return { AND: clauses };
   }

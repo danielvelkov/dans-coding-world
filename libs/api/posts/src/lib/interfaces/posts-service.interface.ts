@@ -29,7 +29,7 @@ export interface IPostsService {
    * @returns A promise that resolves to the matching Post object.
    * @example
    * ```typescript
-   * const post = await postsService.getById({id: 42, userId: 1});
+   * const post = await postsService.getById({id: 42, viewerId: 1});
    * ```
    * @throws {Error} When the post with this ID is not found (SER002)
    * @throws {Error} When the user requesting it is not the author and the post is not published (SERV003)
@@ -37,12 +37,25 @@ export interface IPostsService {
   getById(dto: GetPostDto): Promise<Post>;
 
   /**
-   * Retrieves a paginated list of posts based on filtering, sorting and pagination criteria (if present).
-   * @param dto Data transfer object containing viewerId, pagination and filter options.
+   * Retrieves a paginated list of posts based on optional filtering, sorting and pagination criteria.
+   * Also provides search option for finding posts by its contents or title.
+   *
+   * Filtering options:
+   * - by post status
+   * - by post visibility
+   *
+   * Sorting options:
+   * - by createdAt date
+   * - by updatedAt date
+   * - by publishedAt date
+   *
+   * Posts that are available for members-only have their content masked when viewerId is not provided.
+   * Drafts and archived posts are available only when the viewerId is the author.
+   * @param dto Data transfer object containing viewerId, pagination, sorting and filter options.
    * @returns A promise that resolves to a paginated response containing posts.
    * @example
    * ```typescript
-   * const {items, pagination, count} = await postsService.getAll({ limit: 10, page: 1 });
+   * const {items, pagination, count} = await postsService.getAll({ limit: 10, page: 1, viewerId: 1, searchQuery: 'How to'  });
    * ```
    */
   getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto>;
@@ -68,9 +81,7 @@ export interface IPostsService {
 
   /**
    * Updates an existing post with new data.
-   *
    * Modifies "updatedAt" field on successful update.
-   *
    * Sets 'publishedAt' field to current date when post status
    *  is changed for the first time to 'PUBLISHED'
    * @param dto Data transfer object containing updated post fields.
