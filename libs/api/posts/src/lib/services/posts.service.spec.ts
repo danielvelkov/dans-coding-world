@@ -11,8 +11,11 @@ import {
 import {
   Post,
   PostOrderByInput,
+  PostStatus,
+  PostVisibility,
   PostWhereInput,
   User,
+  client,
 } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
@@ -25,7 +28,6 @@ import {
   POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { GetPostsDto } from '@dans-coding-world/shared-post-dto';
 
 let mockUsersRepo: IUserRepository;
 let mockPostsRepo: IPostRepository<Post, PostWhereInput, PostOrderByInput>;
@@ -35,6 +37,7 @@ let postsService: IPostsService;
 describe('posts service', () => {
   let user: User;
   let admin: User;
+
   const validPostContent = {
     title: 'Very valid title',
     content: 'Very valid description',
@@ -44,6 +47,8 @@ describe('posts service', () => {
   };
 
   beforeEach(async () => {
+    await client.user.deleteMany();
+
     mockPostsRepo = new MockPostRepository();
     mockUsersRepo = new MockUserRepository();
 
@@ -113,36 +118,42 @@ describe('posts service', () => {
       );
     });
 
-    it(`should throw when the post is a draft,
-      and the user requesting it is not the author`, async () => {
-      const createdPost = await mockPostsRepo.create({
-        ...validPostContent,
-        authorId: admin.id,
-        status: 'DRAFT',
-        visibility: 'PUBLIC',
-      });
-
-      expect.assertions(2);
-
-      // Retrieve post when viewerId is author
-      const post = await postsService.getById({
-        id: createdPost.id,
-        viewerId: admin.id,
-      });
-      expect(post.id).toBeTruthy();
-
-      // Retrieve post as another user
-      return postsService
-        .getById({
-          id: createdPost.id,
-          viewerId: user.id,
-        })
-        .catch((error) => {
-          expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
-          );
+    test.each([
+      ['a draft', 'DRAFT' as PostStatus],
+      ['archived', 'ARCHIVED' as PostStatus],
+    ])(
+      `should throw when the post is %s,
+      and the user requesting it is not the author`,
+      async (_, status) => {
+        const createdPost = await mockPostsRepo.create({
+          ...validPostContent,
+          authorId: admin.id,
+          status,
+          visibility: 'PUBLIC',
         });
-    });
+
+        expect.assertions(2);
+
+        // Retrieve post when viewerId is author
+        const post = await postsService.getById({
+          id: createdPost.id,
+          viewerId: admin.id,
+        });
+        expect(post.id).toBeTruthy();
+
+        // Retrieve post as another user
+        return postsService
+          .getById({
+            id: createdPost.id,
+            viewerId: user.id,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(
+              ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            );
+          });
+      }
+    );
 
     it('should throw when post with this id does not exist', async () => {
       expect.assertions(1);
@@ -155,7 +166,7 @@ describe('posts service', () => {
     const NUM_OF_PUBLIC_PUBLISHED_POSTS = 15;
     const NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS = 4;
     const NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS = 3;
-    const NUM_OF_DRAFTS_POSTS = 2;
+    const NUM_OF_PUBLIC_DRAFTS_POSTS = 2;
     const NUM_OF_ARCHIVED_POSTS = 2;
 
     beforeEach(async () => {
@@ -196,7 +207,7 @@ describe('posts service', () => {
           ),
         });
 
-      for (let i = 0; i < NUM_OF_DRAFTS_POSTS; i++)
+      for (let i = 0; i < NUM_OF_PUBLIC_DRAFTS_POSTS; i++)
         await mockPostsRepo.create({
           ...validPostContent,
           title: `DRAFT: #${i}`,
@@ -254,9 +265,7 @@ describe('posts service', () => {
     });
 
     it(`should hide post content for members-only posts when no viewerId provided`, async () => {
-      const resDto_WithoutViewerId = await postsService.getAll(
-        new GetPostsDto()
-      );
+      const resDto_WithoutViewerId = await postsService.getAll();
       resDto_WithoutViewerId.items
         .filter((p) => p.visibility === 'MEMBERS_ONLY')
         .every((p) =>
@@ -273,7 +282,111 @@ describe('posts service', () => {
         );
     });
 
-    it(`should return user's DRAFT & ARCHIVED posts if viewerId matches their authorId`, async () => {
+    test.each([
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS,
+        {
+          status: ['PUBLISHED'] as PostStatus[],
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+      ],
+      [
+        NUM_OF_ARCHIVED_POSTS,
+        {
+          status: ['ARCHIVED'] as PostStatus[],
+        },
+      ],
+      [
+        NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
+        {
+          status: ['DRAFT'] as PostStatus[],
+          visibility: ['MEMBERS_ONLY'] as PostVisibility[],
+        },
+      ],
+      [
+        NUM_OF_ARCHIVED_POSTS + NUM_OF_PUBLIC_PUBLISHED_POSTS,
+        {
+          status: ['ARCHIVED', 'PUBLISHED'] as PostStatus[],
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+      ],
+      [
+        NUM_OF_ARCHIVED_POSTS +
+          NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
+          NUM_OF_PUBLIC_DRAFTS_POSTS,
+        {
+          status: ['ARCHIVED', 'DRAFT'] as PostStatus[],
+          visibility: ['PUBLIC', 'MEMBERS_ONLY'] as PostVisibility[],
+        },
+      ],
+    ])(
+      'should return the correct amount of posts (%s) after filtering (logged-in as author)',
+      async (total, filterBy) => {
+        const resDto = await postsService.getAll({
+          viewerId: admin.id,
+          pageSize: 25,
+          filterBy,
+        });
+        expect(resDto.pagination.total).toBe(total);
+      }
+    );
+
+    test.each([
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS,
+        {
+          status: ['PUBLISHED'] as PostStatus[],
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+      ],
+      [
+        0,
+        {
+          status: ['ARCHIVED'] as PostStatus[],
+        },
+      ],
+      [
+        0,
+        {
+          status: ['DRAFT'] as PostStatus[],
+          visibility: ['MEMBERS_ONLY'] as PostVisibility[],
+        },
+      ],
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS,
+        {
+          status: ['ARCHIVED', 'PUBLISHED'] as PostStatus[],
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+      ],
+      [
+        0,
+        {
+          status: ['ARCHIVED', 'DRAFT'] as PostStatus[],
+          visibility: ['PUBLIC', 'MEMBERS_ONLY'] as PostVisibility[],
+        },
+      ],
+    ])(
+      `should return the correct amount of posts (%s) 
+      after filtering (logged-in as another user OR guest)`,
+      async (total, filterBy) => {
+        const resDto_anotherUser = await postsService.getAll({
+          viewerId: user.id,
+          pageSize: 25,
+          filterBy,
+        });
+        expect(resDto_anotherUser.pagination.total).toBe(total);
+
+        const resDto_asGuest = await postsService.getAll({
+          pageSize: 25,
+          filterBy,
+        });
+        expect(resDto_asGuest.pagination.total).toBe(total);
+      }
+    );
+
+    it(`should return user's DRAFT & ARCHIVED posts when filtering by status
+       and viewerId matches their authorId`, async () => {
       const resDto = await postsService.getAll({
         viewerId: admin.id,
         pageSize: 25,
@@ -283,13 +396,102 @@ describe('posts service', () => {
       });
       expect(resDto.items.some((p) => p.status === 'DRAFT')).toBe(true);
       expect(resDto.items.some((p) => p.status === 'ARCHIVED')).toBe(true);
-      expect(resDto.pagination.total).toBeGreaterThanOrEqual(0);
+      expect(resDto.pagination.total).toBe(
+        NUM_OF_ARCHIVED_POSTS +
+          NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
+          NUM_OF_PUBLIC_DRAFTS_POSTS
+      );
       expect(
         resDto.items
           .filter((p) => p.status === 'DRAFT' || p.status === 'ARCHIVED')
           .every((p) => p.authorId === admin.id)
       ).toBe(true);
     });
+
+    it(`should not return another user's DRAFT & ARCHIVED posts when filtering by status`, async () => {
+      const resDto = await postsService.getAll({
+        viewerId: user.id,
+        pageSize: 25,
+        filterBy: {
+          status: ['DRAFT', 'ARCHIVED'],
+        },
+      });
+      expect(resDto.pagination.total).toBe(0);
+    });
+
+    test.each([
+      [
+        'too long (longer than a post title max length)',
+        generateRandomString(POST_CONSTRAINTS.MAX_TITLE_LENGTH + 1),
+      ],
+    ])('should throw when the search query is %s', async (_, searchQuery) => {
+      expect.assertions(1);
+      return postsService.getAll({ searchQuery }).catch((error) => {
+        expect(error.message).toMatch(
+          ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+        );
+      });
+    });
+
+    test.each(['PUBLISHED', 'DRAFT', 'ARCHIVED', validPostContent.content])(
+      'should find posts by comparing search query (%s) with post title or content',
+      async (searchQuery) => {
+        const res = await postsService.getAll({
+          searchQuery,
+          viewerId: admin.id,
+        });
+
+        expect(res.pagination.total).toBeGreaterThan(0);
+        expect(
+          res.items.every(
+            (p) =>
+              p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              p.content.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        ).toBe(true);
+      }
+    );
+
+    test.each([generateRandomString(10), 'UNKNOWN TITLE'])(
+      `should not return any result when search query (%s) 
+      does not correspond to any title or post content`,
+      async (searchQuery) => {
+        const res = await postsService.getAll({
+          searchQuery,
+          viewerId: admin.id,
+        });
+
+        expect(res.pagination.total).toBe(0);
+      }
+    );
+
+    test.each([
+      ['published date (ASC)', getKey<Post>('publishedAt'), false],
+      ['published date (DESC)', getKey<Post>('publishedAt'), true],
+      ['created date (ASC)', getKey<Post>('createdAt'), false],
+      ['created date (DESC)', getKey<Post>('createdAt'), true],
+      ['updated date (ASC)', getKey<Post>('updatedAt'), false],
+      ['updated date (DESC)', getKey<Post>('updatedAt'), true],
+    ])(
+      'should sort items provided that sorting by %s is applied',
+      async (_, propName, isAscending: boolean) => {
+        const res = await postsService.getAll({
+          sortBy: {
+            [propName]: isAscending ? 'asc' : 'desc',
+          },
+        });
+        const sortedItems = [...res.items].sort((prev, next) => {
+          if (!prev[propName] || !next[propName]) return 0;
+          const prevDate = (prev[propName] as Date).getTime();
+          const nextDate = (next[propName] as Date).getTime();
+          return isAscending ? prevDate - nextDate : nextDate - prevDate;
+        });
+
+        sortedItems.forEach((post, i) => {
+          expect(post.id).toBe(res.items[i].id);
+        });
+      }
+    );
 
     const pageSizeOptions = PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS;
 
@@ -637,4 +839,8 @@ function generateRandomString(length: number) {
       lowercaseLetters[Math.floor(Math.random() * lowercaseLetters.length)]
     );
   return text.join('');
+}
+
+function getKey<T>(key: keyof T): keyof T {
+  return key;
 }
