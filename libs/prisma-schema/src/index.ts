@@ -10,4 +10,7 @@ export type {
   PostVisibility,
   PostWhereInput,
   PostOrderByInput,
+  Comment,
+  CommentWhereInput,
+  CommentsOrderByInput,
 } from './lib/prisma.types.js';
