@@ -28,6 +28,7 @@ import {
   POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
+import { getKey, generateRandomString } from '../helper/util.js';
 
 let mockUsersRepo: IUserRepository;
 let mockPostsRepo: IPostRepository<Post, PostWhereInput, PostOrderByInput>;
@@ -78,7 +79,6 @@ describe('posts service', () => {
       },
     ]);
     postsService = injector.get(PostsService) as PostsService;
-
 
     jest.spyOn(mockPostsRepo, 'create');
     jest.spyOn(mockPostsRepo, 'update');
@@ -827,20 +827,3 @@ describe('posts service', () => {
     });
   });
 });
-
-function generateRandomString(length: number) {
-  const LETTERS_IN_ALPHABET = 26;
-  const lowercaseLetters = Array.from({ length: LETTERS_IN_ALPHABET }, (_, i) =>
-    String.fromCharCode('a'.charCodeAt(0) + i)
-  );
-  const text = [];
-  for (let i = length; i > 0; i--)
-    text.push(
-      lowercaseLetters[Math.floor(Math.random() * lowercaseLetters.length)]
-    );
-  return text.join('');
-}
-
-function getKey<T>(key: keyof T): keyof T {
-  return key;
-}

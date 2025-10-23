@@ -24,6 +24,7 @@ import {
   PAGINATION,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
+import { filterObject } from '../helper/util.js';
 
 export const POST_REPOSITORY_TOKEN = 'IPostRepository';
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
@@ -246,11 +247,4 @@ export class PostsService implements IPostsService {
     userId !== undefined && post.authorId === userId;
   private isPublished = (post: Post) => post.status === 'PUBLISHED';
   private isMembersOnly = (post: Post) => post.visibility === 'MEMBERS_ONLY';
-}
-
-function filterObject<T extends Record<string, any>>(
-  obj: T,
-  allowedProps: string[]
-) {
-  return Object.fromEntries(allowedProps.map((key) => [key, obj[key]])) as T;
 }
