@@ -82,7 +82,6 @@ describe('posts service', () => {
 
     jest.spyOn(mockPostsRepo, 'create');
     jest.spyOn(mockPostsRepo, 'update');
-    jest.spyOn(mockPostsRepo, 'update');
     jest.spyOn(mockPostsRepo, 'delete');
   });
   describe('getById()', () => {
