@@ -3,4 +3,8 @@ export const PAGINATION = {
     ITEMS_PER_PAGE_OPTIONS: [5, 10, 25],
     DEFAULT_ITEMS_PER_PAGE: 5,
   },
+  COMMENTS: {
+    ITEMS_PER_PAGE_OPTIONS: [10, 25, 50],
+    DEFAULT_ITEMS_PER_PAGE: 10,
+  },
 } as const;

@@ -1,0 +1,4 @@
+export const COMMENT_CONSTRAINTS = {
+  MIN_CONTENT_LENGTH: 1,
+  MAX_CONTENT_LENGTH: 1024,
+} as const;
