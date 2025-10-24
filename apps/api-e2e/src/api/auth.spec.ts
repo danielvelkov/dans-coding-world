@@ -10,7 +10,7 @@ import {
   RegistrationResponseDto,
 } from '@dans-coding-world/shared-auth-dto';
 import {
-  createAuthHelpers,
+  createAuthRouteHelper,
   findSetCookie,
   getJti,
   getJwtToken,
@@ -42,7 +42,7 @@ describe('/api/v1/auth', () => {
   });
   describe('POST /api/v1/auth/login', () => {
     const client = createAxiosClient();
-    const { login } = createAuthHelpers(client);
+    const { login } = createAuthRouteHelper(client);
     beforeAll(async () => {
       users = await seedUsers();
     });
@@ -97,14 +97,14 @@ describe('/api/v1/auth', () => {
 
   describe('POST /api/v1/auth/logout', () => {
     let client: AxiosInstance;
-    let login: ExtractMethod<ReturnType<typeof createAuthHelpers>, 'login'>,
-      logout: ExtractMethod<ReturnType<typeof createAuthHelpers>, 'logout'>;
+    let login: ExtractMethod<ReturnType<typeof createAuthRouteHelper>, 'login'>,
+      logout: ExtractMethod<ReturnType<typeof createAuthRouteHelper>, 'logout'>;
     beforeAll(async () => {
       users = await seedUsers();
     });
     beforeEach(async () => {
       client = createAxiosClient();
-      const authHelpers = createAuthHelpers(client);
+      const authHelpers = createAuthRouteHelper(client);
       login = authHelpers.login;
       logout = authHelpers.logout;
     });
@@ -143,7 +143,7 @@ describe('/api/v1/auth', () => {
 
   describe('POST /api/v1/auth/refresh', () => {
     const client = createAxiosClient();
-    const { login, renewAuthToken } = createAuthHelpers(client);
+    const { login, renewAuthToken } = createAuthRouteHelper(client);
     let jwt = '';
 
     beforeAll(async () => {
@@ -231,7 +231,7 @@ describe('/api/v1/auth', () => {
 
   describe('POST /api/v1/auth/register', () => {
     const client = createAxiosClient();
-    const { register, login } = createAuthHelpers(client);
+    const { register, login } = createAuthRouteHelper(client);
     const VALID_USER_DATA = {
       email: 'totalyValidEmail@gmail.com',
       password: passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1),
@@ -380,7 +380,7 @@ describe('/api/v1/auth', () => {
   describe('POST /api/v1/auth/revokeToken', () => {
     let userRefreshToken = '';
     const client = createAxiosClient();
-    const { login, logout, revokeToken } = createAuthHelpers(client);
+    const { login, logout, revokeToken } = createAuthRouteHelper(client);
 
     beforeAll(async () => {
       users = await seedUsers();
@@ -438,7 +438,7 @@ describe('/api/v1/auth', () => {
   describe('POST /api/v1/auth/revokeAll', () => {
     let tokens: string[] = [];
     const client = createAxiosClient();
-    const { login, logout, revokeAllTokens } = createAuthHelpers(client);
+    const { login, logout, revokeAllTokens } = createAuthRouteHelper(client);
 
     beforeEach(async () => {
       // Cleanup

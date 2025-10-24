@@ -1,7 +1,7 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { decode, JwtPayload } from 'jsonwebtoken';
 
-export function createAuthHelpers(client: AxiosInstance) {
+export function createAuthRouteHelper(client: AxiosInstance) {
   return {
     async register(email: string, password: string, username: string) {
       const urlSearchParams = new URLSearchParams();
