@@ -16,4 +16,7 @@ export const SUCCESS_MESSAGES = {
     get: 'Post retrieved successfully',
     getAll: 'Posts retrieved successfully',
   },
+  COMMENTS: {
+    getPostsComments: 'Comments for post retrieved successfully',
+  },
 };

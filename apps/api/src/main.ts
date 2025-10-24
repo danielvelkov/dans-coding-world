@@ -9,6 +9,7 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import { responseWrapper } from './middlewares/response-wrapper.middleware.js';
 import { errorHandler } from './middlewares/error-handler.middleware.js';
 import { usersRouter } from './routes/users.router.js';
+import { postsRouter } from './routes/posts.router.js';
 import {
   authInjector,
   PassportJwtStrategy,
@@ -44,6 +45,7 @@ app.get('/api/v1', (req, res) =>
 app.use(responseWrapper);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', usersRouter);
+app.use('/api/v1/posts', postsRouter);
 
 const swaggerDocOptions = {
   definition: {

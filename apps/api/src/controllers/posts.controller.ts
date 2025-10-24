@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { IPostsService, ICommentsService } from '@dans-coding-world/api-posts';
+import { IPostsService } from '@dans-coding-world/api-posts';
 import {
   CreatePostDto,
   UpdatePostDto,
@@ -16,10 +16,7 @@ import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 import { User } from '@dans-coding-world/prisma-schema';
 
 export class PostsController {
-  constructor(
-    private postService: IPostsService,
-    private commentService: ICommentsService
-  ) {
+  constructor(private postService: IPostsService) {
     this.getAll = this.getAll.bind(this);
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
@@ -71,7 +68,6 @@ export class PostsController {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
-      if (!user) throw new Error('User empty after @Authorized() guard');
 
       const postDto: CreatePostDto = { ...req.body, authorId: user.id };
 
@@ -90,7 +86,6 @@ export class PostsController {
     try {
       const { id } = req.params;
       const user = req.user as User;
-      if (!user) throw new Error('User empty after @Authorized() guard');
 
       const deletePostDto: DeletePostDto = { postId: +id, authorId: +user.id };
 
@@ -111,7 +106,6 @@ export class PostsController {
       const { id } = req.params;
 
       const user = req.user as User;
-      if (!user) throw new Error('User empty after @Authorized() guard');
 
       const postUpdateDto: UpdatePostDto = {
         ...req.body,
