@@ -10,7 +10,7 @@ export const seedPosts = async (
     const seeded: Post[] = [];
 
     if (options.clearExisting) {
-      await client.user.deleteMany();
+      await client.post.deleteMany();
       await client.$queryRaw`ALTER SEQUENCE "Post_id_seq" RESTART WITH 1;`;
     }
 
