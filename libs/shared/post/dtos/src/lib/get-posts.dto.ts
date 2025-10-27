@@ -1,23 +1,32 @@
-import { IsInt, IsOptional, IsIn, Min, MaxLength } from 'class-validator';
+import {
+  IsInt,
+  IsOptional,
+  IsIn,
+  Min,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
 import {
   VALIDATION_MESSAGES,
   POST_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
-import {
-  Post,
-  PostStatus,
-  PostVisibility,
-} from '@dans-coding-world/prisma-schema';
+import { Post } from '@dans-coding-world/prisma-schema';
 import { IsOffsetAlignedWithSize } from './custom-validators/is-offset-aligned-with-size.js';
+import { Transform, Type } from 'class-transformer';
+import { toInteger } from './custom-transformers/to-integer.js';
+import { FilterPostsByDto } from './filter-posts-by.dto.js';
+import { IsSortBy } from './custom-validators/is-sort-by.js';
 
 export class GetPostsDto {
   @IsOptional()
+  @Transform(toInteger)
   @IsInt()
   @Min(0)
   viewerId?: number;
 
   @IsOptional()
+  @Transform(toInteger)
   @IsInt()
   @Min(0)
   @IsOffsetAlignedWithSize('pageSize', {
@@ -26,6 +35,9 @@ export class GetPostsDto {
   pageOffset?: number;
 
   @IsOptional()
+  @Transform(toInteger)
+  @IsInt()
+  @Min(0)
   @IsIn(PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS, {
     message: VALIDATION_MESSAGES.allowedValues([
       ...PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS,
@@ -34,18 +46,13 @@ export class GetPostsDto {
   pageSize?: AllowedPageSizes;
 
   @IsOptional()
-  sortBy?: Partial<
-    Record<
-      keyof Pick<Post, 'createdAt' | 'publishedAt' | 'updatedAt'>,
-      'asc' | 'desc'
-    >
-  >;
+  @IsSortBy(['createdAt', 'publishedAt', 'updatedAt'] as PostSortKey[])
+  sortBy?: Partial<Record<PostSortKey, 'asc' | 'desc'>>;
 
   @IsOptional()
-  filterBy?: {
-    status?: PostStatus[];
-    visibility?: PostVisibility[];
-  };
+  @ValidateNested()
+  @Type(() => FilterPostsByDto)
+  filterBy?: FilterPostsByDto;
 
   @IsOptional()
   @MaxLength(POST_CONSTRAINTS.MAX_TITLE_LENGTH, {
@@ -56,3 +63,8 @@ export class GetPostsDto {
 
 type AllowedPageSizes =
   (typeof PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS)[number];
+
+type PostSortKey = keyof Pick<
+  Post,
+  'createdAt' | 'publishedAt' | 'updatedAt'
+>;

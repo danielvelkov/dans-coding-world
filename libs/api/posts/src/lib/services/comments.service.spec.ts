@@ -231,6 +231,8 @@ describe('comments service', () => {
     test.each([
       ['created date (ASC)', getKey<Comment>('createdAt'), false],
       ['created date (DESC)', getKey<Comment>('createdAt'), true],
+      ['updated date (ASC)', getKey<Comment>('updatedAt'), false],
+      ['updated date (DESC)', getKey<Comment>('updatedAt'), true],
     ])(
       'should sort comments provided that sorting by %s is applied',
       async (_, propName, isAscending: boolean) => {
@@ -254,12 +256,34 @@ describe('comments service', () => {
     );
 
     test.each([
+      ['contains invalid key', { sortBy: { invalidKey: 'asc' } }],
+      ['specify invalid direction', { sortBy: { createdAt: 'invalid' } }],
+      [
+        'specify valid direction but in the wrong case ',
+        { sortBy: { createdAt: 'ASC' } },
+      ],
+      ['specify valid direction but in an array', { sortBy: ['asc'] }],
+      ['are null', { sortBy: null }],
+    ])('should throw when sorting options %s', async (_, sortBy) => {
+      expect.assertions(1);
+
+      return commentsService
+        .getPostComments({
+          postId: publishedPost.id,
+          sortBy: sortBy as any,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+          );
+        });
+    });
+
+    test.each([
       ['negative page size', -1, 0],
       ['negative offset', 10, -1],
       ['floating point page size', 0.1, 0],
       ['floating point offset', 10, 2.5],
-      ['string as page size', '0', 0],
-      ['string as offset', 10, '0'],
       ['page size that is not allowed', 99, 0],
     ])('should throw when %s is set', async (_, pageSize, pageOffset) => {
       expect.assertions(1);
@@ -282,7 +306,7 @@ describe('comments service', () => {
       [21, pageSizeOptions[1]],
       [49, pageSizeOptions[2]],
     ])(
-      'should throw when pagination offset (%s) is not devisable by page size (%s)',
+      'should throw when pagination offset (%s) is not divisible by page size (%s)',
       async (pageOffset, pageSize) => {
         expect.assertions(1);
         return commentsService

@@ -35,7 +35,7 @@ let mockPostsRepo: IPostRepository<Post, PostWhereInput, PostOrderByInput>;
 let injector: ReflectiveInjector;
 let postsService: IPostsService;
 
-describe('posts service', () => {
+describe('PostsService', () => {
   let user: User;
   let admin: User;
 
@@ -84,6 +84,7 @@ describe('posts service', () => {
     jest.spyOn(mockPostsRepo, 'update');
     jest.spyOn(mockPostsRepo, 'delete');
   });
+
   describe('getById()', () => {
     it('should return post if it is published and public', async () => {
       const createdPost = await mockPostsRepo.create({
@@ -92,29 +93,33 @@ describe('posts service', () => {
         status: 'PUBLISHED',
         visibility: 'PUBLIC',
       });
+
       const post = await postsService.getById({
-        id: createdPost.id,
+        postId: createdPost.id,
       });
+
       expect(post).toBeTruthy();
       expect(createdPost.id).toEqual(post.id);
+      expect(createdPost.content).not.toBe(
+        VALIDATION_MESSAGES.posts.membersOnly
+      );
     });
 
-    it(`should return post with its content hidden if it is members-only
-       and not a logged-in user is requesting it`, async () => {
+    it(`should return post with its content hidden, if it is members-only
+       and no viewer id is provided`, async () => {
       const createdPost = await mockPostsRepo.create({
         ...validPostContent,
         authorId: admin.id,
         status: 'PUBLISHED',
         visibility: 'MEMBERS_ONLY',
       });
-      const retrievedPost = await postsService.getById({
-        id: createdPost.id,
+
+      const post = await postsService.getById({
+        postId: createdPost.id,
       });
-      expect(retrievedPost).toBeTruthy();
-      expect(createdPost.id).toEqual(retrievedPost.id);
-      expect(retrievedPost.content).toEqual(
-        VALIDATION_MESSAGES.posts.membersOnly
-      );
+
+      expect(createdPost.id).toEqual(post.id);
+      expect(post.content).toEqual(VALIDATION_MESSAGES.posts.membersOnly);
     });
 
     test.each([
@@ -135,15 +140,15 @@ describe('posts service', () => {
 
         // Retrieve post when viewerId is author
         const post = await postsService.getById({
-          id: createdPost.id,
+          postId: createdPost.id,
           viewerId: admin.id,
         });
-        expect(post.id).toBeTruthy();
+        expect(post.id).toBe(createdPost.id);
 
         // Retrieve post as another user
         return postsService
           .getById({
-            id: createdPost.id,
+            postId: createdPost.id,
             viewerId: user.id,
           })
           .catch((error) => {
@@ -156,10 +161,53 @@ describe('posts service', () => {
 
     it('should throw when post with this id does not exist', async () => {
       expect.assertions(1);
-      return postsService.getById({ id: -999 }).catch((error) => {
-        expect(error.message).toMatch(/.*not.*found/i);
+      return postsService.getById({ postId: 999 }).catch((error) => {
+        expect(error.message).toMatch(
+          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+        );
       });
     });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty', ''],
+    ])('should throw validation error when postId param %s', async (_, id) => {
+      expect.assertions(1);
+      return postsService.getById({ postId: id as any }).catch((error) => {
+        expect(error.message).toMatch(
+          ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+        );
+      });
+    });
+
+    test.each([
+      ['is not a number', 'a'],
+      ['is array', []],
+      ['non numeric strings', 'a1'],
+    ])(
+      'should throw validation error when viewerId param %s',
+      async (_, id) => {
+        const createdPost = await mockPostsRepo.create({
+          ...validPostContent,
+          authorId: admin.id,
+          status: 'PUBLISHED',
+          visibility: 'PUBLIC',
+        });
+
+        expect.assertions(1);
+        return postsService
+          .getById({
+            postId: createdPost.id,
+            viewerId: id as any,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(
+              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+            );
+          });
+      }
+    );
   });
   describe('getAll()', () => {
     const NUM_OF_PUBLIC_PUBLISHED_POSTS = 15;
@@ -237,7 +285,6 @@ describe('posts service', () => {
       ['floating point page size', 0.1, 0],
       ['floating point offset', 10, 2.5],
       ['string as page size', '0', 0],
-      ['string as offset', 10, '0'],
       ['page size that is not allowed', 99, 0],
     ])('should throw when %s is set', async (_, pageSize, pageOffset) => {
       expect.assertions(1);
@@ -384,6 +431,38 @@ describe('posts service', () => {
       }
     );
 
+    test.each(['UNORGANIZED', 'HOT_TAKE', 'SHUNNED_ON_TWITTER'])(
+      'should throw when filtering by unknown status',
+      async (status) => {
+        expect.assertions(1);
+        return postsService
+          .getAll({
+            filterBy: {
+              status: [status as any],
+            },
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+
+    test.each(['HIDDEN', 'premium', 'members_only'])(
+      'should throw when filtering by unknown visibility',
+      async (visibility) => {
+        expect.assertions(1);
+        return postsService
+          .getAll({
+            filterBy: {
+              visibility: [visibility as any],
+            },
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+
     it(`should return user's DRAFT & ARCHIVED posts when filtering by status
        and viewerId matches their authorId`, async () => {
       const resDto = await postsService.getAll({
@@ -465,6 +544,29 @@ describe('posts service', () => {
     );
 
     test.each([
+      ['contains invalid key', { sortBy: { invalidKey: 'asc' } }],
+      ['specify invalid direction', { sortBy: { createdAt: 'invalid' } }],
+      [
+        'specify valid direction but in the wrong case ',
+        { sortBy: { createdAt: 'ASC' } },
+      ],
+      ['specify valid direction but in an array', { sortBy: ['asc'] }],
+      ['are null', { sortBy: null }],
+    ])('should throw when sorting options %s', async (_, sortBy) => {
+      expect.assertions(1);
+
+      return postsService
+        .getAll({
+          sortBy: sortBy as any,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+          );
+        });
+    });
+
+    test.each([
       ['published date (ASC)', getKey<Post>('publishedAt'), false],
       ['published date (DESC)', getKey<Post>('publishedAt'), true],
       ['created date (ASC)', getKey<Post>('createdAt'), false],
@@ -500,7 +602,7 @@ describe('posts service', () => {
       [21, pageSizeOptions[1]],
       [49, pageSizeOptions[2]],
     ])(
-      'should throw when pagination offset (%s) is not devisable by page size (%s)',
+      'should throw when pagination offset (%s) is not divisible by page size (%s)',
       async (pageOffset, pageSize) => {
         expect.assertions(1);
         return postsService.getAll({ pageOffset, pageSize }).catch((error) => {
@@ -534,25 +636,21 @@ describe('posts service', () => {
       isDraft: true,
       isMembersOnly: false,
     };
+
     beforeEach(async () => {
       await mockPostsRepo.deleteMany({});
     });
+
     it('should create a post when valid post data is provided', async () => {
       await postsService.create({
         ...validPostCreateDto,
         authorId: admin.id,
       });
-      expect(mockPostsRepo.create).toHaveBeenCalled();
+      expect(mockPostsRepo.create).toHaveBeenCalledTimes(1);
     });
 
     it('should set "publishedAt" date when creating a post with status "PUBLISHED"', async () => {
-      const post = await postsService.create({
-        ...validPostCreateDto,
-        authorId: admin.id,
-        isDraft: false,
-      });
-      expect(post.publishedAt).not.toBe(null);
-
+      // Creating a draft of a post
       const draft = await postsService.create({
         ...validPostCreateDto,
         title: 'NEW DRAFT',
@@ -560,6 +658,14 @@ describe('posts service', () => {
         isDraft: true,
       });
       expect(draft.publishedAt).toBe(null);
+
+      // Creating a published post
+      const post = await postsService.create({
+        ...validPostCreateDto,
+        authorId: admin.id,
+        isDraft: false,
+      });
+      expect(post.publishedAt).not.toBe(null);
     });
 
     test.each([
@@ -595,13 +701,16 @@ describe('posts service', () => {
         generateRandomString(POST_CONSTRAINTS.MIN_CONTENT_LENGTH - 1),
       ],
       ['is empty', ''],
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is number', 1],
     ])('should throw validation error when content %s', async (_, content) => {
       expect.assertions(1);
       return postsService
         .create({
           ...validPostCreateDto,
           authorId: admin.id,
-          content,
+          content: content as any,
         })
         .catch((error) => {
           expect(error.message).toMatch(/failed.*validation/i);
@@ -629,7 +738,7 @@ describe('posts service', () => {
       return postsService
         .create({
           ...validPostCreateDto,
-          authorId: -999,
+          authorId: 999,
         })
         .catch((error) => {
           expect(error.message).toMatch(
@@ -645,7 +754,9 @@ describe('posts service', () => {
         isDraft: true,
         isMembersOnly: false,
       });
+
       expect.assertions(1);
+
       return postsService
         .create({
           ...createdPost,
@@ -680,6 +791,7 @@ describe('posts service', () => {
     let postForUpdate: Post;
     const validUpdateDto = {
       title: 'New title',
+      content: 'COOL new content for post',
     };
 
     beforeEach(async () => {
@@ -704,6 +816,7 @@ describe('posts service', () => {
       expect(mockPostsRepo.update).toHaveBeenCalled();
       expect(updatedPost.title).not.toBe(postForUpdate.title);
       expect(updatedPost.title).toBe(validUpdateDto.title);
+      expect(updatedPost.content).toBe(validUpdateDto.content);
       // Expect the updatedAt field to change due to update
       expect(updatedPost.updatedAt > postForUpdate.updatedAt).toBe(true);
     });
@@ -729,6 +842,90 @@ describe('posts service', () => {
       });
       expect(repeatedUpdate.publishedAt).toStrictEqual(updatedPost.publishedAt);
       jest.useRealTimers();
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])('should throw validation error when userId %s', async (_, id) => {
+      expect.assertions(1);
+      return postsService
+        .update({
+          ...validUpdateDto,
+          postId: postForUpdate.id,
+          userId: id as any,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])('should throw validation error when postId %s', async (_, id) => {
+      expect.assertions(1);
+      return postsService
+        .update({
+          ...validUpdateDto,
+          postId: id as any,
+          userId: admin.id,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    test.each([
+      [
+        'is too long',
+        generateRandomString(POST_CONSTRAINTS.MAX_TITLE_LENGTH + 1),
+      ],
+      [
+        'is too short',
+        generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH - 1),
+      ],
+      ['is empty', ''],
+      ['is number', 1],
+    ])('should throw validation error when title %s', async (_, title) => {
+      expect.assertions(1);
+      return postsService
+        .update({
+          ...validUpdateDto,
+          postId: postForUpdate.id,
+          userId: admin.id,
+          title: title as any,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    test.each([
+      [
+        'is too long',
+        generateRandomString(POST_CONSTRAINTS.MAX_CONTENT_LENGTH + 1),
+      ],
+      [
+        'is too short',
+        generateRandomString(POST_CONSTRAINTS.MIN_CONTENT_LENGTH - 1),
+      ],
+      ['is empty', ''],
+      ['is number', 1],
+    ])('should throw validation error when content %s', async (_, content) => {
+      expect.assertions(1);
+      return postsService
+        .update({
+          ...validUpdateDto,
+          userId: admin.id,
+          postId: postForUpdate.id,
+          content: content as any,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
     });
 
     it(`should throw when trying to update the post title
@@ -771,7 +968,7 @@ describe('posts service', () => {
         });
     });
 
-    it(`should throw when post authorId doesn't match provided userId`, async () => {
+    it(`should throw when post's authorId doesn't match provided userId`, async () => {
       expect.assertions(1);
       return postsService
         .update({
@@ -823,6 +1020,38 @@ describe('posts service', () => {
         authorId: postForDeletion.authorId,
       });
       expect(mockPostsRepo.delete).toHaveBeenCalled();
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])('should throw validation error when authorId %s', async (_, id) => {
+      expect.assertions(1);
+      return postsService
+        .delete({
+          postId: postForDeletion.id,
+          authorId: id as any,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])('should throw validation error when postId %s', async (_, id) => {
+      expect.assertions(1);
+      return postsService
+        .delete({
+          postId: id as any,
+          authorId: postForDeletion.authorId,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
     });
   });
 });

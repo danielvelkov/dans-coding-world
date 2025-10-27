@@ -29,7 +29,7 @@ export class PostsController {
       const user = req.user as User;
 
       const post = await this.postService.getById({
-        id: +id,
+        postId: +id,
         viewerId: user.id,
       });
 

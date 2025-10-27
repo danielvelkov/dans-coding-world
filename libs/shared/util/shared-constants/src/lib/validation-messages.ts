@@ -19,7 +19,7 @@ export const VALIDATION_MESSAGES = {
   },
   pagination: {
     pageOffsetNotDivisibleByPageLimit:
-      'Page offset must be devisable by page size',
+      'Page offset must be divisible by page size',
   },
   posts: {
     titleAlreadyExists: 'A post with this title already exists',

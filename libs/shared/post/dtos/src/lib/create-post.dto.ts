@@ -1,10 +1,15 @@
-import { MinLength, MaxLength, IsBoolean, IsNumber, } from 'class-validator';
+import { MinLength, MaxLength, IsBoolean, IsInt, Min } from 'class-validator';
 import {
   POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
+import { Transform } from 'class-transformer';
+import { toInteger } from './custom-transformers/to-integer.js';
+
 export class CreatePostDto {
-  @IsNumber()
+  @Transform(toInteger)
+  @IsInt()
+  @Min(0)
   authorId: number;
 
   @MinLength(POST_CONSTRAINTS.MIN_TITLE_LENGTH, {

@@ -17,7 +17,7 @@ import type {
   IPostRepository,
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
-import { validateDto } from '@dans-coding-world/validation';
+import { transformAndValidateDto } from '@dans-coding-world/validation';
 import { ApiException } from '@dans-coding-world/exceptions';
 import {
   ERROR_CODES,
@@ -45,9 +45,9 @@ export class PostsService implements IPostsService {
     public users: IUserRepository
   ) {}
   async getById(dto: GetPostDto): Promise<Post> {
-    await validateDto(dto, GetPostDto);
+    await transformAndValidateDto(dto, GetPostDto);
 
-    const post = await this.posts.getById(dto.id);
+    const post = await this.posts.getById(dto.postId);
     if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
     // Authorization check
@@ -62,7 +62,7 @@ export class PostsService implements IPostsService {
   }
 
   async getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto> {
-    if (dto) await validateDto(dto, GetPostsDto);
+    if (dto) dto = await transformAndValidateDto(dto, GetPostsDto);
 
     const where = this.buildPostsWhereClause(
       dto?.viewerId,
@@ -106,7 +106,7 @@ export class PostsService implements IPostsService {
   }
 
   async create(dto: CreatePostDto): Promise<Post> {
-    await validateDto(dto, CreatePostDto);
+    dto = await transformAndValidateDto(dto, CreatePostDto);
 
     const author = await this.users.getById(dto.authorId.toString());
 
@@ -137,7 +137,7 @@ export class PostsService implements IPostsService {
   }
 
   async update(dto: UpdatePostDto): Promise<Post> {
-    await validateDto(dto, UpdatePostDto);
+    dto = await transformAndValidateDto(dto, UpdatePostDto);
 
     const postForUpdate = await this.posts.getById(dto.postId);
     if (!postForUpdate) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
@@ -168,7 +168,7 @@ export class PostsService implements IPostsService {
   }
 
   async delete(dto: DeletePostDto): Promise<Post> {
-    await validateDto(dto, DeletePostDto);
+    dto = await transformAndValidateDto(dto, DeletePostDto);
 
     const post = await this.posts.getById(dto.postId);
 

@@ -20,7 +20,7 @@ import {
   TOKEN_SERVICE_TOKEN,
   REFRESH_TOKEN_REPOSITORY_TOKEN,
 } from './token.service.js';
-import { validateDto } from '@dans-coding-world/validation';
+import { transformAndValidateDto } from '@dans-coding-world/validation';
 
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 
@@ -38,7 +38,7 @@ export class AuthService implements IAuthService {
   ) {}
 
   async login(dto: LoginDto): Promise<LoginResponseDto> {
-    await validateDto(dto, LoginDto);
+    await transformAndValidateDto(dto, LoginDto);
     const { email, password } = dto;
     const user = await this.users.get({ email });
 
@@ -53,7 +53,7 @@ export class AuthService implements IAuthService {
   }
 
   async refreshToken(dto: RefreshTokenDto): Promise<LoginResponseDto> {
-    await validateDto(dto, RefreshTokenDto);
+    await transformAndValidateDto(dto, RefreshTokenDto);
     const refreshToken = await this.validateAndGetRefreshToken(dto.token);
 
     // Clean up the old refresh token

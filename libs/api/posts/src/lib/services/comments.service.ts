@@ -22,7 +22,7 @@ import type {
   IPostRepository,
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
-import { validateDto } from '@dans-coding-world/validation';
+import { transformAndValidateDto } from '@dans-coding-world/validation';
 import {
   USER_REPOSITORY_TOKEN,
   POST_REPOSITORY_TOKEN,
@@ -58,7 +58,7 @@ export class CommentsService implements ICommentsService {
   async getPostComments(
     dto: GetPostCommentsDto
   ): Promise<GetPostCommentsResponseDto> {
-    await validateDto(dto, GetPostCommentsDto);
+    dto = await transformAndValidateDto(dto, GetPostCommentsDto);
     await this.validatePostAccess(dto.postId, dto.viewerId);
 
     const orderBy = dto.sortBy ?? { createdAt: 'desc' };
@@ -97,7 +97,7 @@ export class CommentsService implements ICommentsService {
   async getCommentReplies(
     dto: GetPostCommentRepliesDto
   ): Promise<GetPostCommentRepliesResponseDto> {
-    await validateDto(dto, GetPostCommentRepliesDto);
+    dto = await transformAndValidateDto(dto, GetPostCommentRepliesDto);
 
     await this.validatePostAccess(dto.postId, dto.viewerId);
 
@@ -114,7 +114,7 @@ export class CommentsService implements ICommentsService {
   }
 
   async create(dto: CreateCommentDto): Promise<Comment> {
-    await validateDto(dto, CreateCommentDto);
+    dto = await transformAndValidateDto(dto, CreateCommentDto);
 
     await this.validatePostAccess(dto.postId, dto.userId);
 
@@ -138,7 +138,7 @@ export class CommentsService implements ICommentsService {
     });
   }
   async delete(dto: DeleteCommentDto): Promise<Comment> {
-    await validateDto(dto, DeleteCommentDto);
+    dto = await transformAndValidateDto(dto, DeleteCommentDto);
 
     await this.validatePostAccess(dto.postId, dto.authorId);
 
@@ -155,7 +155,7 @@ export class CommentsService implements ICommentsService {
   }
 
   async update(dto: UpdateCommentDto): Promise<Comment> {
-    await validateDto(dto, UpdateCommentDto);
+    dto = await transformAndValidateDto(dto, UpdateCommentDto);
 
     await this.validatePostAccess(dto.postId);
 

@@ -1,4 +1,5 @@
 import { Prisma } from '../generated/prisma/client.js';
+
 export type {
   User,
   Role,
@@ -8,6 +9,7 @@ export type {
   PostVisibility,
   Comment,
 } from '../generated/prisma/client.js';
+
 export type UserWhereInput = Prisma.UserWhereInput;
 export type RefreshTokenWhereInput = Prisma.RefreshTokenWhereInput;
 export type PostWhereInput = Prisma.PostWhereInput;

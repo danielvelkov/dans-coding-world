@@ -1,4 +1,11 @@
-import { IsInt, Min, MinLength, MaxLength, IsOptional } from 'class-validator';
+import {
+  IsInt,
+  Min,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
 import {
   POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
@@ -7,11 +14,20 @@ import type {
   PostStatus,
   PostVisibility,
 } from '@dans-coding-world/prisma-schema';
+import {
+  PostStatusEnum,
+  PostVisibilityEnum,
+} from '@dans-coding-world/prisma-schema';
+import { Transform } from 'class-transformer';
+import { toInteger } from './custom-transformers/to-integer.js';
+
 export class UpdatePostDto {
+  @Transform(toInteger)
   @IsInt()
   @Min(0)
   postId: number;
 
+  @Transform(toInteger)
   @IsInt()
   @Min(0)
   userId: number;
@@ -35,8 +51,16 @@ export class UpdatePostDto {
   content?: string;
 
   @IsOptional()
+  @IsEnum(PostStatusEnum, {
+    message: VALIDATION_MESSAGES.allowedValues(Object.values(PostStatusEnum)),
+  })
   status?: PostStatus;
 
   @IsOptional()
+  @IsEnum(PostVisibilityEnum, {
+    message: VALIDATION_MESSAGES.allowedValues(
+      Object.values(PostVisibilityEnum)
+    ),
+  })
   visibility?: PostVisibility;
 }

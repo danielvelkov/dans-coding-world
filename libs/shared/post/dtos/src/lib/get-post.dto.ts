@@ -1,9 +1,15 @@
-import { IsOptional, IsNumber } from 'class-validator';
+import { IsOptional, IsInt, Min } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { toInteger } from './custom-transformers/to-integer.js';
 export class GetPostDto {
-  @IsNumber()
-  id: number;
+  @IsInt()
+  @Min(0)
+  @Transform(toInteger)
+  postId: number;
 
-  @IsNumber()
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Transform(toInteger)
   viewerId?: number;
 }
