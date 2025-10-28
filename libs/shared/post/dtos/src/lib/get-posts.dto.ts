@@ -64,7 +64,4 @@ export class GetPostsDto {
 type AllowedPageSizes =
   (typeof PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS)[number];
 
-type PostSortKey = keyof Pick<
-  Post,
-  'createdAt' | 'publishedAt' | 'updatedAt'
->;
+type PostSortKey = keyof Pick<Post, 'createdAt' | 'publishedAt' | 'updatedAt'>;

@@ -543,6 +543,24 @@ describe('PostsService', () => {
       }
     );
 
+    it(`should not return other user's DRAFT or ARCHIVED posts when 
+      the search query matches their title`, async () => {
+      const uniqueTitle = generateRandomString(20);
+      await mockPostsRepo.create({
+        ...validPostContent,
+        authorId: admin.id,
+        status: 'DRAFT',
+        visibility: 'PUBLIC',
+        title: uniqueTitle,
+      });
+      const res = await postsService.getAll({
+        searchQuery: uniqueTitle,
+        viewerId: user.id,
+      });
+
+      expect(res.count).toBe(0);
+    });
+
     test.each([
       ['contains invalid key', { sortBy: { invalidKey: 'asc' } }],
       ['specify invalid direction', { sortBy: { createdAt: 'invalid' } }],
