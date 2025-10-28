@@ -16,6 +16,14 @@ export function createAuthRouteHelper(client: AxiosInstance) {
       });
     },
 
+    /**
+     * Logs with credentials into to the API, which in turn
+     * stores the tokens needed for auth in SET-COOKIE header of the axios client.
+     * @param email User email
+     * @param password User pass
+     * @returns Login response
+     * @throws {Error} When login fails
+     */
     async login(email: string, password: string) {
       const urlSearchParams = new URLSearchParams();
       urlSearchParams.append('email', email);
