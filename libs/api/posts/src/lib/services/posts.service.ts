@@ -1,6 +1,7 @@
 import {
   Post,
   PostOrderByInput,
+  PostStatus,
   PostWhereInput,
 } from '@dans-coding-world/prisma-schema';
 import {
@@ -45,7 +46,7 @@ export class PostsService implements IPostsService {
     public users: IUserRepository
   ) {}
   async getById(dto: GetPostDto): Promise<Post> {
-    await transformAndValidateDto(dto, GetPostDto);
+    dto = await transformAndValidateDto(dto, GetPostDto);
 
     const post = await this.posts.getById(dto.postId);
     if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
@@ -192,42 +193,60 @@ export class PostsService implements IPostsService {
   ): PostWhereInput {
     const clauses: PostWhereInput[] = [];
 
-    // Get published public posts by default
-    if (!searchQuery && !filters)
+    if (!filters)
       filters = {
         status: ['PUBLISHED'],
         visibility: ['MEMBERS_ONLY', 'PUBLIC'],
       };
 
-    if (filters) {
+    // If searching and viewer is logged in, allow all their own posts
+    if (searchQuery && viewerId) {
+      clauses.push({
+        OR: [
+          { authorId: viewerId }, // All posts from viewer
+          {
+            status: 'PUBLISHED', // Only published from others
+          },
+        ],
+      });
+    } else if (filters) {
       const filterConditions = Object.entries(filters)
         .filter(([_, arr]) => Array.isArray(arr) && arr.length)
-        .map(([key, value]) => ({
-          [key]: { in: value },
-        }));
+        .map(([key, value]) => ({ [key]: { in: value } }));
 
       clauses.push(...filterConditions);
     }
 
-    const status = Array.isArray(filters?.status) ? filters.status : [];
+    const status: PostStatus[] = Array.isArray(filters?.status)
+      ? filters.status
+      : [];
 
     // Get only 'ARCHIVED' OR 'DRAFT' posts with author id === viewerId
     if ((status.includes('ARCHIVED') || status.includes('DRAFT')) && viewerId) {
+      const restrictedStatuses = status.filter(
+        (s) => s === 'ARCHIVED' || s === 'DRAFT'
+      );
+
       clauses.push({
-        NOT: [
+        OR: [
           {
-            authorId: { notIn: [viewerId] },
-            status: { in: status.filter((s) => s !== 'PUBLISHED') },
+            // Allow PUBLISHED posts from anyone
+            status: 'PUBLISHED',
+          },
+          {
+            // Allow ARCHIVED/DRAFT only from the viewer
+            AND: [
+              { authorId: viewerId },
+              { status: { in: restrictedStatuses } },
+            ],
           },
         ],
       });
     } else if (!viewerId) {
       clauses.push({
-        NOT: [
-          {
-            status: { in: ['ARCHIVED', 'DRAFT'] },
-          },
-        ],
+        NOT: {
+          status: { in: ['ARCHIVED', 'DRAFT'] },
+        },
       });
     }
 

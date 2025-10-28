@@ -19,6 +19,11 @@ export function IsOffsetAlignedWithSize(
         validate(pageOffset: any, args: ValidationArguments) {
           const [pageSizeKey] = args.constraints;
           const pageSize = (args.object as any)[pageSizeKey];
+
+          if (pageOffset === undefined || pageOffset === null) return true;
+
+          if (pageSize === undefined || pageSize === null) return true;
+
           return (
             typeof pageOffset === 'number' &&
             typeof pageSize === 'number' &&

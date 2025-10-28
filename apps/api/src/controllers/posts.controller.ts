@@ -17,6 +17,7 @@ import { User } from '@dans-coding-world/prisma-schema';
 
 export class PostsController {
   constructor(private postService: IPostsService) {
+    this.get = this.get.bind(this);
     this.getAll = this.getAll.bind(this);
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
@@ -30,7 +31,7 @@ export class PostsController {
 
       const post = await this.postService.getById({
         postId: +id,
-        viewerId: user.id,
+        viewerId: user?.id,
       });
 
       return res.status(StatusCodes.OK).json({
