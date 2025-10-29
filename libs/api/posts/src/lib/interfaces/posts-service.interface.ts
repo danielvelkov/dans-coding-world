@@ -105,9 +105,10 @@ export interface IPostsService {
    * @param dto Data transfer object containing the post ID to delete.
    * @returns A promise that resolves to the deleted post.
    * @throws {Error} When the post with that id and authorId does not exist
+   * @throws {Error} When the passed authorId, does not match the author for the post
    * @example
    * ```typescript
-   *  await postsService.delete({ id: 42, authorId: 1 });
+   *  await postsService.delete({ postId: 42, authorId: 1 });
    * ```
    */
   delete(dto: DeletePostDto): Promise<Post>;

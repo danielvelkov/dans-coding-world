@@ -51,5 +51,9 @@ export function createPostsRouteHelper(client: AxiosInstance) {
         },
       });
     },
+
+    async deletePost(id: string) {
+      return await client.delete(`/api/v1/posts/${id}`);
+    },
   };
 }

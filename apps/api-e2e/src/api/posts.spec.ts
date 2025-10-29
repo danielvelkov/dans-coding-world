@@ -19,6 +19,7 @@ import {
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
+import { StatusCodes } from 'http-status-codes';
 
 describe('/api/v1/posts', () => {
   let client: AxiosInstance;
@@ -26,8 +27,6 @@ describe('/api/v1/posts', () => {
     email: string,
     password: string
   ) => Promise<AxiosResponse<BaseResponse>>;
-  let logout;
-
   let getPosts: (params?: any) => Promise<AxiosResponse<unknown>>;
   let getPost: (id: any) => Promise<AxiosResponse<unknown>>;
   let createPost: (
@@ -37,9 +36,13 @@ describe('/api/v1/posts', () => {
     id: string,
     data: Omit<UpdatePostDto, 'userId' | 'postId'>
   ) => Promise<AxiosResponse<unknown>>;
+  let deletePost: (id: string) => Promise<AxiosResponse<unknown>>;
 
   let users: User[] = [];
   let posts: Post[] = [];
+
+  let admin: User;
+
   let PUBLISHED_PUBLIC_POSTS_NUM: number;
   let DRAFT_POSTS_NUM: number;
   let PUBLISHED_MEMBERS_ONLY_POSTS_NUM: number;
@@ -66,8 +69,8 @@ describe('/api/v1/posts', () => {
 
   beforeEach(() => {
     client = createAxiosClient();
-    ({ login, logout } = createAuthRouteHelper(client));
-    ({ getPosts, getPost, createPost, updatePost } =
+    ({ login } = createAuthRouteHelper(client));
+    ({ getPosts, getPost, createPost, updatePost, deletePost } =
       createPostsRouteHelper(client));
   });
 
@@ -548,7 +551,6 @@ describe('/api/v1/posts', () => {
   });
 
   describe('POST /api/v1/posts', () => {
-    let admin: User;
     const VALID_POST_DATA = {
       title: 'Totally valid title',
       content: 'Totally valid content',
@@ -693,9 +695,7 @@ describe('/api/v1/posts', () => {
     });
   });
 
-  describe.only('PATCH /api/v1/posts/:id', () => {
-    let admin: User;
-
+  describe('PATCH /api/v1/posts/:id', () => {
     beforeAll(() => {
       admin = users.find((u) => u.role === 'ADMIN') as User;
       if (!admin) throw new Error('Missing test user');
@@ -806,7 +806,7 @@ describe('/api/v1/posts', () => {
       );
     });
 
-    it(`should return 403 FORBIDDEN when trying to update a post as anything other than ADMIN`, async () => {
+    it(`should return 403 FORBIDDEN when non-admins are trying to update`, async () => {
       const nonAdminUsers = users.filter((u) => u.role !== 'ADMIN');
 
       for (const u of nonAdminUsers) {
@@ -855,8 +855,9 @@ describe('/api/v1/posts', () => {
       await login(admin.email, admin.password);
 
       const anotherPost = posts.find((p) => p.id !== postForUpdate.id);
+      if (!anotherPost) throw new Error('Missing test post');
 
-      const existingPostTitle = anotherPost?.title;
+      const existingPostTitle = anotherPost.title;
 
       return await expect(
         updatePost(postForUpdate.id.toString(), {
@@ -887,9 +888,66 @@ describe('/api/v1/posts', () => {
     });
   });
 
-  // describe('DELETE /api/v1/posts/:id', () => {});
-});
+  describe('DELETE /api/v1/posts/:id', () => {
+    beforeAll(() => {
+      admin = users.find((u) => u.role === 'ADMIN') as User;
+      if (!admin) throw new Error('Missing test user');
+    });
 
-function logErrorDetails(error) {
-  console.log(error.response.data.error.details);
-}
+    afterAll(async () => {
+      posts = await seedPosts();
+    });
+
+    it('should remove post when its authenticated author is requesting it', async () => {
+      const postForDeletion = posts.find((p) => p.authorId === admin.id);
+      if (!postForDeletion) throw new Error('Missing test post');
+
+      await login(admin.email, admin.password);
+
+      const deleteRes = await deletePost(postForDeletion.id.toString());
+      expect(deleteRes.status).toBe(StatusCodes.OK);
+      const { data } = deleteRes.data as BaseResponse;
+
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.delete);
+
+      await expect(deletePost(postForDeletion.id.toString())).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it(`should return 404 NOT FOUND when trying to delete post that does not exist`, async () => {
+      await login(admin.email, admin.password);
+      await expect(deletePost('999')).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it(`should return 403 FORBIDDEN when trying to delete another user's post`, async () => {
+      const postForDeletion = posts.find((p) => p.authorId !== admin.id);
+      if (!postForDeletion) throw new Error('Missing test post');
+
+      await login(admin.email, admin.password);
+      await expect(
+        deletePost(postForDeletion.id.toString())
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
+    test.each([
+      ['is letter', 'a'],
+      ['is special character', '@'],
+      ['is decimal number', '12.34'],
+      ['is negative number', '-5'],
+      ['is boolean true', 'true'],
+      ['is boolean false', 'false'],
+      ['is null string', 'null'],
+      ['is undefined string', 'undefined'],
+    ])('should return validation error when id %s', async (_, id) => {
+      await login(admin.email, admin.password);
+      return await expect(deletePost(id as any)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+    });
+  });
+});
