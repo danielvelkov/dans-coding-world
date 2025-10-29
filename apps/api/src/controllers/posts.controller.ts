@@ -81,6 +81,7 @@ export class PostsController {
       return next(error);
     }
   }
+
   @Authorized()
   @RequiredRole('ADMIN')
   async delete(req: Request, res: Response, next: NextFunction) {
@@ -111,7 +112,7 @@ export class PostsController {
       const postUpdateDto: UpdatePostDto = {
         ...req.body,
         postId: id,
-        authorId: +user.id,
+        userId: +user.id,
       };
 
       const post = await this.postService.update(postUpdateDto);
