@@ -4,19 +4,39 @@ import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   ERROR_CODES,
   PAGINATION,
+  POST_CONSTRAINTS,
   SUCCESS_MESSAGES,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { createAuthRouteHelper } from '../helper/auth-request.helper';
 import { createAxiosClient } from '../helper/test-client.helper';
 import { createPostsRouteHelper } from '../helper/posts-request.helper';
-import { GetPostsResponseDto } from '@dans-coding-world/shared-post-dto';
-import { AxiosInstance } from 'axios';
+import {
+  CreatePostDto,
+  GetPostsResponseDto,
+  UpdatePostDto,
+} from '@dans-coding-world/shared-post-dto';
+import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
+import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
 
 describe('/api/v1/posts', () => {
   let client: AxiosInstance;
-  let login, getPosts, getPost;
+  let login: (
+    email: string,
+    password: string
+  ) => Promise<AxiosResponse<BaseResponse>>;
+  let logout;
+
+  let getPosts: (params?: any) => Promise<AxiosResponse<unknown>>;
+  let getPost: (id: any) => Promise<AxiosResponse<unknown>>;
+  let createPost: (
+    data: Omit<CreatePostDto, 'authorId'>
+  ) => Promise<AxiosResponse<unknown>>;
+  let updatePost: (
+    id: string,
+    data: Omit<UpdatePostDto, 'userId' | 'postId'>
+  ) => Promise<AxiosResponse<unknown>>;
 
   let users: User[] = [];
   let posts: Post[] = [];
@@ -46,8 +66,9 @@ describe('/api/v1/posts', () => {
 
   beforeEach(() => {
     client = createAxiosClient();
-    ({ login } = createAuthRouteHelper(client));
-    ({ getPosts, getPost } = createPostsRouteHelper(client));
+    ({ login, logout } = createAuthRouteHelper(client));
+    ({ getPosts, getPost, createPost, updatePost } =
+      createPostsRouteHelper(client));
   });
 
   describe('GET /api/v1/posts/:id', () => {
@@ -255,8 +276,10 @@ describe('/api/v1/posts', () => {
               [propName]: isAscending ? 'asc' : 'desc',
             },
           });
+
           const { data } = res.data as BaseResponse;
           const postsData = data as GetPostsResponseDto;
+
           const sortedItems = [...postsData.items].sort((prev, next) => {
             if (!prev[propName] || !next[propName]) return 0;
             const prevDate = new Date(prev[propName]).getTime();
@@ -290,7 +313,7 @@ describe('/api/v1/posts', () => {
       });
 
       afterAll(async () => {
-        posts = await seedPosts([], { clearExisting: true, useDefaults: true });
+        posts = await seedPosts();
       });
 
       it(`should return the default items per page (${defaultPageSize})
@@ -523,6 +546,348 @@ describe('/api/v1/posts', () => {
       });
     });
   });
+
+  describe('POST /api/v1/posts', () => {
+    let admin: User;
+    const VALID_POST_DATA = {
+      title: 'Totally valid title',
+      content: 'Totally valid content',
+      isDraft: true,
+      isMembersOnly: false,
+    };
+
+    beforeAll(() => {
+      admin = users.find((u) => u.role === 'ADMIN') as User;
+      if (!admin) throw new Error('Missing test user');
+    });
+
+    afterAll(async () => {
+      posts = await seedPosts();
+    });
+
+    test.each([
+      {
+        ...VALID_POST_DATA,
+        title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
+      },
+      {
+        ...VALID_POST_DATA,
+        title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
+        isDraft: false,
+      },
+      {
+        ...VALID_POST_DATA,
+        title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
+        isMembersOnly: true,
+      },
+    ])(
+      'should create a post if post data is valid and logged in user is ADMIN',
+      async (postData) => {
+        await login(admin.email, admin.password);
+
+        const res = await createPost(postData);
+        const { data } = res.data as BaseResponse;
+
+        expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.create);
+        const post = (data as any).post as Post;
+
+        expect(post).toBeDefined();
+        expect(post.title).toBe(postData.title);
+        expect(post.authorId).toBe(admin.id);
+        expect(post.status).toBe(postData.isDraft ? 'DRAFT' : 'PUBLISHED');
+        expect(post.visibility).toBe(
+          postData.isMembersOnly ? 'MEMBERS_ONLY' : 'PUBLIC'
+        );
+        // Should set published date when post is PUBLISHED
+        if (postData.isDraft) expect(post.publishedAt).toBe(null);
+        else expect(post.publishedAt).toBeTruthy();
+      }
+    );
+
+    test.each([
+      [
+        'title is too long',
+        {
+          ...VALID_POST_DATA,
+          title: generateRandomString(POST_CONSTRAINTS.MAX_TITLE_LENGTH + 1),
+        },
+      ],
+      [
+        'title is too short',
+        {
+          ...VALID_POST_DATA,
+          title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH - 1),
+        },
+      ],
+      [
+        'content is too long',
+        {
+          ...VALID_POST_DATA,
+          content: generateRandomString(
+            POST_CONSTRAINTS.MAX_CONTENT_LENGTH + 1
+          ),
+        },
+      ],
+      [
+        'content is too short',
+        {
+          ...VALID_POST_DATA,
+          content: generateRandomString(
+            POST_CONSTRAINTS.MIN_CONTENT_LENGTH - 1
+          ),
+        },
+      ],
+      [
+        'required fields are missing (content)',
+        { ...VALID_POST_DATA, content: undefined },
+      ],
+      [
+        'required fields are missing (isDraft)',
+
+        { ...VALID_POST_DATA, isDraft: undefined },
+      ],
+      [
+        'required fields are missing (isMembersOnly)',
+
+        { ...VALID_POST_DATA, isMembersOnly: undefined },
+      ],
+    ])('should return validation error when %s', async (_, postData) => {
+      await login(admin.email, admin.password);
+      return await expect(createPost(postData as any)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+    });
+
+    it(`should return 403 FORBIDDEN, when user creating the post is not ADMIN`, async () => {
+      const user = users.find((u) => u.role === 'USER');
+      if (!user) throw new Error('Missing test user');
+
+      await login(user.email, user.password);
+
+      return await expect(
+        createPost({
+          ...VALID_POST_DATA,
+          title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
+    it('should return validation error when creating a post with the same title', async () => {
+      await login(admin.email, admin.password);
+
+      const existingPostTitle = posts[0].title;
+
+      return await expect(
+        createPost({
+          ...VALID_POST_DATA,
+          title: existingPostTitle,
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(
+          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
+          VALIDATION_MESSAGES.posts.titleAlreadyExists
+        )
+      );
+    });
+  });
+
+  describe.only('PATCH /api/v1/posts/:id', () => {
+    let admin: User;
+
+    beforeAll(() => {
+      admin = users.find((u) => u.role === 'ADMIN') as User;
+      if (!admin) throw new Error('Missing test user');
+    });
+
+    test.each([
+      [
+        'content',
+        generateRandomString(POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1),
+      ],
+      ['title', generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1)],
+      ['status', 'ARCHIVED'],
+      ['visibility', 'MEMBERS_ONLY'],
+    ])(
+      `should update a post's %s if logged in as author`,
+      async (propName, value) => {
+        const postForUpdate = posts.find((p) => p.authorId === admin.id);
+        if (!postForUpdate) throw new Error('Missing test post');
+
+        await login(admin.email, admin.password);
+
+        const res = await updatePost(postForUpdate.id.toString(), {
+          [propName]: value,
+        } as any);
+        const { data } = res.data as BaseResponse;
+
+        expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.update);
+        const post = (data as any).post as Post;
+
+        expect(post).toBeDefined();
+        expect(post.id).toBe(postForUpdate.id);
+        expect(post[propName]).toBe(value);
+        // Expect updatedAt date to change
+        expect(postForUpdate.updatedAt.getTime()).toBeLessThan(
+          new Date(post.updatedAt).getTime()
+        );
+      }
+    );
+
+    it('should set publishedAt date when post status is updated from DRAFT to PUBLISHED', async () => {
+      const postForUpdate = posts.find(
+        (p) => p.status === 'DRAFT' && p.authorId === admin.id
+      );
+      if (!postForUpdate) throw new Error('Missing test post');
+      expect(postForUpdate.publishedAt).toBeFalsy();
+
+      await login(admin.email, admin.password);
+
+      const res = await updatePost(postForUpdate.id.toString(), {
+        status: 'PUBLISHED',
+      } as any);
+
+      const { data } = res.data as BaseResponse;
+      const post = (data as any).post as Post;
+
+      expect(post.publishedAt).toBeTruthy();
+    });
+
+    test.each([
+      [
+        'title is too long',
+        {
+          title: generateRandomString(POST_CONSTRAINTS.MAX_TITLE_LENGTH + 1),
+        },
+      ],
+      [
+        'title is too short',
+        {
+          title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH - 1),
+        },
+      ],
+      [
+        'content is too long',
+        {
+          content: generateRandomString(
+            POST_CONSTRAINTS.MAX_CONTENT_LENGTH + 1
+          ),
+        },
+      ],
+      [
+        'content is too short',
+        {
+          content: generateRandomString(
+            POST_CONSTRAINTS.MIN_CONTENT_LENGTH - 1
+          ),
+        },
+      ],
+    ])('should return validation error when %s', async (_, postData) => {
+      const postForUpdate = posts.find((p) => p.authorId === admin.id);
+      if (!postForUpdate) throw new Error('Missing test post');
+
+      await login(admin.email, admin.password);
+      return await expect(
+        updatePost(postForUpdate.id.toString(), postData as any)
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+    });
+
+    it('should return 404 NOT FOUND when post for update does not exist', async () => {
+      await login(admin.email, admin.password);
+      return await expect(
+        updatePost('999', {
+          content: 'NEW post content',
+        } as any)
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it(`should return 403 FORBIDDEN when trying to update a post as anything other than ADMIN`, async () => {
+      const nonAdminUsers = users.filter((u) => u.role !== 'ADMIN');
+
+      for (const u of nonAdminUsers) {
+        const postForUpdate = posts.find((p) => p.authorId === u.id);
+        if (!postForUpdate) throw new Error('Missing test post');
+
+        await login(u.email, u.password);
+
+        await expect(
+          updatePost(postForUpdate.id.toString(), {
+            content: generateRandomString(
+              POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
+            ),
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
+      }
+    });
+
+    it(`should return 403 FORBIDDEN when trying to update another user's post`, async () => {
+      const anotherUser = users.find((u) => u.id !== admin.id);
+      if (!anotherUser) throw new Error('Missing test user');
+
+      const postForUpdate = posts.find((p) => p.authorId === anotherUser.id);
+      if (!postForUpdate) throw new Error('Missing test post');
+
+      await login(admin.email, admin.password);
+
+      await expect(
+        updatePost(postForUpdate.id.toString(), {
+          content: generateRandomString(
+            POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
+          ),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
+    it(`should return validation error when updating a 
+      post title to be the same as another one`, async () => {
+      const postForUpdate = posts.find((p) => p.authorId === admin.id);
+      if (!postForUpdate) throw new Error('Missing test post');
+
+      await login(admin.email, admin.password);
+
+      const anotherPost = posts.find((p) => p.id !== postForUpdate.id);
+
+      const existingPostTitle = anotherPost?.title;
+
+      return await expect(
+        updatePost(postForUpdate.id.toString(), {
+          title: existingPostTitle,
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(
+          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
+          VALIDATION_MESSAGES.posts.titleAlreadyExists
+        )
+      );
+    });
+
+    test.each([
+      ['is letter', 'a'],
+      ['is special character', '@'],
+      ['is decimal number', '12.34'],
+      ['is negative number', '-5'],
+      ['is boolean true', 'true'],
+      ['is boolean false', 'false'],
+      ['is null string', 'null'],
+      ['is undefined string', 'undefined'],
+    ])('should return validation error when id %s', async (_, id) => {
+      await login(admin.email, admin.password);
+      await expect(updatePost(id as any, {})).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+    });
+  });
+
+  // describe('DELETE /api/v1/posts/:id', () => {});
 });
 
 function logErrorDetails(error) {

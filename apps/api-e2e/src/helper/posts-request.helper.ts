@@ -1,3 +1,7 @@
+import {
+  CreatePostDto,
+  UpdatePostDto,
+} from '@dans-coding-world/shared-post-dto';
 import { AxiosInstance } from 'axios';
 
 // Axios uses URLSearchParams under the hood
@@ -8,8 +12,44 @@ export function createPostsRouteHelper(client: AxiosInstance) {
     async getPosts(params?: object) {
       return await client.get('/api/v1/posts', { params });
     },
+
     async getPost(id: string) {
       return await client.get(`/api/v1/posts/${id}`);
+    },
+
+    async createPost(postData: Omit<CreatePostDto, 'authorId'>) {
+      const formData = Object.fromEntries(
+        Object.entries(postData).map(([key, value]) => [
+          key,
+          value === undefined ? 'undefined' : value.toString(),
+        ])
+      );
+
+      const urlSearchParams = new URLSearchParams(formData);
+      return await client.post('/api/v1/posts', urlSearchParams, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+    },
+
+    async updatePost(
+      id: string,
+      postData: Omit<UpdatePostDto, 'userId' | 'postId'>
+    ) {
+      const formData = Object.fromEntries(
+        Object.entries(postData).map(([key, value]) => [
+          key,
+          value === undefined ? 'undefined' : value.toString(),
+        ])
+      );
+
+      const urlSearchParams = new URLSearchParams(formData);
+      return await client.patch(`/api/v1/posts/${id}`, urlSearchParams, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
     },
   };
 }
