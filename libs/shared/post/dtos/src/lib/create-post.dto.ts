@@ -5,6 +5,7 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { Transform } from 'class-transformer';
 import { toInteger } from './custom-transformers/to-integer.js';
+import { ToBoolean } from './custom-transformers/to-boolean.js';
 
 export class CreatePostDto {
   @Transform(toInteger)
@@ -29,8 +30,10 @@ export class CreatePostDto {
   content: string;
 
   @IsBoolean()
+  @ToBoolean()
   isDraft: boolean;
 
   @IsBoolean()
+  @ToBoolean()
   isMembersOnly: boolean;
 }
