@@ -2,10 +2,23 @@ import { client, Post, PostVisibility, PostStatus } from '@dans-coding-world/pri
 import posts from '../data/posts.json' with {type: "json"};
 import { SeedOptions } from './types/seed-options.js';
 
+/**
+ * @description ⚠️ **Test-only method.** This function is intended for development and testing purposes only.
+ * 
+ * **🚨 Do not use in production.** It will delete existing post data.
+ * 
+ * @param customPosts Posts to create. 
+ * Make sure the authors of the posts exist, otherwise an error will be thrown
+ * @param options Seed options for whether to reset the 'Post' table and/or use default post data
+ */
 export const seedPosts = async (
   customPosts?: Post[],
   options: SeedOptions = { clearExisting: true, useDefaults: true }
 ): Promise<Post[]> => {
+  if (!(process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_e2e'))
+    throw new Error(
+      'Not in test environment. Check your test setup configuration.'
+    );
   try {
     const seeded: Post[] = [];
 

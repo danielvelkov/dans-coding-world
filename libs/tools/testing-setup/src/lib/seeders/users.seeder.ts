@@ -3,10 +3,22 @@ import { client, Role, User } from '@dans-coding-world/prisma-schema';
 import { hashPassword } from '@dans-coding-world/api-auth';
 import { SeedOptions } from './types/seed-options.js';
 
+/**
+ * @description ⚠️ **Test-only method.** This function is intended for development and testing purposes only.
+ *
+ * **🚨 Do not use in production.** It will delete existing user data.
+ *
+ * @param customUsers Users to create.
+ * @param options Seed options for whether to clear and reset the 'User' table
+ */
 export const seedUsers = async (
   customUsers?: User[],
   options: SeedOptions = { clearExisting: true, useDefaults: true }
 ): Promise<User[]> => {
+  if (!(process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_e2e'))
+    throw new Error(
+      'Not in test environment. Check your test setup configuration.'
+    );
   try {
     const seeded: User[] = [];
 
