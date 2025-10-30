@@ -118,7 +118,7 @@ export class PostsController {
       const post = await this.postService.update(postUpdateDto);
 
       return res
-        .status(StatusCodes.CREATED)
+        .status(StatusCodes.OK)
         .json({ message: SUCCESS_MESSAGES.POSTS.update, post });
     } catch (error) {
       return next(error);

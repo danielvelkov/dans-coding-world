@@ -287,10 +287,13 @@ describe('comments service', () => {
       ['page size that is not allowed', 99, 0],
     ])('should throw when %s is set', async (_, pageSize, pageOffset) => {
       expect.assertions(1);
-      // eslint-disable-next-line
-      // @ts-ignore
-      // prettier-ignore
-      return commentsService.getPostComments({postId: publishedPost.id,viewerId: admin.id,pageSize,pageOffset,})
+      return commentsService
+        .getPostComments({
+          postId: publishedPost.id,
+          viewerId: admin.id,
+          pageSize: pageSize as any,
+          pageOffset,
+        })
         .catch((error) => {
           expect(error.message).toMatch(
             ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
@@ -537,7 +540,7 @@ describe('comments service', () => {
         });
     });
 
-    it(`should throw when post is MEMBERS-ONLY, and not userId is provided`, async () => {
+    it(`should throw when post is MEMBERS-ONLY, and no userId is provided`, async () => {
       const comment = await mockCommentsRepository.create({
         ...validCommentContent,
         postId: membersOnlyPost.id,

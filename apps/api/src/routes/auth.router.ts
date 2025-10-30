@@ -112,7 +112,7 @@ const authRouter = Router();
  *           description: User's password
  *       example:
  *         email: user123@gmail.com
- *         password: my_password_123
+ *         password: user123
  *
  *     RegistrationDTO:
  *       type: object
@@ -262,12 +262,14 @@ const authRouter = Router();
  *                 message:
  *                   type: string
  *                   example: You must be logged in to perform this action.
- * 
+ *
  *     ForbiddenError:
  *       allOf:
  *         - $ref: '#/components/schemas/ErrorResponse'
  *         - type: object
  *           properties:
+ *             data:
+ *               example: null
  *             error:
  *               type: object
  *               properties:
