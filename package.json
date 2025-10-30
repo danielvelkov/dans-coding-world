@@ -94,7 +94,7 @@
     "prettier": "^2.6.2",
     "prisma": "^6.13.0",
     "react-refresh": "^0.10.0",
-    "swagger-jsdoc": "^3.7.0",
+    "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tough-cookie": "^4.1.4",
     "ts-jest": "^29.4.0",

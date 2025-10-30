@@ -193,23 +193,33 @@ export class PostsService implements IPostsService {
   ): PostWhereInput {
     const clauses: PostWhereInput[] = [];
 
-    if (!filters)
+    // STEP 1: Access Control - What CAN the user see?
+    if (!viewerId) {
+      // Not logged in: exclude private posts entirely
+      clauses.push({
+        NOT: {
+          status: {
+            in: ['DRAFT', 'ARCHIVED'],
+          },
+        },
+      });
+    } else {
+      // Logged in: can see own posts (any status) OR others' published posts
+      clauses.push({
+        OR: [{ authorId: viewerId }, { status: 'PUBLISHED' }],
+      });
+    }
+
+    // STEP 2: Default Filters - Apply only if no explicit filtering and search specified
+    if (!filters && !searchQuery) {
       filters = {
         status: ['PUBLISHED'],
         visibility: ['MEMBERS_ONLY', 'PUBLIC'],
       };
+    }
 
-    // If searching and viewer is logged in, allow all their own posts
-    if (searchQuery && viewerId) {
-      clauses.push({
-        OR: [
-          { authorId: viewerId }, // All posts from viewer
-          {
-            status: 'PUBLISHED', // Only published from others
-          },
-        ],
-      });
-    } else if (filters) {
+    // STEP 3: Explicit Filters - What DOES the user want to see?
+    if (filters) {
       const filterConditions = Object.entries(filters)
         .filter(([_, arr]) => Array.isArray(arr) && arr.length)
         .map(([key, value]) => ({ [key]: { in: value } }));
@@ -217,39 +227,7 @@ export class PostsService implements IPostsService {
       clauses.push(...filterConditions);
     }
 
-    const status: PostStatus[] = Array.isArray(filters?.status)
-      ? filters.status
-      : [];
-
-    // Get only 'ARCHIVED' OR 'DRAFT' posts with author id === viewerId
-    if ((status.includes('ARCHIVED') || status.includes('DRAFT')) && viewerId) {
-      const restrictedStatuses = status.filter(
-        (s) => s === 'ARCHIVED' || s === 'DRAFT'
-      );
-
-      clauses.push({
-        OR: [
-          {
-            // Allow PUBLISHED posts from anyone
-            status: 'PUBLISHED',
-          },
-          {
-            // Allow ARCHIVED/DRAFT only from the viewer
-            AND: [
-              { authorId: viewerId },
-              { status: { in: restrictedStatuses } },
-            ],
-          },
-        ],
-      });
-    } else if (!viewerId) {
-      clauses.push({
-        NOT: {
-          status: { in: ['ARCHIVED', 'DRAFT'] },
-        },
-      });
-    }
-
+    // STEP 4: Search Query
     if (searchQuery) {
       clauses.push({
         OR: [

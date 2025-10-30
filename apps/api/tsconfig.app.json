@@ -12,8 +12,8 @@
   "include": [
     "src/**/*.ts",
     "src/main.ts",
-    "src/controllers/auth.controller.ts",
-    "src/routes/auth.router.ts"
+    "src/controllers/*.ts",
+    "src/routes/*.ts"
   ],
   "exclude": [
     "out-tsc",

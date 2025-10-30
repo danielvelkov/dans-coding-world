@@ -214,7 +214,7 @@ describe('PostsService', () => {
     const NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS = 4;
     const NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS = 3;
     const NUM_OF_PUBLIC_DRAFTS_POSTS = 2;
-    const NUM_OF_ARCHIVED_POSTS = 2;
+    const NUM_OF_PUBLIC_ARCHIVED_POSTS = 2;
 
     beforeEach(async () => {
       await mockPostsRepo.deleteMany({});
@@ -257,7 +257,7 @@ describe('PostsService', () => {
       for (let i = 0; i < NUM_OF_PUBLIC_DRAFTS_POSTS; i++)
         await mockPostsRepo.create({
           ...validPostContent,
-          title: `DRAFT: #${i}`,
+          title: `DRAFT & PUBLIC: #${i}`,
           authorId: admin.id,
           status: 'DRAFT',
           visibility: 'PUBLIC',
@@ -266,10 +266,10 @@ describe('PostsService', () => {
           ),
         });
 
-      for (let i = 0; i < NUM_OF_ARCHIVED_POSTS; i++)
+      for (let i = 0; i < NUM_OF_PUBLIC_ARCHIVED_POSTS; i++)
         await mockPostsRepo.create({
           ...validPostContent,
-          title: `ARCHIVED: #${i}`,
+          title: `ARCHIVED & PUBLIC: #${i}`,
           authorId: admin.id,
           status: 'ARCHIVED',
           visibility: 'PUBLIC',
@@ -337,7 +337,7 @@ describe('PostsService', () => {
         },
       ],
       [
-        NUM_OF_ARCHIVED_POSTS,
+        NUM_OF_PUBLIC_ARCHIVED_POSTS,
         {
           status: ['ARCHIVED'] as PostStatus[],
         },
@@ -350,14 +350,14 @@ describe('PostsService', () => {
         },
       ],
       [
-        NUM_OF_ARCHIVED_POSTS + NUM_OF_PUBLIC_PUBLISHED_POSTS,
+        NUM_OF_PUBLIC_ARCHIVED_POSTS + NUM_OF_PUBLIC_PUBLISHED_POSTS,
         {
           status: ['ARCHIVED', 'PUBLISHED'] as PostStatus[],
           visibility: ['PUBLIC'] as PostVisibility[],
         },
       ],
       [
-        NUM_OF_ARCHIVED_POSTS +
+        NUM_OF_PUBLIC_ARCHIVED_POSTS +
           NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
           NUM_OF_PUBLIC_DRAFTS_POSTS,
         {
@@ -431,6 +431,222 @@ describe('PostsService', () => {
       }
     );
 
+    test.each([
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS,
+        {
+          status: ['PUBLISHED'] as PostStatus[],
+        },
+        'PUBLISHED',
+        true,
+      ],
+      [
+        NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS,
+        {
+          status: ['PUBLISHED', 'DRAFT'] as PostStatus[],
+        },
+        'MEMBERS_ONLY',
+        true,
+      ],
+      [
+        NUM_OF_PUBLIC_DRAFTS_POSTS,
+        {
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+        'DRAFT',
+        true,
+      ],
+      [
+        NUM_OF_PUBLIC_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
+        {},
+        'DRAFT',
+        true,
+      ],
+      [
+        NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS,
+        {},
+        'MEMBERS_ONLY',
+        true,
+      ],
+      [
+        0,
+        {
+          status: ['ARCHIVED'] as PostStatus[],
+        },
+        'PUBLISHED',
+        true,
+      ],
+      [
+        0,
+        {
+          status: ['ARCHIVED'] as PostStatus[],
+        },
+        'DRAFT',
+        true,
+      ],
+      [
+        0,
+        {
+          visibility: ['MEMBERS_ONLY'] as PostVisibility[],
+        },
+        'PUBLIC',
+        true,
+      ],
+      [
+        0,
+        {
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+        'MEMBERS_ONLY',
+        true,
+      ],
+      // Test: Non-author cannot see DRAFT posts even when filtering
+      [
+        0,
+        {
+          status: ['DRAFT'] as PostStatus[],
+        },
+        'DRAFT',
+        false,
+      ],
+      // Test: Non-author cannot see ARCHIVED posts
+      [
+        0,
+        {
+          status: ['ARCHIVED'] as PostStatus[],
+        },
+        'ARCHIVED',
+        false,
+      ],
+      // Test: Non-author can only see PUBLISHED posts when searching
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS,
+        {},
+        'PUBLISHED',
+        false,
+      ],
+      // Test: Author can see only DRAFT posts when filtering by DRAFT
+      [
+        NUM_OF_PUBLIC_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
+        {
+          status: ['DRAFT'] as PostStatus[],
+        },
+        'DRAFT',
+        true,
+      ],
+      // Test: Combined filter - PUBLISHED + PUBLIC only
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS,
+        {
+          status: ['PUBLISHED'] as PostStatus[],
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+        'PUBLISHED',
+        true,
+      ],
+      // Test: Combined filter - DRAFT + PUBLIC (author only)
+      [
+        NUM_OF_PUBLIC_DRAFTS_POSTS,
+        {
+          status: ['DRAFT'] as PostStatus[],
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+        'DRAFT',
+        true,
+      ],
+      // Test: Multiple statuses with visibility filter
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_PUBLIC_DRAFTS_POSTS,
+        {
+          status: ['PUBLISHED', 'DRAFT'] as PostStatus[],
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+        'PUBLIC',
+        true,
+      ],
+      // Test: Search with no filters returns only PUBLISHED posts for non-author
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS,
+        undefined,
+        'PUBLISHED',
+        false,
+      ],
+      // Test: Empty search query with DRAFT filter (author)
+      [
+        NUM_OF_PUBLIC_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
+        {
+          status: ['DRAFT'] as PostStatus[],
+        },
+        '',
+        true,
+      ],
+      // Test: Filtering by all statuses (author should see all their posts)
+      [
+        NUM_OF_PUBLIC_DRAFTS_POSTS +
+          NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
+          NUM_OF_PUBLIC_PUBLISHED_POSTS +
+          NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS +
+          NUM_OF_PUBLIC_ARCHIVED_POSTS,
+        {
+          status: ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as PostStatus[],
+        },
+        '',
+        true,
+      ],
+      [
+        NUM_OF_PUBLIC_DRAFTS_POSTS +
+          NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
+          NUM_OF_PUBLIC_PUBLISHED_POSTS +
+          NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS +
+          NUM_OF_PUBLIC_ARCHIVED_POSTS,
+        {},
+        ':',
+        true,
+      ],
+      // Test: Filtering by all visibilities with PUBLISHED status
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS,
+        {
+          status: ['PUBLISHED'] as PostStatus[],
+          visibility: ['PUBLIC', 'MEMBERS_ONLY'] as PostVisibility[],
+        },
+        'PUBLISHED',
+        true,
+      ],
+      // Test: Non-author searching DRAFT posts (should return 0)
+      [0, {}, 'DRAFT', false],
+      // Test: Author filtering MEMBERS_ONLY + DRAFT
+      [
+        NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
+        {
+          status: ['DRAFT'] as PostStatus[],
+          visibility: ['MEMBERS_ONLY'] as PostVisibility[],
+        },
+        'DRAFT',
+        true,
+      ],
+      // Test: Non-author with PUBLIC visibility filter and search
+      [
+        NUM_OF_PUBLIC_PUBLISHED_POSTS,
+        {
+          visibility: ['PUBLIC'] as PostVisibility[],
+        },
+        'PUBLISHED',
+        false,
+      ],
+    ])(
+      `should return the correct amount of posts (%s) 
+  after filtering and searching %s | search: %s (logged-in as author: %s)`,
+      async (total, filterBy, searchQuery, isAuthor) => {
+        const resDto = await postsService.getAll({
+          viewerId: isAuthor ? admin.id : user.id,
+          filterBy,
+          searchQuery,
+        });
+        expect(resDto.pagination.total).toBe(total);
+      }
+    );
+
     test.each(['UNORGANIZED', 'HOT_TAKE', 'SHUNNED_ON_TWITTER'])(
       'should throw when filtering by unknown status',
       async (status) => {
@@ -475,7 +691,7 @@ describe('PostsService', () => {
       expect(resDto.items.some((p) => p.status === 'DRAFT')).toBe(true);
       expect(resDto.items.some((p) => p.status === 'ARCHIVED')).toBe(true);
       expect(resDto.pagination.total).toBe(
-        NUM_OF_ARCHIVED_POSTS +
+        NUM_OF_PUBLIC_ARCHIVED_POSTS +
           NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
           NUM_OF_PUBLIC_DRAFTS_POSTS
       );
