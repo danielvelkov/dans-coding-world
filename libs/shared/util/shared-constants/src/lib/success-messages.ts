@@ -18,5 +18,6 @@ export const SUCCESS_MESSAGES = {
   },
   COMMENTS: {
     getPostsComments: 'Comments for post retrieved successfully',
+    getCommentReplies: 'Comment replies retrieved successfully',
   },
 };

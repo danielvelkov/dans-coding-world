@@ -49,9 +49,25 @@ export class CommentsController {
   @AttachUser()
   async getCommentReplies(req: Request, res: Response, next: NextFunction) {
     try {
-      throw new Error('Not implemented');
+      const user = req.user as User;
+      const { postId, id } = req.params;
+
+      const getPostCommentRepliesDto: GetPostCommentRepliesDto = {
+        commentId: +id,
+        postId: +postId,
+        viewerId: user?.id,
+      };
+
+      const result = await this.commentService.getCommentReplies(
+        getPostCommentRepliesDto
+      );
+
+      return res.status(StatusCodes.OK).json({
+        ...result,
+        message: SUCCESS_MESSAGES.COMMENTS.getCommentReplies,
+      });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
