@@ -10,6 +10,11 @@ import { SeedOptions } from './types/seed-options.js';
  *
  * @param customUsers Users to create.
  * @param options Seed options for whether to clear and reset the 'User' table
+ * 
+ * *DEFAULT DATA*:
+ * - Id: 1 - **Admin**
+ * - Id: 2 - **Mod**
+ * - Id: 3 - **User**
  */
 export const seedUsers = async (
   customUsers?: User[],
