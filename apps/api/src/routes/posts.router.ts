@@ -18,7 +18,7 @@ export const postsRouter = Router();
 postsRouter.route('/').get(postsController.getAll).post(postsController.create);
 
 postsRouter
-  .route('/:postId/comments')
+  .route('/:id/comments')
   .get(commentsController.getPostComments)
   .post(commentsController.create);
 

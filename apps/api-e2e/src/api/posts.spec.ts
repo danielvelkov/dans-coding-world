@@ -141,6 +141,7 @@ describe('/api/v1/posts', () => {
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
+
     it('should return 403 FORBIDDEN for DRAFT or ARCHIVED post of another user', async () => {
       const user = users.find((u) => u.role === 'USER');
       if (!user) throw new Error('Missing test user');

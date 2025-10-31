@@ -4,33 +4,38 @@ import {
   ICommentsService,
   CommentsService,
 } from '@dans-coding-world/api-posts';
-import {} from '@dans-coding-world/shared-post-dto';
+import {
+  GetPostCommentRepliesDto,
+  GetPostCommentsDto,
+} from '@dans-coding-world/shared-post-dto';
 import { Authorized, AttachUser } from '@dans-coding-world/api-auth';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 import { User } from '@dans-coding-world/prisma-schema';
 
 export class CommentsController {
-  constructor(private commentService: ICommentsService) {}
+  constructor(private commentService: ICommentsService) {
+    this.getPostComments = this.getPostComments.bind(this);
+    this.getCommentReplies = this.getCommentReplies.bind(this);
+    this.create = this.create.bind(this);
+    this.update = this.update.bind(this);
+    this.delete = this.delete.bind(this);
+  }
 
   @AttachUser()
   async getPostComments(req: Request, res: Response, next: NextFunction) {
     try {
-      const viewerId = req.user ? (req.user as User).id : null;
-      const { postId } = req.params;
-      const { limit, offset, orderBy } = req.query;
-      console.log(postId);
-      console.log({ limit, offset, orderBy });
+      const user = req.user as User;
+      const { id } = req.params;
 
-      const result = await this.commentService.getPostComments({
-        postId: Number(postId),
-        viewerId: Number(viewerId),
-        pageOffset: Number(offset),
-        pageSize: Number(limit) as PageSizes,
-        sortBy: {
-          createdAt: 'desc',
-        },
-      });
-      console.log({ result });
+      const getPostCommentsDto: GetPostCommentsDto = {
+        ...req.query,
+        postId: +id,
+        viewerId: user?.id,
+      };
+
+      const result = await this.commentService.getPostComments(
+        getPostCommentsDto
+      );
 
       return res.status(StatusCodes.OK).json({
         ...result,
