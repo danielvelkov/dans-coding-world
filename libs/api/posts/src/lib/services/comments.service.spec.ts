@@ -184,7 +184,7 @@ describe('comments service', () => {
         });
     });
 
-    it(`should return post comments and pagination metatdata, 
+    it(`should return post comments and pagination metadata, 
       with comments ordered by posted date (DESC)`, async () => {
       const res = await commentsService.getPostComments({
         postId: publishedPost.id,
@@ -205,27 +205,46 @@ describe('comments service', () => {
       });
     });
 
-    it('should include replies to comments in pagination.total field', async () => {
-      const comment = await mockCommentsRepository.create({
-        ...validCommentContent,
-        postId: publishedPost.id,
-        userId: admin.id,
-        depth: 0,
-        threadParentId: null,
-      });
-      await mockCommentsRepository.create({
-        ...validCommentContent,
-        postId: publishedPost.id,
-        userId: admin.id,
-        depth: 0,
-        threadParentId: comment.id,
-      });
-      const res = await commentsService.getPostComments({
+    it(`should return the top-level replies and
+       replyCount for each retrieved post comment `, async () => {
+      const resWithoutReplies = await commentsService.getPostComments({
         postId: publishedPost.id,
         viewerId: admin.id,
       });
 
-      expect(res.pagination.total).toBe(PUBLISHED_POST_COMMENTS_COUNT + 2);
+      expect(resWithoutReplies.pagination.total).toBe(
+        PUBLISHED_POST_COMMENTS_COUNT
+      );
+      expect(resWithoutReplies.items.every((c) => c.replyCount === 0)).toBe(
+        true
+      );
+
+      const commentIdAndReplyCountMap = new Map();
+
+      for (const comment of resWithoutReplies.items) {
+        let randomNumOfComments = Math.floor(Math.random() * 10) + 1;
+        commentIdAndReplyCountMap.set(comment.id, randomNumOfComments);
+
+        while (randomNumOfComments--)
+          await mockCommentsRepository.create({
+            ...validCommentContent,
+            postId: publishedPost.id,
+            depth: 1,
+            userId: admin.id,
+            threadParentId: comment.id,
+          });
+      }
+
+      const resWithReplies = await commentsService.getPostComments({
+        postId: publishedPost.id,
+        viewerId: admin.id,
+      });
+
+      expect(
+        resWithReplies.items.every(
+          (c) => c.replyCount === commentIdAndReplyCountMap.get(c.id)
+        )
+      ).toBe(true);
     });
 
     test.each([
@@ -390,7 +409,7 @@ describe('comments service', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED]
           );
         });
     });
@@ -432,7 +451,6 @@ describe('comments service', () => {
     });
 
     it('should retrieve comment replies and reply count', async () => {
-      // First reply
       const REPLY_COUNT = 4;
       for (let i = 0; i < REPLY_COUNT; i++)
         await mockCommentsRepository.create({
@@ -557,7 +575,7 @@ describe('comments service', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED]
           );
         });
     });
