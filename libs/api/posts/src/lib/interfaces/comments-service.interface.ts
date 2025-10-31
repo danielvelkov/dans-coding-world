@@ -26,6 +26,14 @@ import {
 export interface ICommentsService {
   /**
    * Retrieves top-level comments for a post with pagination and sorting options.
+   *
+   * Additionally retrieves top-level replies and replyCount for each comment.
+   *
+   * Sorting options:
+   * - by createdAt date
+   * - by updatedAt date
+   *
+   * Comments on drafts and archived posts are available only when the viewerId is the author.
    * @param dto Contains postId, viewerId (optional), and pagination and sorting params (optional).
    * @returns A promise that resolves to a paginated list of direct comments to post.
    * @example
@@ -38,7 +46,7 @@ export interface ICommentsService {
    * });
    * ```
    * @throws {Error} When the post with this postId is not found (SER002)
-   * @throws {Error} When the viewerId is not provided and the post, where the comment is posted, is for MEMBERS-ONLY (SER003)
+   * @throws {Error} When no viewerId set and the post is MEMBERS-ONLY (AUTH005)
    * @throws {Error} When the post is not PUBLISHED (SER003)
    */
   getPostComments(dto: GetPostCommentsDto): Promise<GetPostCommentsResponseDto>;
@@ -49,7 +57,7 @@ export interface ICommentsService {
    * @returns Direct replies under the specified comment (only 1 depth level deep).
    * @throws {Error} When the post with this postId is not found (SER002)
    * @throws {Error} When the thread parent comment id is not found on the post (SER002)
-   * @throws {Error} When the viewerId is not provided and the post, where the comment is posted, is for MEMBERS-ONLY (SER003)
+   * @throws {Error} When no viewerId set and the post is MEMBERS-ONLY (AUTH005)
    * @throws {Error} When the post is not PUBLISHED (SER003)
    */
   getCommentReplies(

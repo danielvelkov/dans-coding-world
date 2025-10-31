@@ -71,16 +71,16 @@ export class CommentsService implements ICommentsService {
         take: limit,
         includeReplies: true,
       }),
-      this.comments.count({ postId: dto.postId }),
+      this.comments.count({ postId: dto.postId, depth: 0 }),
     ]);
 
     const currentPage = Math.floor(offset / limit) + 1;
-    const totalPages = Math.ceil(comments.length / limit);
+    const totalPages = Math.ceil(total / limit);
 
     return {
       items: comments.map((c) => ({
-        ...c,
-        replies: (c as any).replies as any,
+        ...(c as any),
+        replyCount: (c as any).replies.length,
       })),
       count: comments.length,
       pagination: {
@@ -108,7 +108,7 @@ export class CommentsService implements ICommentsService {
     if (!comment) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
     return {
-      comment: { ...comment, replies: (comment as any).replies },
+      comment: comment as any,
       replyCount: this.getReplyCountRecursively(comment as CommentWithReplies),
     };
   }
@@ -178,12 +178,15 @@ export class CommentsService implements ICommentsService {
     const post = await this.posts.getById(postId);
     if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
-    if (post.status !== 'PUBLISHED') {
+    if (
+      post.status !== 'PUBLISHED' &&
+      (!viewerId || viewerId !== post.authorId)
+    ) {
       throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
     }
 
     if (!viewerId && post.visibility === 'MEMBERS_ONLY') {
-      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+      throw new ApiException(ERROR_CODES.AUTH.UNAUTHORIZED);
     }
 
     return post;
