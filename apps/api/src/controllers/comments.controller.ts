@@ -1,10 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { ICommentsService } from '@dans-coding-world/api-posts';
 import {
-  ICommentsService,
-  CommentsService,
-} from '@dans-coding-world/api-posts';
-import {
+  DeleteCommentDto,
   GetPostCommentRepliesDto,
   GetPostCommentsDto,
 } from '@dans-coding-world/shared-post-dto';
@@ -92,11 +90,23 @@ export class CommentsController {
   @Authorized()
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      throw new Error('Not implemented');
+      const user = req.user as User;
+      const { postId, id } = req.params;
+
+      const deleteCommentDto: DeleteCommentDto = {
+        commentId: +id,
+        postId: +postId,
+        authorId: user?.id,
+      };
+
+      const comment = await this.commentService.delete(deleteCommentDto);
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.COMMENTS.delete,
+        comment,
+      });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 }
-
-type PageSizes = Parameters<CommentsService['getPostComments']>[0]['pageSize'];
