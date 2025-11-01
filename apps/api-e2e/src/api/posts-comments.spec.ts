@@ -38,6 +38,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
     postId: any,
     commentId: any
   ) => Promise<AxiosResponse<unknown>>;
+  let deleteComment: (
+    postId: any,
+    commentId: any
+  ) => Promise<AxiosResponse<unknown>>;
 
   let users: User[] = [];
   let posts: Post[] = [];
@@ -77,7 +81,8 @@ describe('/api/v1/posts/{postId}/comments', () => {
   beforeEach(() => {
     client = createAxiosClient();
     ({ login } = createAuthRouteHelper(client));
-    ({ getPostComments, getCommentReplies } = createPostsRouteHelper(client));
+    ({ getPostComments, getCommentReplies, deleteComment } =
+      createPostsRouteHelper(client));
   });
 
   describe('GET /api/v1/posts/{postId}/comments', () => {
@@ -380,7 +385,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         expect(commentsData.pagination.total).toBe(expectedNumberOfComments);
       });
 
-      it(`should return comments for a logged-in user's DRAFT or ARCHIVED posts`, async () => {
+      it(`should return comments for a logged-in user's DRAFT or ARCHIVED post`, async () => {
         const archivedPost = posts.find(
           (p) =>
             p.status === 'ARCHIVED' &&
@@ -671,6 +676,104 @@ describe('/api/v1/posts/{postId}/comments', () => {
             );
         }
       });
+    });
+  });
+
+  describe('DELETE /api/v1/posts/{postId}/comments/{id}', () => {
+    afterAll(async () => {
+      comments = await seedComments();
+    });
+
+    it('should delete a comment and all its related replies', async () => {
+      const commentWithReplies = comments.find(
+        (c, i, arr) =>
+          c.userId === admin.id && arr.find((r) => r.threadParentId === c.id)
+      );
+      await login(admin.email, admin.password);
+
+      const res = await deleteComment(
+        commentWithReplies?.postId,
+        commentWithReplies?.id
+      );
+      const { data } = res.data as BaseResponse;
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.delete);
+
+      // Deleted Comment
+      await expect(
+        deleteComment(commentWithReplies?.postId, commentWithReplies?.id)
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+
+      // All comment replies
+      for (const reply of comments.filter(
+        (c) => c.threadParentId === commentWithReplies?.id
+      ))
+        await expect(
+          deleteComment(commentWithReplies?.postId, reply?.id)
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        );
+
+      comments = await seedComments();
+    });
+
+    it('should return 401 UNAUTHORIZED when trying to delete comment as guest', async () => {
+      return await expect(deleteComment(1, 1)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+
+    test.each([
+      ['is letter', 'a'],
+      ['is special character', '@'],
+      ['is decimal number', '12.34'],
+      ['is negative number', '-5'],
+      ['is boolean true', 'true'],
+      ['is boolean false', 'false'],
+      ['is null string', 'null'],
+      ['is undefined string', 'undefined'],
+    ])(
+      'should return validation error when post id or comment id %s',
+      async (_, id) => {
+        await login(admin.email, admin.password);
+        await expect(deleteComment(id as any, 1)).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+        await expect(deleteComment(1, id as any)).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
+
+    it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
+      await login(admin.email, admin.password);
+      await expect(deleteComment(999, 1)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+
+      const publishedPost = posts.find(
+        (p) =>
+          p.status === 'PUBLISHED' &&
+          p.visibility === 'PUBLIC' &&
+          comments.find((c) => c.postId === p.id)
+      );
+
+      if (!publishedPost) throw new Error('Missing published test post');
+
+      await expect(deleteComment(publishedPost.id, 999)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it('should return 403 FORBIDDEN for deleting a comment not belonging to the user', async () => {
+      await login(admin.email, admin.password);
+      const otherUserComment = comments.find((c) => c.userId !== admin.id);
+      await expect(
+        deleteComment(otherUserComment?.postId, otherUserComment?.id)
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
     });
   });
 });
