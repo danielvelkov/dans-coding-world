@@ -5,6 +5,7 @@ import {
   DeleteCommentDto,
   GetPostCommentRepliesDto,
   GetPostCommentsDto,
+  UpdateCommentDto,
 } from '@dans-coding-world/shared-post-dto';
 import { Authorized, AttachUser } from '@dans-coding-world/api-auth';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
@@ -81,9 +82,24 @@ export class CommentsController {
   @Authorized()
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      throw new Error('Not implemented');
+      const user = req.user as User;
+      const { postId, id } = req.params;
+
+      const updateCommentDto: UpdateCommentDto = {
+        ...req.body,
+        commentId: +id,
+        postId: +postId,
+        userId: user?.id,
+      };
+
+      const comment = await this.commentService.update(updateCommentDto);
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.COMMENTS.update,
+        comment,
+      });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 

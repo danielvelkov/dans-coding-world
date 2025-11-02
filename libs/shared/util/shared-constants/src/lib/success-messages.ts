@@ -20,5 +20,6 @@ export const SUCCESS_MESSAGES = {
     getPostsComments: 'Comments for post retrieved successfully',
     getCommentReplies: 'Comment replies retrieved successfully',
     delete: 'Comment deleted successfully',
+    update: 'Comment updated successfully',
   },
 };
