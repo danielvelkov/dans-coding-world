@@ -6,9 +6,9 @@ import {
 } from '@dans-coding-world/testing-setup';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import {
+  COMMENT_CONSTRAINTS,
   ERROR_CODES,
   PAGINATION,
-  POST_CONSTRAINTS,
   SUCCESS_MESSAGES,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
@@ -37,6 +37,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
   let getCommentReplies: (
     postId: any,
     commentId: any
+  ) => Promise<AxiosResponse<unknown>>;
+  let updateComment: (
+    postId: any,
+    commentId: any,
+    content: string
   ) => Promise<AxiosResponse<unknown>>;
   let deleteComment: (
     postId: any,
@@ -81,7 +86,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
   beforeEach(() => {
     client = createAxiosClient();
     ({ login } = createAuthRouteHelper(client));
-    ({ getPostComments, getCommentReplies, deleteComment } =
+    ({ getPostComments, getCommentReplies, deleteComment, updateComment } =
       createPostsRouteHelper(client));
   });
 
@@ -771,6 +776,151 @@ describe('/api/v1/posts/{postId}/comments', () => {
       const otherUserComment = comments.find((c) => c.userId !== admin.id);
       await expect(
         deleteComment(otherUserComment?.postId, otherUserComment?.id)
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+  });
+
+  describe('PATCH /api/v1/posts/{postId}/comments/{id}', () => {
+    afterAll(async () => {
+      comments = await seedComments();
+    });
+
+    it(`should update a comment's content if the comment's author is
+       requesting the endpoint and the post is PUBLISHED`, async () => {
+      const newContent = generateRandomString(20);
+      const commentForUpdate = comments.find(
+        (c) =>
+          c.userId === admin.id &&
+          posts.find((p) => p.id === c.postId && p.status === 'PUBLISHED')
+      );
+      await login(admin.email, admin.password);
+
+      const res = await updateComment(
+        commentForUpdate?.postId,
+        commentForUpdate?.id,
+        newContent
+      );
+      const { data } = res.data as BaseResponse;
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.update);
+
+      const comment = (data as any).comment as Comment;
+      expect(comment.content).toBe(newContent);
+    });
+
+    it('should return 401 UNAUTHORIZED when trying to update comment as guest', async () => {
+      return await expect(
+        updateComment(1, 1, generateRandomString(10))
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+
+    test.each([
+      ['is letter', 'a'],
+      ['is special character', '@'],
+      ['is decimal number', '12.34'],
+      ['is negative number', '-5'],
+      ['is boolean true', 'true'],
+      ['is boolean false', 'false'],
+      ['is null string', 'null'],
+      ['is undefined string', 'undefined'],
+    ])(
+      'should return validation error when post id or comment id %s',
+      async (_, id) => {
+        await login(admin.email, admin.password);
+        await expect(
+          updateComment(
+            id as any,
+            1,
+            generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
+          )
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+        await expect(
+          updateComment(
+            1,
+            id as any,
+            generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
+          )
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
+
+    test.each([
+      [
+        'is too short',
+        generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH - 1),
+      ],
+      [
+        'is too long',
+
+        generateRandomString(COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH + 1),
+      ],
+    ])(
+      'should return validation error when updated comment content %s',
+      async (_, content) => {
+        const commentForUpdate = comments.find(
+          (c) =>
+            c.userId === admin.id &&
+            posts.find((p) => p.id === c.postId && p.status === 'PUBLISHED')
+        );
+
+        await login(admin.email, admin.password);
+
+        await expect(
+          updateComment(commentForUpdate?.postId, commentForUpdate?.id, content)
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
+
+    it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
+      await login(admin.email, admin.password);
+      await expect(
+        updateComment(
+          999,
+          1,
+          generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
+        )
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+
+      const publishedPost = posts.find(
+        (p) =>
+          p.status === 'PUBLISHED' &&
+          p.visibility === 'PUBLIC' &&
+          comments.find((c) => c.postId === p.id)
+      );
+
+      if (!publishedPost) throw new Error('Missing published test post');
+
+      await expect(
+        updateComment(
+          publishedPost.id,
+          999,
+          generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
+        )
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it('should return 403 FORBIDDEN for updating a comment not belonging to the user', async () => {
+      await login(admin.email, admin.password);
+      const otherUserComment = comments.find((c) => c.userId !== admin.id);
+      await expect(
+        updateComment(
+          otherUserComment?.postId,
+          otherUserComment?.id,
+          generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
+        )
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
       );
