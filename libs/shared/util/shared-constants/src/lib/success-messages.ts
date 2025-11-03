@@ -21,5 +21,6 @@ export const SUCCESS_MESSAGES = {
     getCommentReplies: 'Comment replies retrieved successfully',
     delete: 'Comment deleted successfully',
     update: 'Comment updated successfully',
+    create: 'Comment posted successfully',
   },
 };

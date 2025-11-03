@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ICommentsService } from '@dans-coding-world/api-posts';
 import {
+  CreateCommentDto,
   DeleteCommentDto,
   GetPostCommentRepliesDto,
   GetPostCommentsDto,
@@ -73,9 +74,23 @@ export class CommentsController {
   @Authorized()
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      throw new Error('Not implemented');
+      const user = req.user as User;
+      const { id } = req.params;
+
+      const createCommentDto: CreateCommentDto = {
+        ...req.body,
+        postId: +id,
+        userId: user?.id,
+      };
+
+      const comment = await this.commentService.create(createCommentDto);
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.COMMENTS.create,
+        comment,
+      });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
