@@ -32,7 +32,7 @@ jobs:
           --health-retries 5
 
     env:
-      NODE_ENV: test
+      NODE_ENV: test_e2e
       DATABASE_URL: postgresql://username:password@localhost:5432/blogs_db
       ACCESS_TOKEN_SECRET: 102j4102jas0f9j
       REFRESH_TOKEN_SECRET: 039j9309j3290j4
