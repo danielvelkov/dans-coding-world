@@ -21,6 +21,7 @@ import {
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
+import { testInvalidIds } from '../helper/validation.helper';
 
 describe('/api/v1/posts/{postId}/comments', () => {
   let client: AxiosInstance;
@@ -139,26 +140,14 @@ describe('/api/v1/posts/{postId}/comments', () => {
       }
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when post id %s', async (_, id) => {
-      await expect(getPostComments(id as any)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
-    });
+    testInvalidIds((id) => getPostComments(id), 'postId');
 
     it('should return 404 NOT FOUND for unknown post id', async () => {
       return await expect(getPostComments(999)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
+
     describe('GET /api/v1/posts/{postId}/comments?sortBy[x]=y', () => {
       test.each([
         ['option does not exist', 'modifiedAt', 'asc'],
@@ -506,26 +495,8 @@ describe('/api/v1/posts/{postId}/comments', () => {
       }
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])(
-      'should return validation error when post id or comment id %s',
-      async (_, id) => {
-        await expect(getCommentReplies(id as any, 1)).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-        );
-        await expect(getCommentReplies(1, id as any)).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-        );
-      }
-    );
+    testInvalidIds((id) => getCommentReplies(id, 1), 'postId');
+    testInvalidIds((id) => getCommentReplies(1, id), 'commentId');
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
       await expect(getCommentReplies(999, 1)).rejects.toMatchObject(
@@ -736,27 +707,15 @@ describe('/api/v1/posts/{postId}/comments', () => {
       );
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])(
-      'should return validation error when post id or comment id %s',
-      async (_, id) => {
-        await login(admin.email, admin.password);
-        await expect(deleteComment(id as any, 1)).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-        );
-        await expect(deleteComment(1, id as any)).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-        );
-      }
-    );
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return deleteComment(id, 1);
+    }, 'postId');
+
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return deleteComment(1, id);
+    }, 'commentId');
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
       await login(admin.email, admin.password);
@@ -847,37 +806,25 @@ describe('/api/v1/posts/{postId}/comments', () => {
       );
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])(
-      'should return validation error when post id or replyToCommentId %s',
-      async (_, id) => {
-        await login(admin.email, admin.password);
-        await expect(
-          createComment(id as any, { content: generateRandomString(10) })
-        ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-        );
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return createComment(id, {
+        content: generateRandomString(
+          COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
+        ),
+      });
+    }, 'postId');
 
-        const post = posts.find((p) => p.status === 'PUBLISHED');
-
-        await expect(
-          createComment(post?.id, {
-            content: generateRandomString(10),
-            replyToCommentId: id as any,
-          })
-        ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-        );
-      }
-    );
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      const post = posts.find((p) => p.status === 'PUBLISHED');
+      return createComment(post?.id, {
+        content: generateRandomString(
+          COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
+        ),
+        replyToCommentId: id as any,
+      });
+    }, 'replyToCommentId');
 
     test.each([
       [
@@ -980,39 +927,23 @@ describe('/api/v1/posts/{postId}/comments', () => {
       );
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])(
-      'should return validation error when post id or comment id %s',
-      async (_, id) => {
-        await login(admin.email, admin.password);
-        await expect(
-          updateComment(
-            id as any,
-            1,
-            generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
-          )
-        ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-        );
-        await expect(
-          updateComment(
-            1,
-            id as any,
-            generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
-          )
-        ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-        );
-      }
-    );
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return updateComment(
+        1,
+        id as any,
+        generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
+      );
+    }, 'postId');
+
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return updateComment(
+        id as any,
+        1,
+        generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
+      );
+    }, 'commentId');
 
     test.each([
       [
