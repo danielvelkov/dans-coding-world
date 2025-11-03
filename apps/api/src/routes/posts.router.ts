@@ -1,32 +1,12 @@
 import { Router } from 'express';
-import {
-  postInjector,
-  PostsService,
-  CommentsService,
-} from '@dans-coding-world/api-posts';
+import { postInjector, PostsService } from '@dans-coding-world/api-posts';
 import { PostsController } from '../controllers/posts.controller';
-import { CommentsController } from '../controllers/comments.controller';
 
 const postsController = new PostsController(postInjector.get(PostsService));
 
-const commentsController = new CommentsController(
-  postInjector.get(CommentsService)
-);
-
-export const postsRouter = Router();
+const postsRouter = Router();
 
 postsRouter.route('/').get(postsController.getAll).post(postsController.create);
-
-postsRouter
-  .route('/:id/comments')
-  .get(commentsController.getPostComments)
-  .post(commentsController.create);
-
-postsRouter
-  .route('/:postId/comments/:id')
-  .get(commentsController.getCommentReplies)
-  .patch(commentsController.update)
-  .delete(commentsController.delete);
 
 postsRouter
   .route('/:id')
@@ -34,165 +14,13 @@ postsRouter
   .patch(postsController.update)
   .delete(postsController.delete);
 
+export default postsRouter;
+
 /**
  * @openapi
  * tags:
  *   name: Posts
- *   description: Endpoints regarding posts and comments made on posts
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Post:
- *       type: object
- *       properties:
- *         id:
- *           type: number
- *           description: Post Id.
- *           example: 1
- *         authorId:
- *           type: number
- *           description: The User Id
- *           example: 1
- *         status:
- *           type: string
- *           description: The post status. Could be DRAFT, PUBLISHED or ARCHIVED
- *           example: DRAFT
- *         visibility:
- *           type: string
- *           description: The post visibility to users. Could be PUBLIC or MEMBERS_ONLY
- *           example: PUBLIC
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: When the post was created.
- *         updatedAt:
- *           type: string
- *           format: date-time
- *           description: When the post was last modified.
- *         publishedAt:
- *           type: string
- *           format: date-time
- *           description: When the post was published to the public.
- *
- *     CreatePostDto:
- *       type: object
- *       required:
- *         - title
- *         - content
- *         - isDraft
- *         - isMembersOnly
- *       properties:
- *         title:
- *           type: string
- *           description: Post title
- *           minLength: 3
- *           maxLength: 60
- *         content:
- *           type: string
- *           format: password
- *           description: Post content
- *           minLength: 10
- *           maxLength: 32024
- *         isDraft:
- *           type: boolean
- *           description: Whether the post is a DRAFT
- *         isMembersOnly:
- *           type: boolean
- *           description: Whether the post is for members only
- *       example:
- *         title: Very valid post title
- *         content: Some random content.
- *         isDraft: true
- *         isMembersOnly: true
- *
- *     UpdatePostDto:
- *       type: object
- *       properties:
- *         title:
- *           type: string
- *           description: Post title
- *           minLength: 3
- *           maxLength: 60
- *         content:
- *           type: string
- *           format: password
- *           description: Post content
- *           minLength: 10
- *           maxLength: 32024
- *         status:
- *           type: string
- *           enum: [DRAFT, PUBLISHED, ARCHIVED]
- *           description: Post status. Could be one of [DRAFT, PUBLISHED, ARCHIVED]
- *         visibility:
- *           type: string
- *           enum: [PUBLIC, MEMBERS_ONLY]
- *           description: Post visibility. Could be one of [PUBLIC, MEMBERS_ONLY]
- *       example:
- *         content: Updated new random content.
- *
- *     PaginationMetadata:
- *       type: object
- *       properties:
- *         total:
- *           type: number
- *           description: Total number of items
- *           example: 0
- *         limit:
- *           type: number
- *           description: Items per page. Could be either 5, 10, 25.
- *           example: 5
- *         page:
- *           type: number
- *           description: Current page number
- *           example: 1
- *         totalPages:
- *           type: number
- *           description: Total number of pages
- *           example: 0
- *         hasNext:
- *           type: boolean
- *           description: Whether there is a next page
- *           example: false
- *         hasPrev:
- *           type: boolean
- *           description: Whether there is a previous page
- *           example: false
- *
- *     GetPostsResponse:
- *       allOf:
- *         - $ref: '#/components/schemas/SuccessResponse'
- *         - type: object
- *           properties:
- *             data:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Posts retrieved successfully
- *                 items:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Post'
- *                 count:
- *                   type: number
- *                   description: Number of items in current response
- *                   example: 0
- *                 pagination:
- *                   $ref: '#/components/schemas/PaginationMetadata'
- *
- *     GetPostResponse:
- *       allOf:
- *         - $ref: '#/components/schemas/SuccessResponse'
- *         - type: object
- *           properties:
- *             data:
- *               type: object
- *               properties:
- *                 post:
- *                   $ref: '#/components/schemas/Post'
+ *   description: Endpoints regarding posts
  */
 
 /**
@@ -252,7 +80,7 @@ postsRouter
  *               data: null
  *               error:
  *                 status: 404
- *                 errorCode: AUTH004
+ *                 errorCode: SER002
  *                 message: Resource not found
  *       500:
  *         description: Internal Server Error
@@ -292,7 +120,7 @@ postsRouter
  *         schema:
  *           type: integer
  *           minimum: 0
- *           enum: [10, 25, 50, 100]
+ *           enum: [5, 10 ,25]
  *         required: false
  *         description: Number of items per page
  *       - in: query
@@ -493,7 +321,7 @@ postsRouter
  *               data: null
  *               error:
  *                 status: 404
- *                 errorCode: AUTH004
+ *                 errorCode: SER002
  *                 message: Resource not found
  *       500:
  *         description: Internal Server Error
@@ -556,7 +384,7 @@ postsRouter
  *               data: null
  *               error:
  *                 status: 404
- *                 errorCode: AUTH004
+ *                 errorCode: SER002
  *                 message: Resource not found
  *       500:
  *         description: Internal Server Error
@@ -564,4 +392,158 @@ postsRouter
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Post:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: number
+ *           description: Post Id.
+ *           example: 1
+ *         authorId:
+ *           type: number
+ *           description: The User Id
+ *           example: 1
+ *         status:
+ *           type: string
+ *           description: The post status. Could be DRAFT, PUBLISHED or ARCHIVED
+ *           example: DRAFT
+ *         visibility:
+ *           type: string
+ *           description: The post visibility to users. Could be PUBLIC or MEMBERS_ONLY
+ *           example: PUBLIC
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: When the post was created.
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: When the post was last modified.
+ *         publishedAt:
+ *           type: string
+ *           format: date-time
+ *           description: When the post was published to the public.
+ *
+ *     CreatePostDto:
+ *       type: object
+ *       required:
+ *         - title
+ *         - content
+ *         - isDraft
+ *         - isMembersOnly
+ *       properties:
+ *         title:
+ *           type: string
+ *           description: Post title
+ *           minLength: 3
+ *           maxLength: 60
+ *         content:
+ *           type: string
+ *           format: password
+ *           description: Post content
+ *           minLength: 10
+ *           maxLength: 32024
+ *         isDraft:
+ *           type: boolean
+ *           description: Whether the post is a DRAFT
+ *         isMembersOnly:
+ *           type: boolean
+ *           description: Whether the post is for members only
+ *       example:
+ *         title: Very valid post title
+ *         content: Some random content.
+ *         isDraft: true
+ *         isMembersOnly: true
+ *
+ *     UpdatePostDto:
+ *       type: object
+ *       properties:
+ *         title:
+ *           type: string
+ *           description: Post title
+ *           minLength: 3
+ *           maxLength: 60
+ *         content:
+ *           type: string
+ *           format: password
+ *           description: Post content
+ *           minLength: 10
+ *           maxLength: 32024
+ *         status:
+ *           type: string
+ *           enum: [DRAFT, PUBLISHED, ARCHIVED]
+ *           description: Post status. Could be one of [DRAFT, PUBLISHED, ARCHIVED]
+ *         visibility:
+ *           type: string
+ *           enum: [PUBLIC, MEMBERS_ONLY]
+ *           description: Post visibility. Could be one of [PUBLIC, MEMBERS_ONLY]
+ *       example:
+ *         content: Updated new random content.
+ *
+ *     PaginationMetadata:
+ *       type: object
+ *       properties:
+ *         total:
+ *           type: number
+ *           description: Total number of items
+ *           example: 0
+ *         limit:
+ *           type: number
+ *           description: Item page. Could be either 5, 10, 25.
+ *           example: 5
+ *         page:
+ *           type: number
+ *           description: Current page number
+ *           example: 1
+ *         totalPages:
+ *           type: number
+ *           description: Total number of pages
+ *           example: 0
+ *         hasNext:
+ *           type: boolean
+ *           description: Whether there is a next page
+ *           example: false
+ *         hasPrev:
+ *           type: boolean
+ *           description: Whether there is a previous page
+ *           example: false
+ *
+ *     GetPostsResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SuccessResponse'
+ *         - type: object
+ *           properties:
+ *             data:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Posts retrieved successfully
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Post'
+ *                 count:
+ *                   type: number
+ *                   description: Number of items in current response
+ *                   example: 0
+ *                 pagination:
+ *                   $ref: '#/components/schemas/PaginationMetadata'
+ *
+ *     GetPostResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SuccessResponse'
+ *         - type: object
+ *           properties:
+ *             data:
+ *               type: object
+ *               properties:
+ *                 post:
+ *                   $ref: '#/components/schemas/Post'
  */

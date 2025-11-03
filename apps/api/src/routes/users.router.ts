@@ -6,7 +6,10 @@ const usersController = new UsersController(
   authInjector.get(TOKEN_SERVICE_TOKEN)
 );
 
-export const usersRouter = Router();
+const usersRouter = Router();
+usersRouter.post('/:id/revokeUserTokens', usersController.revokeUserTokens);
+
+export default usersRouter;
 
 /**
  * @openapi
@@ -64,4 +67,3 @@ export const usersRouter = Router();
  *             schema:
  *               $ref: '#/components/schemas/InternalServerError'
  */
-usersRouter.post('/:id/revokeUserTokens', usersController.revokeUserTokens);

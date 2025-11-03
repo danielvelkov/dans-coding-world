@@ -25,11 +25,11 @@ export class CommentsController {
   async getPostComments(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
-      const { id } = req.params;
+      const { postId } = req.params;
 
       const getPostCommentsDto: GetPostCommentsDto = {
         ...req.query,
-        postId: +id,
+        postId: +postId,
         viewerId: user?.id,
       };
 
@@ -75,11 +75,11 @@ export class CommentsController {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
-      const { id } = req.params;
+      const { postId } = req.params;
 
       const createCommentDto: CreateCommentDto = {
         ...req.body,
-        postId: +id,
+        postId,
         userId: user?.id,
       };
 

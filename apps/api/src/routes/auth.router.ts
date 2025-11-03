@@ -15,6 +15,18 @@ const authController = new AuthController(
 
 const authRouter = Router();
 
+authRouter.post('/logout', authController.logout);
+authRouter.post('/login', authController.login);
+authRouter.post('/refresh', authController.refresh);
+authRouter.post('/register', authController.register);
+authRouter.post('/revokeToken', authController.revokeToken);
+authRouter.post('/revokeAll', authController.revokeAllTokens);
+
+export default authRouter;
+
+// I don't understand the point of this but I hope its good practice.
+// There is probably a better way using swagger decorators or something.
+
 /**
  * @openapi
  * tags:
@@ -22,8 +34,327 @@ const authRouter = Router();
  *   description: Endpoints for user login, token generation, registration and access control
  */
 
-// I don't understand the point of this but I hope its good practice.
-// There is probably a better way using swagger decorators or something.
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Login a user using their credentials
+ *     description: Validates user credentials, then returns user data with access and refresh tokens set in "Set-Cookie" header.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginDTO'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginDTO'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         headers:
+ *           Set-Cookie:
+ *             description:
+ *               Stores the access_token and refresh_token as HttpOnly cookies.
+ *               These cookies are automatically included in subsequent requests and used by the server to authenticate the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginSuccessResponse'
+ *       401:
+ *         description: Unauthorized - Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - $ref: '#/components/schemas/WrongCredentialsError'
+ *                 - $ref: '#/components/schemas/WrongPasswordError'
+ *       400:
+ *         description: Bad Request - Invalid input data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VALIDATION_ERROR
+ *                 message: Email and password are required
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
+ * /auth/logout:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Logout the currently logged-in user
+ *     description: Logs user out by revoking his refresh token and clearing 'set-cookie' header token values.
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *         headers:
+ *           Set-Cookie:
+ *             description:
+ *               Removes the access_token and refresh_token cookies.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *             example:
+ *               error: null
+ *               success: true
+ *               data:
+ *                 message: 'Logout successful'
+ *       401:
+ *         description: Unauthorized - Login first
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
+ * /auth/refresh:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Refresh access and refresh tokens
+ *     description: Validates provided refresh token, then returns user data with access and refresh tokens as cookies.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RefreshTokenDTO'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/RefreshTokenDTO'
+ *     responses:
+ *       200:
+ *         description: Token refresh successful
+ *         headers:
+ *           Set-Cookie:
+ *             description:
+ *               Stores the access_token and refresh_token as HttpOnly cookies.
+ *               These cookies are automatically included in subsequent requests and used by the server to authenticate the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginSuccessResponse'
+ *       401:
+ *         description: Unauthorized - Invalid or expired refresh token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InvalidTokenError'
+ *       400:
+ *         description: Bad Request - Missing refresh token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VALIDATION_ERROR
+ *                 message: Refresh token is required
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Register a user.
+ *     description: Validates signup data, then creates and returns the new user.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegistrationDTO'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/RegistrationDTO'
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginSuccessResponse'
+ *       400:
+ *         description: Bad Request - Validation Failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: Validation Failed
+ *       409:
+ *         description: Conflict - User already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 409
+ *                 errorCode: VAL002
+ *                 message: User with this email or username already exists
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
+ * /auth/revokeToken:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: End a user session by revoking the refresh token.
+ *     description: Checks if valid JWT token is passed, then proceeds to set its status to 'revoked', making the token invalid.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RefreshTokenDTO'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/RefreshTokenDTO'
+ *     responses:
+ *       200:
+ *         description: Token revoked
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/RefreshToken'
+ *       400:
+ *         description: Bad Request - Validation Failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: Validation Failed
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *       404:
+ *         description: Not Found - Token no longer exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: AUTH004
+ *                 message: Token no longer exists
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
+ * /auth/revokeAll:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: End all user session by revoking all refresh tokens
+ *     responses:
+ *       200:
+ *         description: Tokens revoked
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                           revokedCount:
+ *                             type: number
+ *                             description: Number of revoked tokens
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
 
 /**
  * @openapi
@@ -278,7 +609,7 @@ const authRouter = Router();
  *                   example: 403
  *                 errorCode:
  *                   type: string
- *                   example: SERV003
+ *                   example: SER003
  *                 message:
  *                   type: string
  *                   example: You do not have permissions to perform this action.
@@ -308,332 +639,3 @@ const authRouter = Router();
  *           errorCode: INTERNAL_SERVER_ERROR
  *           message: Something went wrong.
  */
-
-/**
- * @openapi
- * /auth/login:
- *   post:
- *     tags: [Authentication]
- *     summary: Login a user using their credentials
- *     description: Validates user credentials, then returns user data with access and refresh tokens set in "Set-Cookie" header.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/LoginDTO'
- *         application/x-www-form-urlencoded:
- *           schema:
- *             $ref: '#/components/schemas/LoginDTO'
- *     responses:
- *       200:
- *         description: Login successful
- *         headers:
- *           Set-Cookie:
- *             description:
- *               Stores the access_token and refresh_token as HttpOnly cookies.
- *               These cookies are automatically included in subsequent requests and used by the server to authenticate the user.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/LoginSuccessResponse'
- *       401:
- *         description: Unauthorized - Invalid credentials
- *         content:
- *           application/json:
- *             schema:
- *               oneOf:
- *                 - $ref: '#/components/schemas/WrongCredentialsError'
- *                 - $ref: '#/components/schemas/WrongPasswordError'
- *       400:
- *         description: Bad Request - Invalid input data
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               data: null
- *               error:
- *                 status: 400
- *                 errorCode: VALIDATION_ERROR
- *                 message: Email and password are required
- *       500:
- *         description: Internal Server Error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/InternalServerError'
- */
-authRouter.post('/login', authController.login);
-
-/**
- * @openapi
- * /auth/logout:
- *   post:
- *     tags: [Authentication]
- *     summary: Logout the currently logged-in user
- *     description: Logs user out by revoking his refresh token and clearing 'set-cookie' header token values.
- *     responses:
- *       200:
- *         description: Logout successful
- *         headers:
- *           Set-Cookie:
- *             description:
- *               Removes the access_token and refresh_token cookies.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               error: null
- *               success: true
- *               data:
- *                 message: 'Logout successful'
- *       401:
- *         description: Unauthorized - Login first
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UnauthorizedError'
- *       500:
- *         description: Internal Server Error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/InternalServerError'
- */
-authRouter.post('/logout', authController.logout);
-
-/**
- * @openapi
- * /auth/refresh:
- *   post:
- *     tags: [Authentication]
- *     summary: Refresh access and refresh tokens
- *     description: Validates provided refresh token, then returns user data with access and refresh tokens as cookies.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RefreshTokenDTO'
- *         application/x-www-form-urlencoded:
- *           schema:
- *             $ref: '#/components/schemas/RefreshTokenDTO'
- *     responses:
- *       200:
- *         description: Token refresh successful
- *         headers:
- *           Set-Cookie:
- *             description:
- *               Stores the access_token and refresh_token as HttpOnly cookies.
- *               These cookies are automatically included in subsequent requests and used by the server to authenticate the user.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/LoginSuccessResponse'
- *       401:
- *         description: Unauthorized - Invalid or expired refresh token
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/InvalidTokenError'
- *       400:
- *         description: Bad Request - Missing refresh token
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               data: null
- *               error:
- *                 status: 400
- *                 errorCode: VALIDATION_ERROR
- *                 message: Refresh token is required
- *       500:
- *         description: Internal Server Error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/InternalServerError'
- */
-authRouter.post('/refresh', authController.refresh);
-
-/**
- * @openapi
- * /auth/register:
- *   post:
- *     tags: [Authentication]
- *     summary: Register a user.
- *     description: Validates signup data, then creates and returns the new user.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RegistrationDTO'
- *         application/x-www-form-urlencoded:
- *           schema:
- *             $ref: '#/components/schemas/RegistrationDTO'
- *     responses:
- *       201:
- *         description: User created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/LoginSuccessResponse'
- *       400:
- *         description: Bad Request - Validation Failed
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               data: null
- *               error:
- *                 status: 400
- *                 errorCode: VAL001
- *                 message: Validation Failed
- *       409:
- *         description: Conflict - User already exists
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               data: null
- *               error:
- *                 status: 409
- *                 errorCode: VAL002
- *                 message: User with this email or username already exists
- *       500:
- *         description: Internal Server Error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/InternalServerError'
- */
-authRouter.post('/register', authController.register);
-
-/**
- * @openapi
- * /auth/revokeToken:
- *   post:
- *     tags: [Authentication]
- *     summary: End a user session by revoking the refresh token.
- *     description: Checks if valid JWT token is passed, then proceeds to set its status to 'revoked', making the token invalid.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RefreshTokenDTO'
- *         application/x-www-form-urlencoded:
- *           schema:
- *             $ref: '#/components/schemas/RefreshTokenDTO'
- *     responses:
- *       200:
- *         description: Token revoked
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       $ref: '#/components/schemas/RefreshToken'
- *       400:
- *         description: Bad Request - Validation Failed
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               data: null
- *               error:
- *                 status: 400
- *                 errorCode: VAL001
- *                 message: Validation Failed
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UnauthorizedError'
- *       403:
- *         description: Forbidden
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ForbiddenError'
- *       404:
- *         description: Not Found - Token no longer exists
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               data: null
- *               error:
- *                 status: 404
- *                 errorCode: AUTH004
- *                 message: Token no longer exists
- *       500:
- *         description: Internal Server Error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/InternalServerError'
- */
-authRouter.post('/revokeToken', authController.revokeToken);
-
-/**
- * @openapi
- * /auth/revokeAll:
- *   post:
- *     tags: [Authentication]
- *     summary: End all user session by revoking all refresh tokens
- *     responses:
- *       200:
- *         description: Tokens revoked
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                           revokedCount:
- *                             type: number
- *                             description: Number of revoked tokens
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UnauthorizedError'
- *       403:
- *         description: Forbidden
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ForbiddenError'
- *       500:
- *         description: Internal Server Error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/InternalServerError'
- */
-authRouter.post('/revokeAll', authController.revokeAllTokens);
-export default authRouter;

@@ -32,7 +32,7 @@ export interface IPostsService {
    * const post = await postsService.getById({postId: 42, viewerId: 1});
    * ```
    * @throws {Error} When the post with this ID is not found (SER002)
-   * @throws {Error} When the user requesting it is not the author and the post is not published (SERV003)
+   * @throws {Error} When the user requesting it is not the author and the post is not published (SER003)
    */
   getById(dto: GetPostDto): Promise<Post>;
 
