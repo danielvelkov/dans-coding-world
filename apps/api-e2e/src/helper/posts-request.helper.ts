@@ -1,4 +1,5 @@
 import {
+  CreateCommentDto,
   CreatePostDto,
   UpdateCommentDto,
   UpdatePostDto,
@@ -75,6 +76,29 @@ export function createPostsRouteHelper(client: AxiosInstance) {
       return await client.patch(
         `/api/v1/posts/${postId}/comments/${commentId}`,
         { content }
+      );
+    },
+
+    async createComment(
+      postId: string,
+      postData: Omit<CreateCommentDto, 'userId' | 'postId'>
+    ) {
+      const formData = Object.fromEntries(
+        Object.entries(postData).map(([key, value]) => [
+          key,
+          value === undefined ? 'undefined' : value.toString(),
+        ])
+      );
+
+      const urlSearchParams = new URLSearchParams(formData);
+      return await client.post(
+        `/api/v1/posts/${postId}/comments`,
+        urlSearchParams,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
       );
     },
   };

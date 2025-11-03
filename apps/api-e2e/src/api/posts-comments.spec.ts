@@ -10,7 +10,6 @@ import {
   ERROR_CODES,
   PAGINATION,
   SUCCESS_MESSAGES,
-  VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { createAuthRouteHelper } from '../helper/auth-request.helper';
 import { createAxiosClient } from '../helper/test-client.helper';
@@ -22,7 +21,6 @@ import {
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
-import { StatusCodes } from 'http-status-codes';
 
 describe('/api/v1/posts/{postId}/comments', () => {
   let client: AxiosInstance;
@@ -46,6 +44,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
   let deleteComment: (
     postId: any,
     commentId: any
+  ) => Promise<AxiosResponse<unknown>>;
+  let createComment: (
+    postId: any,
+    commentData: any
   ) => Promise<AxiosResponse<unknown>>;
 
   let users: User[] = [];
@@ -86,8 +88,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
   beforeEach(() => {
     client = createAxiosClient();
     ({ login } = createAuthRouteHelper(client));
-    ({ getPostComments, getCommentReplies, deleteComment, updateComment } =
-      createPostsRouteHelper(client));
+    ({
+      getPostComments,
+      getCommentReplies,
+      deleteComment,
+      updateComment,
+      createComment,
+    } = createPostsRouteHelper(client));
   });
 
   describe('GET /api/v1/posts/{postId}/comments', () => {
@@ -782,6 +789,162 @@ describe('/api/v1/posts/{postId}/comments', () => {
     });
   });
 
+  describe('POST /api/v1/posts/{postId}/comments', () => {
+    afterAll(async () => {
+      comments = await seedComments();
+    });
+
+    it(`should create a comment on post if 
+      its status is PUBLISHED and user is logged-in`, async () => {
+      const newContent = generateRandomString(20);
+      const post = posts.find((p) => p.status === 'PUBLISHED');
+
+      await login(admin.email, admin.password);
+
+      const res = await createComment(post?.id, { content: newContent });
+
+      const { data } = res.data as BaseResponse;
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.create);
+
+      const comment = (data as any).comment as Comment;
+      expect(comment.content).toBe(newContent);
+      expect(comment.postId).toBe(post?.id);
+      expect(comment.userId).toBe(admin.id);
+    });
+
+    it(`should create a reply to a comment on post if 
+      the post is PUBLISHED, user logged-in and replyToCommentId specified`, async () => {
+      const newContent = generateRandomString(20);
+      const post = posts.find(
+        (p) =>
+          p.status === 'PUBLISHED' && comments.find((c) => c.postId === p.id)
+      );
+
+      const commentToReplyTo = comments.find((c) => c.postId === post?.id);
+
+      await login(admin.email, admin.password);
+
+      const res = await createComment(post?.id, {
+        content: newContent,
+        replyToCommentId: commentToReplyTo?.id,
+      });
+
+      const { data } = res.data as BaseResponse;
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.create);
+
+      const comment = (data as any).comment as Comment;
+      expect(comment.content).toBe(newContent);
+      expect(comment.postId).toBe(post?.id);
+      expect(comment.userId).toBe(admin.id);
+      expect(comment.threadParentId).toBe(commentToReplyTo?.id);
+    });
+
+    it('should return 401 UNAUTHORIZED when trying to create comment as guest', async () => {
+      return await expect(
+        createComment(1, { content: generateRandomString(10) })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+
+    test.each([
+      ['is letter', 'a'],
+      ['is special character', '@'],
+      ['is decimal number', '12.34'],
+      ['is negative number', '-5'],
+      ['is boolean true', 'true'],
+      ['is boolean false', 'false'],
+      ['is null string', 'null'],
+      ['is undefined string', 'undefined'],
+    ])(
+      'should return validation error when post id or replyToCommentId %s',
+      async (_, id) => {
+        await login(admin.email, admin.password);
+        await expect(
+          createComment(id as any, { content: generateRandomString(10) })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+
+        const post = posts.find((p) => p.status === 'PUBLISHED');
+
+        await expect(
+          createComment(post?.id, {
+            content: generateRandomString(10),
+            replyToCommentId: id as any,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
+
+    test.each([
+      [
+        'is too short',
+        generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH - 1),
+      ],
+      [
+        'is too long',
+
+        generateRandomString(COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH + 1),
+      ],
+    ])(
+      'should return validation error when comment content field %s',
+      async (_, content) => {
+        const post = posts.find((p) => p.status === 'PUBLISHED');
+        await login(admin.email, admin.password);
+
+        await expect(
+          createComment(post?.id, { content })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
+
+    it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
+      await login(admin.email, admin.password);
+      await expect(
+        createComment(999, { content: generateRandomString(10) })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it('should return 404 NOT FOUND when replyToCommentId does not exist', async () => {
+      const post = posts.find(
+        (p) =>
+          p.status === 'PUBLISHED' && comments.find((c) => c.postId === p.id)
+      );
+
+      await login(admin.email, admin.password);
+
+      await expect(
+        createComment(post?.id, {
+          content: generateRandomString(10),
+          replyToCommentId: 999,
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it(`should return 403 FORBIDDEN when posting a comment on a 
+      non-PUBLISHED post that the user is not the author of`, async () => {
+      await login(admin.email, admin.password);
+      const nonPublishedPosts = posts.filter(
+        (p) => p.status !== 'PUBLISHED' && p.authorId !== admin.id
+      );
+      for (const post of nonPublishedPosts)
+        await expect(
+          createComment(post.id, { content: generateRandomString(10) })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
+    });
+  });
+
   describe('PATCH /api/v1/posts/{postId}/comments/{id}', () => {
     afterAll(async () => {
       comments = await seedComments();
@@ -927,8 +1090,3 @@ describe('/api/v1/posts/{postId}/comments', () => {
     });
   });
 });
-
-function logError(error: any) {
-  console.error((error as any).response.data.error);
-  console.error((error as any).response.data.error.details);
-}
