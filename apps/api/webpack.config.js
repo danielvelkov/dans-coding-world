@@ -19,4 +19,10 @@ module.exports = {
       sourceMap: true,
     }),
   ],
+  ignoreWarnings: [
+    {
+      module: /prisma/,
+      message: /Failed to parse source map/,
+    },
+  ],
 };

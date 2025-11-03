@@ -172,7 +172,7 @@ export default postsRouter;
  *           type: string
  *           maxLength: 255
  *         required: false
- *         description: Search query to filter posts by title
+ *         description: Search query to filter posts by title or content. Not case-sensitive
  *     responses:
  *       200:
  *         description: Posts retrieved successfully
@@ -492,7 +492,7 @@ export default postsRouter;
  *         total:
  *           type: number
  *           description: Total number of items
- *           example: 0
+ *           example: 1
  *         limit:
  *           type: number
  *           description: Item page. Could be either 5, 10, 25.
@@ -504,7 +504,7 @@ export default postsRouter;
  *         totalPages:
  *           type: number
  *           description: Total number of pages
- *           example: 0
+ *           example: 1
  *         hasNext:
  *           type: boolean
  *           description: Whether there is a next page
