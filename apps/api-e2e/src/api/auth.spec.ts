@@ -31,21 +31,42 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { passwordGenerator } from '@dans-coding-world/api-auth';
 import { IS_EMAIL, MIN_LENGTH, MATCHES } from 'class-validator';
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, AxiosResponse } from 'axios';
 
 let users: User[];
 
 describe('/api/v1/auth', () => {
+  let client: AxiosInstance;
+  let login: (
+    email: string,
+    password: string
+  ) => Promise<AxiosResponse<BaseResponse>>;
+  let logout: () => Promise<AxiosResponse<BaseResponse>>;
+  let renewAuthToken: (token: string) => Promise<AxiosResponse<BaseResponse>>;
+  let register: (
+    email: string,
+    password: string,
+    username: string
+  ) => Promise<AxiosResponse<BaseResponse>>;
+  let revokeToken: (token: string) => Promise<AxiosResponse<BaseResponse>>;
+  let revokeAllTokens: () => Promise<AxiosResponse<BaseResponse>>;
+
+  beforeEach(() => {
+    client = createAxiosClient();
+    ({ login, logout, renewAuthToken, register, revokeToken, revokeAllTokens } =
+      createAuthRouteHelper(client));
+  });
+
   afterAll(async () => {
     // Cleanup
     await seedUsers([], { clearExisting: true, useDefaults: false });
   });
+
   describe('POST /api/v1/auth/login', () => {
-    const client = createAxiosClient();
-    const { login } = createAuthRouteHelper(client);
     beforeAll(async () => {
       users = await seedUsers();
     });
+
     it(`should return user data and set access and refresh tokens
        in 'Set-Cookie' header on valid credentials`, async () => {
       const res = await login(users[0].email, users[0].password);
@@ -96,18 +117,10 @@ describe('/api/v1/auth', () => {
   });
 
   describe('POST /api/v1/auth/logout', () => {
-    let client: AxiosInstance;
-    let login: ExtractMethod<ReturnType<typeof createAuthRouteHelper>, 'login'>,
-      logout: ExtractMethod<ReturnType<typeof createAuthRouteHelper>, 'logout'>;
     beforeAll(async () => {
       users = await seedUsers();
     });
-    beforeEach(async () => {
-      client = createAxiosClient();
-      const authHelpers = createAuthRouteHelper(client);
-      login = authHelpers.login;
-      logout = authHelpers.logout;
-    });
+
     it('should remove token data from set-cookie when logout successful', async () => {
       await login(users[0].email, users[0].password);
 
@@ -124,6 +137,7 @@ describe('/api/v1/auth', () => {
         getJwtToken(findSetCookie(logoutRes, REFRESH_TOKEN_COOKIE))
       ).toThrow();
     });
+    
     it('should revoke user refresh token when logout successful', async () => {
       const res = await login(users[0].email, users[0].password);
 
@@ -142,13 +156,12 @@ describe('/api/v1/auth', () => {
   });
 
   describe('POST /api/v1/auth/refresh', () => {
-    const client = createAxiosClient();
-    const { login, renewAuthToken } = createAuthRouteHelper(client);
     let jwt = '';
 
     beforeAll(async () => {
       users = await seedUsers();
     });
+
     beforeEach(async () => {
       if (!users[0]) throw new Error('Missing test user');
 
@@ -230,17 +243,17 @@ describe('/api/v1/auth', () => {
   });
 
   describe('POST /api/v1/auth/register', () => {
-    const client = createAxiosClient();
-    const { register, login } = createAuthRouteHelper(client);
     const VALID_USER_DATA = {
       email: 'totalyValidEmail@gmail.com',
       password: passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1),
       username: 'totallyValid13',
     };
+
     beforeAll(async () => {
       // cleanup
       await seedUsers([], { clearExisting: true, useDefaults: false });
     });
+
     it('should return created user data on valid registration data', async () => {
       const registerRes = await register(
         VALID_USER_DATA.email,
@@ -264,6 +277,7 @@ describe('/api/v1/auth', () => {
       const { data: loginData } = loginRes.data as BaseResponse;
       expect(loginData).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.login);
     });
+
     it('should return an error when trying to register an existing user with the same username or email', async () => {
       await seedUsers([{ ...VALID_USER_DATA, id: 1, role: 'USER' }], {
         clearExisting: true,
@@ -377,14 +391,14 @@ describe('/api/v1/auth', () => {
       }
     );
   });
+
   describe('POST /api/v1/auth/revokeToken', () => {
     let userRefreshToken = '';
-    const client = createAxiosClient();
-    const { login, logout, revokeToken } = createAuthRouteHelper(client);
 
     beforeAll(async () => {
       users = await seedUsers();
     });
+
     beforeEach(async () => {
       if (!users[0]) throw new Error('Missing test user');
 
@@ -394,6 +408,7 @@ describe('/api/v1/auth', () => {
 
       userRefreshToken = getJwtToken(refreshTokenCookie);
     });
+
     it('should return 401 Unauthorized when trying to access as a logged out user', async () => {
       await logout();
 
@@ -427,6 +442,7 @@ describe('/api/v1/auth', () => {
       const updatedToken = await getTokenById(getJti(userRefreshToken));
       expect(updatedToken.revoked).toBe(true);
     });
+
     it('should throw when token does not exist', async () => {
       // clear tokens
       await seedRefreshTokens([], { clearExisting: true, useDefaults: false });
@@ -435,10 +451,9 @@ describe('/api/v1/auth', () => {
       );
     });
   });
+
   describe('POST /api/v1/auth/revokeAll', () => {
     let tokens: string[] = [];
-    const client = createAxiosClient();
-    const { login, logout, revokeAllTokens } = createAuthRouteHelper(client);
 
     beforeEach(async () => {
       // Cleanup
@@ -453,6 +468,7 @@ describe('/api/v1/auth', () => {
         tokens.push(getJwtToken(refreshTokenCookie));
       });
     });
+
     it('should return 401 Unauthorized when trying to access as a logged out user', async () => {
       const user = users.find((u) => u.role === 'USER');
       if (!user) throw new Error('Missing test user');
@@ -464,6 +480,7 @@ describe('/api/v1/auth', () => {
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
+
     it('should return 403 forbidden when trying to access as anything other than admin', async () => {
       const user = users.find((u) => u.role === 'USER');
       if (!user) throw new Error('Missing test user');
@@ -483,6 +500,7 @@ describe('/api/v1/auth', () => {
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
       );
     });
+
     it('should mark all tokens as revoked if called as admin', async () => {
       for (const token of tokens) {
         expect((await getTokenById(getJti(token))).revoked).toBe(false);
@@ -509,7 +527,3 @@ describe('/api/v1/auth', () => {
     });
   });
 });
-
-type ExtractMethod<T, K extends keyof T> = T[K] extends (...args: any[]) => any
-  ? T[K]
-  : never;
