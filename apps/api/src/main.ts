@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { ApiException } from '@dans-coding-world/exceptions';
 import * as path from 'path';
@@ -20,6 +21,13 @@ import passport from 'passport';
 import cors from 'cors';
 
 const app = express();
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: false,
+  })
+);
 
 app.use(
   cors({
