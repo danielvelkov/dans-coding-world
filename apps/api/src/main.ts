@@ -1,5 +1,6 @@
 import express from 'express';
 import helmet from 'helmet';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { ApiException } from '@dans-coding-world/exceptions';
 import * as path from 'path';
@@ -21,6 +22,8 @@ import passport from 'passport';
 import cors from 'cors';
 
 const app = express();
+
+app.use(compression());
 
 app.use(
   helmet({
