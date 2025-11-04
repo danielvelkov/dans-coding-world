@@ -32,7 +32,7 @@ jobs:
           --health-retries 5
 
     env:
-      NODE_ENV: test_e2e
+      NODE_ENV: test
       DATABASE_URL: postgresql://username:password@localhost:5432/blogs_db
       ACCESS_TOKEN_SECRET: 102j4102jas0f9j
       REFRESH_TOKEN_SECRET: 039j9309j3290j4
@@ -49,11 +49,20 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      - name: Install lsof
+        run: sudo apt-get update && sudo apt-get install -y lsof
+
       - run: npm ci --legacy-peer-deps
 
-      - run: npx cypress install
-
       # Generate prisma client
-      - run: npx nx run @dans-coding-world/prisma-schema:generate-types:e2e
+      - run: |
+          export DATABASE_URL=${{ env.DATABASE_URL }}
+          npx nx run @dans-coding-world/prisma-schema:generate-types:e2e
 
-      - run: npx nx run-many -t lint test build e2e
+      - run: |
+          export NODE_ENV=test
+          npx nx run-many -t lint test build
+
+      - run: |
+          export NODE_ENV=test_e2e
+          npx nx run-many -t e2e
