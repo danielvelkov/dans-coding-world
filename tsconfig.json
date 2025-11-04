@@ -25,9 +25,6 @@
       "path": "./libs/tools/testing-setup"
     },
     {
-      "path": "./libs/shared/util/util-auth"
-    },
-    {
       "path": "./libs/shared/util/shared-constants"
     },
     {
@@ -50,6 +47,15 @@
     },
     {
       "path": "./libs/shared/util/validation"
+    },
+    {
+      "path": "./libs/api/data-access/post"
+    },
+    {
+      "path": "./libs/shared/post/dtos"
+    },
+    {
+      "path": "./libs/api/posts"
     }
   ]
 }

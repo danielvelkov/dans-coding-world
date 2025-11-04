@@ -6,7 +6,10 @@ const usersController = new UsersController(
   authInjector.get(TOKEN_SERVICE_TOKEN)
 );
 
-export const usersRouter = Router();
+const usersRouter = Router();
+usersRouter.post('/:id/revokeUserTokens', usersController.revokeUserTokens);
+
+export default usersRouter;
 
 /**
  * @openapi
@@ -21,7 +24,7 @@ export const usersRouter = Router();
  *   post:
  *     tags: [Users]
  *     summary: Revoke all user refresh tokens
- *     description: Gets all refresh tokens for an user given his id, then sets the token status to 'revoked', making each onec invalid.
+ *     description: Gets all refresh tokens for an user given his id, then sets the token status to 'revoked', making each one invalid.
  *     parameters:
  *       - in: path
  *         name: userId
@@ -64,4 +67,3 @@ export const usersRouter = Router();
  *             schema:
  *               $ref: '#/components/schemas/InternalServerError'
  */
-usersRouter.post('/:id/revokeUserTokens', usersController.revokeUserTokens);

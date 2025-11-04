@@ -1,0 +1,19 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../util/api-types"
+    },
+    {
+      "path": "../../../prisma-schema"
+    },
+    {
+      "path": "../../util/shared-constants"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    }
+  ]
+}

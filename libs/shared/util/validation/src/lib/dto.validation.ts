@@ -6,7 +6,7 @@ import {
 } from '@dans-coding-world/exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 
-export async function validateDto<T>(
+export async function transformAndValidateDto<T>(
   dto: object,
   dtoClass: ClassType<T>
 ): Promise<T> {

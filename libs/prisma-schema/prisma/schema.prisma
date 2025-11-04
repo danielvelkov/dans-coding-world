@@ -21,6 +21,8 @@ model User {
   password String
   role Role @default(USER)
   refreshTokens RefreshToken[]
+  posts Post[]
+  comments Comment[]
 }
 
 model RefreshToken {
@@ -32,8 +34,48 @@ model RefreshToken {
   expiresAt DateTime
 }
 
+model Post {
+  id Int @id @default(autoincrement())
+  status PostStatus @default(DRAFT)
+  title String
+  content String @db.Text
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId Int
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  publishedAt DateTime?  // we start out as a draft so no published date is set
+  visibility PostVisibility @default(PUBLIC)
+  comments Comment[]
+}
+
+model Comment {
+  id Int @id @default(autoincrement())
+  content String
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  threadParentId Int? 
+  threadParent Comment? @relation("ReplyThread", fields: [threadParentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("ReplyThread")
+  depth Int @default(0)
+}
+
 enum Role {
   ADMIN
   MOD
   USER
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PostVisibility {
+  PUBLIC
+  MEMBERS_ONLY
 }

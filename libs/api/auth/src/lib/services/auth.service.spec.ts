@@ -13,14 +13,15 @@ import {
   IRefreshTokenRepository,
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
-import { MockUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
-import { MockRefreshTokenDataAccess as MockRefreshTokenRepository } from '@dans-coding-world/token-data-access';
+import { PrismaUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
+import { PrismaRefreshTokenDataAccess as MockRefreshTokenRepository } from '@dans-coding-world/token-data-access';
 import { hashPassword } from '../helper/password.helper.js';
-import { User } from '@dans-coding-world/prisma-schema';
+import { User, client } from '@dans-coding-world/prisma-schema';
 import { decode, JwtPayload } from 'jsonwebtoken';
 
 let mockUserRepo: IUserRepository;
 let mockRefreshTokenRepo: IRefreshTokenRepository;
+
 let injector: ReflectiveInjector;
 let authService: AuthService;
 
@@ -35,11 +36,13 @@ const MOCK_USER: User = {
 describe('Auth service', () => {
   beforeEach(async () => {
     mockUserRepo = new MockUserRepository();
-    mockUserRepo.create({
+    mockRefreshTokenRepo = new MockRefreshTokenRepository();
+
+    await client.user.deleteMany({});
+    await mockUserRepo.create({
       ...MOCK_USER,
       password: await hashPassword(MOCK_USER.password),
     });
-    mockRefreshTokenRepo = new MockRefreshTokenRepository();
     injector = ReflectiveInjector.resolveAndCreate([
       AuthService,
       {
@@ -134,13 +137,16 @@ describe('Auth service', () => {
 
       const jti = getJti(mockToken);
 
-      (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        jti,
-        revoked: false,
-        userId: MOCK_USER.id,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + config.options.refreshExpiration),
+      await client.refreshToken.create({
+        data: {
+          jti,
+          revoked: false,
+          userId: MOCK_USER.id,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + config.options.refreshExpiration),
+        },
       });
+
       const refreshResponse = await authService.refreshToken({
         token: mockToken,
       });
@@ -169,12 +175,14 @@ describe('Auth service', () => {
       const mockToken = tokenService.generateRefreshToken(MOCK_USER);
       const jti = getJti(mockToken);
 
-      (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        jti,
-        revoked: true, // token is 'revoked'
-        userId: MOCK_USER.id,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + config.options.refreshExpiration),
+      await client.refreshToken.create({
+        data: {
+          jti,
+          revoked: true, // token is 'revoked'
+          userId: MOCK_USER.id,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + config.options.refreshExpiration),
+        },
       });
 
       expect.assertions(1);
@@ -193,12 +201,14 @@ describe('Auth service', () => {
       });
       const jti = getJti(mockToken);
 
-      (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        jti,
-        revoked: true,
-        userId: MOCK_USER.id,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() - 1000),
+      await client.refreshToken.create({
+        data: {
+          jti,
+          revoked: true,
+          userId: MOCK_USER.id,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() - 1000),
+        },
       });
 
       expect.assertions(1);
@@ -212,12 +222,14 @@ describe('Auth service', () => {
       const mockToken = tokenService.generateRefreshToken(MOCK_USER);
       const jti = getJti(mockToken);
 
-      (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        jti,
-        revoked: true,
-        userId: MOCK_USER.id,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() - 10000),
+      await client.refreshToken.create({
+        data: {
+          jti,
+          revoked: true,
+          userId: MOCK_USER.id,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() - 10000),
+        },
       });
 
       expect.assertions(1);
@@ -242,9 +254,9 @@ describe('Auth service', () => {
         createdAt: new Date(),
         expiresAt: expirationDate,
       };
-      (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push(
-        tokenEntry
-      );
+      await client.refreshToken.create({
+        data: tokenEntry,
+      });
 
       // Advance to just before expiration
       jest.advanceTimersByTime(expirationMs - 5000);
@@ -276,12 +288,14 @@ describe('Auth service', () => {
       });
       const jti = getJti(mockToken);
 
-      (mockRefreshTokenRepo as MockRefreshTokenRepository).tokens.push({
-        jti,
-        revoked: true,
-        userId: -9999,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 1000),
+      await client.refreshToken.create({
+        data: {
+          jti,
+          revoked: true,
+          userId: MOCK_USER.id,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() - 10000),
+        },
       });
 
       expect.assertions(1);

@@ -4,16 +4,16 @@ import {
   seedUsers,
   getTokenById,
 } from '@dans-coding-world/testing-setup';
-import { createUsersHelpers } from '../helper/users.helper';
+import { createUsersRouteHelper } from '../helper/users-request.helper';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
-import { createAuthHelpers } from '../helper/auth-request.helper';
+import { createAuthRouteHelper } from '../helper/auth-request.helper';
 import { createAxiosClient } from '../helper/test-client.helper';
 
 describe('/api/v1/users', () => {
   const client = createAxiosClient();
-  const { login } = createAuthHelpers(client);
-  const { revokeUserTokens } = createUsersHelpers(client);
+  const { login } = createAuthRouteHelper(client);
+  const { revokeUserTokens } = createUsersRouteHelper(client);
   let users: User[] = [];
   let refreshTokens: RefreshToken[] = [];
   describe('POST /api/v1/users/:userId/revokeUserTokens', () => {

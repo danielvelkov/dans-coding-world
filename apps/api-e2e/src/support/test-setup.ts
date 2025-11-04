@@ -3,7 +3,8 @@ import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { CookieJar } from 'tough-cookie';
 
-if (process.env.NODE_ENV !== 'test') throw new Error('NODE_ENV not in "test"');
+if (process.env.NODE_ENV !== 'test_e2e')
+  throw new Error('NODE_ENV not in "test_e2e"');
 
 module.exports = async function () {
   // Configure axios for tests to use.

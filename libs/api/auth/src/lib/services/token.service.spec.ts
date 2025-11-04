@@ -6,11 +6,11 @@ import {
 } from './token.service.js';
 import crypto from 'crypto';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { User } from '@dans-coding-world/prisma-schema';
+import { client, User } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import { config } from '../config/auth.config.js';
 import { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
-import { MockRefreshTokenDataAccess as MockRefreshTokenRepository } from '@dans-coding-world/token-data-access';
+import { PrismaRefreshTokenDataAccess as MockRefreshTokenRepository } from '@dans-coding-world/token-data-access';
 import {
   ERROR_CODES,
   ERROR_MESSAGES,
@@ -73,6 +73,7 @@ describe('Token service', () => {
     const TEST_USER_ID = '1';
 
     beforeEach(async () => {
+      await client.refreshToken.deleteMany();
       token = tokenService.generateRefreshToken({
         email: 'example@email.com',
         id: 1,
@@ -85,7 +86,7 @@ describe('Token service', () => {
       if (!jti) throw new Error('Missing jti');
 
       mockRefreshTokenRepo = new MockRefreshTokenRepository();
-      mockRefreshTokenRepo.create(jti, TEST_USER_ID, new Date());
+      await mockRefreshTokenRepo.create(jti, TEST_USER_ID, new Date());
 
       injector = ReflectiveInjector.resolveAndCreate([
         TokenService,

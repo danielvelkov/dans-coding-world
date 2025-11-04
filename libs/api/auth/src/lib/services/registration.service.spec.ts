@@ -4,12 +4,13 @@ import { ReflectiveInjector } from 'injection-js';
 import { USER_REPOSITORY_TOKEN } from './auth.service.js';
 import { RegistrationService } from './registration.service.js';
 import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
-import { MockUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
-import { User } from '@dans-coding-world/prisma-schema';
+import { PrismaUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
+import { User, client } from '@dans-coding-world/prisma-schema';
 import { USER_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import { passwordGenerator } from '../helper/password.helper.js';
 
 let mockUserRepo: IUserRepository;
+
 let injector: ReflectiveInjector;
 let registrationService: RegistrationService;
 
@@ -24,7 +25,6 @@ const REGISTRATION_DATA: User = {
 describe('Registration service', () => {
   beforeEach(async () => {
     mockUserRepo = new MockUserRepository();
-
     injector = ReflectiveInjector.resolveAndCreate([
       RegistrationService,
       { provide: USER_REPOSITORY_TOKEN, useValue: mockUserRepo },
@@ -37,6 +37,9 @@ describe('Registration service', () => {
     jest.spyOn(mockUserRepo, 'create');
   });
   describe('register method', () => {
+    beforeEach(async () => {
+      await client.user.deleteMany({});
+    });
     it('should create an user if data passes validation and user does not exist in db', async () => {
       const registerDto: RegisterDto = {
         email: REGISTRATION_DATA.email,

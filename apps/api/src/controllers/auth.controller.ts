@@ -114,8 +114,8 @@ export class AuthController {
       return next(error);
     }
   };
-  // NOTE! for decorators to work you must use methods not class fields
-  // NOTE! you must also bind the this
+  // NOTE! for decorators to work you must use methods, not class fields
+  // NOTE! you must also bind the "this" in the constructor
   // Revoke token route for individual user refresh tokens
   @Authorized()
   @RequiredRole('MOD', 'ADMIN')

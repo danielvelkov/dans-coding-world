@@ -1,0 +1,416 @@
+[
+  {
+    "content": "Great post! Really enjoyed it.",
+    "postId": 1,
+    "userId": 1,
+    "createdAt": "2025-10-01T10:00:00Z",
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Thanks! Glad you liked it.",
+    "postId": 1,
+    "userId": 2,
+    "createdAt": "2025-10-01T10:05:00Z",
+    "updatedAt": "2025-10-01T10:05:00Z",
+    "threadParentId": 1,
+    "depth": 1
+  },
+  {
+    "content": "Can you elaborate on the second point?",
+    "postId": 1,
+    "userId": 3,
+    "createdAt": "2025-10-01T10:10:00Z",
+    "updatedAt": "2025-10-01T10:10:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Sure, it's about optimizing the loop.",
+    "postId": 1,
+    "userId": 1,
+    "createdAt": "2025-10-01T10:15:00Z",
+    "updatedAt": "2025-10-01T10:15:00Z",
+    "threadParentId": 3,
+    "depth": 1
+  },
+  {
+    "content": "Ah, makes sense now. Thanks!",
+    "postId": 1,
+    "userId": 3,
+    "createdAt": "2025-10-01T10:20:00Z",
+    "updatedAt": "2025-10-01T10:20:00Z",
+    "threadParentId": 4,
+    "depth": 2
+  },
+  {
+    "content": "This helped me solve a similar problem I was facing.",
+    "postId": 1,
+    "userId": 2,
+    "createdAt": "2025-10-01T11:00:00Z",
+    "updatedAt": "2025-10-01T11:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Interesting perspective.",
+    "postId": 2,
+    "userId": 2,
+    "createdAt": "2025-10-02T09:00:00Z",
+    "updatedAt": "2025-10-02T09:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Could you share your sources?",
+    "postId": 2,
+    "userId": 1,
+    "createdAt": "2025-10-02T09:10:00Z",
+    "updatedAt": "2025-10-02T09:10:00Z",
+    "threadParentId": 7,
+    "depth": 1
+  },
+  {
+    "content": "Sure, I'll link them below.",
+    "postId": 2,
+    "userId": 2,
+    "createdAt": "2025-10-02T09:15:00Z",
+    "updatedAt": "2025-10-02T09:15:00Z",
+    "threadParentId": 8,
+    "depth": 2
+  },
+  {
+    "content": "I disagree with the conclusion here.",
+    "postId": 2,
+    "userId": 3,
+    "createdAt": "2025-10-02T10:00:00Z",
+    "updatedAt": "2025-10-02T10:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "What's your take on it?",
+    "postId": 2,
+    "userId": 1,
+    "createdAt": "2025-10-02T10:30:00Z",
+    "updatedAt": "2025-10-02T10:30:00Z",
+    "threadParentId": 10,
+    "depth": 1
+  },
+  {
+    "content": "Loved the visuals in this post.",
+    "postId": 3,
+    "userId": 3,
+    "createdAt": "2025-10-03T08:00:00Z",
+    "updatedAt": "2025-10-03T08:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Thanks! I used D3.js for the charts.",
+    "postId": 3,
+    "userId": 1,
+    "createdAt": "2025-10-03T08:05:00Z",
+    "updatedAt": "2025-10-03T08:05:00Z",
+    "threadParentId": 12,
+    "depth": 1
+  },
+  {
+    "content": "D3 is so powerful! Any tutorials you recommend?",
+    "postId": 3,
+    "userId": 2,
+    "createdAt": "2025-10-03T08:20:00Z",
+    "updatedAt": "2025-10-03T08:20:00Z",
+    "threadParentId": 13,
+    "depth": 2
+  },
+  {
+    "content": "Check out Observable's tutorials, they're great.",
+    "postId": 3,
+    "userId": 1,
+    "createdAt": "2025-10-03T08:30:00Z",
+    "updatedAt": "2025-10-03T08:30:00Z",
+    "threadParentId": 14,
+    "depth": 3
+  },
+  {
+    "content": "This is exactly what I needed!",
+    "postId": 4,
+    "userId": 1,
+    "createdAt": "2025-10-04T07:00:00Z",
+    "updatedAt": "2025-10-04T07:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Happy to help!",
+    "postId": 4,
+    "userId": 3,
+    "createdAt": "2025-10-04T07:15:00Z",
+    "updatedAt": "2025-10-04T07:15:00Z",
+    "threadParentId": 16,
+    "depth": 1
+  },
+  {
+    "content": "Would this work with TypeScript?",
+    "postId": 4,
+    "userId": 2,
+    "createdAt": "2025-10-04T07:45:00Z",
+    "updatedAt": "2025-10-04T07:45:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Absolutely! Just add type definitions.",
+    "postId": 4,
+    "userId": 3,
+    "createdAt": "2025-10-04T08:00:00Z",
+    "updatedAt": "2025-10-04T08:00:00Z",
+    "threadParentId": 18,
+    "depth": 1
+  },
+  {
+    "content": "Not sure I follow the logic here.",
+    "postId": 5,
+    "userId": 2,
+    "createdAt": "2025-10-05T06:00:00Z",
+    "updatedAt": "2025-10-05T06:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Which part is confusing?",
+    "postId": 5,
+    "userId": 1,
+    "createdAt": "2025-10-05T06:15:00Z",
+    "updatedAt": "2025-10-05T06:15:00Z",
+    "threadParentId": 20,
+    "depth": 1
+  },
+  {
+    "content": "The third paragraph seems contradictory.",
+    "postId": 5,
+    "userId": 2,
+    "createdAt": "2025-10-05T06:30:00Z",
+    "updatedAt": "2025-10-05T06:30:00Z",
+    "threadParentId": 21,
+    "depth": 2
+  },
+  {
+    "content": "Let me clarify that section.",
+    "postId": 5,
+    "userId": 1,
+    "createdAt": "2025-10-05T06:45:00Z",
+    "updatedAt": "2025-10-05T06:45:00Z",
+    "threadParentId": 22,
+    "depth": 3
+  },
+  {
+    "content": "Bookmarking this for later!",
+    "postId": 5,
+    "userId": 3,
+    "createdAt": "2025-10-05T07:00:00Z",
+    "updatedAt": "2025-10-05T07:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Brilliant explanation!",
+    "postId": 6,
+    "userId": 3,
+    "createdAt": "2025-10-06T05:00:00Z",
+    "updatedAt": "2025-10-06T05:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Thank you so much!",
+    "postId": 6,
+    "userId": 2,
+    "createdAt": "2025-10-06T05:15:00Z",
+    "updatedAt": "2025-10-06T05:15:00Z",
+    "threadParentId": 25,
+    "depth": 1
+  },
+  {
+    "content": "How does this compare to other approaches?",
+    "postId": 6,
+    "userId": 1,
+    "createdAt": "2025-10-06T05:30:00Z",
+    "updatedAt": "2025-10-06T05:30:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "It's more efficient in most cases.",
+    "postId": 6,
+    "userId": 2,
+    "createdAt": "2025-10-06T06:00:00Z",
+    "updatedAt": "2025-10-06T06:00:00Z",
+    "threadParentId": 27,
+    "depth": 1
+  },
+  {
+    "content": "Depends on the use case though.",
+    "postId": 6,
+    "userId": 3,
+    "createdAt": "2025-10-06T06:15:00Z",
+    "updatedAt": "2025-10-06T06:15:00Z",
+    "threadParentId": 28,
+    "depth": 2
+  },
+  {
+    "content": "This changed my workflow completely!",
+    "postId": 7,
+    "userId": 1,
+    "createdAt": "2025-10-07T04:00:00Z",
+    "updatedAt": "2025-10-07T04:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "That's awesome to hear!",
+    "postId": 7,
+    "userId": 3,
+    "createdAt": "2025-10-07T04:20:00Z",
+    "updatedAt": "2025-10-07T04:20:00Z",
+    "threadParentId": 30,
+    "depth": 1
+  },
+  {
+    "content": "Same here, game changer!",
+    "postId": 7,
+    "userId": 2,
+    "createdAt": "2025-10-07T04:45:00Z",
+    "updatedAt": "2025-10-07T04:45:00Z",
+    "threadParentId": 30,
+    "depth": 1
+  },
+  {
+    "content": "Could you add more examples?",
+    "postId": 8,
+    "userId": 2,
+    "createdAt": "2025-10-08T03:00:00Z",
+    "updatedAt": "2025-10-08T03:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Sure, I'll update it this week.",
+    "postId": 8,
+    "userId": 1,
+    "createdAt": "2025-10-08T03:30:00Z",
+    "updatedAt": "2025-10-08T03:30:00Z",
+    "threadParentId": 33,
+    "depth": 1
+  },
+  {
+    "content": "Looking forward to it!",
+    "postId": 8,
+    "userId": 2,
+    "createdAt": "2025-10-08T04:00:00Z",
+    "updatedAt": "2025-10-08T04:00:00Z",
+    "threadParentId": 34,
+    "depth": 2
+  },
+  {
+    "content": "Well researched post.",
+    "postId": 8,
+    "userId": 3,
+    "createdAt": "2025-10-08T04:30:00Z",
+    "updatedAt": "2025-10-08T04:30:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Mind blown!",
+    "postId": 9,
+    "userId": 3,
+    "createdAt": "2025-10-09T02:00:00Z",
+    "updatedAt": "2025-10-09T02:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Glad it resonated with you!",
+    "postId": 9,
+    "userId": 2,
+    "createdAt": "2025-10-09T02:20:00Z",
+    "updatedAt": "2025-10-09T02:20:00Z",
+    "threadParentId": 37,
+    "depth": 1
+  },
+  {
+    "content": "Can you explain the first concept better?",
+    "postId": 9,
+    "userId": 1,
+    "createdAt": "2025-10-09T02:45:00Z",
+    "updatedAt": "2025-10-09T02:45:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Think of it like a pipeline.",
+    "postId": 9,
+    "userId": 2,
+    "createdAt": "2025-10-09T03:00:00Z",
+    "updatedAt": "2025-10-09T03:00:00Z",
+    "threadParentId": 39,
+    "depth": 1
+  },
+  {
+    "content": "Got it, thanks!",
+    "postId": 9,
+    "userId": 1,
+    "createdAt": "2025-10-09T03:15:00Z",
+    "updatedAt": "2025-10-09T03:15:00Z",
+    "threadParentId": 40,
+    "depth": 2
+  },
+  {
+    "content": "Very thorough analysis.",
+    "postId": 10,
+    "userId": 1,
+    "createdAt": "2025-10-10T01:00:00Z",
+    "updatedAt": "2025-10-10T01:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Thank you! Took a while to put together.",
+    "postId": 10,
+    "userId": 3,
+    "createdAt": "2025-10-10T01:25:00Z",
+    "updatedAt": "2025-10-10T01:25:00Z",
+    "threadParentId": 42,
+    "depth": 1
+  },
+  {
+    "content": "It shows! Quality content.",
+    "postId": 10,
+    "userId": 2,
+    "createdAt": "2025-10-10T01:50:00Z",
+    "updatedAt": "2025-10-10T01:50:00Z",
+    "threadParentId": 43,
+    "depth": 2
+  },
+  {
+    "content": "Any plans for a follow-up post?",
+    "postId": 10,
+    "userId": 1,
+    "createdAt": "2025-10-10T02:15:00Z",
+    "updatedAt": "2025-10-10T02:15:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Yes, working on part 2 now!",
+    "postId": 10,
+    "userId": 3,
+    "createdAt": "2025-10-10T02:40:00Z",
+    "updatedAt": "2025-10-10T02:40:00Z",
+    "threadParentId": 45,
+    "depth": 1
+  }
+]
