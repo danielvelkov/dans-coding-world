@@ -21,6 +21,7 @@ import {
 import passport from 'passport';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import slowDown from 'express-slow-down';
 
 const isTest =
   process.env.NODE_ENV === 'test' ||
@@ -30,13 +31,22 @@ const isTest =
 const app = express();
 
 // This is per user. Each window is a specific IP address
-if (!isTest)
+if (!isTest) {
+  app.use(
+    slowDown({
+      windowMs: 15 * 60 * 1000, // 15 mins
+      delayAfter: 50, // start delaying after 50 requests
+      delayMs: () => 2000, // delay of 2 seconds
+    })
+  );
+
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000, // 15 mins
       max: 200, // 200 requests total
     })
   );
+}
 
 app.use(compression());
 
