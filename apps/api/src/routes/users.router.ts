@@ -7,7 +7,7 @@ const usersController = new UsersController(
 );
 
 const usersRouter = Router();
-usersRouter.post('/:id/revokeUserTokens', usersController.revokeUserTokens);
+usersRouter.post('/:id/revoke-tokens', usersController.revokeUserTokens);
 
 export default usersRouter;
 
@@ -20,7 +20,7 @@ export default usersRouter;
 
 /**
  * @openapi
- * /users/{userId}/revokeUserTokens:
+ * /users/{userId}/revoke-tokens:
  *   post:
  *     tags: [Users]
  *     summary: Revoke all user refresh tokens
