@@ -91,7 +91,8 @@ const swaggerDocOptions = {
     info: {
       title: 'Blog API',
       version: '1.0.0',
-      description: 'A simple API for dans-coding-world project',
+      description:
+        'A simple RESTful API for a blogging platform that supports user authentication, content creation, and access control. It enables users to register, log in, manage their posts, and control visibility of content through role-based permissions.',
     },
     servers: [
       {
