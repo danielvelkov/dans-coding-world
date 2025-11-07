@@ -137,7 +137,7 @@ describe('/api/v1/auth', () => {
         getJwtToken(findSetCookie(logoutRes, REFRESH_TOKEN_COOKIE))
       ).toThrow();
     });
-    
+
     it('should revoke user refresh token when logout successful', async () => {
       const res = await login(users[0].email, users[0].password);
 
@@ -392,7 +392,7 @@ describe('/api/v1/auth', () => {
     );
   });
 
-  describe('POST /api/v1/auth/revokeToken', () => {
+  describe('POST /api/v1/auth/revoke-token', () => {
     let userRefreshToken = '';
 
     beforeAll(async () => {
@@ -452,7 +452,7 @@ describe('/api/v1/auth', () => {
     });
   });
 
-  describe('POST /api/v1/auth/revokeAll', () => {
+  describe('POST /api/v1/auth/revoke-all', () => {
     let tokens: string[] = [];
 
     beforeEach(async () => {

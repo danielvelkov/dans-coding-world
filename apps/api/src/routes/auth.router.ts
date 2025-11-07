@@ -19,8 +19,8 @@ authRouter.post('/logout', authController.logout);
 authRouter.post('/login', authController.login);
 authRouter.post('/refresh', authController.refresh);
 authRouter.post('/register', authController.register);
-authRouter.post('/revokeToken', authController.revokeToken);
-authRouter.post('/revokeAll', authController.revokeAllTokens);
+authRouter.post('/revoke-token', authController.revokeToken);
+authRouter.post('/revoke-all', authController.revokeAllTokens);
 
 export default authRouter;
 
@@ -97,7 +97,7 @@ export default authRouter;
  *   post:
  *     tags: [Authentication]
  *     summary: Logout the currently logged-in user
- *     description: Logs user out by revoking his refresh token and clearing 'set-cookie' header token values.
+ *     description: Logs user out by revoking his refresh token and clearing 'Set-Cookie' header token values.
  *     responses:
  *       200:
  *         description: Logout successful
@@ -134,7 +134,7 @@ export default authRouter;
  *   post:
  *     tags: [Authentication]
  *     summary: Refresh access and refresh tokens
- *     description: Validates provided refresh token, then returns user data with access and refresh tokens as cookies.
+ *     description: Validates provided refresh token, then returns user data with newly provided access and refresh tokens set in "Set-Cookie" header.
  *     requestBody:
  *       required: true
  *       content:
@@ -155,7 +155,7 @@ export default authRouter;
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/LoginSuccessResponse'
+ *               $ref: '#/components/schemas/TokenRefreshResponse'
  *       401:
  *         description: Unauthorized - Invalid or expired refresh token
  *         content:
@@ -205,7 +205,7 @@ export default authRouter;
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/LoginSuccessResponse'
+ *               $ref: '#/components/schemas/RegisterSuccessResponse'
  *       400:
  *         description: Bad Request - Validation Failed
  *         content:
@@ -242,11 +242,14 @@ export default authRouter;
 
 /**
  * @openapi
- * /auth/revokeToken:
+ * /auth/revoke-token:
  *   post:
  *     tags: [Authentication]
  *     summary: End a user session by revoking the refresh token.
- *     description: Checks if valid JWT token is passed, then proceeds to set its status to 'revoked', making the token invalid.
+ *     description: |
+ *       Roles required: ADMIN or MOD
+ *
+ *       Checks if valid JWT token is passed, then proceeds to set its status to 'revoked', making the token invalid.
  *     requestBody:
  *       required: true
  *       content:
@@ -316,10 +319,14 @@ export default authRouter;
 
 /**
  * @openapi
- * /auth/revokeAll:
+ * /auth/revoke-all:
  *   post:
  *     tags: [Authentication]
  *     summary: End all user session by revoking all refresh tokens
+ *     description: |
+ *       Roles required: ADMIN
+ *
+ *       Sets all tokens to status 'revoked', making them invalid.
  *     responses:
  *       200:
  *         description: Tokens revoked
@@ -521,6 +528,36 @@ export default authRouter;
  *           properties:
  *             data:
  *               $ref: '#/components/schemas/LoginSuccessData'
+ *
+ *     RegisterSuccessResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SuccessResponse'
+ *         - type: object
+ *           properties:
+ *             data:
+ *               $ref: '#/components/schemas/LoginSuccessData'
+ *           example:
+ *             user:
+ *               id: "12345"
+ *               email: user123@gmail.com
+ *               username: user123
+ *               role: 'USER'
+ *             message: 'User registered successfully'
+ *
+ *     TokenRefreshResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SuccessResponse'
+ *         - type: object
+ *           properties:
+ *             data:
+ *               $ref: '#/components/schemas/LoginSuccessData'
+ *           example:
+ *             user:
+ *               id: "12345"
+ *               email: user123@gmail.com
+ *               username: user123
+ *               role: 'USER'
+ *             message: 'New access and refresh token issued'
  *
  *     WrongCredentialsError:
  *       allOf:

@@ -55,7 +55,7 @@ export function createAuthRouteHelper(client: AxiosInstance) {
       const urlSearchParams = new URLSearchParams();
       urlSearchParams.append('token', token);
 
-      return await client.post('/api/v1/auth/revokeToken', urlSearchParams, {
+      return await client.post('/api/v1/auth/revoke-token', urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -63,7 +63,7 @@ export function createAuthRouteHelper(client: AxiosInstance) {
     },
 
     async revokeAllTokens() {
-      return await client.post('/api/v1/auth/revokeAll');
+      return await client.post('/api/v1/auth/revoke-all');
     },
   };
 }
