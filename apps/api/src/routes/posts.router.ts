@@ -30,7 +30,9 @@ export default postsRouter;
  *     tags: [Posts]
  *     summary: Get a single post by Id.
  *     description: |
- *       Get a specific post by its Id. Returns a FORBIDDEN error, If post is private and the user requesting it
+ *       Get a specific post by its Id.
+ *
+ *       Returns 403 FORBIDDEN error If post is private and the user requesting it
  *       is not the author.
  *
  *       **Authentication:**
@@ -208,8 +210,10 @@ export default postsRouter;
  *     tags: [Posts]
  *     summary: Create a post.
  *     description: |
- *       Create a blog post.<br /> Must be logged in, otherwise returns UNAUTHORIZED error.<br />
- *       Admin-only operation.  If user creating the post is not admin returns FORBIDDEN error. <br />
+ *       Roles required: ADMIN
+ *
+ *       Create a blog post.
+ *
  *       Posts that are created with 'isDraft' set to FALSE, have their publishedDate set
  *     requestBody:
  *       required: true
@@ -267,7 +271,9 @@ export default postsRouter;
  *     tags: [Posts]
  *     summary: Update a post by Id.
  *     description: |
- *       Update a post's field. Returns FORBIDDEN error, If post is DRAFT or ARCHIVED and the user requesting it
+ *       Update a post's field by its Id.
+ *
+ *       Returns 403 FORBIDDEN error If post is either DRAFT or ARCHIVED and the user requesting it
  *       is not the author.
  *     parameters:
  *       - in: path
@@ -338,7 +344,9 @@ export default postsRouter;
  *     tags: [Posts]
  *     summary: Delete a post by Id.
  *     description: |
- *       Delete a blog post. Returns FORBIDDEN error, If the user requesting it
+ *       Delete a blog post by its Id.
+ *
+ *       Returns 403 FORBIDDEN error if the user requesting it
  *       is not the author.
  *     parameters:
  *       - in: path
@@ -484,7 +492,7 @@ export default postsRouter;
  *           enum: [PUBLIC, MEMBERS_ONLY]
  *           description: Post visibility. Could be one of [PUBLIC, MEMBERS_ONLY]
  *       example:
- *         content: Updated new random content.
+ *         content: Some new random content.
  *
  *     PaginationMetadata:
  *       type: object

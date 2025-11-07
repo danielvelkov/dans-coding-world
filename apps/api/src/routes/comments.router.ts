@@ -36,11 +36,11 @@ export default commentsRouter;
  *     tags: [Comments]
  *     summary: Get post comments.
  *     description: |
- *       Get a specific post's comments by its Id. Returns a FORBIDDEN error, If post is private and the user requesting it
+ *       Get a specific post's comments by its Id. Returns a 403 FORBIDDEN error, If post is private and the user requesting it
  *       is not the author.
  *
  *       **Authentication:**
- *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts return 403 FORBIDDEN error
+ *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts return 401 UNAUTHORIZED error
  *       - If access_token is valid, user's private posts' comments can be queried
  *     parameters:
  *       - in: path
