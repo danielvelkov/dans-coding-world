@@ -20,8 +20,23 @@ import {
 } from '@dans-coding-world/api-auth';
 import passport from 'passport';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+
+const isTest =
+  process.env.NODE_ENV === 'test' ||
+  process.env.NODE_ENV === 'development' ||
+  process.env.NODE_ENV === 'test_e2e';
 
 const app = express();
+
+// This is per user. Each window is a specific IP address
+if (!isTest)
+  app.use(
+    rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 mins
+      max: 200, // 200 requests total
+    })
+  );
 
 app.use(compression());
 
