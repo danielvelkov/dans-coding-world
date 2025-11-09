@@ -29,6 +29,7 @@ export class AuthController {
     this.revokeToken = this.revokeToken.bind(this);
     this.revokeAllTokens = this.revokeAllTokens.bind(this);
   }
+
   // User sign up route
   register = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -43,30 +44,34 @@ export class AuthController {
       return next(error);
     }
   };
-  // Login route for generating JWT
+
+  // Login route for generating JWT token pair
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const loginDto: LoginDto = req.body;
 
-      const result = await this.authService.login(loginDto);
+      const { accessToken, refreshToken, user } = await this.authService.login(
+        loginDto
+      );
 
-      res.cookie(ACCESS_TOKEN_COOKIE, result.accessToken, {
+      res.cookie(ACCESS_TOKEN_COOKIE, accessToken, {
         httpOnly: true,
         maxAge: config.options.accessExpiration,
       });
 
-      res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, {
+      res.cookie(REFRESH_TOKEN_COOKIE, refreshToken, {
         httpOnly: true,
         maxAge: config.options.refreshExpiration,
       });
 
       return res
         .status(StatusCodes.OK)
-        .json({ message: SUCCESS_MESSAGES.AUTH.login, user: result.user });
+        .json({ message: SUCCESS_MESSAGES.AUTH.login, user });
     } catch (error) {
       return next(error);
     }
   };
+
   @Authorized()
   async logout(req: Request, res: Response, next: NextFunction) {
     try {
@@ -89,6 +94,7 @@ export class AuthController {
       return next(error);
     }
   }
+
   // Refresh route for generating new access/refresh token pair
   refresh = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -114,9 +120,8 @@ export class AuthController {
       return next(error);
     }
   };
-  // NOTE! for decorators to work you must use methods, not class fields
-  // NOTE! you must also bind the "this" in the constructor
-  // Revoke token route for individual user refresh tokens
+
+  // Revoke token route for individual invalidation of user refresh tokens
   @Authorized()
   @RequiredRole('MOD', 'ADMIN')
   async revokeToken(req: Request, res: Response, next: NextFunction) {
@@ -134,7 +139,8 @@ export class AuthController {
       return next(error);
     }
   }
-  // Revoke all tokens route
+
+  // Revoke all refresh tokens route
   @Authorized()
   @RequiredRole('ADMIN')
   async revokeAllTokens(req: Request, res: Response, next: NextFunction) {

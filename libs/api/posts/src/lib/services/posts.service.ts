@@ -117,6 +117,7 @@ export class PostsService implements IPostsService {
       throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
 
     const postAlreadyExists = await this.posts.exists(dto.title);
+
     if (postAlreadyExists)
       throw new ApiException(
         ERROR_CODES.VALIDATION.VALIDATION_ERROR,

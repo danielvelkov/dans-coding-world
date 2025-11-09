@@ -16,11 +16,13 @@ export class PrismaPostDataAccess
       },
     });
   }
+
   async create(data: Omit<Post, 'id'>): Promise<Post> {
     return await client.post.create({
       data,
     });
   }
+
   async update(id: number, data: Partial<Post>): Promise<Post> {
     return await client.post.update({
       where: {
@@ -29,6 +31,7 @@ export class PrismaPostDataAccess
       data,
     });
   }
+
   async search(
     where: PostWhereInput,
     orderBy?: PostOrderByInput,
@@ -44,6 +47,7 @@ export class PrismaPostDataAccess
       take: options?.take,
     });
   }
+
   async delete(id: number): Promise<Post> {
     return await client.post.delete({
       where: {
@@ -51,12 +55,14 @@ export class PrismaPostDataAccess
       },
     });
   }
+
   async deleteMany(where: PostWhereInput): Promise<number> {
     const { count } = await client.post.deleteMany({
       where,
     });
     return count;
   }
+
   async exists(title: string): Promise<boolean> {
     const post = await client.post.findFirst({
       where: {
@@ -68,6 +74,7 @@ export class PrismaPostDataAccess
     });
     return !!post;
   }
+
   async count(where: PostWhereInput): Promise<number> {
     return await client.post.count({ where });
   }

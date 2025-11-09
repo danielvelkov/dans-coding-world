@@ -7,52 +7,69 @@ import {
   GetPostsDto,
 } from '@dans-coding-world/shared-post-dto';
 import { Post, Role } from '@dans-coding-world/prisma-schema';
+
 /**
- * Service related to CRUD operations on Posts inside the blog
+ * Service for managing blog posts.
+ *
+ * Provides full CRUD operations for posts, including retrieval with filtering,
+ * pagination, and search capabilities.
+ *
  * @example
  * ```typescript
  * export class PostsService implements IPostsService {
- *  async getById(id:number){
- *    // Implementation
- *  }
- *  // ...
- *  async search(dto: SearchPostsDto){
- *    // Implementation
- *  }
+ *   async getById(dto: GetPostDto) {
+ *     // Implementation
+ *   }
+ *   async getAll(dto: GetPostsDto) {
+ *     // Implementation
+ *   }
  * }
+ * ```
  */
 export interface IPostsService {
   /**
    * Retrieves a single post by its unique identifier.
-   * - If no userId is passed and the post is not visible to the public, requesting it hides 'content' field
-   * @param dto Data transfer object containing post id and user id (optional).
-   * @returns A promise that resolves to the matching Post object.
+   *
+   * **Access control:**
+   * - Public posts: Fully accessible to all users
+   * - Members-only posts: Content field hidden when accessed without viewerId
+   * - Draft/archived posts: Accessible only to the post author
+   *
+   * @param dto - Request parameters including postId and optional viewerId
+   * @returns The requested post object
+   *
    * @example
    * ```typescript
-   * const post = await postsService.getById({postId: 42, viewerId: 1});
+   * const post = await postsService.getById({ postId: 42, viewerId: 1 });
    * ```
-   * @throws {Error} When the post with this ID is not found (SER002)
-   * @throws {Error} When the user requesting it is not the author and the post is not published (SER003)
+   *
+   * @throws {Error} Post not found (SER002)
+   * @throws {Error} Unauthorized access to unpublished post (SER003)
    */
   getById(dto: GetPostDto): Promise<Post>;
 
   /**
-   * Retrieves a paginated list of posts based on optional filtering, sorting and pagination criteria.
-   * Also provides search option for finding posts by its contents or title.
+   * Retrieves a paginated and filterable list of posts.
    *
-   * Filtering options:
-   * - by post status
-   * - by post visibility
+   * Supports filtering, sorting, pagination, and full-text search across
+   * post titles and content.
    *
-   * Sorting options:
-   * - by createdAt date
-   * - by updatedAt date
-   * - by publishedAt date
+   * **Filtering options:**
+   * - By post status (DRAFT, PUBLISHED, ARCHIVED)
+   * - By visibility (PUBLIC, MEMBERS_ONLY)
    *
-   * Posts that are available for members-only have their content masked when viewerId is not provided.
-   * Drafts and archived posts are available only when the viewerId is the author.
-   * @param dto Data transfer object containing viewerId, pagination, sorting and filter options.
-   * @returns A promise that resolves to a paginated response containing posts.
+   * **Sorting options:**
+   * - By creation date (createdAt)
+   * - By last modification date (updatedAt)
+   * - By publication date (publishedAt)
+   *
+   * **Access control:**
+   * - Members-only posts: Content masked when accessed without viewerId
+   * - Draft/archived posts: Visible only to the post author
+   *
+   * @param dto - Optional request parameters including viewerId, pagination, sorting, filtering, and search query
+   * @returns Paginated response containing posts, total count, and pagination metadata
+   *
    * @example
    * ```typescript
    * const {items, pagination, count} = await postsService.getAll({ limit: 10, page: 1, viewerId: 1, searchQuery: 'How to'  });
@@ -61,11 +78,14 @@ export interface IPostsService {
   getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto>;
 
   /**
-   * Creates a new blog post with the provided data.
-   * @param dto Data transfer object containing post creation details.
-   * @returns A promise that resolves to the newly created Post object.
-   * @throws {Error} When authorId does not correlate to an existing user (VAL003)
-   * @throws {Error} When post with this title already exists
+   * Creates a new blog post.
+   *
+   * Posts can be created as drafts or published immediately. The publication
+   * date is automatically set when a post is first published.
+   *
+   * @param dto - Post creation data including authorId, title, content, and visibility settings
+   * @returns The newly created post object
+   *
    * @example
    * ```typescript
    * const newPost = await postsService.create({
@@ -76,40 +96,58 @@ export interface IPostsService {
    *   membersOnly: false
    * });
    * ```
+   *
+   * @throws {Error} Author not found (VAL003)
+   * @throws {Error} Post with this title already exists
    */
   create(dto: CreatePostDto): Promise<Post>;
 
   /**
    * Updates an existing post with new data.
-   * Modifies "updatedAt" field on successful update.
-   * Sets 'publishedAt' field to current date when post status
-   *  is changed for the first time to 'PUBLISHED'
-   * @param dto Data transfer object containing updated post fields.
-   * @returns A promise that resolves to the updated Post object.
-   * @throws {Error} When the post with that id and authorId does not exist
-   * @throws {Error} When post with this title already exists
+   *
+   * Automatically updates the `updatedAt` timestamp. When a post status changes
+   * to 'PUBLISHED' for the first time, the `publishedAt` timestamp is set to the
+   * current date.
+   *
+   * Only the post author can update their own posts.
+   *
+   * @param dto - Update data including postId, authorId, and fields to modify
+   * @returns The updated post object
+   *
    * @example
    * ```typescript
    * const updatedPost = await postsService.update({
    *   postId: 42,
-   *   userId: user.id,
+   *   authorId: user.id,
    *   title: 'Updated Title',
-   *   content: 'Updated content...'
+   *   content: 'Updated content...',
+   *   status: 'PUBLISHED'
    * });
    * ```
+   *
+   * @throws {Error} Post not found or author mismatch (SER002)
+   * @throws {Error} Post with this title already exists
    */
   update(dto: UpdatePostDto): Promise<Post>;
 
   /**
-   * Deletes a post by its identifier and author id.
-   * @param dto Data transfer object containing the post ID to delete.
-   * @returns A promise that resolves to the deleted post.
-   * @throws {Error} When the post with that id and authorId does not exist
-   * @throws {Error} When the passed authorId, does not match the author for the post
+   * Permanently deletes a post and all associated data.
+   *
+   * Only the post author can delete their own posts. This action cannot be undone.
+   *
+   * @param dto - Deletion parameters including postId and authorId
+   * @returns The deleted post object
+   *
    * @example
    * ```typescript
-   *  await postsService.delete({ postId: 42, authorId: 1 });
+   * const deletedPost = await postsService.delete({
+   *   postId: 42,
+   *   authorId: 1
+   * });
    * ```
+   *
+   * @throws {Error} Post not found (SER002)
+   * @throws {Error} Unauthorized deletion attempt - author mismatch (VAL003)
    */
   delete(dto: DeletePostDto): Promise<Post>;
 }
