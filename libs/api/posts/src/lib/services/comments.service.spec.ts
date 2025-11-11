@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'reflect-metadata';
 import { ICommentsService } from '../interfaces/comments-service.interface.js';
 import {
@@ -46,8 +47,8 @@ let mockPostsRepo: IPostRepository<Post, PostWhereInput, PostOrderByInput>;
 let injector: ReflectiveInjector;
 let commentsService: ICommentsService;
 
-describe('comments service', () => {
-  let user: User;
+describe('CommentsService', () => {
+  let author: User;
   let admin: User;
   let publishedPost: Post;
   let draftPost: Post;
@@ -73,16 +74,16 @@ describe('comments service', () => {
     mockPostsRepo = new MockPostRepository();
     mockCommentsRepository = new MockCommentsRepository();
 
-    user = await mockUsersRepo.create({
+    author = await mockUsersRepo.create({
       email: 'fakeUser123@gmail.com',
-      password: 'aldjfalsjdflsdjflkj',
+      password: 'superNicePassword123',
       username: 'fakeUser123',
-      role: 'USER',
+      role: 'AUTHOR',
     });
 
     admin = await mockUsersRepo.create({
       email: 'fakeAdmin123@gmail.com',
-      password: 'aldjfalsjdflsdjflkj',
+      password: 'superNicePassword123',
       username: 'fakeAdmin123',
       role: 'ADMIN',
     });
@@ -106,7 +107,7 @@ describe('comments service', () => {
     draftPost = await mockPostsRepo.create({
       ...validPostContent,
       title: 'DRAFT: 1',
-      authorId: user.id,
+      authorId: author.id,
       status: 'DRAFT',
       visibility: 'PUBLIC',
     });
@@ -162,7 +163,7 @@ describe('comments service', () => {
           ...validCommentContent,
           content: `User Comment ${i}`,
           depth: 0,
-          userId: user.id,
+          userId: author.id,
           postId: publishedPost.id,
           threadParentId: null,
           createdAt: new Date(
@@ -629,7 +630,7 @@ describe('comments service', () => {
 
       const replyToTheReply = await commentsService.create({
         content: 'I disagree',
-        userId: user.id,
+        userId: author.id,
         postId: publishedPost.id,
         replyToCommentId: commentReply.id,
       });
@@ -807,7 +808,7 @@ describe('comments service', () => {
       return commentsService
         .delete({
           commentId: comment.id,
-          authorId: user.id,
+          authorId: author.id,
           postId: publishedPost.id,
         })
         .catch((error) => {
@@ -887,7 +888,7 @@ describe('comments service', () => {
   describe('update()', () => {
     let comment: Comment;
 
-    const NEW_CONTENT = 'New content YUpee';
+    const NEW_CONTENT = 'New content Yippee';
     beforeEach(async () => {
       await mockCommentsRepository.deleteMany({});
 
@@ -920,7 +921,7 @@ describe('comments service', () => {
       return commentsService
         .update({
           commentId: comment.id,
-          userId: user.id,
+          userId: author.id,
           postId: publishedPost.id,
           content: NEW_CONTENT,
         })

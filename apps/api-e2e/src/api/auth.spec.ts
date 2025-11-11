@@ -460,13 +460,13 @@ describe('/api/v1/auth', () => {
       users = await seedUsers();
       tokens = [];
 
-      users.forEach(async (u) => {
+      for (const u of users) {
         const res = await login(u.email, u.password);
 
         const refreshTokenCookie = findSetCookie(res, REFRESH_TOKEN_COOKIE);
 
         tokens.push(getJwtToken(refreshTokenCookie));
-      });
+      }
     });
 
     it('should return 401 Unauthorized when trying to access as a logged out user', async () => {

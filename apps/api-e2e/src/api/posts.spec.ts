@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Post, PostStatus, User } from '@dans-coding-world/prisma-schema';
 import { seedUsers, seedPosts } from '@dans-coding-world/testing-setup';
 import { BaseResponse } from '@dans-coding-world/api-types';
@@ -42,6 +43,7 @@ describe('/api/v1/posts', () => {
   let posts: Post[] = [];
 
   let admin: User;
+  let author: User;
 
   let PUBLISHED_PUBLIC_POSTS_NUM: number;
   let DRAFT_POSTS_NUM: number;
@@ -72,6 +74,11 @@ describe('/api/v1/posts', () => {
     ({ login } = createAuthRouteHelper(client));
     ({ getPosts, getPost, createPost, updatePost, deletePost } =
       createPostsRouteHelper(client));
+
+    admin = users.find((u) => u.role === 'ADMIN') as any;
+    author = users.find((u) => u.role === 'AUTHOR') as any;
+
+    if (!admin || !author) throw new Error('Missing users');
   });
 
   describe('GET /api/v1/posts/:id', () => {
@@ -143,34 +150,34 @@ describe('/api/v1/posts', () => {
     });
 
     it('should return 403 FORBIDDEN for DRAFT or ARCHIVED post of another user', async () => {
-      const user = users.find((u) => u.role === 'USER');
-      if (!user) throw new Error('Missing test user');
-
-      const archivedPost = posts.find(
-        (p) => p.status === 'ARCHIVED' && p.authorId !== user.id
+      const archivedPostOfAnotherUser = posts.find(
+        (p) => p.status === 'ARCHIVED' && p.authorId !== admin.id
       );
-      const draftPost = posts.find(
-        (p) => p.status === 'DRAFT' && p.authorId !== user.id
+      const draftPostOfAnotherUser = posts.find(
+        (p) => p.status === 'DRAFT' && p.authorId !== admin.id
       );
-      if (!archivedPost || !draftPost) throw new Error('Missing test posts');
+      if (!archivedPostOfAnotherUser || !draftPostOfAnotherUser)
+        throw new Error('Missing test posts');
 
       // Not logged in
-      [archivedPost.id, draftPost.id].forEach(
-        async (id) =>
-          await expect(getPost(id)).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
-          )
-      );
+      for (const id of [
+        archivedPostOfAnotherUser.id,
+        draftPostOfAnotherUser.id,
+      ])
+        await expect(getPost(id)).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
 
-      await login(user.email, user.password);
+      await login(admin.email, admin.password);
 
       // Logged in as another user
-      [archivedPost.id, draftPost.id].forEach(
-        async (id) =>
-          await expect(getPost(id)).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
-          )
-      );
+      for (const id of [
+        archivedPostOfAnotherUser.id,
+        draftPostOfAnotherUser.id,
+      ])
+        await expect(getPost(id)).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
     });
   });
 
@@ -198,7 +205,7 @@ describe('/api/v1/posts', () => {
           limit: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
           total: expectedTotal,
           totalPages: expectedPages,
-          hasNext: true,
+          hasNext: expectedTotal > PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
           hasPrev: false,
         });
       });
@@ -306,7 +313,7 @@ describe('/api/v1/posts', () => {
       beforeAll(async () => {
         const posts = Array.from({ length: totalNumberOfPosts }).map((_, i) => {
           return {
-            authorId: users[0].id,
+            authorId: author.id,
             content: 'Content number #' + i,
             title: 'Title number #' + i,
             status: 'PUBLISHED',
@@ -429,14 +436,10 @@ describe('/api/v1/posts', () => {
       ])(
         'should retrieve their own private %s when filtering by status',
         async (_, allowedPostStatus) => {
-          const authorId = Math.floor(Math.random() * users.length) + 1;
           const filteredPosts = posts.filter(
             (p) =>
-              allowedPostStatus.includes(p.status) && p.authorId === authorId
+              allowedPostStatus.includes(p.status) && p.authorId === author.id
           );
-          const author = users.find((u) => u.id === authorId);
-
-          if (!author) throw new Error('Missing test author');
 
           await login(author.email, author.password);
 
@@ -454,7 +457,7 @@ describe('/api/v1/posts', () => {
 
           // Verify all returned posts belong to the author
           postsData.items.forEach((post) => {
-            expect(post.authorId).toBe(authorId);
+            expect(post.authorId).toBe(author.id);
             expect(allowedPostStatus).toContain(post.status);
           });
         }
@@ -472,9 +475,6 @@ describe('/api/v1/posts', () => {
       ])(
         'should find his own posts w/wo filters and a search query specified',
         async (filters) => {
-          const author = users.find((u) => u.role === 'ADMIN');
-          if (!author) throw new Error('Missing test author');
-
           const expectedPost = posts.find(
             (p) =>
               p.authorId === author.id &&
@@ -527,18 +527,15 @@ describe('/api/v1/posts', () => {
 
       it(`should not retrieve other users drafts and 
       archived posts when search query is present`, async () => {
-        const regularUser = users.find((u) => u.role === 'USER');
-        if (!regularUser) throw new Error('Missing regular user');
-
         const privatePostFromAnotherAuthor = posts.find(
           (p) =>
             (p.status === 'DRAFT' || p.status === 'ARCHIVED') &&
-            p.authorId !== regularUser.id
+            p.authorId !== author.id
         );
         if (!privatePostFromAnotherAuthor)
           throw new Error('Missing post by other user');
 
-        await login(regularUser.email, regularUser.password);
+        await login(author.email, author.password);
 
         const resWithFilters = await getPosts({
           searchQuery: privatePostFromAnotherAuthor.title,
@@ -558,11 +555,6 @@ describe('/api/v1/posts', () => {
       isDraft: true,
       isMembersOnly: false,
     };
-
-    beforeAll(() => {
-      admin = users.find((u) => u.role === 'ADMIN') as User;
-      if (!admin) throw new Error('Missing test user');
-    });
 
     afterAll(async () => {
       posts = await seedPosts();
@@ -661,7 +653,7 @@ describe('/api/v1/posts', () => {
       );
     });
 
-    it(`should return 403 FORBIDDEN, when user creating the post is not ADMIN`, async () => {
+    it(`should return 403 FORBIDDEN, when user creating the post is not ADMIN or AUTHOR`, async () => {
       const user = users.find((u) => u.role === 'USER');
       if (!user) throw new Error('Missing test user');
 
@@ -697,11 +689,6 @@ describe('/api/v1/posts', () => {
   });
 
   describe('PATCH /api/v1/posts/:id', () => {
-    beforeAll(() => {
-      admin = users.find((u) => u.role === 'ADMIN') as User;
-      if (!admin) throw new Error('Missing test user');
-    });
-
     test.each([
       [
         'content',
@@ -713,10 +700,10 @@ describe('/api/v1/posts', () => {
     ])(
       `should update a post's %s if logged in as author`,
       async (propName, value) => {
-        const postForUpdate = posts.find((p) => p.authorId === admin.id);
+        const postForUpdate = posts.find((p) => p.authorId === author.id);
         if (!postForUpdate) throw new Error('Missing test post');
 
-        await login(admin.email, admin.password);
+        await login(author.email, author.password);
 
         const res = await updatePost(postForUpdate.id.toString(), {
           [propName]: value,
@@ -738,12 +725,12 @@ describe('/api/v1/posts', () => {
 
     it('should set publishedAt date when post status is updated from DRAFT to PUBLISHED', async () => {
       const postForUpdate = posts.find(
-        (p) => p.status === 'DRAFT' && p.authorId === admin.id
+        (p) => p.status === 'DRAFT' && p.authorId === author.id
       );
       if (!postForUpdate) throw new Error('Missing test post');
       expect(postForUpdate.publishedAt).toBeFalsy();
 
-      await login(admin.email, admin.password);
+      await login(author.email, author.password);
 
       const res = await updatePost(postForUpdate.id.toString(), {
         status: 'PUBLISHED',
@@ -785,10 +772,10 @@ describe('/api/v1/posts', () => {
         },
       ],
     ])('should return validation error when %s', async (_, postData) => {
-      const postForUpdate = posts.find((p) => p.authorId === admin.id);
+      const postForUpdate = posts.find((p) => p.authorId === author.id);
       if (!postForUpdate) throw new Error('Missing test post');
 
-      await login(admin.email, admin.password);
+      await login(author.email, author.password);
       return await expect(
         updatePost(postForUpdate.id.toString(), postData as any)
       ).rejects.toMatchObject(
@@ -797,7 +784,7 @@ describe('/api/v1/posts', () => {
     });
 
     it('should return 404 NOT FOUND when post for update does not exist', async () => {
-      await login(admin.email, admin.password);
+      await login(author.email, author.password);
       return await expect(
         updatePost('999', {
           content: 'NEW post content',
@@ -807,17 +794,16 @@ describe('/api/v1/posts', () => {
       );
     });
 
-    it(`should return 403 FORBIDDEN when non-admins are trying to update`, async () => {
-      const nonAdminUsers = users.filter((u) => u.role !== 'ADMIN');
+    it(`should return 403 FORBIDDEN when the user is not ADMIN or AUTHOR`, async () => {
+      const nonAdminOrAuthorUsers = users.filter(
+        (u) => !(u.role === 'ADMIN' || u.role === 'AUTHOR')
+      );
 
-      for (const u of nonAdminUsers) {
-        const postForUpdate = posts.find((p) => p.authorId === u.id);
-        if (!postForUpdate) throw new Error('Missing test post');
-
+      for (const u of nonAdminOrAuthorUsers) {
         await login(u.email, u.password);
 
         await expect(
-          updatePost(postForUpdate.id.toString(), {
+          updatePost('1', {
             content: generateRandomString(
               POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
             ),
@@ -829,16 +815,15 @@ describe('/api/v1/posts', () => {
     });
 
     it(`should return 403 FORBIDDEN when trying to update another user's post`, async () => {
-      const anotherUser = users.find((u) => u.id !== admin.id);
-      if (!anotherUser) throw new Error('Missing test user');
-
-      const postForUpdate = posts.find((p) => p.authorId === anotherUser.id);
-      if (!postForUpdate) throw new Error('Missing test post');
+      const postForUpdateFromAnotherUser = posts.find(
+        (p) => p.authorId === author.id
+      );
+      if (!postForUpdateFromAnotherUser) throw new Error('Missing test post');
 
       await login(admin.email, admin.password);
 
       await expect(
-        updatePost(postForUpdate.id.toString(), {
+        updatePost(postForUpdateFromAnotherUser.id.toString(), {
           content: generateRandomString(
             POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
           ),
@@ -890,20 +875,19 @@ describe('/api/v1/posts', () => {
   });
 
   describe('DELETE /api/v1/posts/:id', () => {
-    beforeAll(() => {
-      admin = users.find((u) => u.role === 'ADMIN') as User;
-      if (!admin) throw new Error('Missing test user');
-    });
-
     afterAll(async () => {
       posts = await seedPosts();
     });
 
+    const deletedIds: number[] = [];
+
     it('should remove post when its authenticated author is requesting it', async () => {
-      const postForDeletion = posts.find((p) => p.authorId === admin.id);
+      const postForDeletion = posts.find(
+        (p) => p.authorId === author.id && !deletedIds.includes(p.id)
+      );
       if (!postForDeletion) throw new Error('Missing test post');
 
-      await login(admin.email, admin.password);
+      await login(author.email, author.password);
 
       const deleteRes = await deletePost(postForDeletion.id.toString());
       expect(deleteRes.status).toBe(StatusCodes.OK);
@@ -911,7 +895,11 @@ describe('/api/v1/posts', () => {
 
       expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.delete);
 
-      await expect(deletePost(postForDeletion.id.toString())).rejects.toMatchObject(
+      deletedIds.push(postForDeletion.id);
+
+      await expect(
+        deletePost(postForDeletion.id.toString())
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
@@ -924,12 +912,14 @@ describe('/api/v1/posts', () => {
     });
 
     it(`should return 403 FORBIDDEN when trying to delete another user's post`, async () => {
-      const postForDeletion = posts.find((p) => p.authorId !== admin.id);
-      if (!postForDeletion) throw new Error('Missing test post');
+      const postForDeletionFromAnotherUser = posts.find(
+        (p) => p.authorId === author.id && !deletedIds.includes(p.id)
+      );
+      if (!postForDeletionFromAnotherUser) throw new Error('Missing test post');
 
       await login(admin.email, admin.password);
       await expect(
-        deletePost(postForDeletion.id.toString())
+        deletePost(postForDeletionFromAnotherUser.id.toString())
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
       );
