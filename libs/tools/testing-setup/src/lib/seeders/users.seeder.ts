@@ -15,6 +15,7 @@ import { SeedOptions } from './types/seed-options.js';
  * - Id: 1 - **Admin**
  * - Id: 2 - **Mod**
  * - Id: 3 - **User**
+ * - Id: 4 - **Author**
  */
 export const seedUsers = async (
   customUsers?: User[],
