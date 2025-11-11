@@ -65,7 +65,7 @@ export class PostsController {
   }
 
   @Authorized()
-  @RequiredRole('ADMIN')
+  @RequiredRole('ADMIN', 'AUTHOR')
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
@@ -83,7 +83,7 @@ export class PostsController {
   }
 
   @Authorized()
-  @RequiredRole('ADMIN')
+  @RequiredRole('ADMIN', 'AUTHOR')
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -102,7 +102,7 @@ export class PostsController {
   }
 
   @Authorized()
-  @RequiredRole('ADMIN')
+  @RequiredRole('ADMIN', 'AUTHOR')
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;

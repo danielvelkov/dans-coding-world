@@ -210,7 +210,7 @@ export default postsRouter;
  *     tags: [Posts]
  *     summary: Create a post.
  *     description: |
- *       Roles required: ADMIN
+ *       Roles required: ADMIN or AUTHOR
  *
  *       Create a blog post.
  *
@@ -271,6 +271,8 @@ export default postsRouter;
  *     tags: [Posts]
  *     summary: Update a post by Id.
  *     description: |
+ *       Roles required: ADMIN or AUTHOR
+ *
  *       Update a post's field by its Id.
  *
  *       Returns 403 FORBIDDEN error If post is either DRAFT or ARCHIVED and the user requesting it
@@ -344,6 +346,8 @@ export default postsRouter;
  *     tags: [Posts]
  *     summary: Delete a post by Id.
  *     description: |
+ *       Roles required: ADMIN or AUTHOR
+ *
  *       Delete a blog post by its Id.
  *
  *       Returns 403 FORBIDDEN error if the user requesting it

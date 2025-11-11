@@ -6,7 +6,7 @@ import {
   GetPostDto,
   GetPostsDto,
 } from '@dans-coding-world/shared-post-dto';
-import { Post, Role } from '@dans-coding-world/prisma-schema';
+import { Post } from '@dans-coding-world/prisma-schema';
 
 /**
  * Service for managing blog posts.
