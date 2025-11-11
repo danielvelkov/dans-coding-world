@@ -73,6 +73,7 @@ model Comment {
 enum Role {
   ADMIN
   MOD
+  AUTHOR
   USER
 }
 
