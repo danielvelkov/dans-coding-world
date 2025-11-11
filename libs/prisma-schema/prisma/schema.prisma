@@ -46,6 +46,13 @@ model Post {
   publishedAt DateTime?  // we start out as a draft so no published date is set
   visibility PostVisibility @default(PUBLIC)
   comments Comment[]
+  tags Tag[]
+}
+
+model Tag {
+  id Int @id @default(autoincrement())
+  name String @unique
+  posts Post[]
 }
 
 model Comment {

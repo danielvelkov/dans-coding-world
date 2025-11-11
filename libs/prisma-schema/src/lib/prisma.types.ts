@@ -8,6 +8,7 @@ export type {
   PostStatus,
   PostVisibility,
   Comment,
+  Tag,
 } from '../generated/prisma/client.js';
 
 export type UserWhereInput = Prisma.UserWhereInput;
@@ -16,3 +17,5 @@ export type PostWhereInput = Prisma.PostWhereInput;
 export type PostOrderByInput = Prisma.PostOrderByWithRelationInput;
 export type CommentWhereInput = Prisma.CommentWhereInput;
 export type CommentsOrderByInput = Prisma.CommentOrderByWithRelationInput;
+export type TagWhereInput = Prisma.TagWhereInput;
+export type TagsOrderByInput = Prisma.TagOrderByWithRelationInput;
