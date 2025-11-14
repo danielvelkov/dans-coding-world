@@ -16,6 +16,13 @@ export const SUCCESS_MESSAGES = {
     get: 'Post retrieved successfully',
     getAll: 'Posts retrieved successfully',
   },
+  TAGS: {
+    create: 'Tag created successfully',
+    delete: 'Tag deleted successfully',
+    update: 'Tag name updated successfully',
+    get: 'Tag retrieved successfully',
+    getAll: 'Tags retrieved successfully',
+  },
   COMMENTS: {
     getPostsComments: 'Comments for post retrieved successfully',
     getCommentReplies: 'Comment replies retrieved successfully',

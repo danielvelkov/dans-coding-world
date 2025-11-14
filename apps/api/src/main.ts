@@ -22,6 +22,7 @@ import passport from 'passport';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import slowDown from 'express-slow-down';
+import tagsRouter from './routes/tags.router.js';
 
 const isTest =
   process.env.NODE_ENV === 'test' ||
@@ -83,6 +84,7 @@ app.use(responseWrapper);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/posts', postsRouter);
+app.use('/api/v1/tags', tagsRouter);
 app.use('/api/v1/posts/:postId/comments', commentsRouter);
 
 const swaggerDocOptions = {
