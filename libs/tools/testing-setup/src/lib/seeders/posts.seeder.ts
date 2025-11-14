@@ -12,7 +12,7 @@ import { SeedOptions } from './types/seed-options.js';
  * @param options Seed options for whether to reset the 'Post' table and/or use default post data
  * 
  * *DEFAULT DATA*:
- * - For users with id **1, 2, 3**;
+ * - For users with id **1 and 4**;
  * - 6 posts each;
  * - Different combinations of post status and visibility;
  * - Post title contains names of its status and visibility

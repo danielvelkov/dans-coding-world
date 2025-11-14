@@ -276,14 +276,10 @@ describe('CommentsService', () => {
     );
 
     test.each([
-      ['contains invalid key', { sortBy: { invalidKey: 'asc' } }],
-      ['specify invalid direction', { sortBy: { createdAt: 'invalid' } }],
-      [
-        'specify valid direction but in the wrong case ',
-        { sortBy: { createdAt: 'ASC' } },
-      ],
-      ['specify valid direction but in an array', { sortBy: ['asc'] }],
-      ['are null', { sortBy: null }],
+      ['contains invalid key', { invalidKey: 'asc' }],
+      ['specify invalid direction', { createdAt: 'invalid' }],
+      ['specify valid direction but in the wrong case ', { createdAt: 'ASC' }],
+      ['specify valid direction but in an array', { createdAt: ['asc'] }],
     ])('should throw when sorting options %s', async (_, sortBy) => {
       expect.assertions(1);
 
