@@ -25,6 +25,10 @@ export const VALIDATION_MESSAGES = {
     titleAlreadyExists: 'A post with this title already exists',
     membersOnly: 'Please login to read the blog',
   },
+  tags: {
+    nameAlreadyExists: 'A tag with this name already exists',
+    invalid: 'A tag must only include lower case letters, numbers and hyphens',
+  },
   token: {
     invalid: 'Refresh token must be a valid JWT',
   },
