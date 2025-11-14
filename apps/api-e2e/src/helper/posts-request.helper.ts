@@ -1,7 +1,7 @@
 import {
   CreateCommentDto,
   CreatePostDto,
-  UpdateCommentDto,
+  CreateTagDto,
   UpdatePostDto,
 } from '@dans-coding-world/shared-post-dto';
 import { AxiosInstance } from 'axios';
@@ -100,6 +100,38 @@ export function createPostsRouteHelper(client: AxiosInstance) {
           },
         }
       );
+    },
+
+    async getTags() {
+      return await client.get(`/api/v1/tags`);
+    },
+
+    async getTagById(tagId: string) {
+      return await client.get(`/api/v1/tags/${tagId}`);
+    },
+
+    async deleteTag(tagId: string) {
+      return await client.delete(`/api/v1/tags/${tagId}`);
+    },
+
+    async updateTag(tagId: string, name: string) {
+      return await client.patch(`/api/v1/tags/${tagId}`, { name });
+    },
+
+    async createTag(tagData: CreateTagDto) {
+      const formData = Object.fromEntries(
+        Object.entries(tagData).map(([key, value]) => [
+          key,
+          value === undefined ? 'undefined' : value.toString(),
+        ])
+      );
+
+      const urlSearchParams = new URLSearchParams(formData);
+      return await client.post(`/api/v1/tags`, urlSearchParams, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
     },
   };
 }
