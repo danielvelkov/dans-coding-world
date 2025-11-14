@@ -46,13 +46,22 @@ model Post {
   publishedAt DateTime?  // we start out as a draft so no published date is set
   visibility PostVisibility @default(PUBLIC)
   comments Comment[]
-  tags Tag[]
+  tags TagsOnPosts[]
 }
 
 model Tag {
   id Int @id @default(autoincrement())
   name String @unique
-  posts Post[]
+  posts TagsOnPosts[]
+}
+
+model TagsOnPosts {
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     Int 
+  tag   Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId Int 
+
+  @@id([postId, tagId])
 }
 
 model Comment {
