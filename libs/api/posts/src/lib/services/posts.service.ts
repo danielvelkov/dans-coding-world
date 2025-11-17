@@ -1,8 +1,8 @@
 import {
   Post,
   PostOrderByInput,
-  PostStatus,
   PostWhereInput,
+  Tag,
 } from '@dans-coding-world/prisma-schema';
 import {
   GetPostsResponseDto,
@@ -26,6 +26,7 @@ import {
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { filterObject } from '../helper/util.js';
+import { PostDetail } from '@dans-coding-world/post-data-access';
 
 export const POST_REPOSITORY_TOKEN = 'IPostRepository';
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
@@ -41,11 +42,12 @@ export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 export class PostsService implements IPostsService {
   constructor(
     @Inject(POST_REPOSITORY_TOKEN)
-    public posts: IPostRepository<Post, PostWhereInput, PostOrderByInput>,
+    public posts: IPostRepository<PostDetail, PostWhereInput, PostOrderByInput>,
     @Inject(USER_REPOSITORY_TOKEN)
     public users: IUserRepository
   ) {}
-  async getById(dto: GetPostDto): Promise<Post> {
+
+  async getById(dto: GetPostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, GetPostDto);
 
     const post = await this.posts.getById(dto.postId);
@@ -54,12 +56,21 @@ export class PostsService implements IPostsService {
     // Authorization check
     this.verifyPostAccess(post, dto.viewerId);
 
+    const tagNames = this.extractTagNames(post);
+
     // Content masking for members-only posts
     if (this.isMembersOnly(post) && !dto.viewerId) {
-      return { ...post, content: VALIDATION_MESSAGES.posts.membersOnly };
+      return {
+        ...post,
+        tags: tagNames,
+        content: VALIDATION_MESSAGES.posts.membersOnly,
+      };
     }
 
-    return post;
+    return {
+      ...post,
+      tags: tagNames,
+    };
   }
 
   async getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto> {
@@ -87,9 +98,19 @@ export class PostsService implements IPostsService {
 
     // Hide Members-only content for guests
     const items = posts.map((post) => {
+      const tagNames = this.extractTagNames(post);
+
       if (this.isMembersOnly(post) && !dto?.viewerId) {
-        return { ...post, content: VALIDATION_MESSAGES.posts.membersOnly };
-      } else return post;
+        return {
+          ...post,
+          tags: tagNames,
+          content: VALIDATION_MESSAGES.posts.membersOnly,
+        };
+      } else
+        return {
+          ...post,
+          tags: tagNames,
+        };
     });
 
     return {
@@ -106,7 +127,7 @@ export class PostsService implements IPostsService {
     };
   }
 
-  async create(dto: CreatePostDto): Promise<Post> {
+  async create(dto: CreatePostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, CreatePostDto);
 
     const author = await this.users.getById(dto.authorId.toString());
@@ -130,12 +151,15 @@ export class PostsService implements IPostsService {
       createdAt: new Date(),
       updatedAt: new Date(),
       authorId: dto.authorId,
+      tags: dto.tags,
     };
 
-    return await this.posts.create(inputData);
+    const post = await this.posts.create(inputData);
+
+    return { ...post, tags: this.extractTagNames(post) };
   }
 
-  async update(dto: UpdatePostDto): Promise<Post> {
+  async update(dto: UpdatePostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, UpdatePostDto);
 
     const postForUpdate = await this.posts.getById(dto.postId);
@@ -155,15 +179,17 @@ export class PostsService implements IPostsService {
 
     const filtered = filterObject(dto, Object.keys(postForUpdate));
 
-    return await this.posts.update(dto.postId, {
+    const post = await this.posts.update(dto.postId, {
       ...filtered,
       updatedAt: new Date(),
       ...(!postForUpdate.publishedAt &&
         dto.status === 'PUBLISHED' && { publishedAt: new Date() }),
     });
+
+    return { ...post, tags: this.extractTagNames(post) };
   }
 
-  async delete(dto: DeletePostDto): Promise<Post> {
+  async delete(dto: DeletePostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, DeletePostDto);
 
     const post = await this.posts.getById(dto.postId);
@@ -175,7 +201,7 @@ export class PostsService implements IPostsService {
     return await this.posts.delete(dto.postId);
   }
 
-  private verifyPostAccess(post: Post, userId?: number): void {
+  private verifyPostAccess(post: PostDetail, userId?: number): void {
     if (!this.isPublished(post) && !this.isAuthor(post, userId)) {
       throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
     }
@@ -239,4 +265,8 @@ export class PostsService implements IPostsService {
     userId !== undefined && post.authorId === userId;
   private isPublished = (post: Post) => post.status === 'PUBLISHED';
   private isMembersOnly = (post: Post) => post.visibility === 'MEMBERS_ONLY';
+  private extractTagNames = (post: Post) => {
+    const postTags = (post as any).tags as { tag: Tag }[] | undefined;
+    return postTags?.map((t) => t.tag.name) ?? [];
+  };
 }
