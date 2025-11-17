@@ -26,6 +26,7 @@ import {
   ERROR_MESSAGES,
   PAGINATION,
   POST_CONSTRAINTS,
+  TAG_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { getKey, generateRandomString } from '../helper/util.js';
@@ -898,6 +899,35 @@ describe('PostsService', () => {
       expect(post.publishedAt).not.toBe(null);
     });
 
+    it('should create tags or associate existing tags to post if present', async () => {
+      const tags = ['tag-1', 'tag-2'];
+
+      // Add tags along with post
+      const post = await postsService.create({
+        ...validPostCreateDto,
+        authorId: admin.id,
+        tags,
+      });
+
+      for (const tag of tags)
+        expect((post as any).tags.includes(tag)).toBe(true);
+
+      const tagsWithOverlap = [...tags, 'tag-3'];
+
+      // Add new and existing tags along with post
+      const newPostWithOverlappingTags = await postsService.create({
+        ...validPostCreateDto,
+        title: generateRandomString(10),
+        authorId: admin.id,
+        tags: tagsWithOverlap,
+      });
+
+      for (const tag of tagsWithOverlap)
+        expect((newPostWithOverlappingTags as any).tags.includes(tag)).toBe(
+          true
+        );
+    });
+
     test.each([
       [
         'is too long',
@@ -962,6 +992,34 @@ describe('PostsService', () => {
           expect(error.message).toMatch(/failed.*validation/i);
         });
     });
+
+    test.each([
+      [
+        'is too long',
+        generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH + 1),
+      ],
+      [
+        'is too short',
+        generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH - 1),
+      ],
+      ['is empty', ''],
+      ['contains uppercase letter', 'R' + generateRandomString(20)],
+      ['contains any symbol other than hyphen', '_' + generateRandomString(20)],
+    ])(
+      'should throw validation error when one of the tags is %s',
+      async (_, title) => {
+        expect.assertions(1);
+        return postsService
+          .create({
+            ...validPostCreateDto,
+            authorId: admin.id,
+            tags: [title],
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
 
     it('should throw when the user creating the post does not exist', async () => {
       expect.assertions(1);
@@ -1074,6 +1132,33 @@ describe('PostsService', () => {
       jest.useRealTimers();
     });
 
+    it('should create tags or associate existing tags to post if present', async () => {
+      const tags = ['tag-1', 'tag-2'];
+
+      const updatedPost = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags,
+      });
+
+      for (const tag of tags)
+        expect((updatedPost as any).tags.includes(tag)).toBe(true);
+
+      const tagsWithOverlap = [...tags, 'tag-3'];
+
+      // Add new and existing tags along with post
+      const updatedPostWithOverlappingTags = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags: tagsWithOverlap,
+      });
+
+      for (const tag of tagsWithOverlap)
+        expect((updatedPostWithOverlappingTags as any).tags.includes(tag)).toBe(
+          true
+        );
+    });
+
     test.each([
       ['is null', null],
       ['is undefined', undefined],
@@ -1132,6 +1217,34 @@ describe('PostsService', () => {
           expect(error.message).toMatch(/failed.*validation/i);
         });
     });
+
+    test.each([
+      [
+        'is too long',
+        generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH + 1),
+      ],
+      [
+        'is too short',
+        generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH - 1),
+      ],
+      ['is empty', ''],
+      ['contains uppercase letter', 'R' + generateRandomString(20)],
+      ['contains any symbol other than hyphen', '_' + generateRandomString(20)],
+    ])(
+      'should throw validation error when one of the tags is %s',
+      async (_, tag) => {
+        expect.assertions(1);
+        return postsService
+          .update({
+            postId: postForUpdate.id,
+            userId: admin.id,
+            tags: [tag],
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
 
     test.each([
       [
