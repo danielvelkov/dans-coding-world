@@ -23,12 +23,12 @@ export class TagsController {
     this.delete = this.delete.bind(this);
   }
 
-  async get(req: Request, res: Response, next: NextFunction) {
+  get = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
 
       const tag = await this.tagsService.getById({
-        tagId: +id,
+        tagId: id as any,
       });
 
       return res.status(StatusCodes.OK).json({
@@ -38,7 +38,7 @@ export class TagsController {
     } catch (error) {
       return next(error);
     }
-  }
+  };
 
   @AttachUser()
   async getAll(req: Request, res: Response, next: NextFunction) {
