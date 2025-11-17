@@ -57,6 +57,7 @@ export interface IPostsService {
    * **Filtering options:**
    * - By post status (DRAFT, PUBLISHED, ARCHIVED)
    * - By visibility (PUBLIC, MEMBERS_ONLY)
+   * - By tags
    *
    * **Sorting options:**
    * - By creation date (createdAt)

@@ -11,6 +11,7 @@ import {
   DeletePostDto,
   GetPostDto,
   GetPostsDto,
+  FilterPostsByDto,
 } from '@dans-coding-world/shared-post-dto';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
 import { Inject, Injectable } from 'injection-js';
@@ -30,6 +31,8 @@ import { PostDetail } from '@dans-coding-world/post-data-access';
 
 export const POST_REPOSITORY_TOKEN = 'IPostRepository';
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
+
+type DirectPrismaFilters = Pick<FilterPostsByDto, 'status' | 'visibility'>;
 
 /*
   NOTE
@@ -241,11 +244,31 @@ export class PostsService implements IPostsService {
 
     // STEP 3: Explicit Filters - What DOES the user want to see?
     if (filters) {
-      const filterConditions = Object.entries(filters)
-        .filter(([_, arr]) => Array.isArray(arr) && arr.length)
+      const directFilters: DirectPrismaFilters = {
+        status: filters.status,
+        visibility: filters.visibility,
+      };
+
+      const filterConditions = Object.entries(directFilters)
+        .filter(([, arr]) => Array.isArray(arr) && arr.length)
         .map(([key, value]) => ({ [key]: { in: value } }));
 
       clauses.push(...filterConditions);
+
+      // Filtering by post tags
+      if (filters.tags && filters.tags.length > 0) {
+        clauses.push({
+          tags: {
+            some: {
+              tag: {
+                name: {
+                  in: filters.tags,
+                },
+              },
+            },
+          },
+        });
+      }
     }
 
     // STEP 4: Search Query
@@ -266,7 +289,7 @@ export class PostsService implements IPostsService {
   private isPublished = (post: Post) => post.status === 'PUBLISHED';
   private isMembersOnly = (post: Post) => post.visibility === 'MEMBERS_ONLY';
   private extractTagNames = (post: Post) => {
-    const postTags = (post as any).tags as { tag: Tag }[] | undefined;
+    const postTags = (post as PostDetail).tags as { tag: Tag }[] | undefined;
     return postTags?.map((t) => t.tag.name) ?? [];
   };
 }
