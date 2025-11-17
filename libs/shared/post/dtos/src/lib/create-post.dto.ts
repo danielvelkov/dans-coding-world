@@ -1,5 +1,15 @@
-import { MinLength, MaxLength, IsBoolean, IsInt, Min } from 'class-validator';
 import {
+  MinLength,
+  MaxLength,
+  IsBoolean,
+  IsInt,
+  Min,
+  IsOptional,
+  IsArray,
+  Matches,
+} from 'class-validator';
+import {
+  TAG_CONSTRAINTS,
   POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
@@ -28,6 +38,22 @@ export class CreatePostDto {
     message: VALIDATION_MESSAGES.maxLength(POST_CONSTRAINTS.MAX_CONTENT_LENGTH),
   })
   content: string;
+
+  @IsOptional()
+  @IsArray()
+  @MinLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH, {
+    each: true,
+    message: VALIDATION_MESSAGES.minLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH),
+  })
+  @MaxLength(TAG_CONSTRAINTS.MAX_NAME_LENGTH, {
+    each: true,
+    message: VALIDATION_MESSAGES.maxLength(TAG_CONSTRAINTS.MAX_NAME_LENGTH),
+  })
+  @Matches(TAG_CONSTRAINTS.NAME_PATTERN, {
+    each: true,
+    message: VALIDATION_MESSAGES.tags.invalid,
+  })
+  tags?: string[];
 
   @IsBoolean()
   @ToBoolean()
