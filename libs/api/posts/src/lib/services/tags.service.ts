@@ -74,11 +74,7 @@ export class TagsService implements ITagsService {
     dto = await transformAndValidateDto(dto, CreateTagDto);
 
     const tagExists = await this.tags.exists(dto.name);
-    if (tagExists)
-      throw new ApiException(
-        ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-        VALIDATION_MESSAGES.tags.nameAlreadyExists
-      );
+    if (tagExists) throw new ApiException(ERROR_CODES.VALIDATION.TAG_EXISTS);
 
     const inputData: Parameters<typeof this.tags.create>[0] = {
       name: dto.name,
@@ -105,11 +101,7 @@ export class TagsService implements ITagsService {
 
     if (tagForUpdate.name.toLowerCase() !== dto.name.toLowerCase()) {
       const tagExists = await this.tags.exists(dto.name);
-      if (tagExists)
-        throw new ApiException(
-          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-          VALIDATION_MESSAGES.tags.nameAlreadyExists
-        );
+      if (tagExists) throw new ApiException(ERROR_CODES.VALIDATION.TAG_EXISTS);
     }
 
     return await this.tags.update(dto.tagId, {

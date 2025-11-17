@@ -119,10 +119,7 @@ export class PostsService implements IPostsService {
     const postAlreadyExists = await this.posts.exists(dto.title);
 
     if (postAlreadyExists)
-      throw new ApiException(
-        ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-        VALIDATION_MESSAGES.posts.titleAlreadyExists
-      );
+      throw new ApiException(ERROR_CODES.VALIDATION.POST_EXISTS);
 
     const inputData: Parameters<typeof this.posts.create>[0] = {
       title: dto.title,
@@ -153,10 +150,7 @@ export class PostsService implements IPostsService {
     ) {
       const postAlreadyExists = await this.posts.exists(dto.title);
       if (postAlreadyExists)
-        throw new ApiException(
-          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-          VALIDATION_MESSAGES.posts.titleAlreadyExists
-        );
+        throw new ApiException(ERROR_CODES.VALIDATION.POST_EXISTS);
     }
 
     const filtered = filterObject(dto, Object.keys(postForUpdate));

@@ -270,7 +270,7 @@ describe('TagsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            VALIDATION_MESSAGES.tags.nameAlreadyExists
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.TAG_EXISTS]
           );
         });
     });
@@ -360,7 +360,7 @@ describe('TagsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            VALIDATION_MESSAGES.tags.nameAlreadyExists
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.TAG_EXISTS]
           );
         });
     });

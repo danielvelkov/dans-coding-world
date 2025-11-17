@@ -996,7 +996,7 @@ describe('PostsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            VALIDATION_MESSAGES.posts.titleAlreadyExists
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.POST_EXISTS]
           );
         });
     });
@@ -1182,7 +1182,7 @@ describe('PostsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            VALIDATION_MESSAGES.posts.titleAlreadyExists
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.POST_EXISTS]
           );
         });
     });

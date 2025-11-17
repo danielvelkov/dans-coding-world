@@ -680,10 +680,7 @@ describe('/api/v1/posts', () => {
           title: existingPostTitle,
         })
       ).rejects.toMatchObject(
-        createErrorCodeResponse(
-          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-          VALIDATION_MESSAGES.posts.titleAlreadyExists
-        )
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS)
       );
     });
   });
@@ -850,10 +847,7 @@ describe('/api/v1/posts', () => {
           title: existingPostTitle,
         })
       ).rejects.toMatchObject(
-        createErrorCodeResponse(
-          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-          VALIDATION_MESSAGES.posts.titleAlreadyExists
-        )
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS)
       );
     });
 
