@@ -6,29 +6,92 @@ import {
 } from '@dans-coding-world/prisma-schema';
 import { IPostRepository } from '@dans-coding-world/shared-data-access-interfaces';
 
+export type PostDetail = Post & { tags?: string[] };
+
 export class PrismaPostDataAccess
   implements IPostRepository<Post, PostWhereInput, PostOrderByInput>
 {
   async getById(id: number): Promise<Post | null> {
-    return await client.post.findFirst({
-      where: {
-        id,
+    const post = await client.post.findFirst({
+      where: { id },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
       },
     });
+    return post;
   }
 
-  async create(data: Omit<Post, 'id'>): Promise<Post> {
+  async create(data: Omit<PostDetail, 'id'>): Promise<Post> {
+    const { tags, ...postData } = data;
+
     return await client.post.create({
-      data,
+      data: {
+        ...postData,
+        ...(tags &&
+          tags.length > 0 && {
+            tags: {
+              create: tags.map((name) => ({
+                tag: {
+                  connectOrCreate: {
+                    where: {
+                      name,
+                    },
+                    create: {
+                      name,
+                    },
+                  },
+                },
+              })),
+            },
+          }),
+      },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
     });
   }
 
-  async update(id: number, data: Partial<Post>): Promise<Post> {
+  async update(id: number, data: Partial<PostDetail>): Promise<Post> {
+    const { tags, ...postData } = data;
+
     return await client.post.update({
-      where: {
-        id,
+      where: { id },
+      data: {
+        ...postData,
+        ...(tags &&
+          tags.length > 0 && {
+            tags: {
+              set: [],
+              create: tags.map((name) => ({
+                tag: {
+                  connectOrCreate: {
+                    where: {
+                      name,
+                    },
+                    create: {
+                      name,
+                    },
+                  },
+                },
+              })),
+            },
+          }),
       },
-      data,
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
     });
   }
 
@@ -45,21 +108,31 @@ export class PrismaPostDataAccess
       orderBy,
       skip: options?.skip,
       take: options?.take,
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
     });
   }
 
   async delete(id: number): Promise<Post> {
     return await client.post.delete({
-      where: {
-        id,
+      where: { id },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
       },
     });
   }
 
   async deleteMany(where: PostWhereInput): Promise<number> {
-    const { count } = await client.post.deleteMany({
-      where,
-    });
+    const { count } = await client.post.deleteMany({ where });
     return count;
   }
 
@@ -67,10 +140,11 @@ export class PrismaPostDataAccess
     const post = await client.post.findFirst({
       where: {
         title: {
-          equals: title.toLowerCase(),
-          mode: 'insensitive', // Case-insensitive match
+          equals: title,
+          mode: 'insensitive',
         },
       },
+      select: { id: true },
     });
     return !!post;
   }
