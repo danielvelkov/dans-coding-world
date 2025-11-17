@@ -47,7 +47,7 @@ export const seedTags = async (
   }
 };
 
-const createAndReturnTagsWithId = async (tags: any[]) => {
+const createAndReturnTagsWithId = async (tags: {name:string}[]) => {
   if (!tags.length) return [];
   const createdTags = await client.$transaction(
     tags.map((tag) => client.tag.create({ data: tag }))
