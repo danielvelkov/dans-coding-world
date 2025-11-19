@@ -5,6 +5,7 @@ import {
   MinLength,
   MaxLength,
   Matches,
+  ArrayNotEmpty,
 } from 'class-validator';
 import {
   PostStatus,
@@ -25,6 +26,7 @@ export class FilterPostsByDto {
     return Array.isArray(value) ? value : [value];
   })
   @IsArray()
+  @ArrayNotEmpty()
   @IsEnum(PostStatusEnum, {
     each: true,
     message: `Post status must be one of:${Object.values(PostStatusEnum).join(
@@ -39,6 +41,7 @@ export class FilterPostsByDto {
     return Array.isArray(value) ? value : [value];
   })
   @IsArray()
+  @ArrayNotEmpty()
   @IsEnum(PostVisibilityEnum, {
     each: true,
     message: `Post visibility must be one of:${Object.values(
@@ -49,6 +52,7 @@ export class FilterPostsByDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayNotEmpty()
   @MinLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH, {
     each: true,
     message: VALIDATION_MESSAGES.minLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH),

@@ -137,9 +137,6 @@ export class PostsService implements IPostsService {
 
     if (!author) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
 
-    if (author.role !== 'ADMIN')
-      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
-
     const postAlreadyExists = await this.posts.exists(dto.title);
 
     if (postAlreadyExists)
@@ -154,7 +151,7 @@ export class PostsService implements IPostsService {
       createdAt: new Date(),
       updatedAt: new Date(),
       authorId: dto.authorId,
-      tags: dto.tags,
+      tags: this.extractUniqueStrings(dto.tags),
     };
 
     const post = await this.posts.create(inputData);
@@ -184,6 +181,7 @@ export class PostsService implements IPostsService {
 
     const post = await this.posts.update(dto.postId, {
       ...filtered,
+      tags: this.extractUniqueStrings(filtered.tags),
       updatedAt: new Date(),
       ...(!postForUpdate.publishedAt &&
         dto.status === 'PUBLISHED' && { publishedAt: new Date() }),
@@ -288,6 +286,11 @@ export class PostsService implements IPostsService {
     userId !== undefined && post.authorId === userId;
   private isPublished = (post: Post) => post.status === 'PUBLISHED';
   private isMembersOnly = (post: Post) => post.visibility === 'MEMBERS_ONLY';
+  private extractUniqueStrings = (arr: string[] | undefined) =>
+    arr?.reduce(
+      (acc, val) => (acc.includes(val) ? acc : [...acc, val]),
+      [] as string[]
+    );
   private extractTagNames = (post: Post) => {
     const postTags = (post as PostDetail).tags as { tag: Tag }[] | undefined;
     return postTags?.map((t) => t.tag.name) ?? [];

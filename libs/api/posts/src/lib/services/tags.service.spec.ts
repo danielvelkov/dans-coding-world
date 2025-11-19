@@ -28,7 +28,6 @@ import {
   ERROR_CODES,
   ERROR_MESSAGES,
   TAG_CONSTRAINTS,
-  VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { generateRandomString } from '../helper/util.js';
 import { ITagsService } from '../interfaces/tags-service.interface.js';
@@ -193,7 +192,7 @@ describe('TagsService', () => {
       expect(res.count).toBe(0);
     });
 
-    it(`should return tags on posts that are not PUBLISHED
+    it(`should return tags on posts that are DRAFT or ARCHIVED
        when viewerId is set AND is the posts' author`, async () => {
       const publishedPosts = posts.filter((p) => p.status === 'PUBLISHED');
 
@@ -224,10 +223,14 @@ describe('TagsService', () => {
     });
 
     it('should create a tag when valid name is provided', async () => {
-      await tagsService.create({
+      const tag = await tagsService.create({
         name: 'tag-1',
       });
       expect(mockTagsRepo.create).toHaveBeenCalledTimes(1);
+      const createdTag = await mockTagsRepo.getById(tag.id);
+
+      expect(createdTag?.id).toBe(tag.id);
+      expect(createdTag?.name).toBe(tag.name);
     });
 
     test.each([
@@ -344,7 +347,7 @@ describe('TagsService', () => {
 
     it(`should throw when trying to update the tag name
        to match another tag's name`, async () => {
-      const existingTagName = 'existing-tag-2';
+      const existingTagName = 'existing-tag';
 
       // create a new tag
       await mockTagsRepo.create({

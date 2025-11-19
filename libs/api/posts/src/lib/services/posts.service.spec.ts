@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'reflect-metadata';
 import {
   POST_REPOSITORY_TOKEN,
@@ -19,7 +20,10 @@ import {
 } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
-import { PrismaPostDataAccess as MockPostRepository } from '@dans-coding-world/post-data-access';
+import {
+  PrismaPostDataAccess as MockPostRepository,
+  PostDetail,
+} from '@dans-coding-world/post-data-access';
 import { PrismaUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
 import {
   ERROR_CODES,
@@ -32,13 +36,18 @@ import {
 import { getKey, generateRandomString } from '../helper/util.js';
 
 let mockUsersRepo: IUserRepository;
-let mockPostsRepo: IPostRepository<Post, PostWhereInput, PostOrderByInput>;
+let mockPostsRepo: IPostRepository<
+  PostDetail,
+  PostWhereInput,
+  PostOrderByInput
+>;
 let injector: ReflectiveInjector;
 let postsService: IPostsService;
 
 describe('PostsService', () => {
   let user: User;
   let admin: User;
+  let author: User;
 
   const validPostContent = {
     title: 'Very valid title',
@@ -50,22 +59,30 @@ describe('PostsService', () => {
 
   beforeEach(async () => {
     await client.user.deleteMany();
+    await client.tag.deleteMany();
 
     mockPostsRepo = new MockPostRepository();
     mockUsersRepo = new MockUserRepository();
 
     user = await mockUsersRepo.create({
       email: 'fakeUser123@gmail.com',
-      password: 'aldjfalsjdflsdjflkj',
+      password: 'fakeUserPass',
       username: 'fakeUser123',
       role: 'USER',
     });
 
     admin = await mockUsersRepo.create({
       email: 'fakeAdmin123@gmail.com',
-      password: 'aldjfalsjdflsdjflkj',
+      password: 'fakeAdminPass',
       username: 'fakeAdmin123',
       role: 'ADMIN',
+    });
+
+    author = await mockUsersRepo.create({
+      email: 'fakeAuthor123@gmail.com',
+      password: 'fakeAuthorPass',
+      username: 'fakeAuthor123',
+      role: 'AUTHOR',
     });
 
     injector = ReflectiveInjector.resolveAndCreate([
@@ -104,6 +121,28 @@ describe('PostsService', () => {
       expect(createdPost.content).not.toBe(
         VALIDATION_MESSAGES.posts.membersOnly
       );
+    });
+
+    it('should return post with tags field, if requested post has them', async () => {
+      const expectedTags = ['tag-1', 'tag-2'];
+      const createdPost = await mockPostsRepo.create({
+        ...validPostContent,
+        authorId: admin.id,
+        status: 'PUBLISHED',
+        visibility: 'PUBLIC',
+        tags: expectedTags,
+      });
+
+      const post = await postsService.getById({
+        postId: createdPost.id,
+      });
+
+      const postWithTags = post as PostDetail;
+
+      expect(postWithTags.tags?.length).toBe(expectedTags.length);
+
+      for (const tag of expectedTags)
+        expect(postWithTags.tags?.includes(tag)).toBe(true);
     });
 
     it(`should return post with its content hidden, if it is members-only
@@ -214,70 +253,114 @@ describe('PostsService', () => {
     const NUM_OF_PUBLIC_PUBLISHED_POSTS = 15;
     const NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS = 4;
     const NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS = 3;
-    const NUM_OF_PUBLIC_DRAFTS_POSTS = 2;
-    const NUM_OF_PUBLIC_ARCHIVED_POSTS = 2;
+    const NUM_OF_ADMIN_DRAFTS_POSTS = 2;
+    const NUM_OF_ADMIN_ARCHIVED_POSTS = 2;
+    const NUM_OF_AUTHOR_DRAFTS_POSTS = 3;
+
+    type PostWithTags = Post & { tags?: string[] };
+
+    let posts: PostWithTags[] = [];
+    const validTags = Array.from({ length: 10 }, (t, i) => `tag-${i}`);
 
     beforeEach(async () => {
+      posts = [];
+
       await mockPostsRepo.deleteMany({});
+      await client.tag.deleteMany({});
+
       for (let i = 0; i < NUM_OF_PUBLIC_PUBLISHED_POSTS; i++)
-        await mockPostsRepo.create({
-          ...validPostContent,
-          title: `PUBLIC & PUBLISHED: #${i}`,
-          authorId: admin.id,
-          status: 'PUBLISHED',
-          visibility: 'PUBLIC',
-          publishedAt: new Date(
-            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
-          ),
-        });
+        posts.push(
+          await mockPostsRepo.create({
+            ...validPostContent,
+            title: `PUBLIC & PUBLISHED: #${i}`,
+            authorId: admin.id,
+            status: 'PUBLISHED',
+            visibility: 'PUBLIC',
+            publishedAt: new Date(
+              Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+            ),
+          })
+        );
 
       for (let i = 0; i < NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS; i++)
-        await mockPostsRepo.create({
-          ...validPostContent,
-          title: `MEMBERS_ONLY & PUBLISHED: #${i}`,
-          authorId: admin.id,
-          status: 'PUBLISHED',
-          visibility: 'MEMBERS_ONLY',
-          publishedAt: new Date(
-            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
-          ),
-        });
+        posts.push(
+          await mockPostsRepo.create({
+            ...validPostContent,
+            title: `MEMBERS_ONLY & PUBLISHED: #${i}`,
+            authorId: admin.id,
+            status: 'PUBLISHED',
+            visibility: 'MEMBERS_ONLY',
+            publishedAt: new Date(
+              Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+            ),
+          })
+        );
 
       for (let i = 0; i < NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS; i++)
-        await mockPostsRepo.create({
-          ...validPostContent,
-          title: `MEMBERS_ONLY & DRAFT: #${i}`,
-          authorId: admin.id,
-          status: 'DRAFT',
-          visibility: 'MEMBERS_ONLY',
-          publishedAt: new Date(
-            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
-          ),
-        });
+        posts.push(
+          await mockPostsRepo.create({
+            ...validPostContent,
+            title: `MEMBERS_ONLY & DRAFT: #${i}`,
+            authorId: admin.id,
+            status: 'DRAFT',
+            visibility: 'MEMBERS_ONLY',
+            publishedAt: new Date(
+              Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+            ),
+          })
+        );
 
-      for (let i = 0; i < NUM_OF_PUBLIC_DRAFTS_POSTS; i++)
-        await mockPostsRepo.create({
-          ...validPostContent,
-          title: `DRAFT & PUBLIC: #${i}`,
-          authorId: admin.id,
-          status: 'DRAFT',
-          visibility: 'PUBLIC',
-          publishedAt: new Date(
-            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
-          ),
-        });
+      for (let i = 0; i < NUM_OF_ADMIN_DRAFTS_POSTS; i++)
+        posts.push(
+          await mockPostsRepo.create({
+            ...validPostContent,
+            title: `DRAFT & PUBLIC: #${i}`,
+            authorId: admin.id,
+            status: 'DRAFT',
+            visibility: 'PUBLIC',
+            publishedAt: new Date(
+              Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+            ),
+          })
+        );
 
-      for (let i = 0; i < NUM_OF_PUBLIC_ARCHIVED_POSTS; i++)
-        await mockPostsRepo.create({
-          ...validPostContent,
-          title: `ARCHIVED & PUBLIC: #${i}`,
-          authorId: admin.id,
-          status: 'ARCHIVED',
-          visibility: 'PUBLIC',
-          publishedAt: new Date(
-            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
-          ),
-        });
+      for (let i = 0; i < NUM_OF_ADMIN_ARCHIVED_POSTS; i++)
+        posts.push(
+          await mockPostsRepo.create({
+            ...validPostContent,
+            title: `ARCHIVED & PUBLIC: #${i}`,
+            authorId: admin.id,
+            status: 'ARCHIVED',
+            visibility: 'PUBLIC',
+            publishedAt: new Date(
+              Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+            ),
+          })
+        );
+
+      for (let i = 0; i < NUM_OF_AUTHOR_DRAFTS_POSTS; i++)
+        posts.push(
+          await mockPostsRepo.create({
+            ...validPostContent,
+            title: `DRAFT & PUBLIC: #${i}`,
+            authorId: author.id,
+            status: 'DRAFT',
+            visibility: 'PUBLIC',
+            publishedAt: new Date(
+              Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+            ),
+          })
+        );
+
+      // Add a random number of tags to each post
+      for (const [i, val] of posts.entries()) {
+        const shuffled = [...validTags].sort(() => 0.5 - Math.random());
+        const tagNames = shuffled.slice(0, Math.floor(validTags.length / 2));
+
+        await mockPostsRepo.update(val.id, { tags: tagNames });
+
+        posts[i] = { ...val, tags: tagNames };
+      }
     });
 
     test.each([
@@ -311,6 +394,24 @@ describe('PostsService', () => {
       expect(resDto.count).toBe(PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE);
     });
 
+    it('should return associated tags alongside post data', async () => {
+      const expectedPostsWithTags = posts.filter(
+        (p) => p.status === 'PUBLISHED'
+      );
+      const resDto = await postsService.getAll();
+
+      for (const post of resDto.items as PostWithTags[]) {
+        const expectedPost = expectedPostsWithTags.find(
+          (p) => p.id === post.id
+        );
+        expect(expectedPost?.tags?.length).toBe(post.tags?.length);
+        if (!post.tags) throw new Error('Missing post tags');
+
+        for (const tag of post.tags)
+          expect(expectedPost?.tags?.includes(tag)).toBe(true);
+      }
+    });
+
     it(`should hide post content for members-only posts when no viewerId provided`, async () => {
       const resDto_WithoutViewerId = await postsService.getAll();
       resDto_WithoutViewerId.items
@@ -338,7 +439,7 @@ describe('PostsService', () => {
         },
       ],
       [
-        NUM_OF_PUBLIC_ARCHIVED_POSTS,
+        NUM_OF_ADMIN_ARCHIVED_POSTS,
         {
           status: ['ARCHIVED'] as PostStatus[],
         },
@@ -351,16 +452,16 @@ describe('PostsService', () => {
         },
       ],
       [
-        NUM_OF_PUBLIC_ARCHIVED_POSTS + NUM_OF_PUBLIC_PUBLISHED_POSTS,
+        NUM_OF_ADMIN_ARCHIVED_POSTS + NUM_OF_PUBLIC_PUBLISHED_POSTS,
         {
           status: ['ARCHIVED', 'PUBLISHED'] as PostStatus[],
           visibility: ['PUBLIC'] as PostVisibility[],
         },
       ],
       [
-        NUM_OF_PUBLIC_ARCHIVED_POSTS +
+        NUM_OF_ADMIN_ARCHIVED_POSTS +
           NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
-          NUM_OF_PUBLIC_DRAFTS_POSTS,
+          NUM_OF_ADMIN_DRAFTS_POSTS,
         {
           status: ['ARCHIVED', 'DRAFT'] as PostStatus[],
           visibility: ['PUBLIC', 'MEMBERS_ONLY'] as PostVisibility[],
@@ -450,7 +551,7 @@ describe('PostsService', () => {
         true,
       ],
       [
-        NUM_OF_PUBLIC_DRAFTS_POSTS,
+        NUM_OF_ADMIN_DRAFTS_POSTS,
         {
           visibility: ['PUBLIC'] as PostVisibility[],
         },
@@ -458,7 +559,7 @@ describe('PostsService', () => {
         true,
       ],
       [
-        NUM_OF_PUBLIC_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
+        NUM_OF_ADMIN_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
         {},
         'DRAFT',
         true,
@@ -528,7 +629,7 @@ describe('PostsService', () => {
       ],
       // Test: Author can see only DRAFT posts when filtering by DRAFT
       [
-        NUM_OF_PUBLIC_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
+        NUM_OF_ADMIN_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
         {
           status: ['DRAFT'] as PostStatus[],
         },
@@ -547,7 +648,7 @@ describe('PostsService', () => {
       ],
       // Test: Combined filter - DRAFT + PUBLIC (author only)
       [
-        NUM_OF_PUBLIC_DRAFTS_POSTS,
+        NUM_OF_ADMIN_DRAFTS_POSTS,
         {
           status: ['DRAFT'] as PostStatus[],
           visibility: ['PUBLIC'] as PostVisibility[],
@@ -557,7 +658,7 @@ describe('PostsService', () => {
       ],
       // Test: Multiple statuses with visibility filter
       [
-        NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_PUBLIC_DRAFTS_POSTS,
+        NUM_OF_PUBLIC_PUBLISHED_POSTS + NUM_OF_ADMIN_DRAFTS_POSTS,
         {
           status: ['PUBLISHED', 'DRAFT'] as PostStatus[],
           visibility: ['PUBLIC'] as PostVisibility[],
@@ -574,7 +675,7 @@ describe('PostsService', () => {
       ],
       // Test: Empty search query with DRAFT filter (author)
       [
-        NUM_OF_PUBLIC_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
+        NUM_OF_ADMIN_DRAFTS_POSTS + NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS,
         {
           status: ['DRAFT'] as PostStatus[],
         },
@@ -583,11 +684,11 @@ describe('PostsService', () => {
       ],
       // Test: Filtering by all statuses (author should see all their posts)
       [
-        NUM_OF_PUBLIC_DRAFTS_POSTS +
+        NUM_OF_ADMIN_DRAFTS_POSTS +
           NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
           NUM_OF_PUBLIC_PUBLISHED_POSTS +
           NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS +
-          NUM_OF_PUBLIC_ARCHIVED_POSTS,
+          NUM_OF_ADMIN_ARCHIVED_POSTS,
         {
           status: ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as PostStatus[],
         },
@@ -595,11 +696,11 @@ describe('PostsService', () => {
         true,
       ],
       [
-        NUM_OF_PUBLIC_DRAFTS_POSTS +
+        NUM_OF_ADMIN_DRAFTS_POSTS +
           NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
           NUM_OF_PUBLIC_PUBLISHED_POSTS +
           NUM_OF_MEMBERS_ONLY_PUBLISHED_POSTS +
-          NUM_OF_PUBLIC_ARCHIVED_POSTS,
+          NUM_OF_ADMIN_ARCHIVED_POSTS,
         {},
         ':',
         true,
@@ -648,6 +749,66 @@ describe('PostsService', () => {
       }
     );
 
+    test.each([
+      // Test: Guest user filtering by tag
+      [
+        {
+          tags: [validTags[0]],
+        },
+        false,
+      ],
+      // Test: Author filtering by tag
+      [
+        {
+          tags: [validTags[0]],
+        },
+        true,
+      ],
+      // Test: Guest user filtering by random tags
+      [
+        {
+          tags: [...validTags]
+            .sort(() => 0.5 - Math.random())
+            .splice(0, Math.floor((Math.random() * validTags.length) / 2) + 1),
+        },
+        false,
+      ],
+      // Test: Author filtering by random tags
+      [
+        {
+          tags: [...validTags]
+            .sort(() => 0.5 - Math.random())
+            .splice(0, Math.floor((Math.random() * validTags.length) / 2) + 1),
+        },
+        true,
+      ],
+    ])(
+      `should return the correct amount of posts 
+        after filtering with tags %s (logged-in: %s)`,
+      async (filterBy, isAuthor) => {
+        const total = posts
+          .filter(
+            (p) =>
+              p.status === 'PUBLISHED' ||
+              (isAuthor &&
+                p.authorId === author.id &&
+                (p.status === 'ARCHIVED' || p.status === 'DRAFT'))
+          )
+          .filter(
+            (p) =>
+              filterBy.tags &&
+              filterBy.tags.length &&
+              p.tags?.some((t) => filterBy.tags.includes(t))
+          ).length;
+
+        const resDto = await postsService.getAll({
+          viewerId: isAuthor ? author.id : undefined,
+          filterBy,
+        });
+        expect(resDto.pagination.total).toBe(total);
+      }
+    );
+
     test.each(['UNORGANIZED', 'HOT_TAKE', 'SHUNNED_ON_TWITTER'])(
       'should throw when filtering by unknown status',
       async (status) => {
@@ -680,6 +841,26 @@ describe('PostsService', () => {
       }
     );
 
+    test.each([
+      [['DRAFT'] as PostStatus[], [] as PostVisibility[]],
+      [[] as PostStatus[], ['PUBLIC'] as PostVisibility[]],
+    ])(
+      'should throw when either visibility or status filtering are empty',
+      async (status, visibility) => {
+        expect.assertions(1);
+        return postsService
+          .getAll({
+            filterBy: {
+              visibility,
+              status,
+            },
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+
     it(`should return user's DRAFT & ARCHIVED posts when filtering by status
        and viewerId matches their authorId`, async () => {
       const resDto = await postsService.getAll({
@@ -692,9 +873,9 @@ describe('PostsService', () => {
       expect(resDto.items.some((p) => p.status === 'DRAFT')).toBe(true);
       expect(resDto.items.some((p) => p.status === 'ARCHIVED')).toBe(true);
       expect(resDto.pagination.total).toBe(
-        NUM_OF_PUBLIC_ARCHIVED_POSTS +
+        NUM_OF_ADMIN_ARCHIVED_POSTS +
           NUM_OF_MEMBERS_ONLY_DRAFTS_POSTS +
-          NUM_OF_PUBLIC_DRAFTS_POSTS
+          NUM_OF_ADMIN_DRAFTS_POSTS
       );
       expect(
         resDto.items
@@ -712,6 +893,79 @@ describe('PostsService', () => {
         },
       });
       expect(resDto.pagination.total).toBe(0);
+    });
+
+    it(`should not return another user's DRAFT & ARCHIVED posts when filtering by tags`, async () => {
+      const privatePostsOfAnotherUser = posts.filter(
+        (p) =>
+          (p.status === 'DRAFT' || p.status === 'ARCHIVED') &&
+          p.authorId !== author.id
+      );
+
+      const uniqueTagsPresentInOtherUsersPosts = [
+        ...new Set(
+          privatePostsOfAnotherUser.flatMap((post) => post.tags ?? [])
+        ),
+      ];
+
+      for (const uniqueTag of uniqueTagsPresentInOtherUsersPosts) {
+        const resDto = await postsService.getAll({
+          viewerId: author.id,
+          pageSize: 25,
+          filterBy: {
+            tags: [uniqueTag],
+          },
+        });
+
+        expect(
+          (resDto.items as PostWithTags[]).every(
+            (p) =>
+              p.tags?.includes(uniqueTag) &&
+              // Either post is published or its private post with the author being the requesting user
+              (p.status === 'PUBLISHED' || p.authorId === author.id)
+          )
+        ).toBe(true);
+      }
+    });
+
+    test.each([
+      ['array is empty', []],
+      [
+        'some are too long',
+        [
+          ...validTags,
+          generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH + 1),
+        ],
+      ],
+      [
+        'some are too short',
+        [
+          ...validTags,
+          generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH - 1),
+        ],
+      ],
+      ['some are empty', [...validTags, '']],
+      [
+        'some contain uppercase letter',
+        [...validTags, 'R' + generateRandomString(10)],
+      ],
+      [
+        'some contain any symbol other than hyphen',
+        [...validTags, '_' + generateRandomString(10)],
+      ],
+    ])('should throw when filtering by tags and %s', async (_, tags) => {
+      expect.assertions(1);
+      return postsService
+        .getAll({
+          filterBy: {
+            tags,
+          },
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+          );
+        });
     });
 
     test.each([
@@ -779,7 +1033,7 @@ describe('PostsService', () => {
     });
 
     test.each([
-      ['contains invalid key', { invalidKey: 'asc' }],
+      ['contain invalid key', { invalidKey: 'asc' }],
       ['specify invalid direction', { createdAt: 'invalid' }],
       ['specify valid direction but in the wrong case ', { createdAt: 'ASC' }],
       ['specify valid direction but in an array', { createdAt: ['asc'] }],
@@ -923,9 +1177,22 @@ describe('PostsService', () => {
       });
 
       for (const tag of tagsWithOverlap)
-        expect((newPostWithOverlappingTags as any).tags.includes(tag)).toBe(
-          true
-        );
+        expect(
+          (newPostWithOverlappingTags as PostDetail).tags?.includes(tag)
+        ).toBe(true);
+    });
+
+    it('should not create the same tag twice when specifying tags field', async () => {
+      const tags = ['tag-1', 'tag-1'];
+
+      // Add tags along with post
+      const post = await postsService.create({
+        ...validPostCreateDto,
+        authorId: admin.id,
+        tags,
+      });
+
+      expect((post as PostDetail).tags?.length).toBe(1);
     });
 
     test.each([
@@ -1055,22 +1322,6 @@ describe('PostsService', () => {
         .catch((error) => {
           expect(error.message).toMatch(
             ERROR_MESSAGES[ERROR_CODES.VALIDATION.POST_EXISTS]
-          );
-        });
-    });
-
-    it('should throw when the user creating the post is anything other than "ADMIN"', async () => {
-      expect.assertions(1);
-      return postsService
-        .create({
-          ...validPostCreateDto,
-          authorId: user.id,
-          isDraft: true,
-          isMembersOnly: false,
-        })
-        .catch((error) => {
-          expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
           );
         });
     });
@@ -1309,6 +1560,20 @@ describe('PostsService', () => {
             ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
           );
         });
+    });
+
+    it('should not create the same tag twice when specifying tags field', async () => {
+      const tags = ['tag-1', 'tag-1'];
+
+      // Add tags along with post
+      const post = await postsService.update({
+        ...validUpdateDto,
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags,
+      });
+
+      expect((post as PostDetail).tags?.length).toBe(1);
     });
 
     it(`should throw when post's authorId doesn't match provided userId`, async () => {
