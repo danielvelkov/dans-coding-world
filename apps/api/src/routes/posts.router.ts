@@ -169,6 +169,18 @@ export default postsRouter;
  *         required: false
  *         description: Filter by post visibility (can specify multiple)
  *       - in: query
+ *         name: filterBy[tags]
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             minLength: 1
+ *             maxLength: 50
+ *             pattern: '^[a-z0-9-]+$'
+ *         style: form
+ *         required: false
+ *         description: Filter by tags (can specify multiple)
+ *       - in: query
  *         name: searchQuery
  *         schema:
  *           type: string
@@ -441,6 +453,10 @@ export default postsRouter;
  *           type: string
  *           format: date-time
  *           description: When the post was published to the public.
+ *         tags:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/PostTag'
  *
  *     CreatePostDto:
  *       type: object
@@ -467,11 +483,16 @@ export default postsRouter;
  *         isMembersOnly:
  *           type: boolean
  *           description: Whether the post is for members only
+ *         tags:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/PostTag'
  *       example:
  *         title: Very valid post title
  *         content: Some random content.
  *         isDraft: true
  *         isMembersOnly: true
+ *         tags: ['tag-1']
  *
  *     UpdatePostDto:
  *       type: object
@@ -495,6 +516,10 @@ export default postsRouter;
  *           type: string
  *           enum: [PUBLIC, MEMBERS_ONLY]
  *           description: Post visibility. Could be one of [PUBLIC, MEMBERS_ONLY]
+ *         tags:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/PostTag'
  *       example:
  *         content: Some new random content.
  *
@@ -558,4 +583,8 @@ export default postsRouter;
  *               properties:
  *                 post:
  *                   $ref: '#/components/schemas/Post'
+ *
+ *     PostTag:
+ *       type: string
+ *       example: 'tag-1'
  */
