@@ -174,12 +174,12 @@ export default postsRouter;
  *           type: array
  *           items:
  *             type: string
- *             minLength: 1
+ *             minLength: 2
  *             maxLength: 50
  *             pattern: '^[a-z0-9-]+$'
  *         style: form
  *         required: false
- *         description: Filter by tags (can specify multiple)
+ *         description: Filter by tags (can specify multiple | no repeating tags)
  *       - in: query
  *         name: searchQuery
  *         schema:
@@ -487,6 +487,7 @@ export default postsRouter;
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/PostTag'
+ *           description: Attach or create tags just by specifying names (can specify multiple | no repeating tags)
  *       example:
  *         title: Very valid post title
  *         content: Some random content.
@@ -520,8 +521,13 @@ export default postsRouter;
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/PostTag'
+ *           description: Attach or create tags just by specifying names (can specify multiple | no repeating tags)
  *       example:
  *         content: Some new random content.
+ *         title: Some new title name
+ *         status: PUBLISHED
+ *         visibility: PUBLIC
+ *         tags: ['javascript']
  *
  *     PaginationMetadata:
  *       type: object

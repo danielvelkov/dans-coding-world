@@ -350,7 +350,7 @@ export default tagsRouter;
  *         name:
  *           type: string
  *           description: Tag name (unique)
- *           minLength: 1
+ *           minLength: 2
  *           maxLength: 50
  *           example: technology
  *
@@ -362,7 +362,7 @@ export default tagsRouter;
  *         name:
  *           type: string
  *           description: Tag name (must be unique)
- *           minLength: 1
+ *           minLength: 2
  *           maxLength: 50
  *       example:
  *         name: technology
@@ -375,7 +375,7 @@ export default tagsRouter;
  *         name:
  *           type: string
  *           description: Tag name (must be unique)
- *           minLength: 1
+ *           minLength: 2
  *           maxLength: 50
  *       example:
  *         name: tech

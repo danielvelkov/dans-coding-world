@@ -20,14 +20,21 @@ export function createPostsRouteHelper(client: AxiosInstance) {
     },
 
     async createPost(postData: Omit<CreatePostDto, 'authorId'>) {
-      const formData = Object.fromEntries(
-        Object.entries(postData).map(([key, value]) => [
-          key,
-          value === undefined ? 'undefined' : value.toString(),
-        ])
-      );
+      const urlSearchParams = new URLSearchParams();
 
-      const urlSearchParams = new URLSearchParams(formData);
+      for (const [key, value] of Object.entries(postData)) {
+        if (value === undefined) {
+          urlSearchParams.append(key, 'undefined');
+        } else if (Array.isArray(value)) {
+          // Encode arrays as repeated keys
+          for (const v of value) {
+            urlSearchParams.append(key, v);
+          }
+        } else {
+          urlSearchParams.append(key, value.toString());
+        }
+      }
+
       return await client.post('/api/v1/posts', urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -39,14 +46,20 @@ export function createPostsRouteHelper(client: AxiosInstance) {
       id: string,
       postData: Omit<UpdatePostDto, 'userId' | 'postId'>
     ) {
-      const formData = Object.fromEntries(
-        Object.entries(postData).map(([key, value]) => [
-          key,
-          value === undefined ? 'undefined' : value.toString(),
-        ])
-      );
+      const urlSearchParams = new URLSearchParams();
 
-      const urlSearchParams = new URLSearchParams(formData);
+      for (const [key, value] of Object.entries(postData)) {
+        if (value === undefined) {
+          urlSearchParams.append(key, 'undefined');
+        } else if (Array.isArray(value)) {
+          // Encode arrays as repeated keys
+          for (const v of value) {
+            urlSearchParams.append(key, v);
+          }
+        } else {
+          urlSearchParams.append(key, value.toString());
+        }
+      }
       return await client.patch(`/api/v1/posts/${id}`, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
