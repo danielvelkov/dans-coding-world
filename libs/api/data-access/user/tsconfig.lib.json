@@ -14,9 +14,6 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../../../prisma-schema/tsconfig.lib.json"
-    },
-    {
       "path": "../../../shared/data-access/interfaces/tsconfig.lib.json"
     }
   ]

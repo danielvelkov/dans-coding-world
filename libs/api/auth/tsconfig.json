@@ -7,19 +7,16 @@
       "path": "../../shared/util/validation"
     },
     {
+      "path": "../../shared/data-access/interfaces"
+    },
+    {
+      "path": "../../shared/auth/dtos"
+    },
+    {
       "path": "../../shared/util/exceptions"
     },
     {
       "path": "../../shared/util/shared-constants"
-    },
-    {
-      "path": "../../shared/data-access/interfaces"
-    },
-    {
-      "path": "../../prisma-schema"
-    },
-    {
-      "path": "../../shared/auth/dtos"
     },
     {
       "path": "../data-access/token"

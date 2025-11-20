@@ -12,9 +12,5 @@
     "types": ["node"]
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../../../prisma-schema/tsconfig.lib.json"
-    }
-  ]
+  "references": []
 }

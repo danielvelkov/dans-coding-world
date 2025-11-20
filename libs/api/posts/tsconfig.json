@@ -4,13 +4,13 @@
   "include": [],
   "references": [
     {
-      "path": "../../shared/util/shared-constants"
-    },
-    {
       "path": "../../shared/util/exceptions"
     },
     {
       "path": "../../shared/util/validation"
+    },
+    {
+      "path": "../../shared/util/shared-constants"
     },
     {
       "path": "../../shared/data-access/interfaces"
@@ -20,9 +20,6 @@
     },
     {
       "path": "../data-access/post"
-    },
-    {
-      "path": "../../prisma-schema"
     },
     {
       "path": "../../shared/post/dtos"

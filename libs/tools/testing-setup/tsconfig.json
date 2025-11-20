@@ -7,9 +7,6 @@
       "path": "../../api/auth"
     },
     {
-      "path": "../../prisma-schema"
-    },
-    {
       "path": "./tsconfig.lib.json"
     }
   ]
