@@ -1185,14 +1185,19 @@ describe('PostsService', () => {
     it('should not create the same tag twice when specifying tags field', async () => {
       const tags = ['tag-1', 'tag-1'];
 
-      // Add tags along with post
-      const post = await postsService.create({
-        ...validPostCreateDto,
-        authorId: admin.id,
-        tags,
-      });
-
-      expect((post as PostDetail).tags?.length).toBe(1);
+      expect.assertions(1);
+      await postsService
+        .create({
+          ...validPostCreateDto,
+          title: generateRandomString(10),
+          authorId: admin.id,
+          tags,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+          );
+        });
     });
 
     test.each([
@@ -1314,7 +1319,8 @@ describe('PostsService', () => {
 
       return postsService
         .create({
-          ...createdPost,
+          content: createdPost.content,
+          title: createdPost.title,
           authorId: admin.id,
           isDraft: true,
           isMembersOnly: false,
@@ -1406,6 +1412,32 @@ describe('PostsService', () => {
 
       for (const tag of tagsWithOverlap)
         expect((updatedPostWithOverlappingTags as any).tags.includes(tag)).toBe(
+          true
+        );
+    });
+
+    it('should remove old tags and replace them with the updated ones if "tags" field is present', async () => {
+      const tags = ['tag-1', 'tag-2'];
+
+      const updatedPost = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags,
+      });
+
+      for (const tag of tags)
+        expect((updatedPost as PostDetail).tags?.includes(tag)).toBe(true);
+
+      const newTags = ['tag-3', 'tag-4'];
+
+      const updatedPostWithNewTags = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags: newTags,
+      });
+
+      for (const tag of newTags)
+        expect((updatedPostWithNewTags as any).tags.includes(tag)).toBe(
           true
         );
     });
@@ -1562,18 +1594,22 @@ describe('PostsService', () => {
         });
     });
 
-    it('should not create the same tag twice when specifying tags field', async () => {
+    it('should throw validation error when using the same tag twice in "tags" field', async () => {
       const tags = ['tag-1', 'tag-1'];
 
-      // Add tags along with post
-      const post = await postsService.update({
-        ...validUpdateDto,
-        userId: admin.id,
-        postId: postForUpdate.id,
-        tags,
-      });
-
-      expect((post as PostDetail).tags?.length).toBe(1);
+      expect.assertions(1);
+      await postsService
+        .update({
+          ...validUpdateDto,
+          userId: admin.id,
+          postId: postForUpdate.id,
+          tags,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+          );
+        });
     });
 
     it(`should throw when post's authorId doesn't match provided userId`, async () => {

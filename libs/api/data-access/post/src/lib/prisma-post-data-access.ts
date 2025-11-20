@@ -69,7 +69,6 @@ export class PrismaPostDataAccess
         ...(tags &&
           tags.length > 0 && {
             tags: {
-              set: [],
               create: tags.map((name) => ({
                 tag: {
                   connectOrCreate: {

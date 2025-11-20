@@ -7,6 +7,8 @@ import {
   IsEnum,
   Matches,
   IsArray,
+  ArrayUnique,
+  ArrayNotEmpty,
 } from 'class-validator';
 import {
   TAG_CONSTRAINTS,
@@ -68,7 +70,13 @@ export class UpdatePostDto {
   visibility?: PostVisibility;
 
   @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    return Array.isArray(value) ? value : [value];
+  })
   @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
   @MinLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH, {
     each: true,
     message: VALIDATION_MESSAGES.minLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH),
