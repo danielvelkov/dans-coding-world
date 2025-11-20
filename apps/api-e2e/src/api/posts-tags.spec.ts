@@ -245,6 +245,14 @@ describe('/api/v1/tags', () => {
       );
     });
 
+    it('should return 403 FORBIDDEN when trying to create tag as anything other than ADMIN or AUTHOR', async () => {
+      const name = 'tag-name';
+      await login(user.email, user.password);
+      return await expect(createTag({ name })).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
     it(`should return 409 CONFLICT when trying to create a tag that already exists`, async () => {
       const name = 'unique-name';
 
@@ -296,6 +304,11 @@ describe('/api/v1/tags', () => {
   });
 
   describe('PATCH /api/v1/tags/{id}', () => {
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return updateTag(id as any, 'new-tag-name');
+    }, 'tagId');
+
     it(`should update a tag's name if the tag's author is
        ADMIN or AUTHOR`, async () => {
       const newName = 'new-tag-name';
@@ -312,7 +325,7 @@ describe('/api/v1/tags', () => {
       expect(tag.name).toBe(newName);
     });
 
-    it(`should return 409 CONFLICT if name for update already used`, async () => {
+    it(`should return 409 CONFLICT if new name is already used`, async () => {
       const tagForUpdate = tags[0];
       const tagWithExistingName = tags[1];
 
@@ -330,11 +343,6 @@ describe('/api/v1/tags', () => {
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
-
-    testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return updateTag(id as any, 'new-tag-name');
-    }, 'tagId');
 
     test.each([
       [
@@ -372,6 +380,14 @@ describe('/api/v1/tags', () => {
       }
     );
 
+    it('should return 403 FORBIDDEN when trying to update a tag as anything other than ADMIN or AUTHOR', async () => {
+      const name = 'new-tag-name';
+      await login(user.email, user.password);
+      return await expect(updateTag(tags[0].id, name)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
     it('should return 404 NOT FOUND for unknown tag id', async () => {
       await login(admin.email, admin.password);
       await expect(
@@ -389,6 +405,11 @@ describe('/api/v1/tags', () => {
   });
 
   describe('DELETE /api/v1/tags/{id}', () => {
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return deleteTag(id);
+    }, 'tagId');
+
     it('should delete a tag if logged in user is ADMIN or AUTHOR', async () => {
       const tagForDeletion = tags[0];
       await login(admin.email, admin.password);
@@ -437,11 +458,6 @@ describe('/api/v1/tags', () => {
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
-
-    testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return deleteTag(id);
-    }, 'tagId');
 
     it('should return 404 NOT FOUND for unknown tag id', async () => {
       await login(admin.email, admin.password);

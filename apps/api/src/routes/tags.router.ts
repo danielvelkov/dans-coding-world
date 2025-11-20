@@ -112,7 +112,7 @@ export default tagsRouter;
  *     tags: [Tags]
  *     summary: Create a new tag.
  *     description: |
- *       Roles required: ADMIN
+ *       Roles required: ADMIN or AUTHOR
  *
  *       Create a new tag. <br />
  *       Must be logged in, otherwise returns UNAUTHORIZED error.<br />
@@ -184,14 +184,14 @@ export default tagsRouter;
  *     tags: [Tags]
  *     summary: Update a tag by Id.
  *     description: |
- *       Roles required: ADMIN
+ *       Roles required: ADMIN or AUTHOR
  *
  *       Update a tag's name. <br/>
  *       Tag names must be unique - returns CONFLICT error if new name already exists.
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
- *       - If access_token is valid, user can update tags
+ *       - If access_token is valid, user can update tags if he is ADMIN or AUTHOR
  *     parameters:
  *       - in: path
  *         name: id
@@ -275,13 +275,13 @@ export default tagsRouter;
  *     tags: [Tags]
  *     summary: Delete a tag by Id.
  *     description: |
- *       Roles required: ADMIN
+ *       Roles required: ADMIN or AUTHOR
  *
  *       Delete a tag. This will remove the tag from all posts that use it.
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
- *       - If access_token is valid, user can delete tags
+ *       - If access_token is valid, user can delete tags if he is ADMIN or AUTHOR
  *     parameters:
  *       - in: path
  *         name: id
