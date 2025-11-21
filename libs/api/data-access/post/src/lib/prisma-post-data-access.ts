@@ -34,7 +34,7 @@ export class PrismaPostDataAccess
         ...(tags &&
           tags.length > 0 && {
             tags: {
-              create: tags.map((name) => ({
+              create: tags.map((name: string) => ({
                 tag: {
                   connectOrCreate: {
                     where: {
@@ -69,7 +69,7 @@ export class PrismaPostDataAccess
         ...(tags &&
           tags.length > 0 && {
             tags: {
-              create: tags.map((name) => ({
+              create: tags.map((name: string) => ({
                 tag: {
                   connectOrCreate: {
                     where: {
