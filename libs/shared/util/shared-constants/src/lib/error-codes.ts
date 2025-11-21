@@ -25,6 +25,8 @@ export const ERROR_CODES = {
     VALIDATION_ERROR: 'VAL001',
     USER_EXISTS: 'VAL002',
     USER_MISSING: 'VAL003',
+    TAG_EXISTS: 'VAL004',
+    POST_EXISTS: 'VAL005',
   },
 } as const;
 
@@ -47,6 +49,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   VAL001: 'One or more fields failed validation',
   VAL002: 'User with this email or username already exists',
   VAL003: 'Provided user does not exist',
+  VAL004: 'Tag with this name already exists',
+  VAL005: 'Post with that title already exists',
 };
 
 /**
@@ -66,4 +70,6 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   VAL001: StatusCodes.BAD_REQUEST,
   VAL002: StatusCodes.CONFLICT,
   VAL003: StatusCodes.BAD_REQUEST,
+  VAL004: StatusCodes.CONFLICT,
+  VAL005: StatusCodes.CONFLICT,
 };

@@ -14,7 +14,12 @@ import { ERROR_CODES } from '@dans-coding-world/shared-constants';
  * @see {@link PassportJwtStrategy}
  * @example
  * ```typescript
+ * // NOTE! for decorators to work you must use methods, not class fields
+ * // NOTE! you must also bind the method to "this" in the constructor
  * export class AuthController {
+ *  constructor() {
+ *    this.seeProfile = this.seeProfile.bind(this);
+ *  }
  * ⠀@Authorized()
  *   async seeProfile() {
  *     // Only logged in users can see

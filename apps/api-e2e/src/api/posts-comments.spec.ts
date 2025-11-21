@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Comment, Post, User } from '@dans-coding-world/prisma-schema';
 import {
   seedUsers,
@@ -56,7 +57,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
   let comments: Comment[] = [];
 
   let admin: User;
-  let user: User;
+  let author: User;
 
   let publishedPublicPosts: Post[];
   let draftPosts: Post[];
@@ -81,9 +82,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
       throw new Error('Missing posts');
 
     admin = users.find((u) => u.role === 'ADMIN') as any;
-    user = users.find((u) => u.role === 'USER') as any;
+    author = users.find((u) => u.role === 'AUTHOR') as any;
 
-    if (!admin || !user) throw new Error('Missing users');
+    if (!admin || !author) throw new Error('Missing users');
   });
 
   beforeEach(() => {
@@ -376,7 +377,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
           (c) => c.postId === membersOnlyPost.id && c.depth === 0
         ).length;
 
-        await login(user.email, user.password);
+        await login(author.email, author.password);
 
         const res = await getPostComments(membersOnlyPost.id);
 
@@ -418,30 +419,26 @@ describe('/api/v1/posts/{postId}/comments', () => {
       it(`should return 403 FORBIDDEN when trying to get comments 
         for DRAFT or ARCHIVED post of another user`, async () => {
         const archivedPost = posts.find(
-          (p) => p.status === 'ARCHIVED' && p.authorId !== user.id
+          (p) => p.status === 'ARCHIVED' && p.authorId !== author.id
         );
         const draftPost = posts.find(
-          (p) => p.status === 'DRAFT' && p.authorId !== user.id
+          (p) => p.status === 'DRAFT' && p.authorId !== author.id
         );
         if (!archivedPost || !draftPost) throw new Error('Missing test posts');
 
         // Not logged in
-        [archivedPost.id, draftPost.id].forEach(
-          async (id) =>
-            await expect(getPostComments(id)).rejects.toMatchObject(
-              createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
-            )
-        );
+        for (const id of [archivedPost.id, draftPost.id])
+          await expect(getPostComments(id)).rejects.toMatchObject(
+            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          );
 
-        await login(user.email, user.password);
+        await login(author.email, author.password);
 
         // Logged in as another user
-        [archivedPost.id, draftPost.id].forEach(
-          async (id) =>
-            await expect(getPostComments(id)).rejects.toMatchObject(
-              createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
-            )
-        );
+        for (const id of [archivedPost.id, draftPost.id])
+          await expect(getPostComments(id)).rejects.toMatchObject(
+            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          );
       });
     });
   });
@@ -548,11 +545,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
             p.visibility === 'MEMBERS_ONLY' &&
             p.status === 'PUBLISHED' &&
             comments.find((c) => c.postId === p.id && c.threadParentId) &&
-            p.authorId !== user.id
+            p.authorId !== author.id
         );
         if (!membersOnlyPosts) throw new Error('Missing test posts');
 
-        await login(user.email, user.password);
+        await login(author.email, author.password);
 
         for (const post of membersOnlyPosts) {
           const postComments = comments.filter(
@@ -617,13 +614,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
         const archivedPost = posts.find(
           (p) =>
             p.status === 'ARCHIVED' &&
-            p.authorId !== user.id &&
+            p.authorId !== author.id &&
             comments.find((c) => c.postId === p.id && c.threadParentId)
         );
         const draftPost = posts.find(
           (p) =>
             p.status === 'DRAFT' &&
-            p.authorId !== user.id &&
+            p.authorId !== author.id &&
             comments.find((c) => c.postId === p.id && c.threadParentId)
         );
 
@@ -643,7 +640,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
             );
         }
 
-        await login(user.email, user.password);
+        await login(author.email, author.password);
 
         // Logged in as another user
         for (const post of [archivedPost, draftPost]) {

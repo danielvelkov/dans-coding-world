@@ -1,4 +1,6 @@
 import express from 'express';
+import helmet from 'helmet';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { ApiException } from '@dans-coding-world/exceptions';
 import * as path from 'path';
@@ -18,8 +20,43 @@ import {
 } from '@dans-coding-world/api-auth';
 import passport from 'passport';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import slowDown from 'express-slow-down';
+import tagsRouter from './routes/tags.router.js';
+
+const isTest =
+  process.env.NODE_ENV === 'test' ||
+  process.env.NODE_ENV === 'development' ||
+  process.env.NODE_ENV === 'test_e2e';
 
 const app = express();
+
+// This is per user. Each window is a specific IP address
+if (!isTest) {
+  app.use(
+    slowDown({
+      windowMs: 15 * 60 * 1000, // 15 mins
+      delayAfter: 50, // start delaying after 50 requests
+      delayMs: () => 2000, // delay of 2 seconds
+    })
+  );
+
+  app.use(
+    rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 mins
+      max: 200, // 200 requests total
+    })
+  );
+}
+
+app.use(compression());
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: false,
+  })
+);
 
 app.use(
   cors({
@@ -47,6 +84,7 @@ app.use(responseWrapper);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/posts', postsRouter);
+app.use('/api/v1/tags', tagsRouter);
 app.use('/api/v1/posts/:postId/comments', commentsRouter);
 
 const swaggerDocOptions = {
@@ -55,7 +93,8 @@ const swaggerDocOptions = {
     info: {
       title: 'Blog API',
       version: '1.0.0',
-      description: 'A simple API for dans-coding-world project',
+      description:
+        'A simple RESTful API for a blogging platform that supports user authentication, content creation, and access control. It enables users to register, log in, manage their posts, and control visibility of content through role-based permissions.',
     },
     servers: [
       {

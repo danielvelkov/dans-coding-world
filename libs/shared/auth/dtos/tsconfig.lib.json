@@ -18,9 +18,6 @@
   "references": [
     {
       "path": "../../util/shared-constants/tsconfig.lib.json"
-    },
-    {
-      "path": "../../../prisma-schema/tsconfig.lib.json"
     }
   ]
 }

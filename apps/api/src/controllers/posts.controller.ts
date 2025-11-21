@@ -16,7 +16,7 @@ import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 import { User } from '@dans-coding-world/prisma-schema';
 
 export class PostsController {
-  constructor(private postService: IPostsService) {
+  constructor(private postsService: IPostsService) {
     this.get = this.get.bind(this);
     this.getAll = this.getAll.bind(this);
     this.create = this.create.bind(this);
@@ -29,7 +29,7 @@ export class PostsController {
       const { id } = req.params;
       const user = req.user as User;
 
-      const post = await this.postService.getById({
+      const post = await this.postsService.getById({
         postId: +id,
         viewerId: user?.id,
       });
@@ -53,7 +53,7 @@ export class PostsController {
         ...req.query,
       };
 
-      const postsWithMetadata = await this.postService.getAll(getPostsDto);
+      const postsWithMetadata = await this.postsService.getAll(getPostsDto);
 
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.POSTS.getAll,
@@ -65,14 +65,14 @@ export class PostsController {
   }
 
   @Authorized()
-  @RequiredRole('ADMIN')
+  @RequiredRole('ADMIN', 'AUTHOR')
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
 
       const postDto: CreatePostDto = { ...req.body, authorId: user.id };
 
-      const post = await this.postService.create(postDto);
+      const post = await this.postsService.create(postDto);
 
       return res
         .status(StatusCodes.CREATED)
@@ -83,7 +83,7 @@ export class PostsController {
   }
 
   @Authorized()
-  @RequiredRole('ADMIN')
+  @RequiredRole('ADMIN', 'AUTHOR')
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -91,7 +91,7 @@ export class PostsController {
 
       const deletePostDto: DeletePostDto = { postId: +id, authorId: +user.id };
 
-      await this.postService.delete(deletePostDto);
+      await this.postsService.delete(deletePostDto);
 
       return res
         .status(StatusCodes.OK)
@@ -102,7 +102,7 @@ export class PostsController {
   }
 
   @Authorized()
-  @RequiredRole('ADMIN')
+  @RequiredRole('ADMIN', 'AUTHOR')
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -115,7 +115,7 @@ export class PostsController {
         userId: +user.id,
       };
 
-      const post = await this.postService.update(postUpdateDto);
+      const post = await this.postsService.update(postUpdateDto);
 
       return res
         .status(StatusCodes.OK)

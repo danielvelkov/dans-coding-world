@@ -5,8 +5,13 @@ import {
   MaxLength,
   IsOptional,
   IsEnum,
+  Matches,
+  IsArray,
+  ArrayUnique,
+  ArrayNotEmpty,
 } from 'class-validator';
 import {
+  TAG_CONSTRAINTS,
   POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
@@ -63,4 +68,26 @@ export class UpdatePostDto {
     ),
   })
   visibility?: PostVisibility;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    return Array.isArray(value) ? value : [value];
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @MinLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH, {
+    each: true,
+    message: VALIDATION_MESSAGES.minLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH),
+  })
+  @MaxLength(TAG_CONSTRAINTS.MAX_NAME_LENGTH, {
+    each: true,
+    message: VALIDATION_MESSAGES.maxLength(TAG_CONSTRAINTS.MAX_NAME_LENGTH),
+  })
+  @Matches(TAG_CONSTRAINTS.NAME_PATTERN, {
+    each: true,
+    message: VALIDATION_MESSAGES.tags.invalid,
+  })
+  tags?: string[];
 }

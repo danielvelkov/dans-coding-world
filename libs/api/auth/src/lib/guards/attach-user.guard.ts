@@ -7,7 +7,7 @@ import {
 } from '../strategies/jwt.strategy.js';
 
 /**
- * @summary User guard populates user field if access token validation using JWT strategy succeeds.
+ * @summary User guard that populates "req.user" field if access token validation using JWT strategy succeeds.
  * @description Request population of the 'user' field. Works according to PassportJwtStrategy.
  * @see {@link PassportJwtStrategy}
  * @example

@@ -1,4 +1,12 @@
-import { IsOptional, IsArray, IsEnum } from 'class-validator';
+import {
+  IsOptional,
+  IsArray,
+  IsEnum,
+  MinLength,
+  MaxLength,
+  Matches,
+  ArrayNotEmpty,
+} from 'class-validator';
 import {
   PostStatus,
   PostVisibility,
@@ -6,6 +14,10 @@ import {
   PostVisibilityEnum,
 } from '@dans-coding-world/prisma-schema';
 import { Transform } from 'class-transformer';
+import {
+  TAG_CONSTRAINTS,
+  VALIDATION_MESSAGES,
+} from '@dans-coding-world/shared-constants';
 
 export class FilterPostsByDto {
   @IsOptional()
@@ -14,6 +26,7 @@ export class FilterPostsByDto {
     return Array.isArray(value) ? value : [value];
   })
   @IsArray()
+  @ArrayNotEmpty()
   @IsEnum(PostStatusEnum, {
     each: true,
     message: `Post status must be one of:${Object.values(PostStatusEnum).join(
@@ -28,6 +41,7 @@ export class FilterPostsByDto {
     return Array.isArray(value) ? value : [value];
   })
   @IsArray()
+  @ArrayNotEmpty()
   @IsEnum(PostVisibilityEnum, {
     each: true,
     message: `Post visibility must be one of:${Object.values(
@@ -35,4 +49,21 @@ export class FilterPostsByDto {
     ).join('')}`,
   })
   visibility?: PostVisibility[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @MinLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH, {
+    each: true,
+    message: VALIDATION_MESSAGES.minLength(TAG_CONSTRAINTS.MIN_NAME_LENGTH),
+  })
+  @MaxLength(TAG_CONSTRAINTS.MAX_NAME_LENGTH, {
+    each: true,
+    message: VALIDATION_MESSAGES.maxLength(TAG_CONSTRAINTS.MAX_NAME_LENGTH),
+  })
+  @Matches(TAG_CONSTRAINTS.NAME_PATTERN, {
+    each: true,
+    message: VALIDATION_MESSAGES.tags.invalid,
+  })
+  tags?: string[];
 }

@@ -47,6 +47,21 @@
         "dependsOn": [
           "prisma-migrate:e2e"
         ]
+      },
+      "migrate-reset": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "prisma migrate reset",
+          "cwd": "libs/prisma-schema/prisma"
+        }
+      },
+      "migrate-reset:e2e": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "prisma migrate reset",
+          "cwd": "libs/prisma-schema/prisma"
+        },
+        "defaultConfiguration": "e2e"
       }
     }
   },

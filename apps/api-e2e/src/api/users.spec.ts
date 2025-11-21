@@ -16,10 +16,12 @@ describe('/api/v1/users', () => {
   const { revokeUserTokens } = createUsersRouteHelper(client);
   let users: User[] = [];
   let refreshTokens: RefreshToken[] = [];
-  describe('POST /api/v1/users/:userId/revokeUserTokens', () => {
+
+  describe('POST /api/v1/users/:userId/revoke-tokens', () => {
     beforeAll(async () => {
       users = await seedUsers();
     });
+
     beforeEach(async () => {
       const user = users.find((u) => u.role === 'USER');
       if (!user) throw new Error('Missing test user');
@@ -32,6 +34,7 @@ describe('/api/v1/users', () => {
         },
       ]);
     });
+
     it('should revoke all tokens related to user', async () => {
       const user = users.find((u) => u.role === 'USER');
       const admin = users.find((u) => u.role === 'ADMIN');
@@ -50,6 +53,7 @@ describe('/api/v1/users', () => {
       expect(revokeData).toHaveProperty('revokedCount', 1);
       expect((await getTokenById(refreshTokens[0].jti)).revoked).toBe(true);
     });
+
     it('should return no revoked tokens when user does not exist', async () => {
       const admin = users.find((u) => u.role === 'ADMIN');
       if (!admin) throw new Error('Missing test user');

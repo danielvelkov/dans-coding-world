@@ -7,9 +7,6 @@
       "path": "../../util/shared-constants"
     },
     {
-      "path": "../../../prisma-schema"
-    },
-    {
       "path": "./tsconfig.lib.json"
     }
   ]

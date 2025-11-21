@@ -23,6 +23,7 @@ export class PrismaPostCommentsDataAccess
       },
     });
   }
+
   async search(
     where?: CommentWhereInput,
     orderBy?: CommentsOrderByInput,
@@ -42,11 +43,13 @@ export class PrismaPostCommentsDataAccess
       skip: options?.skip,
     });
   }
+
   async create(data: Omit<Comment, 'id'>): Promise<Comment> {
     return await client.comment.create({
       data,
     });
   }
+
   async update(id: number, data: Partial<Comment>): Promise<Comment> {
     return await client.comment.update({
       where: {
@@ -55,6 +58,7 @@ export class PrismaPostCommentsDataAccess
       data,
     });
   }
+
   async delete(id: number): Promise<Comment> {
     return await client.comment.delete({
       where: {
@@ -62,12 +66,14 @@ export class PrismaPostCommentsDataAccess
       },
     });
   }
+
   async deleteMany(where: CommentWhereInput): Promise<number> {
     const { count } = await client.comment.deleteMany({
       where,
     });
     return count;
   }
+
   async count(where: CommentWhereInput): Promise<number> {
     return await client.comment.count({
       where,

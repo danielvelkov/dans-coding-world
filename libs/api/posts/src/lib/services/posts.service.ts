@@ -1,8 +1,8 @@
 import {
   Post,
   PostOrderByInput,
-  PostStatus,
   PostWhereInput,
+  Tag,
 } from '@dans-coding-world/prisma-schema';
 import {
   GetPostsResponseDto,
@@ -11,6 +11,7 @@ import {
   DeletePostDto,
   GetPostDto,
   GetPostsDto,
+  FilterPostsByDto,
 } from '@dans-coding-world/shared-post-dto';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
 import { Inject, Injectable } from 'injection-js';
@@ -26,9 +27,12 @@ import {
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { filterObject } from '../helper/util.js';
+import { PostDetail } from '@dans-coding-world/post-data-access';
 
 export const POST_REPOSITORY_TOKEN = 'IPostRepository';
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
+
+type DirectPrismaFilters = Pick<FilterPostsByDto, 'status' | 'visibility'>;
 
 /*
   NOTE
@@ -41,11 +45,12 @@ export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 export class PostsService implements IPostsService {
   constructor(
     @Inject(POST_REPOSITORY_TOKEN)
-    public posts: IPostRepository<Post, PostWhereInput, PostOrderByInput>,
+    public posts: IPostRepository<PostDetail, PostWhereInput, PostOrderByInput>,
     @Inject(USER_REPOSITORY_TOKEN)
     public users: IUserRepository
   ) {}
-  async getById(dto: GetPostDto): Promise<Post> {
+
+  async getById(dto: GetPostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, GetPostDto);
 
     const post = await this.posts.getById(dto.postId);
@@ -54,12 +59,21 @@ export class PostsService implements IPostsService {
     // Authorization check
     this.verifyPostAccess(post, dto.viewerId);
 
+    const tagNames = this.extractTagNames(post);
+
     // Content masking for members-only posts
     if (this.isMembersOnly(post) && !dto.viewerId) {
-      return { ...post, content: VALIDATION_MESSAGES.posts.membersOnly };
+      return {
+        ...post,
+        tags: tagNames,
+        content: VALIDATION_MESSAGES.posts.membersOnly,
+      };
     }
 
-    return post;
+    return {
+      ...post,
+      tags: tagNames,
+    };
   }
 
   async getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto> {
@@ -87,9 +101,19 @@ export class PostsService implements IPostsService {
 
     // Hide Members-only content for guests
     const items = posts.map((post) => {
+      const tagNames = this.extractTagNames(post);
+
       if (this.isMembersOnly(post) && !dto?.viewerId) {
-        return { ...post, content: VALIDATION_MESSAGES.posts.membersOnly };
-      } else return post;
+        return {
+          ...post,
+          tags: tagNames,
+          content: VALIDATION_MESSAGES.posts.membersOnly,
+        };
+      } else
+        return {
+          ...post,
+          tags: tagNames,
+        };
     });
 
     return {
@@ -106,22 +130,17 @@ export class PostsService implements IPostsService {
     };
   }
 
-  async create(dto: CreatePostDto): Promise<Post> {
+  async create(dto: CreatePostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, CreatePostDto);
 
     const author = await this.users.getById(dto.authorId.toString());
 
     if (!author) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
 
-    if (author.role !== 'ADMIN')
-      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
-
     const postAlreadyExists = await this.posts.exists(dto.title);
+
     if (postAlreadyExists)
-      throw new ApiException(
-        ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-        VALIDATION_MESSAGES.posts.titleAlreadyExists
-      );
+      throw new ApiException(ERROR_CODES.VALIDATION.POST_EXISTS);
 
     const inputData: Parameters<typeof this.posts.create>[0] = {
       title: dto.title,
@@ -132,12 +151,15 @@ export class PostsService implements IPostsService {
       createdAt: new Date(),
       updatedAt: new Date(),
       authorId: dto.authorId,
+      tags: this.extractUniqueStrings(dto.tags),
     };
 
-    return await this.posts.create(inputData);
+    const post = await this.posts.create(inputData);
+
+    return { ...post, tags: this.extractTagNames(post) };
   }
 
-  async update(dto: UpdatePostDto): Promise<Post> {
+  async update(dto: UpdatePostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, UpdatePostDto);
 
     const postForUpdate = await this.posts.getById(dto.postId);
@@ -152,23 +174,23 @@ export class PostsService implements IPostsService {
     ) {
       const postAlreadyExists = await this.posts.exists(dto.title);
       if (postAlreadyExists)
-        throw new ApiException(
-          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-          VALIDATION_MESSAGES.posts.titleAlreadyExists
-        );
+        throw new ApiException(ERROR_CODES.VALIDATION.POST_EXISTS);
     }
 
     const filtered = filterObject(dto, Object.keys(postForUpdate));
 
-    return await this.posts.update(dto.postId, {
+    const post = await this.posts.update(dto.postId, {
       ...filtered,
+      tags: this.extractUniqueStrings(filtered.tags),
       updatedAt: new Date(),
       ...(!postForUpdate.publishedAt &&
         dto.status === 'PUBLISHED' && { publishedAt: new Date() }),
     });
+
+    return { ...post, tags: this.extractTagNames(post) };
   }
 
-  async delete(dto: DeletePostDto): Promise<Post> {
+  async delete(dto: DeletePostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, DeletePostDto);
 
     const post = await this.posts.getById(dto.postId);
@@ -180,7 +202,7 @@ export class PostsService implements IPostsService {
     return await this.posts.delete(dto.postId);
   }
 
-  private verifyPostAccess(post: Post, userId?: number): void {
+  private verifyPostAccess(post: PostDetail, userId?: number): void {
     if (!this.isPublished(post) && !this.isAuthor(post, userId)) {
       throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
     }
@@ -220,11 +242,31 @@ export class PostsService implements IPostsService {
 
     // STEP 3: Explicit Filters - What DOES the user want to see?
     if (filters) {
-      const filterConditions = Object.entries(filters)
-        .filter(([_, arr]) => Array.isArray(arr) && arr.length)
+      const directFilters: DirectPrismaFilters = {
+        status: filters.status,
+        visibility: filters.visibility,
+      };
+
+      const filterConditions = Object.entries(directFilters)
+        .filter(([, arr]) => Array.isArray(arr) && arr.length)
         .map(([key, value]) => ({ [key]: { in: value } }));
 
       clauses.push(...filterConditions);
+
+      // Filtering by post tags
+      if (filters.tags && filters.tags.length > 0) {
+        clauses.push({
+          tags: {
+            some: {
+              tag: {
+                name: {
+                  in: filters.tags,
+                },
+              },
+            },
+          },
+        });
+      }
     }
 
     // STEP 4: Search Query
@@ -244,4 +286,13 @@ export class PostsService implements IPostsService {
     userId !== undefined && post.authorId === userId;
   private isPublished = (post: Post) => post.status === 'PUBLISHED';
   private isMembersOnly = (post: Post) => post.visibility === 'MEMBERS_ONLY';
+  private extractUniqueStrings = (arr: string[] | undefined) =>
+    arr?.reduce(
+      (acc, val) => (acc.includes(val) ? acc : [...acc, val]),
+      [] as string[]
+    );
+  private extractTagNames = (post: Post) => {
+    const postTags = (post as PostDetail).tags as { tag: Tag }[] | undefined;
+    return postTags?.map((t) => t.tag.name) ?? [];
+  };
 }

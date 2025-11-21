@@ -79,7 +79,7 @@ export interface ITokenService {
    * @throws {Error} An error when the token does not exist. (SER002)
    * @example
    * ```typescript
-   * const payload = await tokenService.revokeRefreshToken(
+   * const revokedToken = await tokenService.revokeRefreshToken(
    *    token,
    * );
    * ```

@@ -22,8 +22,10 @@ export const VALIDATION_MESSAGES = {
       'Page offset must be divisible by page size',
   },
   posts: {
-    titleAlreadyExists: 'A post with this title already exists',
     membersOnly: 'Please login to read the blog',
+  },
+  tags: {
+    invalid: 'A tag must only include lower case letters, numbers and hyphens',
   },
   token: {
     invalid: 'Refresh token must be a valid JWT',

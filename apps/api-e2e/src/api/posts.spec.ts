@@ -1,11 +1,18 @@
-import { Post, PostStatus, User } from '@dans-coding-world/prisma-schema';
-import { seedUsers, seedPosts } from '@dans-coding-world/testing-setup';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Post, PostStatus, Tag, User } from '@dans-coding-world/prisma-schema';
+import {
+  seedUsers,
+  seedPosts,
+  seedTags,
+  attachTagsToPost,
+} from '@dans-coding-world/testing-setup';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   ERROR_CODES,
   PAGINATION,
   POST_CONSTRAINTS,
   SUCCESS_MESSAGES,
+  TAG_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { createAuthRouteHelper } from '../helper/auth-request.helper';
@@ -14,6 +21,7 @@ import { createPostsRouteHelper } from '../helper/posts-request.helper';
 import {
   CreatePostDto,
   GetPostsResponseDto,
+  GetTagsResponse,
   UpdatePostDto,
 } from '@dans-coding-world/shared-post-dto';
 import { AxiosInstance, AxiosResponse } from 'axios';
@@ -27,6 +35,7 @@ describe('/api/v1/posts', () => {
     email: string,
     password: string
   ) => Promise<AxiosResponse<BaseResponse>>;
+  let getTags: () => Promise<AxiosResponse<unknown>>;
   let getPosts: (params?: any) => Promise<AxiosResponse<unknown>>;
   let getPost: (id: any) => Promise<AxiosResponse<unknown>>;
   let createPost: (
@@ -40,16 +49,28 @@ describe('/api/v1/posts', () => {
 
   let users: User[] = [];
   let posts: Post[] = [];
+  let tags: Tag[] = [];
 
   let admin: User;
+  let author: User;
+  let user: User;
 
   let PUBLISHED_PUBLIC_POSTS_NUM: number;
   let DRAFT_POSTS_NUM: number;
   let PUBLISHED_MEMBERS_ONLY_POSTS_NUM: number;
 
+  const testData = {
+    publicOnlyTags: [] as Tag[],
+    privateAdminTags: [] as Tag[],
+    privateAuthorTags: [] as Tag[],
+    privateAuthorTags_AlsoUsedOnPublic: [] as Tag[], // Used in both public and private posts
+    privateAdminTags_AlsoUsedOnPublic: [] as Tag[], // Used in both public and private posts
+  };
+
   beforeAll(async () => {
     users = await seedUsers();
     posts = await seedPosts();
+    tags = await seedTags();
 
     PUBLISHED_PUBLIC_POSTS_NUM = posts.filter(
       (p) => p.visibility === 'PUBLIC' && p.status === 'PUBLISHED'
@@ -65,12 +86,93 @@ describe('/api/v1/posts', () => {
       !PUBLISHED_MEMBERS_ONLY_POSTS_NUM
     )
       throw new Error('Missing posts');
+
+    if (tags.length < 30) throw new Error('Not enough test tags');
+
+    const TAG_RANGES = {
+      PUBLIC_ONLY: { start: 0, end: 5 },
+      PRIVATE_ADMIN: { start: 5, end: 10 },
+      PRIVATE_AUTHOR: { start: 10, end: 15 },
+      PRIVATE_AND_PUBLIC_ADMIN: { start: 20, end: 25 },
+      PRIVATE_AND_PUBLIC_AUTHOR: { start: 25, end: 30 },
+    };
+
+    testData.publicOnlyTags = tags.slice(
+      TAG_RANGES.PUBLIC_ONLY.start,
+      TAG_RANGES.PUBLIC_ONLY.end
+    );
+    testData.privateAdminTags = tags.slice(
+      TAG_RANGES.PRIVATE_ADMIN.start,
+      TAG_RANGES.PRIVATE_ADMIN.end
+    );
+    testData.privateAuthorTags = tags.slice(
+      TAG_RANGES.PRIVATE_AUTHOR.start,
+      TAG_RANGES.PRIVATE_AUTHOR.end
+    );
+    testData.privateAuthorTags_AlsoUsedOnPublic = tags.slice(
+      TAG_RANGES.PRIVATE_AND_PUBLIC_AUTHOR.start,
+      TAG_RANGES.PRIVATE_AND_PUBLIC_AUTHOR.end
+    );
+    testData.privateAdminTags_AlsoUsedOnPublic = tags.slice(
+      TAG_RANGES.PRIVATE_AND_PUBLIC_ADMIN.start,
+      TAG_RANGES.PRIVATE_AND_PUBLIC_ADMIN.end
+    );
+
+    admin = users.find((u) => u.role === 'ADMIN') as User;
+    author = users.find((u) => u.role === 'AUTHOR') as User;
+    user = users.find((u) => u.role === 'USER') as User;
+
+    if (!admin || !author || !user) throw new Error('Missing users');
+
+    // Organize posts by type
+    const postsByType = {
+      published: posts.filter((p) => p.status === 'PUBLISHED'),
+      privateAdmin: posts.filter(
+        (p) => p.status !== 'PUBLISHED' && p.authorId === admin.id
+      ),
+      privateAuthor: posts.filter(
+        (p) => p.status !== 'PUBLISHED' && p.authorId === author.id
+      ),
+    };
+
+    if (
+      !postsByType.published.length ||
+      !postsByType.privateAdmin.length ||
+      !postsByType.privateAuthor.length
+    ) {
+      throw new Error('Missing posts');
+    }
+
+    const attachTagsToPosts = async (posts: Post[], tagGroups: Tag[][]) => {
+      for (const post of posts) {
+        for (const tagGroup of tagGroups) {
+          await attachTagsToPost(
+            post.id,
+            tagGroup.map((t) => t.id)
+          );
+        }
+      }
+    };
+
+    await attachTagsToPosts(postsByType.published, [
+      testData.publicOnlyTags,
+      testData.privateAuthorTags_AlsoUsedOnPublic,
+      testData.privateAdminTags_AlsoUsedOnPublic,
+    ]);
+    await attachTagsToPosts(postsByType.privateAdmin, [
+      testData.privateAdminTags,
+      testData.privateAdminTags_AlsoUsedOnPublic,
+    ]);
+    await attachTagsToPosts(postsByType.privateAuthor, [
+      testData.privateAuthorTags,
+      testData.privateAuthorTags_AlsoUsedOnPublic,
+    ]);
   });
 
   beforeEach(() => {
     client = createAxiosClient();
     ({ login } = createAuthRouteHelper(client));
-    ({ getPosts, getPost, createPost, updatePost, deletePost } =
+    ({ getPosts, getPost, createPost, updatePost, deletePost, getTags } =
       createPostsRouteHelper(client));
   });
 
@@ -90,6 +192,28 @@ describe('/api/v1/posts', () => {
       expect(postData.id).toBe(publishedPost.id);
       expect(postData.title).toBe(publishedPost.title);
       expect(postData.content).toBe(publishedPost.content);
+    });
+
+    it('should return post with included post tags', async () => {
+      const expectedTags = [
+        ...testData.privateAdminTags_AlsoUsedOnPublic,
+        ...testData.privateAuthorTags_AlsoUsedOnPublic,
+        ...testData.publicOnlyTags,
+      ];
+
+      const publicPost = posts.find(
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+      );
+      if (!publicPost) throw new Error('Missing test post');
+
+      const res = await getPost(publicPost.id.toString());
+      const { data } = res.data as BaseResponse;
+
+      const postData = (data as any).post as Post;
+      expect((postData as any).tags.length).toBe(expectedTags.length);
+
+      for (const tag of expectedTags)
+        expect((postData as any).tags.includes(tag.name)).toBe(true);
     });
 
     test.each([
@@ -143,34 +267,34 @@ describe('/api/v1/posts', () => {
     });
 
     it('should return 403 FORBIDDEN for DRAFT or ARCHIVED post of another user', async () => {
-      const user = users.find((u) => u.role === 'USER');
-      if (!user) throw new Error('Missing test user');
-
-      const archivedPost = posts.find(
-        (p) => p.status === 'ARCHIVED' && p.authorId !== user.id
+      const archivedPostOfAnotherUser = posts.find(
+        (p) => p.status === 'ARCHIVED' && p.authorId !== admin.id
       );
-      const draftPost = posts.find(
-        (p) => p.status === 'DRAFT' && p.authorId !== user.id
+      const draftPostOfAnotherUser = posts.find(
+        (p) => p.status === 'DRAFT' && p.authorId !== admin.id
       );
-      if (!archivedPost || !draftPost) throw new Error('Missing test posts');
+      if (!archivedPostOfAnotherUser || !draftPostOfAnotherUser)
+        throw new Error('Missing test posts');
 
       // Not logged in
-      [archivedPost.id, draftPost.id].forEach(
-        async (id) =>
-          await expect(getPost(id)).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
-          )
-      );
+      for (const id of [
+        archivedPostOfAnotherUser.id,
+        draftPostOfAnotherUser.id,
+      ])
+        await expect(getPost(id)).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
 
-      await login(user.email, user.password);
+      await login(admin.email, admin.password);
 
       // Logged in as another user
-      [archivedPost.id, draftPost.id].forEach(
-        async (id) =>
-          await expect(getPost(id)).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
-          )
-      );
+      for (const id of [
+        archivedPostOfAnotherUser.id,
+        draftPostOfAnotherUser.id,
+      ])
+        await expect(getPost(id)).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
     });
   });
 
@@ -198,7 +322,7 @@ describe('/api/v1/posts', () => {
           limit: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
           total: expectedTotal,
           totalPages: expectedPages,
-          hasNext: true,
+          hasNext: expectedTotal > PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
           hasPrev: false,
         });
       });
@@ -242,6 +366,85 @@ describe('/api/v1/posts', () => {
           )
         );
       });
+
+      it('should return posts with tags included', async () => {
+        const res = await getPosts();
+
+        const { data } = res.data as BaseResponse;
+        const postsData = data as GetPostsResponseDto;
+
+        for (const post of postsData.items)
+          expect((post as any).tags.length).toBeGreaterThan(0);
+      });
+
+      it('should allow filtering by tag name', async () => {
+        const res = await getPosts({
+          filterBy: {
+            tags: [...testData.publicOnlyTags.map((t) => t.name)],
+          },
+        });
+
+        const { data } = res.data as BaseResponse;
+        const postsData = data as GetPostsResponseDto;
+
+        expect(postsData.pagination.total).toBe(
+          PUBLISHED_PUBLIC_POSTS_NUM + PUBLISHED_MEMBERS_ONLY_POSTS_NUM
+        );
+        for (const post of postsData.items)
+          expect(
+            (post as any).tags.some((name) =>
+              testData.publicOnlyTags.map((t) => t.name).includes(name)
+            )
+          ).toBe(true);
+      });
+
+      it(`should not show other users' private posts that contain those tags`, async () => {
+        const res = await getPosts({
+          filterBy: {
+            tags: [...testData.privateAuthorTags.map((t) => t.name)],
+          },
+        });
+        const { data } = res.data as BaseResponse;
+        const postsData = data as GetPostsResponseDto;
+
+        expect(postsData.count).toBe(0);
+      });
+
+      test.each([
+        [
+          'is too short',
+          generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH - 1, {
+            includeUppercase: false,
+            includeSymbols: false,
+          }),
+        ],
+        [
+          'is too long',
+          generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH + 1, {
+            includeUppercase: false,
+            includeSymbols: false,
+          }),
+        ],
+        [
+          'contains anything other than lower case letters, hyphens and numbers',
+          generateRandomString(10, {
+            includeUppercase: true,
+          }),
+        ],
+      ])(
+        'should return validation error when filterBy tag % ',
+        async (_, tag) => {
+          await expect(
+            getPosts({
+              filterBy: {
+                tags: [tag],
+              },
+            })
+          ).rejects.toMatchObject(
+            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          );
+        }
+      );
     });
 
     describe('GET /api/v1/posts?sortBy[x]=y', () => {
@@ -306,7 +509,7 @@ describe('/api/v1/posts', () => {
       beforeAll(async () => {
         const posts = Array.from({ length: totalNumberOfPosts }).map((_, i) => {
           return {
-            authorId: users[0].id,
+            authorId: author.id,
             content: 'Content number #' + i,
             title: 'Title number #' + i,
             status: 'PUBLISHED',
@@ -429,14 +632,10 @@ describe('/api/v1/posts', () => {
       ])(
         'should retrieve their own private %s when filtering by status',
         async (_, allowedPostStatus) => {
-          const authorId = Math.floor(Math.random() * users.length) + 1;
           const filteredPosts = posts.filter(
             (p) =>
-              allowedPostStatus.includes(p.status) && p.authorId === authorId
+              allowedPostStatus.includes(p.status) && p.authorId === author.id
           );
-          const author = users.find((u) => u.id === authorId);
-
-          if (!author) throw new Error('Missing test author');
 
           await login(author.email, author.password);
 
@@ -454,11 +653,36 @@ describe('/api/v1/posts', () => {
 
           // Verify all returned posts belong to the author
           postsData.items.forEach((post) => {
-            expect(post.authorId).toBe(authorId);
+            expect(post.authorId).toBe(author.id);
             expect(allowedPostStatus).toContain(post.status);
           });
         }
       );
+
+      it(`should retrieve own private posts when filtering by tags`, async () => {
+        await login(author.email, author.password);
+        const res = await getPosts({
+          filterBy: {
+            tags: [
+              ...testData.privateAuthorTags_AlsoUsedOnPublic.map((t) => t.name),
+            ],
+          },
+        });
+        const { data } = res.data as BaseResponse;
+        const postsData = data as GetPostsResponseDto;
+
+        for (const post of postsData.items) {
+          if (post.status !== 'PUBLISHED')
+            expect(post.authorId).toBe(author.id);
+
+          for (const tag of (post as any).tags)
+            expect(
+              testData.privateAuthorTags_AlsoUsedOnPublic
+                .map((t) => t.name)
+                .includes(tag)
+            ).toBe(true);
+        }
+      });
 
       test.each([
         { visibility: ['PUBLIC'] },
@@ -472,9 +696,6 @@ describe('/api/v1/posts', () => {
       ])(
         'should find his own posts w/wo filters and a search query specified',
         async (filters) => {
-          const author = users.find((u) => u.role === 'ADMIN');
-          if (!author) throw new Error('Missing test author');
-
           const expectedPost = posts.find(
             (p) =>
               p.authorId === author.id &&
@@ -527,18 +748,15 @@ describe('/api/v1/posts', () => {
 
       it(`should not retrieve other users drafts and 
       archived posts when search query is present`, async () => {
-        const regularUser = users.find((u) => u.role === 'USER');
-        if (!regularUser) throw new Error('Missing regular user');
-
         const privatePostFromAnotherAuthor = posts.find(
           (p) =>
             (p.status === 'DRAFT' || p.status === 'ARCHIVED') &&
-            p.authorId !== regularUser.id
+            p.authorId !== author.id
         );
         if (!privatePostFromAnotherAuthor)
           throw new Error('Missing post by other user');
 
-        await login(regularUser.email, regularUser.password);
+        await login(author.email, author.password);
 
         const resWithFilters = await getPosts({
           searchQuery: privatePostFromAnotherAuthor.title,
@@ -547,6 +765,33 @@ describe('/api/v1/posts', () => {
         const { data } = resWithFilters.data as BaseResponse;
         const postsData = data as GetPostsResponseDto;
         expect(postsData.count).toBe(0);
+      });
+
+      it(`should not retrieve other users drafts and 
+      archived posts when overlapping tags are present`, async () => {
+        await login(author.email, author.password);
+        const res = await getPosts({
+          filterBy: {
+            tags: [
+              ...testData.privateAdminTags.map((t) => t.name),
+              ...testData.privateAuthorTags.map((t) => t.name),
+            ],
+          },
+        });
+        const { data } = res.data as BaseResponse;
+        const postsData = data as GetPostsResponseDto;
+
+        for (const post of postsData.items) {
+          if (post.status !== 'PUBLISHED')
+            expect(post.authorId).toBe(author.id);
+
+          for (const tag of (post as any).tags)
+            expect(
+              testData.privateAuthorTags_AlsoUsedOnPublic
+                .map((t) => t.name)
+                .includes(tag)
+            ).toBe(true);
+        }
       });
     });
   });
@@ -558,11 +803,6 @@ describe('/api/v1/posts', () => {
       isDraft: true,
       isMembersOnly: false,
     };
-
-    beforeAll(() => {
-      admin = users.find((u) => u.role === 'ADMIN') as User;
-      if (!admin) throw new Error('Missing test user');
-    });
 
     afterAll(async () => {
       posts = await seedPosts();
@@ -584,9 +824,11 @@ describe('/api/v1/posts', () => {
         isMembersOnly: true,
       },
     ])(
-      'should create a post if post data is valid and logged in user is ADMIN',
+      'should create a post if post data is valid and logged in user is either ADMIN or AUTHOR',
       async (postData) => {
-        await login(admin.email, admin.password);
+        const user = [admin, author][Math.floor(Math.random() * 2)];
+
+        await login(user.email, user.password);
 
         const res = await createPost(postData);
         const { data } = res.data as BaseResponse;
@@ -596,7 +838,7 @@ describe('/api/v1/posts', () => {
 
         expect(post).toBeDefined();
         expect(post.title).toBe(postData.title);
-        expect(post.authorId).toBe(admin.id);
+        expect(post.authorId).toBe(user.id);
         expect(post.status).toBe(postData.isDraft ? 'DRAFT' : 'PUBLISHED');
         expect(post.visibility).toBe(
           postData.isMembersOnly ? 'MEMBERS_ONLY' : 'PUBLIC'
@@ -606,6 +848,51 @@ describe('/api/v1/posts', () => {
         else expect(post.publishedAt).toBeTruthy();
       }
     );
+
+    it('should create tags if new names are specified in post data', async () => {
+      const uniqueTags = Array.from({ length: 3 }).map(() =>
+        generateRandomString(10, {
+          includeSymbols: false,
+          includeUppercase: false,
+        })
+      );
+
+      await login(author.email, author.password);
+
+      const res = await createPost({
+        ...VALID_POST_DATA,
+        title: generateRandomString(POST_CONSTRAINTS.MAX_TITLE_LENGTH - 1),
+        tags: [...uniqueTags],
+      });
+      const { data } = res.data as BaseResponse;
+      const post = (data as any).post as Post;
+
+      for (const tag of uniqueTags)
+        expect((post as any).tags.includes(tag)).toBe(true);
+
+      const res_tags = await getTags();
+
+      const { data: tags_data } = res_tags.data as BaseResponse;
+
+      const { items } = tags_data as GetTagsResponse;
+      for (const tag of uniqueTags)
+        expect(items.map((t) => t.name).includes(tag)).toBe(true);
+    });
+
+    it('should assign tags if existing tags are specified', async () => {
+      await login(author.email, author.password);
+
+      const res = await createPost({
+        ...VALID_POST_DATA,
+        title: generateRandomString(POST_CONSTRAINTS.MAX_TITLE_LENGTH - 1),
+        tags: [...testData.publicOnlyTags.map((t) => t.name)],
+      });
+      const { data } = res.data as BaseResponse;
+      const post = (data as any).post as Post;
+
+      for (const tag of testData.publicOnlyTags.map((t) => t.name))
+        expect((post as any).tags.includes(tag)).toBe(true);
+    });
 
     test.each([
       [
@@ -654,6 +941,62 @@ describe('/api/v1/posts', () => {
 
         { ...VALID_POST_DATA, isMembersOnly: undefined },
       ],
+      [
+        'specified tag to attach/create is too short',
+        {
+          ...VALID_POST_DATA,
+          tags: [
+            generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH - 1, {
+              includeUppercase: false,
+              includeSymbols: false,
+            }),
+          ],
+        },
+      ],
+      [
+        'specified tag to attach/create is too long',
+        {
+          ...VALID_POST_DATA,
+          tags: [
+            generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH + 1, {
+              includeUppercase: false,
+              includeSymbols: false,
+            }),
+          ],
+        },
+      ],
+      [
+        'specified tag to attach/create contains upper case letter',
+        {
+          ...VALID_POST_DATA,
+          tags: [
+            generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH - 1, {
+              includeUppercase: true,
+              includeSymbols: false,
+            }),
+          ],
+        },
+      ],
+      [
+        'specified tag to attach/create contains symbol different than hyphen',
+        {
+          ...VALID_POST_DATA,
+          tags: [
+            '%' +
+              generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH + 1, {
+                includeUppercase: false,
+                includeSymbols: false,
+              }),
+          ],
+        },
+      ],
+      [
+        'specified tags to attach/create are the same',
+        {
+          ...VALID_POST_DATA,
+          tags: ['unique-tag-1234', 'unique-tag-1234'],
+        },
+      ],
     ])('should return validation error when %s', async (_, postData) => {
       await login(admin.email, admin.password);
       return await expect(createPost(postData as any)).rejects.toMatchObject(
@@ -661,7 +1004,7 @@ describe('/api/v1/posts', () => {
       );
     });
 
-    it(`should return 403 FORBIDDEN, when user creating the post is not ADMIN`, async () => {
+    it(`should return 403 FORBIDDEN, when user creating the post is not ADMIN or AUTHOR`, async () => {
       const user = users.find((u) => u.role === 'USER');
       if (!user) throw new Error('Missing test user');
 
@@ -688,20 +1031,12 @@ describe('/api/v1/posts', () => {
           title: existingPostTitle,
         })
       ).rejects.toMatchObject(
-        createErrorCodeResponse(
-          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-          VALIDATION_MESSAGES.posts.titleAlreadyExists
-        )
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS)
       );
     });
   });
 
   describe('PATCH /api/v1/posts/:id', () => {
-    beforeAll(() => {
-      admin = users.find((u) => u.role === 'ADMIN') as User;
-      if (!admin) throw new Error('Missing test user');
-    });
-
     test.each([
       [
         'content',
@@ -713,10 +1048,10 @@ describe('/api/v1/posts', () => {
     ])(
       `should update a post's %s if logged in as author`,
       async (propName, value) => {
-        const postForUpdate = posts.find((p) => p.authorId === admin.id);
+        const postForUpdate = posts.find((p) => p.authorId === author.id);
         if (!postForUpdate) throw new Error('Missing test post');
 
-        await login(admin.email, admin.password);
+        await login(author.email, author.password);
 
         const res = await updatePost(postForUpdate.id.toString(), {
           [propName]: value,
@@ -738,12 +1073,12 @@ describe('/api/v1/posts', () => {
 
     it('should set publishedAt date when post status is updated from DRAFT to PUBLISHED', async () => {
       const postForUpdate = posts.find(
-        (p) => p.status === 'DRAFT' && p.authorId === admin.id
+        (p) => p.status === 'DRAFT' && p.authorId === author.id
       );
       if (!postForUpdate) throw new Error('Missing test post');
       expect(postForUpdate.publishedAt).toBeFalsy();
 
-      await login(admin.email, admin.password);
+      await login(author.email, author.password);
 
       const res = await updatePost(postForUpdate.id.toString(), {
         status: 'PUBLISHED',
@@ -784,11 +1119,62 @@ describe('/api/v1/posts', () => {
           ),
         },
       ],
+      [
+        'specified tag to attach/create is too short',
+        {
+          tags: [
+            generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH - 1, {
+              includeUppercase: false,
+              includeSymbols: false,
+            }),
+          ],
+        },
+      ],
+      [
+        'specified tag to attach/create is too long',
+        {
+          tags: [
+            generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH + 1, {
+              includeUppercase: false,
+              includeSymbols: false,
+            }),
+          ],
+        },
+      ],
+      [
+        'specified tag to attach/create contains upper case letter',
+        {
+          tags: [
+            generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH - 1, {
+              includeUppercase: true,
+              includeSymbols: false,
+            }),
+          ],
+        },
+      ],
+      [
+        'specified tag to attach/create contains symbol different than hyphen',
+        {
+          tags: [
+            '%' +
+              generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH + 1, {
+                includeUppercase: false,
+                includeSymbols: false,
+              }),
+          ],
+        },
+      ],
+      [
+        'specified tags to attach/create are the same',
+        {
+          tags: ['unique-tag-1234', 'unique-tag-1234'],
+        },
+      ],
     ])('should return validation error when %s', async (_, postData) => {
-      const postForUpdate = posts.find((p) => p.authorId === admin.id);
+      const postForUpdate = posts.find((p) => p.authorId === author.id);
       if (!postForUpdate) throw new Error('Missing test post');
 
-      await login(admin.email, admin.password);
+      await login(author.email, author.password);
       return await expect(
         updatePost(postForUpdate.id.toString(), postData as any)
       ).rejects.toMatchObject(
@@ -797,7 +1183,7 @@ describe('/api/v1/posts', () => {
     });
 
     it('should return 404 NOT FOUND when post for update does not exist', async () => {
-      await login(admin.email, admin.password);
+      await login(author.email, author.password);
       return await expect(
         updatePost('999', {
           content: 'NEW post content',
@@ -807,17 +1193,16 @@ describe('/api/v1/posts', () => {
       );
     });
 
-    it(`should return 403 FORBIDDEN when non-admins are trying to update`, async () => {
-      const nonAdminUsers = users.filter((u) => u.role !== 'ADMIN');
+    it(`should return 403 FORBIDDEN when the user is not ADMIN or AUTHOR`, async () => {
+      const nonAdminOrAuthorUsers = users.filter(
+        (u) => !(u.role === 'ADMIN' || u.role === 'AUTHOR')
+      );
 
-      for (const u of nonAdminUsers) {
-        const postForUpdate = posts.find((p) => p.authorId === u.id);
-        if (!postForUpdate) throw new Error('Missing test post');
-
+      for (const u of nonAdminOrAuthorUsers) {
         await login(u.email, u.password);
 
         await expect(
-          updatePost(postForUpdate.id.toString(), {
+          updatePost('1', {
             content: generateRandomString(
               POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
             ),
@@ -829,16 +1214,15 @@ describe('/api/v1/posts', () => {
     });
 
     it(`should return 403 FORBIDDEN when trying to update another user's post`, async () => {
-      const anotherUser = users.find((u) => u.id !== admin.id);
-      if (!anotherUser) throw new Error('Missing test user');
-
-      const postForUpdate = posts.find((p) => p.authorId === anotherUser.id);
-      if (!postForUpdate) throw new Error('Missing test post');
+      const postForUpdateFromAnotherUser = posts.find(
+        (p) => p.authorId === author.id
+      );
+      if (!postForUpdateFromAnotherUser) throw new Error('Missing test post');
 
       await login(admin.email, admin.password);
 
       await expect(
-        updatePost(postForUpdate.id.toString(), {
+        updatePost(postForUpdateFromAnotherUser.id.toString(), {
           content: generateRandomString(
             POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
           ),
@@ -848,7 +1232,53 @@ describe('/api/v1/posts', () => {
       );
     });
 
-    it(`should return validation error when updating a 
+    it('should create tags if new names are specified in update post data', async () => {
+      const postForUpdate = posts.find((p) => p.authorId === author.id);
+      if (!postForUpdate) throw new Error('Missing test post');
+      const uniqueTags = Array.from({ length: 3 }).map(() =>
+        generateRandomString(10, {
+          includeSymbols: false,
+          includeUppercase: false,
+        })
+      );
+
+      await login(author.email, author.password);
+
+      const res = await updatePost(postForUpdate.id.toString(), {
+        tags: [...uniqueTags],
+      });
+      const { data } = res.data as BaseResponse;
+      const post = (data as any).post as Post;
+
+      for (const tag of uniqueTags)
+        expect((post as any).tags.includes(tag)).toBe(true);
+
+      const res_tags = await getTags();
+
+      const { data: tags_data } = res_tags.data as BaseResponse;
+
+      const { items } = tags_data as GetTagsResponse;
+      for (const tag of uniqueTags)
+        expect(items.map((t) => t.name).includes(tag)).toBe(true);
+    });
+
+    it('should assign and overwrite post tags if existing tags are specified', async () => {
+      const postForUpdate = posts.find((p) => p.authorId === author.id);
+      if (!postForUpdate) throw new Error('Missing test post');
+
+      await login(author.email, author.password);
+
+      const res = await updatePost(postForUpdate.id.toString(), {
+        tags: [...testData.publicOnlyTags.map((t) => t.name)],
+      });
+      const { data } = res.data as BaseResponse;
+      const post = (data as any).post as Post;
+
+      for (const tag of testData.publicOnlyTags.map((t) => t.name))
+        expect((post as any).tags.includes(tag)).toBe(true);
+    });
+
+    it(`should return validation error when updating a
       post title to be the same as another one`, async () => {
       const postForUpdate = posts.find((p) => p.authorId === admin.id);
       if (!postForUpdate) throw new Error('Missing test post');
@@ -865,10 +1295,7 @@ describe('/api/v1/posts', () => {
           title: existingPostTitle,
         })
       ).rejects.toMatchObject(
-        createErrorCodeResponse(
-          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-          VALIDATION_MESSAGES.posts.titleAlreadyExists
-        )
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS)
       );
     });
 
@@ -890,20 +1317,19 @@ describe('/api/v1/posts', () => {
   });
 
   describe('DELETE /api/v1/posts/:id', () => {
-    beforeAll(() => {
-      admin = users.find((u) => u.role === 'ADMIN') as User;
-      if (!admin) throw new Error('Missing test user');
-    });
-
     afterAll(async () => {
       posts = await seedPosts();
     });
 
+    const deletedIds: number[] = [];
+
     it('should remove post when its authenticated author is requesting it', async () => {
-      const postForDeletion = posts.find((p) => p.authorId === admin.id);
+      const postForDeletion = posts.find(
+        (p) => p.authorId === author.id && !deletedIds.includes(p.id)
+      );
       if (!postForDeletion) throw new Error('Missing test post');
 
-      await login(admin.email, admin.password);
+      await login(author.email, author.password);
 
       const deleteRes = await deletePost(postForDeletion.id.toString());
       expect(deleteRes.status).toBe(StatusCodes.OK);
@@ -911,7 +1337,11 @@ describe('/api/v1/posts', () => {
 
       expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.delete);
 
-      await expect(deletePost(postForDeletion.id.toString())).rejects.toMatchObject(
+      deletedIds.push(postForDeletion.id);
+
+      await expect(
+        deletePost(postForDeletion.id.toString())
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
@@ -924,15 +1354,49 @@ describe('/api/v1/posts', () => {
     });
 
     it(`should return 403 FORBIDDEN when trying to delete another user's post`, async () => {
-      const postForDeletion = posts.find((p) => p.authorId !== admin.id);
-      if (!postForDeletion) throw new Error('Missing test post');
+      const postForDeletionFromAnotherUser = posts.find(
+        (p) => p.authorId === author.id && !deletedIds.includes(p.id)
+      );
+      if (!postForDeletionFromAnotherUser) throw new Error('Missing test post');
 
       await login(admin.email, admin.password);
       await expect(
-        deletePost(postForDeletion.id.toString())
+        deletePost(postForDeletionFromAnotherUser.id.toString())
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
       );
+    });
+
+    it('deleting the last post referencing created tags should delete them also', async () => {
+      const postWithTagsForDeletion = posts.find(
+        (p) => p.authorId === author.id && !deletedIds.includes(p.id)
+      );
+      if (!postWithTagsForDeletion) throw new Error('Missing test post');
+
+      const persistentTags = [
+        'tag-that-wont-be-deleted-1',
+        'tag-that-wont-be-deleted-2',
+      ];
+
+      await login(author.email, author.password);
+
+      const res = await updatePost(postWithTagsForDeletion.id.toString(), {
+        tags: persistentTags,
+      });
+      const { data } = res.data as BaseResponse;
+      const post = (data as any).post as Post;
+
+      for (const tag of persistentTags)
+        expect((post as any).tags.includes(tag)).toBe(true);
+
+      await deletePost(postWithTagsForDeletion.id.toString());
+
+      const res_tags = await getTags();
+
+      const { data: tags_data } = res_tags.data as BaseResponse;
+
+      const { count } = tags_data as GetTagsResponse;
+      expect(count).toBe(0);
     });
 
     test.each([
