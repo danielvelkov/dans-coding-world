@@ -15,6 +15,7 @@ export const SUCCESS_MESSAGES = {
     update: 'Post updated successfully',
     get: 'Post retrieved successfully',
     getAll: 'Posts retrieved successfully',
+    getMetadata: 'Posts metadata retrieved successfully',
   },
   TAGS: {
     create: 'Tag created successfully',

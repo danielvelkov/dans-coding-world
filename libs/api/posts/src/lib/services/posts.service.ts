@@ -12,6 +12,7 @@ import {
   GetPostDto,
   GetPostsDto,
   FilterPostsByDto,
+  GetPostsMetadataResponse,
 } from '@dans-coding-world/shared-post-dto';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
 import { Inject, Injectable } from 'injection-js';
@@ -290,6 +291,11 @@ export class PostsService implements IPostsService {
     }
 
     return { AND: clauses };
+  }
+
+  async getMetadata(): Promise<GetPostsMetadataResponse> {
+    const years = await this.posts.getPublishedYears();
+    return { years };
   }
 
   private isAuthor = (post: Post, userId?: number) =>
