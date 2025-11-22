@@ -15,6 +15,9 @@
   "references": [
     {
       "path": "../../../shared/data-access/interfaces/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../prisma-schema/tsconfig.lib.json"
     }
   ]
 }

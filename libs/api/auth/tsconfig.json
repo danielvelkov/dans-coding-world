@@ -16,6 +16,9 @@
       "path": "../../shared/util/exceptions"
     },
     {
+      "path": "../../prisma-schema"
+    },
+    {
       "path": "../../shared/util/shared-constants"
     },
     {

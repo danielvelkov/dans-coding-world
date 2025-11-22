@@ -7,6 +7,9 @@
       "path": "../../util/api-types"
     },
     {
+      "path": "../../../prisma-schema"
+    },
+    {
       "path": "../../util/shared-constants"
     },
     {
