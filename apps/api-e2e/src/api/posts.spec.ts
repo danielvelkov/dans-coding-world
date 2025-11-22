@@ -20,6 +20,7 @@ import { createAxiosClient } from '../helper/test-client.helper';
 import { createPostsRouteHelper } from '../helper/posts-request.helper';
 import {
   CreatePostDto,
+  GetPostsMetadataResponse,
   GetPostsResponseDto,
   GetTagsResponse,
   UpdatePostDto,
@@ -46,6 +47,7 @@ describe('/api/v1/posts', () => {
     data: Omit<UpdatePostDto, 'userId' | 'postId'>
   ) => Promise<AxiosResponse<unknown>>;
   let deletePost: (id: string) => Promise<AxiosResponse<unknown>>;
+  let getPostsMetadata: () => Promise<AxiosResponse<unknown>>;
 
   let users: User[] = [];
   let posts: Post[] = [];
@@ -172,8 +174,15 @@ describe('/api/v1/posts', () => {
   beforeEach(() => {
     client = createAxiosClient();
     ({ login } = createAuthRouteHelper(client));
-    ({ getPosts, getPost, createPost, updatePost, deletePost, getTags } =
-      createPostsRouteHelper(client));
+    ({
+      getPosts,
+      getPost,
+      createPost,
+      updatePost,
+      deletePost,
+      getTags,
+      getPostsMetadata,
+    } = createPostsRouteHelper(client));
   });
 
   describe('GET /api/v1/posts/:id', () => {
@@ -1484,6 +1493,54 @@ describe('/api/v1/posts', () => {
       return await expect(deletePost(id as any)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
       );
+    });
+  });
+
+  describe('GET /api/v1/posts/metadata', () => {
+    it('should return all unique years for PUBLISHED posts', async () => {
+      const expectedYears = posts
+        .filter((p) => p.publishedAt && p.status === 'PUBLISHED')
+        .map((p) => new Date(p.publishedAt!).getFullYear())
+        .reduce(
+          (acc, prev) => (acc.includes(prev) ? acc : [prev, ...acc]),
+          [] as number[]
+        );
+      const res = await getPostsMetadata();
+      const { data } = res.data as BaseResponse;
+      expect(data).toHaveProperty(
+        'message',
+        SUCCESS_MESSAGES.POSTS.getMetadata
+      );
+      const { years } = data as GetPostsMetadataResponse;
+      expect(years).toEqual(expect.arrayContaining(expectedYears));
+      expect(years).toHaveLength(expectedYears.length);
+    });
+
+    it('does not include years with only non-published posts', async () => {
+      const expectedYears = posts
+        .filter((p) => p.publishedAt && p.status === 'PUBLISHED')
+        .map((p) => new Date(p.publishedAt!).getFullYear())
+        .reduce(
+          (acc, prev) => (acc.includes(prev) ? acc : [prev, ...acc]),
+          [] as number[]
+        );
+
+      const notExpectedYears = posts
+        .filter((p) => p.publishedAt && p.status !== 'PUBLISHED')
+        .map((p) => new Date(p.publishedAt!).getFullYear())
+        .reduce(
+          (acc, prev) => (acc.includes(prev) ? acc : [prev, ...acc]),
+          [] as number[]
+        )
+        .filter((year) => !expectedYears.includes(year));
+        
+      const res = await getPostsMetadata();
+      const { data } = res.data as BaseResponse;
+
+      const { years } = data as GetPostsMetadataResponse;
+      for (const year of notExpectedYears) {
+        expect(years).not.toContain(year);
+      }
     });
   });
 });

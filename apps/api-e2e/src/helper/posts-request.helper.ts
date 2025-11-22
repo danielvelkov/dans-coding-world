@@ -71,6 +71,10 @@ export function createPostsRouteHelper(client: AxiosInstance) {
       return await client.delete(`/api/v1/posts/${id}`);
     },
 
+    async getPostsMetadata() {
+      return await client.get(`/api/v1/posts/metadata`);
+    },
+
     async getPostComments(id: string, params?: object) {
       return await client.get(`/api/v1/posts/${id}/comments`, { params });
     },
