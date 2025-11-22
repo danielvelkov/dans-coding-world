@@ -1798,4 +1798,96 @@ describe('PostsService', () => {
         });
     });
   });
+  describe('getMetadata()', () => {
+    const postsForYearMap = new Map<number, Post[]>();
+    const publishedYears = [2009, 2012, 2016];
+    const nonPublishedYears = [2001, 2020];
+
+    beforeEach(async () => {
+      await mockPostsRepo.deleteMany({});
+
+      const createPostsForYear = async (
+        year: number,
+        status: PostStatus,
+        count: number
+      ) => {
+        const posts: Post[] = [];
+        for (let i = 0; i < count; i++) {
+          posts.push(
+            await mockPostsRepo.create({
+              ...validPostContent,
+              title: `${year}-${generateRandomString(8)}`,
+              authorId: Math.random() > 0.5 ? admin.id : author.id,
+              visibility: Math.random() > 0.5 ? 'PUBLIC' : 'MEMBERS_ONLY',
+              status,
+              publishedAt: new Date(year, 1, 1),
+            })
+          );
+        }
+        postsForYearMap.set(year, posts);
+      };
+
+      // Published posts
+      for (const year of publishedYears) {
+        await createPostsForYear(year, 'PUBLISHED', 5);
+      }
+
+      // Non-published posts (draft/archived)
+      for (const year of nonPublishedYears) {
+        await createPostsForYear(
+          year,
+          Math.random() > 0.5 ? 'DRAFT' : 'ARCHIVED',
+          3
+        );
+      }
+    });
+
+    it('should return all unique years for PUBLISHED posts', async () => {
+      const { years } = await postsService.getMetadata();
+      expect(years).toEqual(expect.arrayContaining(publishedYears));
+      expect(years).toHaveLength(publishedYears.length);
+    });
+
+    it('does not include years with only non-published posts', async () => {
+      const { years } = await postsService.getMetadata();
+      for (const year of nonPublishedYears) {
+        expect(years).not.toContain(year);
+      }
+    });
+
+    it('should return empty array when no published posts exist', async () => {
+      await mockPostsRepo.deleteMany({});
+      const { years } = await postsService.getMetadata();
+      expect(years).toEqual([]);
+    });
+
+    it('should handle posts with no publishedDate correctly', async () => {
+      await mockPostsRepo.create({
+        ...validPostContent,
+        title: `duplicate-${generateRandomString(6)}`,
+        authorId: admin.id,
+        visibility: 'PUBLIC',
+        status: 'PUBLISHED',
+        publishedAt: null,
+      });
+      const { years } = await postsService.getMetadata();
+      expect(years).toEqual(expect.arrayContaining(publishedYears));
+      expect(years).toHaveLength(publishedYears.length);
+    });
+
+    it('should handle duplicate publishedAt years correctly', async () => {
+      // Add multiple posts in the same year
+      await mockPostsRepo.create({
+        ...validPostContent,
+        title: `duplicate-${generateRandomString(6)}`,
+        authorId: admin.id,
+        visibility: 'PUBLIC',
+        status: 'PUBLISHED',
+        publishedAt: new Date(2016, 5, 1),
+      });
+
+      const { years } = await postsService.getMetadata();
+      expect(years.filter((y) => y === 2016)).toHaveLength(1);
+    });
+  });
 });
