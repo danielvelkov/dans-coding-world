@@ -247,13 +247,14 @@ export class PostsService implements IPostsService {
         visibility: filters.visibility,
       };
 
+      // STEP 3.1: Filtering by status and visibility
       const filterConditions = Object.entries(directFilters)
         .filter(([, arr]) => Array.isArray(arr) && arr.length)
         .map(([key, value]) => ({ [key]: { in: value } }));
 
       clauses.push(...filterConditions);
 
-      // Filtering by post tags
+      // STEP 3.2: Filtering by post tags
       if (filters.tags && filters.tags.length > 0) {
         clauses.push({
           tags: {
@@ -267,6 +268,15 @@ export class PostsService implements IPostsService {
           },
         });
       }
+
+      // STEP 3.3: Filtering by year
+      if (filters.year && Number.isInteger(filters.year))
+        clauses.push({
+          publishedAt: {
+            gte: new Date(`${filters.year}-01-01`),
+            lte: new Date(`${filters.year}-12-31`),
+          },
+        });
     }
 
     // STEP 4: Search Query

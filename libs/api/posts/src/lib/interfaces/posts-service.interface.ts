@@ -58,6 +58,7 @@ export interface IPostsService {
    * - By post status (DRAFT, PUBLISHED, ARCHIVED)
    * - By visibility (PUBLIC, MEMBERS_ONLY)
    * - By tags
+   * - By published date year
    *
    * **Sorting options:**
    * - By creation date (createdAt)
