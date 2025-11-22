@@ -398,6 +398,35 @@ describe('/api/v1/posts', () => {
           ).toBe(true);
       });
 
+      it('should allow filtering by publishedDate year', async () => {
+        const uniqueYears = [
+          ...new Set(
+            posts
+              .filter((p) => p.publishedAt)
+              .map((p) => new Date(p.publishedAt ?? '').getFullYear())
+          ),
+        ];
+        if (uniqueYears.length < 2)
+          throw new Error('Need more tests posts of different published years');
+
+        for (const year of uniqueYears) {
+          const res = await getPosts({
+            filterBy: {
+              year,
+            },
+          });
+
+          const { data } = res.data as BaseResponse;
+          const postsData = data as GetPostsResponseDto;
+
+          for (const post of postsData.items)
+            if (post.publishedAt) {
+              const postYear = new Date(post.publishedAt).getFullYear();
+              expect(postYear).toBe(year);
+            }
+        }
+      });
+
       it(`should not show other users' private posts that contain those tags`, async () => {
         const res = await getPosts({
           filterBy: {
@@ -617,6 +646,22 @@ describe('/api/v1/posts', () => {
             pageSize: 5.5,
           },
         ],
+        [
+          'year is decimal',
+          {
+            filterBy: {
+              year: 1.5,
+            },
+          },
+        ],
+        [
+          'year is letter',
+          {
+            filterBy: {
+              year: 'a',
+            },
+          },
+        ],
       ])('should return validation error when %s', async (_, params) => {
         await expect(getPosts(params)).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
@@ -624,7 +669,7 @@ describe('/api/v1/posts', () => {
       });
     });
 
-    describe('GET /api/v1/posts - Authenticated Author', () => {
+    describe('Authenticated Author', () => {
       test.each([
         ['DRAFT and ARCHIVED posts', ['ARCHIVED', 'DRAFT'] as PostStatus[]],
         ['DRAFT posts', ['DRAFT'] as PostStatus[]],
@@ -659,7 +704,7 @@ describe('/api/v1/posts', () => {
         }
       );
 
-      it(`should retrieve own private posts when filtering by tags`, async () => {
+      it(`should retrieve own private posts when user is logged in and filtering by tags`, async () => {
         await login(author.email, author.password);
         const res = await getPosts({
           filterBy: {
@@ -681,6 +726,32 @@ describe('/api/v1/posts', () => {
                 .map((t) => t.name)
                 .includes(tag)
             ).toBe(true);
+        }
+      });
+
+      it(`should retrieve own private posts when user is logged in and filtering by year`, async () => {
+        const expectedYear = posts
+          .find((p) => p.authorId === author.id && p.publishedAt)
+          ?.publishedAt?.getFullYear();
+
+        await login(author.email, author.password);
+
+        const res = await getPosts({
+          filterBy: {
+            year: expectedYear,
+          },
+        });
+        const { data } = res.data as BaseResponse;
+        const postsData = data as GetPostsResponseDto;
+
+        for (const post of postsData.items) {
+          if (post.publishedAt) {
+            const postYear = new Date(post.publishedAt).getFullYear();
+            expect(postYear).toBe(expectedYear);
+          }
+
+          if (post.status !== 'PUBLISHED')
+            expect(post.authorId).toBe(author.id);
         }
       });
 

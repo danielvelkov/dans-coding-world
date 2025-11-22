@@ -169,6 +169,12 @@ export default postsRouter;
  *         required: false
  *         description: Filter by post visibility (can specify multiple)
  *       - in: query
+ *         name: filterBy[year]
+ *         schema:
+ *           type: number
+ *         required: false
+ *         description: Filter by posts' publishedAt date year
+ *       - in: query
  *         name: filterBy[tags]
  *         schema:
  *           type: array
