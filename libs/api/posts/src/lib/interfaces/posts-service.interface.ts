@@ -5,6 +5,7 @@ import {
   GetPostsResponseDto,
   GetPostDto,
   GetPostsDto,
+  GetPostsMetadataResponse,
 } from '@dans-coding-world/shared-post-dto';
 import { Post } from '@dans-coding-world/prisma-schema';
 
@@ -152,4 +153,16 @@ export interface IPostsService {
    * @throws {Error} Unauthorized deletion attempt - author mismatch (VAL003)
    */
   delete(dto: DeletePostDto): Promise<Post>;
+
+  /**
+   * Gets posts metadata regarding published posts.
+   *
+   * @returns The posts metadata like years where posts were published
+   *
+   * @example
+   * ```typescript
+   * const { years } = await postsService.getMetadata();
+   * ```
+   */
+  getMetadata(): Promise<GetPostsMetadataResponse>;
 }

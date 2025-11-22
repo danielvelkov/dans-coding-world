@@ -5,6 +5,7 @@ export * from './lib/get-posts-response.dto.js';
 export * from './lib/get-posts.dto.js';
 export * from './lib/get-post.dto.js';
 export * from './lib/filter-posts-by.dto.js';
+export * from './lib/get-posts-metadata-response.dto.js';
 
 export * from './lib/post-comments/create-comment.dto.js';
 export * from './lib/post-comments/delete-comment.dto.js';
