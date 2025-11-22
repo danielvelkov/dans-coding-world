@@ -124,4 +124,16 @@ export class PostsController {
       return next(error);
     }
   }
+
+  getMetadata = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { years } = await this.postsService.getMetadata();
+
+      return res
+        .status(StatusCodes.OK)
+        .json({ message: SUCCESS_MESSAGES.POSTS.getMetadata, years });
+    } catch (error) {
+      return next(error);
+    }
+  };
 }

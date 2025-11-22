@@ -8,6 +8,7 @@ const postsRouter = Router();
 
 postsRouter.route('/').get(postsController.getAll).post(postsController.create);
 
+postsRouter.route('/metadata').get(postsController.getMetadata);
 postsRouter
   .route('/:id')
   .get(postsController.get)
@@ -426,6 +427,29 @@ export default postsRouter;
 
 /**
  * @openapi
+ * /posts/metadata:
+ *   get:
+ *     tags: [Posts]
+ *     summary: Get posts metadata.
+ *     description: |
+ *       Get posts metadata like all the unique years PUBLISHED posts were published at.
+ *     responses:
+ *       200:
+ *         description: Posts metadata retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GetPostsMetadataResponse'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
  * components:
  *   schemas:
  *     Post:
@@ -595,6 +619,20 @@ export default postsRouter;
  *               properties:
  *                 post:
  *                   $ref: '#/components/schemas/Post'
+ *
+ *     GetPostsMetadataResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SuccessResponse'
+ *         - type: object
+ *           properties:
+ *             data:
+ *               type: object
+ *               properties:
+ *                 years:
+ *                   type: array
+ *                   items:
+ *                     type: number
+ *                     example: 2001
  *
  *     PostTag:
  *       type: string
