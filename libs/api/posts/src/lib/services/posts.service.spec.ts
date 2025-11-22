@@ -809,6 +809,108 @@ describe('PostsService', () => {
       }
     );
 
+    describe('filtering by year', () => {
+      const postsForYearMap = new Map<number, Post[]>();
+      const yearsForTest = [2001, 2016, 2009];
+
+      beforeEach(async () => {
+        await mockPostsRepo.deleteMany({});
+
+        for (const year of yearsForTest) {
+          const postsForYear = [];
+
+          for (
+            let i = 0;
+            i < Math.floor(Math.random() * 10) + 2;
+            i++ // Random amount of posts
+          )
+            postsForYear.push(
+              await mockPostsRepo.create({
+                ...validPostContent,
+                title: year + generateRandomString(10),
+                authorId: [admin.id, author.id][Math.floor(Math.random() * 2)],
+                visibility: ['PUBLIC', 'MEMBERS_ONLY'][
+                  Math.floor(Math.random() * 2)
+                ] as PostVisibility,
+                status: ['PUBLISHED', 'DRAFT', 'ARCHIVED'][
+                  Math.floor(Math.random() * 3)
+                ] as PostStatus,
+                publishedAt: new Date(year, 1, 1),
+              })
+            );
+          postsForYearMap.set(year, postsForYear);
+        }
+      });
+
+      test.each([
+        ['not a number', 'a'],
+        ['a decimal', 1.5],
+      ])(
+        'should throw validation error when filterBy year is %s',
+        async (_, year) => {
+          expect.assertions(1);
+          return postsService
+            .getAll({
+              filterBy: {
+                year: year as any,
+              },
+            })
+            .catch((error) => {
+              expect(error.message).toMatch(/failed.*validation/i);
+            });
+        }
+      );
+
+      it('should show PUBLISHED posts by year of publishedDate when "filterBy.year" is specified', async () => {
+        for (const year of yearsForTest) {
+          const expectedPosts = postsForYearMap
+            .get(year)
+            ?.filter((p) => p.status === 'PUBLISHED');
+
+          const resDto = await postsService.getAll({
+            pageSize: 25,
+            filterBy: {
+              year,
+            },
+          });
+          expect(resDto.pagination.total).toBe(expectedPosts?.length);
+          for (const post of resDto.items) {
+            expect(post.publishedAt?.getFullYear()).toBe(year);
+            expect(post.status).toBe('PUBLISHED');
+            expect(expectedPosts?.map((p) => p.id).includes(post.id)).toBe(
+              true
+            );
+          }
+        }
+      });
+
+      it(`should also show user private posts by year of publishedDate when 
+        "filterBy.year" and viewerId is specified`, async () => {
+        for (const year of yearsForTest) {
+          const expectedPosts = postsForYearMap
+            .get(year)
+            ?.filter(
+              (p) => p.status === 'PUBLISHED' || p.authorId === author.id
+            );
+
+          const resDto = await postsService.getAll({
+            pageSize: 25,
+            filterBy: {
+              year,
+            },
+            viewerId: author.id,
+          });
+          expect(resDto.pagination.total).toBe(expectedPosts?.length);
+          for (const post of resDto.items) {
+            expect(post.publishedAt?.getFullYear()).toBe(year);
+            expect(expectedPosts?.map((p) => p.id).includes(post.id)).toBe(
+              true
+            );
+          }
+        }
+      });
+    });
+
     test.each(['UNORGANIZED', 'HOT_TAKE', 'SHUNNED_ON_TWITTER'])(
       'should throw when filtering by unknown status',
       async (status) => {
@@ -1437,9 +1539,7 @@ describe('PostsService', () => {
       });
 
       for (const tag of newTags)
-        expect((updatedPostWithNewTags as any).tags.includes(tag)).toBe(
-          true
-        );
+        expect((updatedPostWithNewTags as any).tags.includes(tag)).toBe(true);
     });
 
     test.each([
