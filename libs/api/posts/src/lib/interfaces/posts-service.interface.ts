@@ -35,6 +35,7 @@ export interface IPostsService {
    * - Public posts: Fully accessible to all users
    * - Members-only posts: Content field hidden when accessed without viewerId
    * - Draft/archived posts: Accessible only to the post author
+   * - All posts: Accessible by admins
    *
    * @param dto - Request parameters including postId and optional viewerId
    * @returns The requested post object
@@ -69,6 +70,7 @@ export interface IPostsService {
    * **Access control:**
    * - Members-only posts: Content masked when accessed without viewerId
    * - Draft/archived posts: Visible only to the post author
+   * - All posts: Accessible by admins
    *
    * @param dto - Optional request parameters including viewerId, pagination, sorting, filtering, and search query
    * @returns Paginated response containing posts, total count, and pagination metadata
@@ -112,7 +114,9 @@ export interface IPostsService {
    * to 'PUBLISHED' for the first time, the `publishedAt` timestamp is set to the
    * current date.
    *
-   * Only the post author can update their own posts.
+   * **Access control:**
+   * - The post author can update their own posts.
+   * - Updating of posts is also accessible by admins
    *
    * @param dto - Update data including postId, authorId, and fields to modify
    * @returns The updated post object
@@ -134,9 +138,11 @@ export interface IPostsService {
   update(dto: UpdatePostDto): Promise<Post>;
 
   /**
-   * Permanently deletes a post and all associated data.
+   * Permanently deletes a post and all associated data. This action cannot be undone.
    *
-   * Only the post author can delete their own posts. This action cannot be undone.
+   * **Access control:**
+   * - The post author can delete their own posts.
+   * - Deletion of posts is also accessible by admins
    *
    * @param dto - Deletion parameters including postId and authorId
    * @returns The deleted post object
