@@ -34,7 +34,7 @@ export default postsRouter;
  *       Get a specific post by its Id.
  *
  *       Returns 403 FORBIDDEN error If post is private and the user requesting it
- *       is not the author.
+ *       is not the author (**does not apply to admins**).
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts have their content masked
@@ -110,6 +110,7 @@ export default postsRouter;
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts have their content masked
  *       - If access_token is valid, search query also applies to user's private posts that are DRAFT or ARCHIVED if no filters are set
+ *       - If access_token is valid and user is ADMIN, search query for private posts retrieve not only the admin's posts
  *     parameters:
  *       - in: query
  *         name: pageOffset
@@ -233,7 +234,7 @@ export default postsRouter;
  *
  *       Create a blog post.
  *
- *       Posts that are created with 'isDraft' set to FALSE, have their publishedDate set
+ *       Posts that are created with 'isDraft' set to FALSE, have their publishedDate set to current date and time.
  *     requestBody:
  *       required: true
  *       content:
@@ -295,7 +296,7 @@ export default postsRouter;
  *       Update a post's field by its Id.
  *
  *       Returns 403 FORBIDDEN error If post is either DRAFT or ARCHIVED and the user requesting it
- *       is not the author.
+ *       is not the author (**does not apply to admins**).
  *     parameters:
  *       - in: path
  *         name: postId
@@ -370,7 +371,7 @@ export default postsRouter;
  *       Delete a blog post by its Id.
  *
  *       Returns 403 FORBIDDEN error if the user requesting it
- *       is not the author.
+ *       is not the author (**does not apply to admins**).
  *     parameters:
  *       - in: path
  *         name: postId
