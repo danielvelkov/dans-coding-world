@@ -306,31 +306,37 @@ describe('/api/v1/posts', () => {
         );
     });
 
-    it('should allow access to DRAFT or ARCHIVED posts of another user when ADMIN', async () => {
-      const archivedPostOfAnotherUser = posts.find(
-        (p) => p.status === 'ARCHIVED' && p.authorId !== admin.id
-      );
-      const draftPostOfAnotherUser = posts.find(
-        (p) => p.status === 'DRAFT' && p.authorId !== admin.id
-      );
-      if (!archivedPostOfAnotherUser || !draftPostOfAnotherUser)
-        throw new Error('Missing test posts');
+    test.each(['ADMIN', 'MOD'])(
+      'should allow access to DRAFT or ARCHIVED posts of another user when %s',
+      async (role) => {
+        const archivedPostOfAnotherUser = posts.find(
+          (p) => p.status === 'ARCHIVED' && p.authorId !== admin.id
+        );
+        const draftPostOfAnotherUser = posts.find(
+          (p) => p.status === 'DRAFT' && p.authorId !== admin.id
+        );
+        if (!archivedPostOfAnotherUser || !draftPostOfAnotherUser)
+          throw new Error('Missing test posts');
 
-      await login(admin.email, admin.password);
+        const user = users.find((u) => u.role === role);
+        if (!user) throw new Error('Missing test user');
 
-      for (const id of [
-        archivedPostOfAnotherUser.id,
-        draftPostOfAnotherUser.id,
-      ]) {
-        const res = await getPost(id);
-        const { data } = res.data as BaseResponse;
+        await login(user.email, user.password);
 
-        expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.get);
+        for (const id of [
+          archivedPostOfAnotherUser.id,
+          draftPostOfAnotherUser.id,
+        ]) {
+          const res = await getPost(id);
+          const { data } = res.data as BaseResponse;
 
-        const postData = (data as any).post as Post;
-        expect(postData.id).toBe(id);
+          expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.get);
+
+          const postData = (data as any).post as Post;
+          expect(postData.id).toBe(id);
+        }
       }
-    });
+    );
   });
 
   describe('GET /api/v1/posts', () => {

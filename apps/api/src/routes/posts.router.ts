@@ -34,7 +34,7 @@ export default postsRouter;
  *       Get a specific post by its Id.
  *
  *       Returns 403 FORBIDDEN error If post is private and the user requesting it
- *       is not the author (**does not apply to admins**).
+ *       is not the author (**does not apply to admins or moderators**).
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts have their content masked

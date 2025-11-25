@@ -50,6 +50,7 @@ let postsService: IPostsService;
 describe('PostsService', () => {
   let user: User;
   let admin: User;
+  let mod: User;
   let author: User;
 
   const validPostContent = {
@@ -79,6 +80,13 @@ describe('PostsService', () => {
       password: 'fakeAdminPass',
       username: 'fakeAdmin123',
       role: 'ADMIN',
+    });
+
+    mod = await mockUsersRepo.create({
+      email: 'fakeMod123@gmail.com',
+      password: 'fakeModPass',
+      username: 'fakeMod123',
+      role: 'MOD',
     });
 
     author = await mockUsersRepo.create({
@@ -253,7 +261,7 @@ describe('PostsService', () => {
     );
 
     test.each(['AUTHOR', 'ADMIN'])(
-      'if viewerId is ADMIN, it can access every %s post regardless of status and visibility',
+      'if viewerId is ADMIN or MOD, it can access every %s post regardless of status and visibility',
       async (role) => {
         const users = [admin, author];
         const user = users.find((u) => u.role === role);
@@ -273,13 +281,15 @@ describe('PostsService', () => {
               visibility,
             });
 
-            const post = await postsService.getById({
-              postId: createdPost.id,
-              viewerId: admin.id,
-            });
+            for (const viewer of [mod, admin]) {
+              const post = await postsService.getById({
+                postId: createdPost.id,
+                viewerId: viewer.id,
+              });
 
-            expect(createdPost.id).toBe(post.id);
-            expect(createdPost.content).toBe(post.content);
+              expect(createdPost.id).toBe(post.id);
+              expect(createdPost.content).toBe(post.content);
+            }
           }
       }
     );

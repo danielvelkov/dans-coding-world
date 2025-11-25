@@ -196,7 +196,7 @@ export class PostsService implements IPostsService {
    * **Access control:**
    * - For PUBLISHED posts everyone has access
    * - Author of the post has access by default
-   * - Admins have access too
+   * - Admins and Mods have access too
    *
    * @param post The post in question
    * @param viewerId Id of the user trying to access the post
@@ -209,7 +209,7 @@ export class PostsService implements IPostsService {
 
     if (viewerId) {
       const user = await this.users.getById(viewerId.toString());
-      if (user && user.role === 'ADMIN') return;
+      if (user && (user.role === 'ADMIN' || user.role === 'MOD')) return;
     }
     if (!this.isPublished(post) && !this.isAuthor(post, viewerId)) {
       throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);

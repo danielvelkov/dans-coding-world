@@ -35,7 +35,7 @@ export interface IPostsService {
    * - Public posts: Fully accessible to all users
    * - Members-only posts: Content field hidden when accessed without viewerId
    * - Draft/archived posts: Accessible only to the post author
-   * - All posts: Accessible by admins
+   * - All posts: Accessible by admins and moderators
    *
    * @param dto - Request parameters including postId and optional viewerId
    * @returns The requested post object
