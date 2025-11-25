@@ -57,6 +57,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
   let comments: Comment[] = [];
 
   let admin: User;
+  let mod: User;
   let author: User;
 
   let publishedPublicPosts: Post[];
@@ -83,8 +84,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
     admin = users.find((u) => u.role === 'ADMIN') as any;
     author = users.find((u) => u.role === 'AUTHOR') as any;
+    mod = users.find((u) => u.role === 'MOD') as any;
 
-    if (!admin || !author) throw new Error('Missing users');
+    if (!admin || !author || !mod) throw new Error('Missing users');
   });
 
   beforeEach(() => {
@@ -656,6 +658,40 @@ describe('/api/v1/posts/{postId}/comments', () => {
             );
         }
       });
+
+      test.each(['ADMIN', 'MOD'])(
+        `should allow access to comment and its 
+        replies for DRAFT or ARCHIVED post if user is %s`,
+        async (role) => {
+          const archivedPost = posts.find(
+            (p) =>
+              p.status === 'ARCHIVED' &&
+              p.authorId === admin.id &&
+              comments.find((c) => c.postId === p.id)
+          );
+
+          if (!archivedPost) throw new Error('Missing test posts');
+
+          const user = users.find((u) => u.role === role);
+          if (!user) throw new Error('Missing test user');
+
+          await login(user.email, user.password);
+
+          for (const post of [archivedPost]) {
+            const postComments = comments.filter(
+              (c) => c.postId === post.id && c.depth === 0
+            );
+
+            for (const parentComment of postComments) {
+              const res = await getCommentReplies(post.id, parentComment.id);
+              const { data } = res.data as BaseResponse;
+              const repliesData = data as GetPostCommentRepliesResponseDto;
+
+              expect(repliesData).toBeDefined();
+            }
+          }
+        }
+      );
     });
   });
 
@@ -734,15 +770,41 @@ describe('/api/v1/posts/{postId}/comments', () => {
       );
     });
 
-    it('should return 403 FORBIDDEN for deleting a comment not belonging to the user', async () => {
-      await login(admin.email, admin.password);
-      const otherUserComment = comments.find((c) => c.userId !== admin.id);
+    it(`should return 403 FORBIDDEN when user is not ADMIN or MOD, 
+        and the comment does not belong to the user`, async () => {
+      await login(author.email, author.password);
+      const otherUserComment = comments.find((c) => c.userId !== author.id);
       await expect(
         deleteComment(otherUserComment?.postId, otherUserComment?.id)
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
       );
     });
+
+    test.each(['ADMIN', 'MOD'])(
+      `should allow deletion of comment if user is %s`,
+      async (role) => {
+        const user = users.find((u) => u.role === role);
+        if (!user) throw new Error('Missing test user');
+
+        const otherUserComment = comments.find((c) => c.userId !== user.id);
+        if (!otherUserComment) throw new Error('Missing test data');
+
+        await login(user.email, user.password);
+
+        const res = await deleteComment(
+          otherUserComment?.postId,
+          otherUserComment.id
+        );
+        const { data } = res.data as BaseResponse;
+        expect(data).toHaveProperty(
+          'message',
+          SUCCESS_MESSAGES.COMMENTS.delete
+        );
+
+        comments = await seedComments();
+      }
+    );
   });
 
   describe('POST /api/v1/posts/{postId}/comments', () => {
@@ -876,9 +938,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
     it(`should return 403 FORBIDDEN when posting a comment on a 
       non-PUBLISHED post that the user is not the author of`, async () => {
-      await login(admin.email, admin.password);
+      await login(author.email, author.password);
       const nonPublishedPosts = posts.filter(
-        (p) => p.status !== 'PUBLISHED' && p.authorId !== admin.id
+        (p) => p.status !== 'PUBLISHED' && p.authorId !== author.id
       );
       for (const post of nonPublishedPosts)
         await expect(
@@ -1004,8 +1066,8 @@ describe('/api/v1/posts/{postId}/comments', () => {
     });
 
     it('should return 403 FORBIDDEN for updating a comment not belonging to the user', async () => {
-      await login(admin.email, admin.password);
-      const otherUserComment = comments.find((c) => c.userId !== admin.id);
+      await login(author.email, author.password);
+      const otherUserComment = comments.find((c) => c.userId !== author.id);
       await expect(
         updateComment(
           otherUserComment?.postId,
@@ -1016,5 +1078,29 @@ describe('/api/v1/posts/{postId}/comments', () => {
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
       );
     });
+
+    test.each(['ADMIN', 'MOD'])(
+      `should allow edit of other user's comment if user is %s`,
+      async (role) => {
+        const user = users.find((u) => u.role === role);
+        if (!user) throw new Error('Missing test user');
+
+        const otherUserComment = comments.find((c) => c.userId !== user.id);
+        if (!otherUserComment) throw new Error('Missing test data');
+
+        await login(user.email, user.password);
+
+        const res = await updateComment(
+          otherUserComment?.postId,
+          otherUserComment.id,
+          'new content'
+        );
+        const { data } = res.data as BaseResponse;
+        expect(data).toHaveProperty(
+          'message',
+          SUCCESS_MESSAGES.COMMENTS.update
+        );
+      }
+    );
   });
 });
