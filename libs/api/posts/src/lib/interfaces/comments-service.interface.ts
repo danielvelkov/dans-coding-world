@@ -38,6 +38,7 @@ export interface ICommentsService {
    * - Draft and archived post comments: Visible only to the post author
    * - Members-only posts: Require viewerId to be provided
    * - Published posts: Publicly accessible
+   * - All posts: Accessible by mods and admins
    *
    * @param dto Contains postId, viewerId (optional), and pagination and sorting params (optional).
    * @returns A promise that resolves to a paginated list of direct comments to post.
@@ -97,8 +98,9 @@ export interface ICommentsService {
   /**
    * Deletes a comment and all of its replies.
    *
-   * Only the comment author can delete their own comments. All nested replies
-   * are permanently removed along with the parent comment.
+   * **Access control:**
+   * - The comment author can delete their own comments.
+   * - Deletion of comments is also accessible by admins and mods
    *
    * @param dto - Deletion parameters including commentId, postId, and authorId
    * @returns The deleted comment object
@@ -119,10 +121,12 @@ export interface ICommentsService {
   delete(dto: DeleteCommentDto): Promise<Comment>;
 
   /**
-   * Updates the content of an existing comment.
-   *
-   * Only the comment author can modify their own comments. The modification
+   * Updates the content of an existing comment. The modification
    * timestamp is automatically updated.
+   *
+   * **Access control:**
+   * - The comment author can update their own comments.
+   * - Update of comments is also accessible by admins and mods
    *
    * @param dto - Update parameters including commentId, postId, authorId, and new content
    * @returns The updated comment object
