@@ -5,6 +5,7 @@ import {
   CommentWhereInput,
 } from '@dans-coding-world/prisma-schema';
 import { ICommentRepository } from '@dans-coding-world/shared-data-access-interfaces';
+import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
 export class PrismaPostCommentsDataAccess
   implements
@@ -12,15 +13,19 @@ export class PrismaPostCommentsDataAccess
 {
   async getById(
     id: number,
-    options?: { includeReplies?: boolean }
+    options?: {
+      includeReplies?: boolean;
+      maxReplyTreeDepth?: number;
+    }
   ): Promise<Comment | null> {
     return await client.comment.findFirst({
       where: {
         id,
       },
-      include: {
-        replies: options?.includeReplies,
-      },
+      ...(options?.includeReplies &&
+        this.buildPrismaCommentIncludeQuery(
+          options.maxReplyTreeDepth ?? COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH
+        )),
     });
   }
 
@@ -31,14 +36,16 @@ export class PrismaPostCommentsDataAccess
       skip?: number;
       take?: number;
       includeReplies?: boolean;
+      maxReplyTreeDepth?: number;
     }
   ): Promise<Comment[]> {
     return await client.comment.findMany({
       where,
       orderBy,
-      include: {
-        replies: options?.includeReplies,
-      },
+      ...(options?.includeReplies &&
+        this.buildPrismaCommentIncludeQuery(
+          options.maxReplyTreeDepth ?? COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH
+        )),
       take: options?.take,
       skip: options?.skip,
     });
@@ -78,5 +85,20 @@ export class PrismaPostCommentsDataAccess
     return await client.comment.count({
       where,
     });
+  }
+
+  private buildPrismaCommentIncludeQuery(depth: number): any {
+    if (depth <= 1)
+      return {
+        include: {
+          replies: true,
+        },
+      };
+    else
+      return {
+        include: {
+          replies: this.buildPrismaCommentIncludeQuery(depth - 1),
+        },
+      };
   }
 }

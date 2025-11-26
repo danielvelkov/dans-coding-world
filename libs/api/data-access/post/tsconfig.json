@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../../shared/util/shared-constants"
+    },
+    {
       "path": "../../../shared/data-access/interfaces"
     },
     {

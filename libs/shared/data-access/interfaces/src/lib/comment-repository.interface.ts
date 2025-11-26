@@ -6,6 +6,7 @@ export interface ICommentRepository<Comment, TWhereInput, TOrderBy> {
     id: number,
     options?: {
       includeReplies?: boolean;
+      maxReplyTreeDepth?: number;
     }
   ): Promise<Comment | null>;
   create(data: Omit<Comment, 'id'>): Promise<Comment>;
@@ -17,6 +18,7 @@ export interface ICommentRepository<Comment, TWhereInput, TOrderBy> {
       skip?: number;
       take?: number;
       includeReplies?: boolean;
+      maxReplyTreeDepth?: number;
     }
   ): Promise<Comment[]>;
   delete(id: number): Promise<Comment>;
