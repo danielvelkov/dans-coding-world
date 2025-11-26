@@ -17,6 +17,7 @@ import {
   PostVisibility,
   PostVisibilityEnum,
   PostWhereInput,
+  Role,
   User,
   client,
 } from '@dans-coding-world/prisma-schema';
@@ -68,33 +69,18 @@ describe('PostsService', () => {
     mockPostsRepo = new MockPostRepository();
     mockUsersRepo = new MockUserRepository();
 
-    user = await mockUsersRepo.create({
-      email: 'fakeUser123@gmail.com',
-      password: 'fakeUserPass',
-      username: 'fakeUser123',
-      role: 'USER',
-    });
+    const roles: Role[] = ['USER', 'ADMIN', 'MOD', 'AUTHOR'];
 
-    admin = await mockUsersRepo.create({
-      email: 'fakeAdmin123@gmail.com',
-      password: 'fakeAdminPass',
-      username: 'fakeAdmin123',
-      role: 'ADMIN',
-    });
-
-    mod = await mockUsersRepo.create({
-      email: 'fakeMod123@gmail.com',
-      password: 'fakeModPass',
-      username: 'fakeMod123',
-      role: 'MOD',
-    });
-
-    author = await mockUsersRepo.create({
-      email: 'fakeAuthor123@gmail.com',
-      password: 'fakeAuthorPass',
-      username: 'fakeAuthor123',
-      role: 'AUTHOR',
-    });
+    [user, admin, mod, author] = await Promise.all(
+      roles.map((role) =>
+        mockUsersRepo.create({
+          email: `fake${role.toLowerCase()}123@gmail.com`,
+          password: `fake${role.toLowerCase()}Pass`,
+          username: `fake${role.toLowerCase()}123`,
+          role,
+        })
+      )
+    );
 
     injector = ReflectiveInjector.resolveAndCreate([
       PostsService,
@@ -260,7 +246,7 @@ describe('PostsService', () => {
       }
     );
 
-    test.each(['AUTHOR', 'ADMIN'])(
+    test.each(['AUTHOR', 'ADMIN'] as Role[])(
       'if viewerId is ADMIN or MOD, it can access every %s post regardless of status and visibility',
       async (role) => {
         const users = [admin, author];
@@ -271,9 +257,9 @@ describe('PostsService', () => {
         const statuses = [...Object.values(PostStatusEnum)];
         const visibilities = [...Object.values(PostVisibilityEnum)];
 
-        for (const status of statuses) // Of every status...
+        for (const status of statuses)
           for (const visibility of visibilities) {
-            // And every visibility...
+            // STEP 1. Create post
             const createdPost = await mockPostsRepo.create({
               ...validPostContent,
               authorId: user.id,
@@ -281,6 +267,7 @@ describe('PostsService', () => {
               visibility,
             });
 
+            // STEP 2. Check if viewer has access
             for (const viewer of [mod, admin]) {
               const post = await postsService.getById({
                 postId: createdPost.id,

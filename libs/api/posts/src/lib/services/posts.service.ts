@@ -251,6 +251,7 @@ export class PostsService implements IPostsService {
 
     if (viewerId) {
       const user = await this.users.getById(viewerId.toString());
+      if (!user) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
       if (user && user.role === 'ADMIN') {
         isAdmin = true;
       }
