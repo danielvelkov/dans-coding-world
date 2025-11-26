@@ -253,25 +253,148 @@ describe('CommentsService', () => {
       ).toBe(true);
     });
 
+    describe('Nested comment replies', () => {
+      let postWithDeeplyNestedReplies: Post;
+      const NUM_OF_TOP_LEVEL_COMMENTS = 5;
+
+      let repliesToTopLevelComments: Comment[];
+
+      beforeEach(async () => {
+        repliesToTopLevelComments = [];
+
+        postWithDeeplyNestedReplies = await mockPostsRepo.create({
+          ...validPostContent,
+          authorId: author.id,
+          status: 'PUBLISHED',
+          visibility: 'PUBLIC',
+        });
+
+        for (let i = 0; i < NUM_OF_TOP_LEVEL_COMMENTS; i++) {
+          const comment = await mockCommentsRepository.create({
+            ...validCommentContent,
+            depth: 0,
+            postId: postWithDeeplyNestedReplies.id,
+            userId: user.id,
+            threadParentId: null,
+          });
+          const replies = await createNestedReplies(comment, 1);
+          repliesToTopLevelComments = [
+            ...repliesToTopLevelComments,
+            ...replies,
+          ];
+        }
+      });
+
+      it(`should return all replies for each comment when maxReplyLevels is not set`, async () => {
+        const res = await commentsService.getPostComments({
+          postId: postWithDeeplyNestedReplies.id,
+          viewerId: admin.id,
+        });
+
+        for (const comment of res.items)
+          checkRepliesRecursively(comment.replies, repliesToTopLevelComments);
+      });
+
+      it(`should return the expected amount of replies when param maxReplyLevels is set`, async () => {
+        for (
+          let replyLevel = 1;
+          replyLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+          replyLevel++
+        ) {
+          const res = await commentsService.getPostComments({
+            postId: postWithDeeplyNestedReplies.id,
+            viewerId: admin.id,
+            maxReplyLevels: replyLevel,
+          });
+
+          for (const comment of res.items)
+            checkRepliesRecursively(
+              comment.replies,
+              // get only those comments up until that depth
+              repliesToTopLevelComments.filter((c) => c.depth <= replyLevel)
+            );
+        }
+      });
+
+      it('should handle comments with no replies correctly when maxReplyLevels is set', async () => {
+        const commentWithoutReplies = await mockCommentsRepository.create({
+          ...validCommentContent,
+          content: 'Lonely comment',
+          depth: 0,
+          postId: postWithDeeplyNestedReplies.id,
+          userId: user.id,
+          threadParentId: null,
+        });
+
+        for (
+          let depthLevel = 1;
+          depthLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+          depthLevel++
+        ) {
+          const res = await commentsService.getPostComments({
+            postId: postWithDeeplyNestedReplies.id,
+            viewerId: admin.id,
+            maxReplyLevels: depthLevel,
+          });
+
+          const lonelyComment = res.items.find(
+            (c) => c.id === commentWithoutReplies.id
+          );
+          expect(lonelyComment?.replies).toEqual([]);
+          expect(lonelyComment?.replyCount).toBe(0);
+        }
+      });
+
+      test.each([
+        ['is not a number', 'a'],
+        ['is a decimal', 1.5],
+        ['is array', []],
+        ['is a non numeric string', 'a1'],
+        [
+          'is smaller than minimum',
+          COMMENT_CONSTRAINTS.MIN_REPLY_TREE_DEPTH - 1,
+        ],
+        [
+          'is bigger than set maximum',
+          COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH + 1,
+        ],
+      ])(
+        'should throw validation error when maxReplyLevels param %s',
+        async (_, depth) => {
+          expect.assertions(1);
+          return commentsService
+            .getPostComments({
+              viewerId: admin.id,
+              postId: publishedPost.id,
+              maxReplyLevels: depth as any,
+            })
+            .catch((error) => {
+              expect(error.message).toMatch(/failed.*validation/i);
+            });
+        }
+      );
+    });
+
     test.each([
-      ['created date (ASC)', getKey<Comment>('createdAt'), false],
       ['created date (DESC)', getKey<Comment>('createdAt'), true],
-      ['updated date (ASC)', getKey<Comment>('updatedAt'), false],
+      ['created date (ASC)', getKey<Comment>('createdAt'), false],
       ['updated date (DESC)', getKey<Comment>('updatedAt'), true],
+      ['updated date (ASC)', getKey<Comment>('updatedAt'), false],
     ])(
       'should sort comments provided that sorting by %s is applied',
-      async (_, propName, isAscending: boolean) => {
+      async (_, propName, descendingOrder: boolean) => {
         const res = await commentsService.getPostComments({
           sortBy: {
-            [propName]: isAscending ? 'asc' : 'desc',
+            [propName]: descendingOrder ? 'desc' : 'asc',
           },
           postId: publishedPost.id,
         });
+
         const sortedItems = [...res.items].sort((prev, next) => {
           if (!prev[propName] || !next[propName]) return 0;
           const prevDate = (prev[propName] as Date).getTime();
           const nextDate = (next[propName] as Date).getTime();
-          return isAscending ? prevDate - nextDate : nextDate - prevDate;
+          return descendingOrder ? nextDate - prevDate : prevDate - nextDate;
         });
 
         sortedItems.forEach((comment, i) => {
@@ -503,25 +626,101 @@ describe('CommentsService', () => {
       expect(res.comment.content).toBe(COMMENT_CONTENT);
     });
 
-    it('should retrieve comment replies and reply count', async () => {
-      const REPLY_COUNT = 4;
-      for (let i = 0; i < REPLY_COUNT; i++)
-        await mockCommentsRepository.create({
-          ...validCommentContent,
-          content: 'Comment at depth ' + i,
-          depth: 1,
-          userId: comment.userId,
-          postId: comment.postId,
-          threadParentId: comment.id,
-        });
+    describe('Nested comment replies', () => {
+      let repliesToComment: Comment[];
 
-      const res = await commentsService.getCommentReplies({
-        commentId: comment.id,
-        postId: comment.postId,
+      beforeEach(async () => {
+        repliesToComment = await createNestedReplies(comment, 1);
       });
 
-      expect(res.comment.replies.length).toBe(REPLY_COUNT);
-      expect(res.replyCount).toBe(REPLY_COUNT);
+      it(`should return all the comment's replies when maxReplyLevels is not set`, async () => {
+        const res = await commentsService.getById({
+          commentId: comment.id,
+          postId: comment.postId,
+          viewerId: admin.id,
+        });
+
+        for (const comment of res.comment.replies)
+          checkRepliesRecursively(comment.replies, repliesToComment);
+      });
+
+      it(`should return the expected amount of replies when maxReplyLevels is set`, async () => {
+        for (
+          let replyLevel = 1;
+          replyLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+          replyLevel++
+        ) {
+          const res = await commentsService.getById({
+            commentId: comment.id,
+            postId: comment.postId,
+            viewerId: admin.id,
+            maxReplyLevels: replyLevel,
+          });
+
+          for (const comment of res.comment.replies)
+            checkRepliesRecursively(
+              comment.replies,
+              repliesToComment.filter((c) => c.depth <= replyLevel)
+            );
+        }
+      });
+
+      it('should handle a comment with no replies correctly when maxReplyLevels is set', async () => {
+        const commentWithoutReplies = await mockCommentsRepository.create({
+          ...validCommentContent,
+          content: 'Lonely comment',
+          depth: 0,
+          postId: publishedPost.id,
+          userId: user.id,
+          threadParentId: null,
+        });
+
+        for (
+          let depthLevel = 1;
+          depthLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+          depthLevel++
+        ) {
+          const res = await commentsService.getById({
+            commentId: commentWithoutReplies.id,
+            postId: commentWithoutReplies.postId,
+            viewerId: admin.id,
+            maxReplyLevels: depthLevel,
+          });
+
+          expect(res?.comment.replies).toEqual([]);
+          expect(res.comment.replyCount).toBe(0);
+        }
+      });
+
+      test.each([
+        ['is not a number', 'a'],
+        ['is a decimal', 1.5],
+        ['is array', []],
+        ['is a non numeric string', 'a1'],
+        [
+          'is smaller than minimum',
+          COMMENT_CONSTRAINTS.MIN_REPLY_TREE_DEPTH - 1,
+        ],
+        [
+          'is bigger than set maximum',
+          COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH + 1,
+        ],
+      ])(
+        'should throw validation error when maxReplyLevels param %s',
+        async (_, depth) => {
+          expect.assertions(1);
+          return commentsService
+            .getById({
+              commentId: comment.id,
+              viewerId: admin.id,
+              postId: comment.postId,
+              maxReplyLevels: depth as any,
+            })
+            .catch((error) => {
+              expect(error.message).toMatch(/failed.*validation/i);
+            });
+        }
+      );
     });
 
     test.each([
@@ -713,6 +912,46 @@ describe('CommentsService', () => {
       });
 
       expect(replyToTheReply.depth).toBe(2);
+    });
+
+    it(`should throw when tree depth of comment replies go over
+       ${COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH} levels deep`, async () => {
+      const postComment = await commentsService.create({
+        ...validCommentContent,
+        userId: admin.id,
+        postId: publishedPost.id,
+      });
+      let parentId = postComment.id;
+
+      for (
+        let depth = 0;
+        depth <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+        depth++
+      ) {
+        if (depth === COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH) {
+          await expect(
+            commentsService.create({
+              content: 'I agree',
+              userId: admin.id,
+              postId: publishedPost.id,
+              replyToCommentId: parentId,
+            })
+          ).rejects.toHaveProperty(
+            'message',
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.MAX_REPLY_DEPTH_REACHED]
+          );
+        } else {
+          const commentReply = await commentsService.create({
+            content: 'I agree',
+            userId: admin.id,
+            postId: publishedPost.id,
+            replyToCommentId: parentId,
+          });
+
+          parentId = commentReply.id;
+          expect(commentReply.depth).toBe(depth + 1);
+        }
+      }
     });
 
     test.each([
@@ -1106,4 +1345,72 @@ describe('CommentsService', () => {
         });
     });
   });
+
+  /**
+   * Creates deeply nested random amount of replies for a given comment.
+   * @param parentComment Parent comment which will contain all replies
+   * @param currentDepth At what depth the parent comment is
+   * @returns Replies array
+   */
+  async function createNestedReplies(
+    parentComment: Comment,
+    currentDepth = 1
+  ): Promise<Comment[]> {
+    if (currentDepth > COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH) {
+      return [];
+    }
+
+    const replies: Comment[] = [];
+    const randomNumOfReplies = Math.floor(Math.random() * 4 + 1);
+
+    for (let i = 0; i < randomNumOfReplies; i++) {
+      const reply = await mockCommentsRepository.create({
+        ...validCommentContent,
+        depth: currentDepth,
+        userId: admin.id,
+        postId: parentComment.id,
+        threadParentId: parentComment.id,
+      });
+
+      replies.push(reply);
+
+      const nestedReplies = await createNestedReplies(reply, currentDepth + 1);
+      replies.push(...nestedReplies);
+    }
+
+    return replies;
+  }
+
+  function checkRepliesRecursively(
+    commentsToCheck: CommentWithReplies[],
+    allComments: Comment[]
+  ) {
+    for (const comment of commentsToCheck) {
+      if (comment.replies) {
+        const expectedReplies = allComments.filter(
+          (p) => p.threadParentId === comment.id
+        );
+        expect(comment.replies.length).toBe(expectedReplies.length);
+        expect(comment.replyCount).toBe(getReplyCountRecursively(comment));
+
+        expect(
+          comment.replies.every((c) =>
+            expectedReplies.map((r) => r.id).includes(c.id)
+          )
+        ).toBe(true);
+
+        for (const reply of comment.replies)
+          checkRepliesRecursively(reply.replies, allComments);
+      }
+    }
+  }
+
+  function getReplyCountRecursively(comment: CommentWithReplies) {
+    let sum = 0;
+    comment.replies?.forEach((c) => {
+      sum++;
+      if (c.replies) sum += getReplyCountRecursively(c);
+    });
+    return sum;
+  }
 });
