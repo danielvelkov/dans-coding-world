@@ -26,7 +26,7 @@ export const SUCCESS_MESSAGES = {
   },
   COMMENTS: {
     getPostsComments: 'Comments for post retrieved successfully',
-    getCommentReplies: 'Comment replies retrieved successfully',
+    get: 'Comment with replies retrieved successfully',
     delete: 'Comment deleted successfully',
     update: 'Comment updated successfully',
     create: 'Comment posted successfully',

@@ -4,7 +4,7 @@ import { ICommentsService } from '@dans-coding-world/api-posts';
 import {
   CreateCommentDto,
   DeleteCommentDto,
-  GetPostCommentRepliesDto,
+  GetCommentDto,
   GetPostCommentsDto,
   UpdateCommentDto,
 } from '@dans-coding-world/shared-post-dto';
@@ -15,7 +15,7 @@ import { User } from '@dans-coding-world/prisma-schema';
 export class CommentsController {
   constructor(private commentService: ICommentsService) {
     this.getPostComments = this.getPostComments.bind(this);
-    this.getCommentReplies = this.getCommentReplies.bind(this);
+    this.get = this.get.bind(this);
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
@@ -47,24 +47,22 @@ export class CommentsController {
   }
 
   @AttachUser()
-  async getCommentReplies(req: Request, res: Response, next: NextFunction) {
+  async get(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
       const { postId, id } = req.params;
 
-      const getPostCommentRepliesDto: GetPostCommentRepliesDto = {
+      const getCommentDto: GetCommentDto = {
         commentId: +id,
         postId: +postId,
         viewerId: user?.id,
       };
 
-      const result = await this.commentService.getCommentReplies(
-        getPostCommentRepliesDto
-      );
+      const result = await this.commentService.getById(getCommentDto);
 
       return res.status(StatusCodes.OK).json({
         ...result,
-        message: SUCCESS_MESSAGES.COMMENTS.getCommentReplies,
+        message: SUCCESS_MESSAGES.COMMENTS.get,
       });
     } catch (error) {
       return next(error);

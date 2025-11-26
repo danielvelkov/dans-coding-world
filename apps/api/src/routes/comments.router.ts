@@ -16,7 +16,7 @@ commentsRouter
 
 commentsRouter
   .route('/:id')
-  .get(commentsController.getCommentReplies)
+  .get(commentsController.get)
   .patch(commentsController.update)
   .delete(commentsController.delete);
 
