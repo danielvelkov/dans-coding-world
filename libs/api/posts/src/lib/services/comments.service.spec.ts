@@ -19,6 +19,10 @@ import {
   Comment,
   CommentWhereInput,
   CommentsOrderByInput,
+  Role,
+  PostStatus,
+  PostVisibility,
+  CommentWithReplies,
 } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import { PrismaPostDataAccess as MockPostRepository } from '@dans-coding-world/post-data-access';
@@ -58,6 +62,7 @@ describe('CommentsService', () => {
   let membersOnlyAdminPost: Post;
 
   const validPostContent = {
+    title: 'Vary valid title',
     content: 'Very valid description',
     createdAt: new Date(),
     publishedAt: null,
@@ -68,6 +73,7 @@ describe('CommentsService', () => {
     content: 'Very valid comment',
     createdAt: new Date(),
     updatedAt: new Date(),
+    depth: 0,
   };
 
   beforeEach(async () => {
@@ -77,57 +83,38 @@ describe('CommentsService', () => {
     mockPostsRepo = new MockPostRepository();
     mockCommentsRepository = new MockCommentsRepository();
 
-    user = await mockUsersRepo.create({
-      email: 'fakeUser123@gmail.com',
-      password: 'superNicePassword123',
-      username: 'fakeUser123',
-      role: 'AUTHOR',
-    });
+    const roles: Role[] = ['USER', 'ADMIN', 'MOD', 'AUTHOR'];
 
-    author = await mockUsersRepo.create({
-      email: 'fakeAuthor123@gmail.com',
-      password: 'superNicePassword123',
-      username: 'fakeAuthor123',
-      role: 'USER',
-    });
+    [user, admin, mod, author] = await Promise.all(
+      roles.map((role) =>
+        mockUsersRepo.create({
+          email: `fake${role.toLowerCase()}123@gmail.com`,
+          password: `fake${role.toLowerCase()}Pass`,
+          username: `fake${role.toLowerCase()}123`,
+          role,
+        })
+      )
+    );
 
-    admin = await mockUsersRepo.create({
-      email: 'fakeAdmin123@gmail.com',
-      password: 'superNicePassword123',
-      username: 'fakeAdmin123',
-      role: 'ADMIN',
-    });
+    const postsForCreation: {
+      status: PostStatus;
+      visibility: PostVisibility;
+      author: User;
+    }[] = [
+      { author: author, visibility: 'PUBLIC', status: 'PUBLISHED' },
+      { author: admin, visibility: 'MEMBERS_ONLY', status: 'PUBLISHED' },
+      { author: author, visibility: 'PUBLIC', status: 'DRAFT' },
+    ];
 
-    mod = await mockUsersRepo.create({
-      email: 'fakemod123@gmail.com',
-      password: 'superNicePassword123',
-      username: 'fakeMod123',
-      role: 'MOD',
-    });
-
-    publishedPost = await mockPostsRepo.create({
-      ...validPostContent,
-      title: 'PUBLISHED POST: 1',
-      authorId: admin.id,
-      status: 'PUBLISHED',
-      visibility: 'PUBLIC',
-    });
-
-    membersOnlyAdminPost = await mockPostsRepo.create({
-      ...validPostContent,
-      title: 'MEMBERS-ONLY POST: 1',
-      authorId: admin.id,
-      status: 'PUBLISHED',
-      visibility: 'MEMBERS_ONLY',
-    });
-
-    draftAuthorPost = await mockPostsRepo.create({
-      ...validPostContent,
-      title: 'DRAFT: 1',
-      authorId: author.id,
-      status: 'DRAFT',
-      visibility: 'PUBLIC',
-    });
+    [publishedPost, membersOnlyAdminPost, draftAuthorPost] = await Promise.all(
+      postsForCreation.map((post) =>
+        mockPostsRepo.create({
+          ...validPostContent,
+          authorId: post.author.id,
+          ...post,
+        })
+      )
+    );
 
     injector = ReflectiveInjector.resolveAndCreate([
       PostsService,
@@ -151,74 +138,60 @@ describe('CommentsService', () => {
     jest.spyOn(mockCommentsRepository, 'delete');
     jest.spyOn(mockCommentsRepository, 'update');
   });
+
   describe('getPostComments()', () => {
     const NUM_OF_ADMIN_COMMENTS = 25;
-    const NUM_OF_USER_COMMENTS = 15;
+    const NUM_OF_AUTHOR_COMMENTS = 15;
+
+    const MEMBERS_ONLY_POST_COMMENTS_COUNT = 10;
+    const DRAFT_POST_COMMENTS_COUNT = 5;
 
     const PUBLISHED_POST_COMMENTS_COUNT =
-      NUM_OF_ADMIN_COMMENTS + NUM_OF_USER_COMMENTS;
-    const NUM_OF_MEMBER_ONLY_COMMENTS = 10;
-
-    const NUM_OF_DRAFT_COMMENTS = 5;
+      NUM_OF_ADMIN_COMMENTS + NUM_OF_AUTHOR_COMMENTS;
 
     beforeEach(async () => {
       await mockCommentsRepository.deleteMany({});
 
-      for (let i = 0; i < NUM_OF_ADMIN_COMMENTS; i++)
-        await mockCommentsRepository.create({
-          ...validCommentContent,
-          content: `Admin Comment ${i}`,
-          depth: 0,
-          userId: admin.id,
-          postId: publishedPost.id,
-          threadParentId: null,
-          createdAt: new Date(
-            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
-          ),
-        });
+      const commentsForCreation: {
+        post: Post;
+        author: User;
+        count: number;
+      }[] = [
+        { author: admin, post: publishedPost, count: NUM_OF_ADMIN_COMMENTS },
+        { author: author, post: publishedPost, count: NUM_OF_AUTHOR_COMMENTS },
+        {
+          author: admin,
+          post: membersOnlyAdminPost,
+          count: MEMBERS_ONLY_POST_COMMENTS_COUNT,
+        },
+        {
+          author: user,
+          post: draftAuthorPost,
+          count: DRAFT_POST_COMMENTS_COUNT,
+        },
+      ];
 
-      for (let i = 0; i < NUM_OF_USER_COMMENTS; i++)
-        await mockCommentsRepository.create({
-          ...validCommentContent,
-          content: `User Comment ${i}`,
-          depth: 0,
-          userId: author.id,
-          postId: publishedPost.id,
-          threadParentId: null,
-          createdAt: new Date(
-            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
-          ),
-        });
-
-      for (let i = 0; i < NUM_OF_MEMBER_ONLY_COMMENTS; i++)
-        await mockCommentsRepository.create({
-          ...validCommentContent,
-          content: `MEMBER-ONLY Comment ${i}`,
-          depth: 0,
-          userId: admin.id,
-          postId: membersOnlyAdminPost.id,
-          threadParentId: null,
-          createdAt: new Date(
-            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
-          ),
-        });
-
-      for (let i = 0; i < NUM_OF_DRAFT_COMMENTS; i++)
-        await mockCommentsRepository.create({
-          ...validCommentContent,
-          content: `DRAFT Comment ${i}`,
-          depth: 0,
-          userId: user.id,
-          postId: draftAuthorPost.id,
-          threadParentId: null,
-          createdAt: new Date(
-            Date.now() + i * 1000 * 60 * 3 // 3 minutes between
-          ),
-        });
+      await Promise.all(
+        commentsForCreation
+          .map((comment, i) =>
+            Array.from({ length: comment.count }).map(() =>
+              mockCommentsRepository.create({
+                ...validCommentContent,
+                userId: comment.author.id,
+                postId: comment.post.id,
+                threadParentId: null,
+                createdAt: new Date(
+                  Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+                ),
+              })
+            )
+          )
+          .flat()
+      );
     });
 
-    it(`should return post comments and pagination metadata, 
-      with comments ordered by posted date (DESC)`, async () => {
+    it(`should return post's comments and their pagination metadata, 
+      with comments ordered by created date (DESC)`, async () => {
       const res = await commentsService.getPostComments({
         postId: publishedPost.id,
         viewerId: admin.id,
@@ -239,7 +212,7 @@ describe('CommentsService', () => {
     });
 
     it(`should return the top-level replies and
-       replyCount for each retrieved post comment `, async () => {
+       replyCount for each retrieved post comment`, async () => {
       const resWithoutReplies = await commentsService.getPostComments({
         postId: publishedPost.id,
         viewerId: admin.id,
@@ -376,7 +349,7 @@ describe('CommentsService', () => {
       [3, pageSizeOptions[0] * 2, pageSizeOptions[0]],
       [2, pageSizeOptions[1], pageSizeOptions[1]],
     ])(
-      'should return page #%s when [ offset: %s ; pageLimit %s ]',
+      'should return page #%s when [ offset: %s ; pageLimit: %s ]',
       async (expectedPageNum, pageOffset, pageSize) => {
         const resDto = await commentsService.getPostComments({
           pageOffset,
@@ -417,6 +390,41 @@ describe('CommentsService', () => {
         });
     });
 
+    test.each([
+      ['is not a number', 'a'],
+      ['is array', []],
+      ['non numeric strings', 'a1'],
+    ])(
+      'should throw validation error when viewerId param %s',
+      async (_, id) => {
+        expect.assertions(1);
+        return commentsService
+          .getPostComments({
+            postId: publishedPost.id,
+            viewerId: id as any,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(
+              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+            );
+          });
+      }
+    );
+
+    it('should throw when user specified viewerId does not exist', async () => {
+      expect.assertions(1);
+      return commentsService
+        .getPostComments({
+          postId: publishedPost.id,
+          viewerId: 9999,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.USER_MISSING]
+          );
+        });
+    });
+
     it(`should throw when post with that id exist, but it's status is not PUBLISHED`, async () => {
       expect.assertions(1);
       return commentsService
@@ -450,11 +458,11 @@ describe('CommentsService', () => {
       });
 
       expect(res.count).toBe(PAGINATION.COMMENTS.DEFAULT_ITEMS_PER_PAGE);
-      expect(res.pagination.total).toBe(NUM_OF_MEMBER_ONLY_COMMENTS);
+      expect(res.pagination.total).toBe(MEMBERS_ONLY_POST_COMMENTS_COUNT);
     });
 
     test.each(['ADMIN', 'MOD'])(
-      `should return comments for private post if viewerId is %s`,
+      `should return comments for any private post if viewer has role: %s`,
       async (role) => {
         const user = [admin, mod].find((u) => u.role === role);
         if (!user) throw new Error('Missing test user');
@@ -464,17 +472,18 @@ describe('CommentsService', () => {
           viewerId: user.id,
         });
 
-        expect(res.pagination.total).toBe(NUM_OF_DRAFT_COMMENTS);
+        expect(res.pagination.total).toBe(DRAFT_POST_COMMENTS_COUNT);
       }
     );
   });
 
-  describe('getCommentReplies()', () => {
+  describe('getComment()', () => {
     let comment: Comment;
     const COMMENT_CONTENT = generateRandomString(10);
 
     beforeEach(async () => {
       await mockCommentsRepository.deleteMany({});
+
       comment = await mockCommentsRepository.create({
         ...validCommentContent,
         content: COMMENT_CONTENT,
@@ -486,8 +495,8 @@ describe('CommentsService', () => {
     });
 
     it(`should retrieve requested comment data without specifying userId, 
-      when post is published and not members-only`, async () => {
-      const res = await commentsService.getCommentReplies({
+      when post is PUBLISHED and not MEMBERS_ONLY`, async () => {
+      const res = await commentsService.getById({
         commentId: comment.id,
         postId: publishedPost.id,
       });
@@ -522,7 +531,7 @@ describe('CommentsService', () => {
     ])('should throw validation error when postId %s', async (_, id) => {
       expect.assertions(1);
       return commentsService
-        .getCommentReplies({
+        .getById({
           viewerId: comment.userId,
           postId: id as any,
           commentId: comment.id,
@@ -539,7 +548,7 @@ describe('CommentsService', () => {
     ])('should throw validation error when commentId %s', async (_, id) => {
       expect.assertions(1);
       return commentsService
-        .getCommentReplies({
+        .getById({
           viewerId: comment.userId,
           postId: comment.postId,
           commentId: id as any,
@@ -552,7 +561,7 @@ describe('CommentsService', () => {
     it('should throw when comment with that id does not exist', async () => {
       expect.assertions(1);
       return commentsService
-        .getCommentReplies({
+        .getById({
           viewerId: comment.userId,
           commentId: 9999,
           postId: comment.postId,
@@ -567,7 +576,7 @@ describe('CommentsService', () => {
     it('should throw when post with that id does not exist', async () => {
       expect.assertions(1);
       return commentsService
-        .getCommentReplies({
+        .getById({
           viewerId: comment.userId,
           commentId: comment.id,
           postId: 9999,
@@ -579,7 +588,31 @@ describe('CommentsService', () => {
         });
     });
 
-    it(`should throw when post with that id exist, but it's status is not PUBLISHED`, async () => {
+    it(`should allow access to comment on an unpublished post when the
+      viewerId is ADMIN, MOD or the post author`, async () => {
+      const allowedUsers = [admin, mod, author];
+
+      const comment = await mockCommentsRepository.create({
+        ...validCommentContent,
+        postId: draftAuthorPost.id,
+        userId: user.id,
+        depth: 0,
+        threadParentId: null,
+      });
+
+      for (const user of allowedUsers) {
+        const res = await commentsService.getById({
+          postId: draftAuthorPost.id,
+          viewerId: user.id,
+          commentId: comment.id,
+        });
+
+        expect(res.comment.id).toBe(comment.id);
+      }
+    });
+
+    it(`should throw when post is not PUBLISHED
+      and the viewerId is not ADMIN, MOD or its author`, async () => {
       const comment = await mockCommentsRepository.create({
         ...validCommentContent,
         postId: draftAuthorPost.id,
@@ -590,7 +623,7 @@ describe('CommentsService', () => {
 
       expect.assertions(1);
       return commentsService
-        .getCommentReplies({
+        .getById({
           viewerId: comment.userId,
           commentId: comment.id,
           postId: comment.postId,
@@ -613,7 +646,7 @@ describe('CommentsService', () => {
 
       expect.assertions(1);
       return commentsService
-        .getCommentReplies({
+        .getById({
           commentId: comment.id,
           postId: comment.postId,
         })
@@ -663,6 +696,7 @@ describe('CommentsService', () => {
         userId: admin.id,
         postId: publishedPost.id,
       });
+
       const commentReply = await commentsService.create({
         content: 'I agree',
         userId: admin.id,
@@ -904,7 +938,7 @@ describe('CommentsService', () => {
     });
 
     it(`should throw when the comment for deletion is on a 
-      unpublished post and user is not ADMIN, MOD or Posts author`, async () => {
+      unpublished post and user is not the author, ADMIN or MOD`, async () => {
       await mockCommentsRepository.update(adminComment.id, {
         postId: draftAuthorPost.id,
       });
@@ -924,7 +958,7 @@ describe('CommentsService', () => {
     });
 
     it('should also remove all related replies spanning from that comment thread', async () => {
-      // First reply
+      // First reply (depth 1)
       const replyAtDepth_1 = await mockCommentsRepository.create({
         ...validCommentContent,
         content: 'Comment at depth 1',
@@ -934,8 +968,8 @@ describe('CommentsService', () => {
         threadParentId: adminComment.id,
       });
 
-      // Reply to the replyAtDepth_1
-      await mockCommentsRepository.create({
+      // Reply to the reply (depth 2)
+      const replyAtDepth_2 = await mockCommentsRepository.create({
         ...validCommentContent,
         content: 'Comment at depth 2',
         depth: 2,
@@ -949,6 +983,7 @@ describe('CommentsService', () => {
         authorId: admin.id,
         commentId: adminComment.id,
       });
+
       expect(mockCommentsRepository.delete).toHaveBeenCalledTimes(1);
       const postComments = await commentsService.getPostComments({
         postId: publishedPost.id,
@@ -956,6 +991,9 @@ describe('CommentsService', () => {
       expect(
         postComments.items.map((c) => c.id).includes(adminComment.id)
       ).toBe(false);
+
+      for (const reply of [replyAtDepth_1, replyAtDepth_2])
+        expect(await mockCommentsRepository.getById(reply.id)).toBeNull();
     });
   });
 
@@ -992,7 +1030,7 @@ describe('CommentsService', () => {
         content: NEW_CONTENT,
       });
       expect(mockCommentsRepository.update).toHaveBeenCalledTimes(1);
-      const res = await commentsService.getCommentReplies({
+      const res = await commentsService.getById({
         postId: publishedPost.id,
         commentId: adminComment.id,
       });
