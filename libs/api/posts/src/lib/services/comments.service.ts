@@ -1,4 +1,5 @@
 import {
+  CommentWithReplies,
   Comment,
   CommentsOrderByInput,
   CommentWhereInput,
@@ -8,10 +9,10 @@ import {
 } from '@dans-coding-world/prisma-schema';
 import { ICommentsService } from '../interfaces/comments-service.interface.js';
 import {
-  GetPostCommentRepliesDto,
+  GetCommentDto,
   GetPostCommentsDto,
   GetPostCommentsResponseDto,
-  GetPostCommentRepliesResponseDto,
+  GetCommentResponseDto,
   CreateCommentDto,
   DeleteCommentDto,
   UpdateCommentDto,
@@ -28,7 +29,11 @@ import {
   POST_REPOSITORY_TOKEN,
 } from './posts.service.js';
 import { ApiException } from '@dans-coding-world/exceptions';
-import { ERROR_CODES, PAGINATION } from '@dans-coding-world/shared-constants';
+import {
+  COMMENT_CONSTRAINTS,
+  ERROR_CODES,
+  PAGINATION,
+} from '@dans-coding-world/shared-constants';
 
 export const COMMENT_REPOSITORY_TOKEN = 'ICommentRepository';
 
@@ -76,7 +81,8 @@ export class CommentsService implements ICommentsService {
         skip: offset,
         take: limit,
         includeReplies: true,
-      }),
+        maxReplyTreeDepth: dto.maxReplyLevels,
+      }) as Promise<CommentWithReplies[]>,
       this.comments.count({ postId: dto.postId, depth: 0 }),
     ]);
 
@@ -84,10 +90,7 @@ export class CommentsService implements ICommentsService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      items: comments.map((c) => ({
-        ...(c as CommentWithReplies),
-        replyCount: (c as CommentWithReplies).replies.length,
-      })),
+      items: comments.map((c) => this.setReplyCountRecursively(c)),
       count: comments.length,
       pagination: {
         page: currentPage,
@@ -100,22 +103,20 @@ export class CommentsService implements ICommentsService {
     };
   }
 
-  async getCommentReplies(
-    dto: GetPostCommentRepliesDto
-  ): Promise<GetPostCommentRepliesResponseDto> {
-    dto = await transformAndValidateDto(dto, GetPostCommentRepliesDto);
+  async getById(dto: GetCommentDto): Promise<GetCommentResponseDto> {
+    dto = await transformAndValidateDto(dto, GetCommentDto);
 
     await this.validatePostAccess(dto.postId, dto.viewerId);
 
     const comment = (await this.comments.getById(dto.commentId, {
       includeReplies: true,
+      maxReplyTreeDepth: dto.maxReplyLevels,
     })) as CommentWithReplies;
 
     if (!comment) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
     return {
-      comment,
-      replyCount: this.getReplyCountRecursively(comment),
+      comment: this.setReplyCountRecursively(comment),
     };
   }
 
@@ -132,6 +133,9 @@ export class CommentsService implements ICommentsService {
       }
       depth = parentComment.depth + 1;
     }
+
+    if (depth > COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH)
+      throw new ApiException(ERROR_CODES.VALIDATION.MAX_REPLY_DEPTH_REACHED);
 
     return await this.comments.create({
       content: dto.content,
@@ -190,7 +194,9 @@ export class CommentsService implements ICommentsService {
 
     if (viewerId) {
       const user = await this.users.getById(viewerId.toString());
-      if (user && (user.role === 'ADMIN' || user.role === 'MOD')) return;
+      if (!user) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
+
+      if (user.role === 'ADMIN' || user.role === 'MOD') return;
     }
 
     if (
@@ -227,6 +233,7 @@ export class CommentsService implements ICommentsService {
     }
     if (viewerId) {
       const user = await this.users.getById(viewerId.toString());
+      if (!user) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
       if (user && (user.role === 'ADMIN' || user.role === 'MOD')) return;
     }
 
@@ -242,6 +249,26 @@ export class CommentsService implements ICommentsService {
     });
     return sum;
   }
-}
+  private setReplyCountRecursively(
+    comment: CommentWithReplies
+  ): CommentWithReplies {
+    // Base case: no replies
+    if (!comment.replies || comment.replies.length === 0) {
+      return {
+        ...comment,
+        replyCount: 0,
+        replies: [],
+      };
+    }
 
-type CommentWithReplies = Comment & { replies: CommentWithReplies[] };
+    const processedReplies = comment.replies.map((reply) =>
+      this.setReplyCountRecursively(reply)
+    );
+
+    return {
+      ...comment,
+      replyCount: this.getReplyCountRecursively(comment),
+      replies: processedReplies,
+    };
+  }
+}
