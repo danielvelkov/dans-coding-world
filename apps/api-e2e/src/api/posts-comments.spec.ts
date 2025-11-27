@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Comment, Post, User } from '@dans-coding-world/prisma-schema';
+import {
+  Comment,
+  CommentWithReplies,
+  Post,
+  User,
+} from '@dans-coding-world/prisma-schema';
 import {
   seedUsers,
   seedPosts,
@@ -16,7 +21,7 @@ import { createAuthRouteHelper } from '../helper/auth-request.helper';
 import { createAxiosClient } from '../helper/test-client.helper';
 import { createPostsRouteHelper } from '../helper/posts-request.helper';
 import {
-  GetPostCommentRepliesResponseDto,
+  GetCommentResponseDto,
   GetPostCommentsResponseDto,
 } from '@dans-coding-world/shared-post-dto';
 import { AxiosInstance, AxiosResponse } from 'axios';
@@ -34,7 +39,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
     id: any,
     params?: any
   ) => Promise<AxiosResponse<unknown>>;
-  let getCommentReplies: (
+  let getComment: (
     postId: any,
     commentId: any
   ) => Promise<AxiosResponse<unknown>>;
@@ -94,7 +99,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
     ({ login } = createAuthRouteHelper(client));
     ({
       getPostComments,
-      getCommentReplies,
+      getComment,
       deleteComment,
       updateComment,
       createComment,
@@ -103,7 +108,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
   describe('GET /api/v1/posts/{postId}/comments', () => {
     it(`should return top-level comments for PUBLIC and PUBLISHED posts
-      including each comment's direct replies count`, async () => {
+      including each comment's replies count`, async () => {
       const publishedPosts = posts.filter(
         (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
       );
@@ -135,10 +140,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
           expect(expectedComment?.content).toBe(comment.content);
 
-          const expectedReplies = comments.filter(
-            (c) => c.threadParentId === expectedComment?.id
-          );
-          expect(comment.replyCount).toBe(expectedReplies.length);
+          expect(comment.replyCount).toBe(getReplyCountRecursively(comment));
         }
       }
     });
@@ -151,7 +153,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
       );
     });
 
-    describe('GET /api/v1/posts/{postId}/comments?sortBy[x]=y', () => {
+    describe('?sortBy[x]=y', () => {
       test.each([
         ['option does not exist', 'modifiedAt', 'asc'],
         ['option exists, but wrong value', 'createdAt', 'descending'],
@@ -179,10 +181,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
         ['updated date (DESC)', 'updatedAt', true],
       ])(
         'should sort items provided that sorting by %s is applied',
-        async (_, propName, isAscending: boolean) => {
+        async (_, propName, isDescending: boolean) => {
           const res = await getPostComments(publishedPublicPosts[0].id, {
             sortBy: {
-              [propName]: isAscending ? 'asc' : 'desc',
+              [propName]: isDescending ? 'desc' : 'asc',
             },
           });
 
@@ -193,7 +195,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
             if (!prev[propName] || !next[propName]) return 0;
             const prevDate = new Date(prev[propName]).getTime();
             const nextDate = new Date(next[propName]).getTime();
-            return isAscending ? prevDate - nextDate : nextDate - prevDate;
+            return isDescending ? nextDate - prevDate : prevDate - nextDate;
           });
 
           sortedItems.forEach((comment, i) => {
@@ -203,8 +205,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
       );
     });
 
-    describe('GET /api/v1/posts/{postId}/comments?pageOffset=x&pageSize=y', () => {
-      let postWithoutCommentsId;
+    describe('?pageOffset=x&pageSize=y', () => {
+      let postWithoutCommentsId: number;
+
       const totalNumberOfComments = 150;
       const pageSizeOptions = PAGINATION.COMMENTS.ITEMS_PER_PAGE_OPTIONS;
       const defaultPageSize = PAGINATION.COMMENTS.DEFAULT_ITEMS_PER_PAGE;
@@ -348,6 +351,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
       beforeAll(async () => {
         comments = await seedComments();
       });
+
       it(`should return 401 UNAUTHORIZED when trying to get comments from a
         MEMBERS_ONLY post`, async () => {
         for (const post of membersOnlyPosts)
@@ -447,7 +451,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
   describe('GET /api/v1/posts/{postId}/comments/{id}', () => {
     it(`should return top-level replies for a comment of a 
-      PUBLIC and PUBLISHED post including direct replies count`, async () => {
+      PUBLIC and PUBLISHED post including replies count`, async () => {
       const publishedPosts = posts.filter(
         (p) =>
           p.status === 'PUBLISHED' &&
@@ -467,38 +471,30 @@ describe('/api/v1/posts/{postId}/comments', () => {
           throw new Error('Missing replies for post');
 
         for (const comment of commentsWithReplies) {
-          const res = await getCommentReplies(post.id.toString(), comment.id);
+          const res = await getComment(post.id.toString(), comment.id);
           const { data } = res.data as BaseResponse;
 
-          expect(data).toHaveProperty(
-            'message',
-            SUCCESS_MESSAGES.COMMENTS.getCommentReplies
-          );
+          expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.get);
 
-          const commentsData = data as GetPostCommentRepliesResponseDto;
+          const commentsData = data as GetCommentResponseDto;
           const replies = commentsData.comment.replies;
 
           expect(replies.every((c) => c.threadParentId === comment.id)).toBe(
             true
           );
 
-          expect(commentsData.replyCount).toBe(
-            comments.filter(
-              (c) =>
-                c.postId === post.id &&
-                c.depth === 1 &&
-                c.threadParentId === comment.id
-            ).length
+          expect(commentsData.comment.replyCount).toBe(
+            getReplyCountRecursively(commentsData.comment)
           );
         }
       }
     });
 
-    testInvalidIds((id) => getCommentReplies(id, 1), 'postId');
-    testInvalidIds((id) => getCommentReplies(1, id), 'commentId');
+    testInvalidIds((id) => getComment(id, 1), 'postId');
+    testInvalidIds((id) => getComment(1, id), 'commentId');
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
-      await expect(getCommentReplies(999, 1)).rejects.toMatchObject(
+      await expect(getComment(999, 1)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
 
@@ -511,21 +507,16 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
       if (!publishedPost) throw new Error('Missing published test post');
 
-      await expect(
-        getCommentReplies(publishedPost.id, 999)
-      ).rejects.toMatchObject(
+      await expect(getComment(publishedPost.id, 999)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
 
     describe('Guest User (Not Authenticated)', () => {
-      beforeAll(async () => {
-        comments = await seedComments();
-      });
       it(`should return 401 UNAUTHORIZED when trying to get replies of a comment 
         from a MEMBERS_ONLY post`, async () => {
         for (const post of membersOnlyPosts)
-          await expect(getCommentReplies(post.id, 1)).rejects.toMatchObject(
+          await expect(getComment(post.id, 1)).rejects.toMatchObject(
             createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
           );
       });
@@ -533,7 +524,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
       it(`should return 403 FORBIDDEN when trying to get replies of a comment
          from a DRAFT or ARCHIVED post`, async () => {
         for (const post of draftPosts.concat(archivedPosts))
-          await expect(getCommentReplies(post.id, 1)).rejects.toMatchObject(
+          await expect(getComment(post.id, 1)).rejects.toMatchObject(
             createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
           );
       });
@@ -563,17 +554,19 @@ describe('/api/v1/posts/{postId}/comments', () => {
               (c) => c.postId === post.id && c.threadParentId === comment.id
             ).length;
 
-            const res = await getCommentReplies(post.id, comment.id);
+            const res = await getComment(post.id, comment.id);
 
             const { data } = res.data as BaseResponse;
-            const repliesData = data as GetPostCommentRepliesResponseDto;
+            const repliesData = data as GetCommentResponseDto;
 
-            expect(repliesData.replyCount).toBe(expectedNumberOfComments);
+            expect(repliesData.comment.replyCount).toBe(
+              expectedNumberOfComments
+            );
           }
         }
       });
 
-      it(`should return a comment and its replies for a logged-in user's
+      it(`should return a comment and its replies for a
          DRAFT or ARCHIVED posts`, async () => {
         const archivedPost = posts.find(
           (p) =>
@@ -597,16 +590,14 @@ describe('/api/v1/posts/{postId}/comments', () => {
           );
 
           for (const comment of postComments) {
-            const expectedNumberOfComments = comments.filter(
-              (c) => c.postId === post.id && c.threadParentId === comment.id
-            ).length;
-
-            const res = await getCommentReplies(post.id, comment.id);
+            const res = await getComment(post.id, comment.id);
 
             const { data } = res.data as BaseResponse;
-            const repliesData = data as GetPostCommentRepliesResponseDto;
+            const repliesData = data as GetCommentResponseDto;
 
-            expect(repliesData.replyCount).toBe(expectedNumberOfComments);
+            expect(repliesData.comment.replyCount).toBe(
+              getReplyCountRecursively(repliesData.comment)
+            );
           }
         }
       });
@@ -636,7 +627,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
           for (const parentComment of postComments)
             await expect(
-              getCommentReplies(post.id, parentComment.id)
+              getComment(post.id, parentComment.id)
             ).rejects.toMatchObject(
               createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
             );
@@ -652,7 +643,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
           for (const parentComment of postComments)
             await expect(
-              getCommentReplies(post.id, parentComment.id)
+              getComment(post.id, parentComment.id)
             ).rejects.toMatchObject(
               createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
             );
@@ -683,9 +674,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
             );
 
             for (const parentComment of postComments) {
-              const res = await getCommentReplies(post.id, parentComment.id);
+              const res = await getComment(post.id, parentComment.id);
               const { data } = res.data as BaseResponse;
-              const repliesData = data as GetPostCommentRepliesResponseDto;
+              const repliesData = data as GetCommentResponseDto;
 
               expect(repliesData).toBeDefined();
             }
@@ -1104,3 +1095,12 @@ describe('/api/v1/posts/{postId}/comments', () => {
     );
   });
 });
+
+function getReplyCountRecursively(comment: CommentWithReplies) {
+  let sum = 0;
+  comment.replies?.forEach((c) => {
+    sum++;
+    if (c.replies) sum += getReplyCountRecursively(c);
+  });
+  return sum;
+}

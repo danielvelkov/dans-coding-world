@@ -79,7 +79,7 @@ export function createPostsRouteHelper(client: AxiosInstance) {
       return await client.get(`/api/v1/posts/${id}/comments`, { params });
     },
 
-    async getCommentReplies(postId: string, commentId: string) {
+    async getComment(postId: string, commentId: string) {
       return await client.get(`/api/v1/posts/${postId}/comments/${commentId}`);
     },
 
