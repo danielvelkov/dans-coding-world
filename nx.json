@@ -49,7 +49,9 @@
         "libs/api/data-access/post/*",
         "libs/shared/post/dtos/*",
         "libs/api/posts/*",
-        "libs/api/data-access/report/*"
+        "libs/api/data-access/report/*",
+        "libs/api/reports/*",
+        "libs/shared/report/dtos/*"
       ]
     },
     {
@@ -128,7 +130,9 @@
         "libs/api/data-access/post/*",
         "libs/shared/post/dtos/*",
         "libs/api/posts/*",
-        "libs/api/data-access/report/*"
+        "libs/api/data-access/report/*",
+        "libs/api/reports/*",
+        "libs/shared/report/dtos/*"
       ],
       "options": {
         "typecheck": {

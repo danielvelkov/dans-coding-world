@@ -123,6 +123,7 @@
     "@dans-coding-world/*",
     "lib/*",
     "libs/api/data-access/*",
-    "libs/shared/post/*"
+    "libs/shared/post/*",
+    "libs/shared/report/*"
   ]
 }
