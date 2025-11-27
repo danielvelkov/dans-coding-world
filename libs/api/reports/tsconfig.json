@@ -1,0 +1,34 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../shared/util/shared-constants"
+    },
+    {
+      "path": "../../shared/util/exceptions"
+    },
+    {
+      "path": "../../shared/util/validation"
+    },
+    {
+      "path": "../../shared/data-access/interfaces"
+    },
+    {
+      "path": "../../shared/post/dtos"
+    },
+    {
+      "path": "../../shared/report/dtos"
+    },
+    {
+      "path": "../../prisma-schema"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}
