@@ -23,7 +23,7 @@ export class GetCommentDto {
   @IsOptional()
   @Transform(toInteger)
   @IsInt()
-  @Min(1)
+  @Min(COMMENT_CONSTRAINTS.MIN_REPLY_TREE_DEPTH)
   @Max(COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH)
   maxReplyLevels?: number;
 }

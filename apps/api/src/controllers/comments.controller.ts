@@ -26,11 +26,13 @@ export class CommentsController {
     try {
       const user = req.user as User;
       const { postId } = req.params;
+      const { depth } = req.query;
 
       const getPostCommentsDto: GetPostCommentsDto = {
         ...req.query,
         postId: +postId,
         viewerId: user?.id,
+        maxReplyLevels: depth ? +depth : undefined,
       };
 
       const result = await this.commentService.getPostComments(
@@ -51,11 +53,13 @@ export class CommentsController {
     try {
       const user = req.user as User;
       const { postId, id } = req.params;
+      const { depth } = req.query;
 
       const getCommentDto: GetCommentDto = {
         commentId: +id,
         postId: +postId,
         viewerId: user?.id,
+        maxReplyLevels: depth ? +depth : undefined,
       };
 
       const result = await this.commentService.getById(getCommentDto);
