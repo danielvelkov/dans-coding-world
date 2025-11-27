@@ -41,7 +41,8 @@ describe('/api/v1/posts/{postId}/comments', () => {
   ) => Promise<AxiosResponse<unknown>>;
   let getComment: (
     postId: any,
-    commentId: any
+    commentId: any,
+    params?: any
   ) => Promise<AxiosResponse<unknown>>;
   let updateComment: (
     postId: any,
@@ -151,6 +152,110 @@ describe('/api/v1/posts/{postId}/comments', () => {
       return await expect(getPostComments(999)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
+    });
+
+    describe('?depth=y', () => {
+      let postWithDeeplyNestedReplies: Post;
+
+      beforeEach(async () => {
+        const commentAtDepth_3 = comments.find((c) => c.depth === 3);
+        const post = posts.find((p) => p.id === commentAtDepth_3?.postId);
+        if (!post) throw new Error('Missing post with deeply nested replies');
+
+        postWithDeeplyNestedReplies = post;
+      });
+
+      it(`should return all replies for each comment when depth is omitted from query`, async () => {
+        await login(admin.email, admin.password);
+        const res = await getPostComments(postWithDeeplyNestedReplies.id);
+        const { data } = res.data as BaseResponse;
+
+        const commentsData = data as GetPostCommentsResponseDto;
+
+        for (const comment of commentsData.items)
+          checkRepliesRecursively(
+            comment.replies,
+            comments.filter((c) => c.postId === postWithDeeplyNestedReplies.id)
+          );
+      });
+
+      it(`should return the expected amount of replies when depth is set`, async () => {
+        await login(admin.email, admin.password);
+        for (
+          let replyLevel = 1;
+          replyLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+          replyLevel++
+        ) {
+          const res = await getPostComments(postWithDeeplyNestedReplies.id, {
+            depth: replyLevel,
+          });
+          const { data } = res.data as BaseResponse;
+
+          const commentsData = data as GetPostCommentsResponseDto;
+
+          for (const comment of commentsData.items)
+            checkRepliesRecursively(
+              comment.replies,
+              comments.filter(
+                (c) =>
+                  c.postId === postWithDeeplyNestedReplies.id &&
+                  c.depth <= replyLevel
+              )
+            );
+        }
+      });
+
+      it('should return comments with no replies correctly for any depth', async () => {
+        const commentWithoutReplies = comments.find(
+          (c, _, arr) =>
+            !arr.map((com) => com.threadParentId).includes(c.id) &&
+            c.depth === 0
+        );
+        if (!commentWithoutReplies) throw new Error('Missing test comment');
+
+        await login(admin.email, admin.password);
+
+        for (
+          let depthLevel = 1;
+          depthLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+          depthLevel++
+        ) {
+          const res = await getPostComments(commentWithoutReplies?.postId, {
+            maxReplyLevels: depthLevel,
+          });
+          const { data } = res.data as BaseResponse;
+
+          const commentsData = data as GetPostCommentsResponseDto;
+
+          const lonelyComment = commentsData.items.find(
+            (c) => c.id === commentWithoutReplies.id
+          );
+          expect(lonelyComment?.replies).toEqual([]);
+          expect(lonelyComment?.replyCount).toBe(0);
+        }
+      });
+
+      test.each([
+        ['is not a number', 'a'],
+        ['is a decimal', 1.5],
+        ['is a non numeric string', 'a1'],
+        [
+          'is smaller than minimum',
+          COMMENT_CONSTRAINTS.MIN_REPLY_TREE_DEPTH - 1,
+        ],
+        [
+          'is bigger than set maximum',
+          COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH + 1,
+        ],
+      ])('should return validation error when depth %s', async (_, depth) => {
+        return await expect(
+          getPostComments(publishedPublicPosts[0].id, {
+            depth,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      });
     });
 
     describe('?sortBy[x]=y', () => {
@@ -510,6 +615,111 @@ describe('/api/v1/posts/{postId}/comments', () => {
       await expect(getComment(publishedPost.id, 999)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
+    });
+
+    describe('?depth=y', () => {
+      let commentWithDeeplyNestedReplies: Comment;
+      let commentReplies: Comment[];
+
+      beforeEach(async () => {
+        let searchedComment = comments.find((c) => c.depth === 3);
+        if (!searchedComment) throw new Error('Missing deeply nested reply');
+
+        for (
+          let currDepth = searchedComment.depth;
+          currDepth > 0;
+          currDepth--
+        ) {
+          searchedComment = comments.find(
+            (c) => c.id === searchedComment?.threadParentId
+          );
+        }
+
+        if (!searchedComment) throw new Error('Missing deeply nested reply');
+        commentWithDeeplyNestedReplies = searchedComment;
+
+        commentReplies = comments.filter(
+          (c) => c.threadParentId === commentWithDeeplyNestedReplies.id
+        );
+
+        for (
+          let currDepth = 2;
+          currDepth <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+          currDepth++
+        ) {
+          const temp = comments.filter(
+            (c) =>
+              c.depth === currDepth &&
+              c.threadParentId &&
+              commentReplies.map((com) => com.id).includes(c.threadParentId)
+          );
+          commentReplies.push(...temp);
+        }
+      });
+
+      it(`should return all the comment's replies when depth is not set`, async () => {
+        const res = await getComment(
+          commentWithDeeplyNestedReplies.postId,
+          commentWithDeeplyNestedReplies.id
+        );
+
+        const { data } = res.data as BaseResponse;
+
+        const commentsData = data as GetCommentResponseDto;
+        const replies = commentsData.comment.replies;
+        for (const comment of replies)
+          checkRepliesRecursively(comment.replies, commentReplies);
+      });
+
+      it(`should return the expected amount of replies when depth is set`, async () => {
+        for (
+          let replyLevel = 1;
+          replyLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+          replyLevel++
+        ) {
+          const res = await getComment(
+            commentWithDeeplyNestedReplies.postId,
+            commentWithDeeplyNestedReplies.id,
+            { depth: replyLevel }
+          );
+
+          const { data } = res.data as BaseResponse;
+
+          const commentData = data as GetCommentResponseDto;
+
+          for (const comment of commentData.comment.replies)
+            checkRepliesRecursively(
+              comment.replies,
+              commentReplies.filter((c) => c.depth <= replyLevel)
+            );
+        }
+      });
+
+      test.each([
+        ['is not a number', 'a'],
+        ['is a decimal', 1.5],
+        ['is a non numeric string', 'a1'],
+        [
+          'is smaller than minimum',
+          COMMENT_CONSTRAINTS.MIN_REPLY_TREE_DEPTH - 1,
+        ],
+        [
+          'is bigger than set maximum',
+          COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH + 1,
+        ],
+      ])('should return validation error when depth %s', async (_, depth) => {
+        return await expect(
+          getComment(
+            commentWithDeeplyNestedReplies.postId,
+            commentWithDeeplyNestedReplies.id,
+            {
+              depth,
+            }
+          )
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      });
     });
 
     describe('Guest User (Not Authenticated)', () => {
@@ -1103,4 +1313,28 @@ function getReplyCountRecursively(comment: CommentWithReplies) {
     if (c.replies) sum += getReplyCountRecursively(c);
   });
   return sum;
+}
+
+function checkRepliesRecursively(
+  commentsToCheck: CommentWithReplies[],
+  allComments: Comment[]
+) {
+  for (const comment of commentsToCheck) {
+    if (comment.replies) {
+      const expectedReplies = allComments.filter(
+        (p) => p.threadParentId === comment.id
+      );
+      expect(comment.replies.length).toBe(expectedReplies.length);
+      expect(comment.replyCount).toBe(getReplyCountRecursively(comment));
+
+      expect(
+        comment.replies.every((c) =>
+          expectedReplies.map((r) => r.id).includes(c.id)
+        )
+      ).toBe(true);
+
+      for (const reply of comment.replies)
+        checkRepliesRecursively(reply.replies, allComments);
+    }
+  }
 }
