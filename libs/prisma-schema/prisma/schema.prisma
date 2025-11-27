@@ -23,6 +23,7 @@ model User {
   refreshTokens RefreshToken[]
   posts Post[]
   comments Comment[]
+  reports Report[]
 }
 
 model RefreshToken {
@@ -77,6 +78,18 @@ model Comment {
   threadParent Comment? @relation("ReplyThread", fields: [threadParentId], references: [id], onDelete: Cascade)
   replies Comment[] @relation("ReplyThread")
   depth Int @default(0)
+  reports Report[]
+}
+
+model Report {
+  id Int @id @default(autoincrement())
+  reportedBy User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reporterId Int
+  reportedComment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId Int
+  reason String
+  createdAt  DateTime   @default(now())
+  @@unique([reporterId, commentId])
 }
 
 enum Role {

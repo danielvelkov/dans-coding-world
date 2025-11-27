@@ -9,6 +9,7 @@ export type {
   PostVisibility,
   Comment,
   Tag,
+  Report,
 } from '../generated/prisma/client.js';
 
 export type UserWhereInput = Prisma.UserWhereInput;

@@ -17,6 +17,7 @@ export type {
   Tag,
   TagWhereInput,
   TagsOrderByInput,
+  Report,
 } from './lib/prisma.types.js';
 
 export {
