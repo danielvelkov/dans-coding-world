@@ -8,6 +8,7 @@ const postsRouter = Router();
 
 postsRouter.route('/').get(postsController.getAll).post(postsController.create);
 
+postsRouter.route('/metadata').get(postsController.getMetadata);
 postsRouter
   .route('/:id')
   .get(postsController.get)
@@ -33,7 +34,7 @@ export default postsRouter;
  *       Get a specific post by its Id.
  *
  *       Returns 403 FORBIDDEN error If post is private and the user requesting it
- *       is not the author.
+ *       is not the author (**does not apply to admins or moderators**).
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts have their content masked
@@ -109,6 +110,7 @@ export default postsRouter;
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts have their content masked
  *       - If access_token is valid, search query also applies to user's private posts that are DRAFT or ARCHIVED if no filters are set
+ *       - If access_token is valid and user is ADMIN, search query for private posts retrieve not only the admin's posts
  *     parameters:
  *       - in: query
  *         name: pageOffset
@@ -169,6 +171,12 @@ export default postsRouter;
  *         required: false
  *         description: Filter by post visibility (can specify multiple)
  *       - in: query
+ *         name: filterBy[year]
+ *         schema:
+ *           type: number
+ *         required: false
+ *         description: Filter by posts' publishedAt date year
+ *       - in: query
  *         name: filterBy[tags]
  *         schema:
  *           type: array
@@ -226,7 +234,7 @@ export default postsRouter;
  *
  *       Create a blog post.
  *
- *       Posts that are created with 'isDraft' set to FALSE, have their publishedDate set
+ *       Posts that are created with 'isDraft' set to FALSE, have their publishedDate set to current date and time.
  *     requestBody:
  *       required: true
  *       content:
@@ -288,7 +296,7 @@ export default postsRouter;
  *       Update a post's field by its Id.
  *
  *       Returns 403 FORBIDDEN error If post is either DRAFT or ARCHIVED and the user requesting it
- *       is not the author.
+ *       is not the author (**does not apply to admins**).
  *     parameters:
  *       - in: path
  *         name: postId
@@ -363,7 +371,7 @@ export default postsRouter;
  *       Delete a blog post by its Id.
  *
  *       Returns 403 FORBIDDEN error if the user requesting it
- *       is not the author.
+ *       is not the author (**does not apply to admins**).
  *     parameters:
  *       - in: path
  *         name: postId
@@ -410,6 +418,29 @@ export default postsRouter;
  *                 status: 404
  *                 errorCode: SER002
  *                 message: Resource not found
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
+ * /posts/metadata:
+ *   get:
+ *     tags: [Posts]
+ *     summary: Get posts metadata.
+ *     description: |
+ *       Get posts metadata like all the unique years PUBLISHED posts were published at.
+ *     responses:
+ *       200:
+ *         description: Posts metadata retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GetPostsMetadataResponse'
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -589,6 +620,20 @@ export default postsRouter;
  *               properties:
  *                 post:
  *                   $ref: '#/components/schemas/Post'
+ *
+ *     GetPostsMetadataResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SuccessResponse'
+ *         - type: object
+ *           properties:
+ *             data:
+ *               type: object
+ *               properties:
+ *                 years:
+ *                   type: array
+ *                   items:
+ *                     type: number
+ *                     example: 2001
  *
  *     PostTag:
  *       type: string

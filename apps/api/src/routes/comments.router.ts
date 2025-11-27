@@ -16,7 +16,7 @@ commentsRouter
 
 commentsRouter
   .route('/:id')
-  .get(commentsController.getCommentReplies)
+  .get(commentsController.get)
   .patch(commentsController.update)
   .delete(commentsController.delete);
 
@@ -34,10 +34,11 @@ export default commentsRouter;
  * /posts/{postId}/comments:
  *   get:
  *     tags: [Comments]
- *     summary: Get post comments.
+ *     summary: Get post comments with pagination metadata.
  *     description: |
- *       Get a specific post's comments by its Id. Returns a 403 FORBIDDEN error, If post is private and the user requesting it
- *       is not the author.
+ *       Get a specific post's top-level comments by post id. Each comment comes with its replies. Provides pagination and sorting only on the top-level comments.
+ *       <br/> Returns a 403 FORBIDDEN error, If post is private and the user requesting it
+ *       is not the author (***does not apply to admins or moderators***).
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts return 401 UNAUTHORIZED error
@@ -80,6 +81,14 @@ export default commentsRouter;
  *           enum: [asc, desc]
  *         required: false
  *         description: Sort by last update date
+ *       - in: query
+ *         name: depth
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 3
+ *         required: false
+ *         description: Controls how deeply nested replies are included in the response. If not specified, all replies are retrieved.
  *     responses:
  *       200:
  *         description: Comments retrieved successfully
@@ -138,11 +147,11 @@ export default commentsRouter;
  * /posts/{postId}/comments/{id}:
  *   get:
  *     tags: [Comments]
- *     summary: Get comment and replies.
+ *     summary: Get comment and its replies.
  *     description: |
  *       Get a specific comment by its Id along with its direct replies if any.
  *       <br/>Returns 403 FORBIDDEN error, If the post this comment belongs to is private and the user requesting it
- *       is not the author.
+ *       is not the author (***does not apply to admins or moderators***).
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, comments on MEMBERS_ONLY posts return 403 FORBIDDEN error
@@ -160,6 +169,14 @@ export default commentsRouter;
  *           type: integer
  *         required: true
  *         description: Numeric ID of the comment
+ *       - in: query
+ *         name: depth
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 3
+ *         required: false
+ *         description: Controls how deeply nested replies are included in the response. If not specified, all replies are retrieved.
  *     responses:
  *       200:
  *         description: Comment and replies retrieved successfully
@@ -304,7 +321,7 @@ export default commentsRouter;
  *     description: |
  *       Update a comment's 'content' field. <br/>
  *       Returns FORBIDDEN error, If post is DRAFT or ARCHIVED and the user requesting it
- *       is not the author.
+ *       is not the author (***does not apply to admins or moderators***).
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
@@ -391,7 +408,7 @@ export default commentsRouter;
  *     summary: Delete a comment by Id.
  *     description: |
  *       Delete a comment on a post. Returns FORBIDDEN error, If the user requesting it
- *       is not the author.
+ *       is not the author (***does not apply to admins or moderators***).
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error

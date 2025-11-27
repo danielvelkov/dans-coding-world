@@ -1,4 +1,5 @@
 import {
+  CommentWithReplies,
   Comment,
   CommentsOrderByInput,
   CommentWhereInput,
@@ -8,10 +9,10 @@ import {
 } from '@dans-coding-world/prisma-schema';
 import { ICommentsService } from '../interfaces/comments-service.interface.js';
 import {
-  GetPostCommentRepliesDto,
+  GetCommentDto,
   GetPostCommentsDto,
   GetPostCommentsResponseDto,
-  GetPostCommentRepliesResponseDto,
+  GetCommentResponseDto,
   CreateCommentDto,
   DeleteCommentDto,
   UpdateCommentDto,
@@ -28,12 +29,21 @@ import {
   POST_REPOSITORY_TOKEN,
 } from './posts.service.js';
 import { ApiException } from '@dans-coding-world/exceptions';
-import { ERROR_CODES, PAGINATION } from '@dans-coding-world/shared-constants';
+import {
+  COMMENT_CONSTRAINTS,
+  ERROR_CODES,
+  PAGINATION,
+} from '@dans-coding-world/shared-constants';
 
 export const COMMENT_REPOSITORY_TOKEN = 'ICommentRepository';
 
 /**
- * Service related to user comments on posts and reply threads
+ * Service related to user comments on posts and reply threads.
+ *
+ * **Access control:**
+ * - Users can comment on posts, edit and delete their comments if post is PUBLISHED
+ * - Moderators and Admins have full access to view, edit and delete other users' comments.
+ *
  *
  * @example
  * ```typescript
@@ -59,6 +69,7 @@ export class CommentsService implements ICommentsService {
     dto: GetPostCommentsDto
   ): Promise<GetPostCommentsResponseDto> {
     dto = await transformAndValidateDto(dto, GetPostCommentsDto);
+
     await this.validatePostAccess(dto.postId, dto.viewerId);
 
     const orderBy = dto.sortBy ?? { createdAt: 'desc' };
@@ -70,7 +81,8 @@ export class CommentsService implements ICommentsService {
         skip: offset,
         take: limit,
         includeReplies: true,
-      }),
+        maxReplyTreeDepth: dto.maxReplyLevels,
+      }) as Promise<CommentWithReplies[]>,
       this.comments.count({ postId: dto.postId, depth: 0 }),
     ]);
 
@@ -78,10 +90,7 @@ export class CommentsService implements ICommentsService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      items: comments.map((c) => ({
-        ...(c as any),
-        replyCount: (c as any).replies.length,
-      })),
+      items: comments.map((c) => this.setReplyCountRecursively(c)),
       count: comments.length,
       pagination: {
         page: currentPage,
@@ -94,22 +103,20 @@ export class CommentsService implements ICommentsService {
     };
   }
 
-  async getCommentReplies(
-    dto: GetPostCommentRepliesDto
-  ): Promise<GetPostCommentRepliesResponseDto> {
-    dto = await transformAndValidateDto(dto, GetPostCommentRepliesDto);
+  async getById(dto: GetCommentDto): Promise<GetCommentResponseDto> {
+    dto = await transformAndValidateDto(dto, GetCommentDto);
 
     await this.validatePostAccess(dto.postId, dto.viewerId);
 
-    const comment = await this.comments.getById(dto.commentId, {
+    const comment = (await this.comments.getById(dto.commentId, {
       includeReplies: true,
-    });
+      maxReplyTreeDepth: dto.maxReplyLevels,
+    })) as CommentWithReplies;
 
     if (!comment) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
     return {
-      comment: comment as any,
-      replyCount: this.getReplyCountRecursively(comment as CommentWithReplies),
+      comment: this.setReplyCountRecursively(comment),
     };
   }
 
@@ -120,12 +127,15 @@ export class CommentsService implements ICommentsService {
 
     let depth = 0;
     if (dto.replyToCommentId) {
-      const parent = await this.comments.getById(dto.replyToCommentId);
-      if (!parent || parent.postId !== dto.postId) {
+      const parentComment = await this.comments.getById(dto.replyToCommentId);
+      if (!parentComment || parentComment.postId !== dto.postId) {
         throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
       }
-      depth = parent.depth + 1;
+      depth = parentComment.depth + 1;
     }
+
+    if (depth > COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH)
+      throw new ApiException(ERROR_CODES.VALIDATION.MAX_REPLY_DEPTH_REACHED);
 
     return await this.comments.create({
       content: dto.content,
@@ -143,13 +153,8 @@ export class CommentsService implements ICommentsService {
     await this.validatePostAccess(dto.postId, dto.authorId);
 
     const comment = await this.comments.getById(dto.commentId);
-    if (!comment || comment.postId !== dto.postId) {
-      throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
-    }
 
-    if (comment.userId !== dto.authorId) {
-      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
-    }
+    await this.validateCommentAccess(comment, dto.postId, dto.authorId);
 
     return await this.comments.delete(dto.commentId);
   }
@@ -157,13 +162,11 @@ export class CommentsService implements ICommentsService {
   async update(dto: UpdateCommentDto): Promise<Comment> {
     dto = await transformAndValidateDto(dto, UpdateCommentDto);
 
-    await this.validatePostAccess(dto.postId);
+    await this.validatePostAccess(dto.postId, dto.userId);
 
     const commentForUpdate = await this.comments.getById(dto.commentId);
-    if (!commentForUpdate) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
-    if (commentForUpdate.userId !== dto.userId)
-      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+    await this.validateCommentAccess(commentForUpdate, dto.postId, dto.userId);
 
     return await this.comments.update(dto.commentId, {
       updatedAt: new Date(),
@@ -171,12 +174,30 @@ export class CommentsService implements ICommentsService {
     });
   }
 
+  /**
+   * Checks if post exists and that the user is allowed to access content regarding it.
+   *
+   * **Access control:**
+   * - All posts: Admins and Mods have access by default
+   * - Members-only posts: Require viewerId to be provided
+   * - Private posts: Accessible only if viewerId is the post's author
+   *
+   * @param postId Post id
+   * @param viewerId Id of the user trying to access the post
+   */
   private async validatePostAccess(
     postId: number,
     viewerId?: number
-  ): Promise<Post> {
+  ): Promise<void> {
     const post = await this.posts.getById(postId);
     if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    if (viewerId) {
+      const user = await this.users.getById(viewerId.toString());
+      if (!user) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
+
+      if (user.role === 'ADMIN' || user.role === 'MOD') return;
+    }
 
     if (
       post.status !== 'PUBLISHED' &&
@@ -188,8 +209,36 @@ export class CommentsService implements ICommentsService {
     if (!viewerId && post.visibility === 'MEMBERS_ONLY') {
       throw new ApiException(ERROR_CODES.AUTH.UNAUTHORIZED);
     }
+  }
 
-    return post;
+  /**
+   * Checks if comment exists and that the user has access to it.
+   *
+   * **Access control:**
+   * - Author of comment has access by default
+   * - Admins and Mods have access too
+   *
+   * @param comment The comment
+   * @param postId Post id
+   * @param viewerId Id of the user trying to access the post
+   * @returns
+   */
+  private async validateCommentAccess(
+    comment: Comment | null,
+    postId: number,
+    viewerId: number
+  ): Promise<void> {
+    if (!comment || comment.postId !== postId) {
+      throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+    }
+    if (viewerId) {
+      const user = await this.users.getById(viewerId.toString());
+      if (!user) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
+      if (user && (user.role === 'ADMIN' || user.role === 'MOD')) return;
+    }
+
+    if (comment.userId !== viewerId)
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
   }
 
   private getReplyCountRecursively(comment: CommentWithReplies) {
@@ -200,6 +249,26 @@ export class CommentsService implements ICommentsService {
     });
     return sum;
   }
-}
+  private setReplyCountRecursively(
+    comment: CommentWithReplies
+  ): CommentWithReplies {
+    // Base case: no replies
+    if (!comment.replies || comment.replies.length === 0) {
+      return {
+        ...comment,
+        replyCount: 0,
+        replies: [],
+      };
+    }
 
-type CommentWithReplies = Comment & { replies: CommentWithReplies[] };
+    const processedReplies = comment.replies.map((reply) =>
+      this.setReplyCountRecursively(reply)
+    );
+
+    return {
+      ...comment,
+      replyCount: this.getReplyCountRecursively(comment),
+      replies: processedReplies,
+    };
+  }
+}

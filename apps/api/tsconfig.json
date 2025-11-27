@@ -10,6 +10,9 @@
       "path": "../../libs/shared/util/exceptions"
     },
     {
+      "path": "../../libs/prisma-schema"
+    },
+    {
       "path": "../../libs/shared/post/dtos"
     },
     {

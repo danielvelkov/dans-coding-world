@@ -20,6 +20,9 @@
       "path": "../../util/api-types/tsconfig.lib.json"
     },
     {
+      "path": "../../../prisma-schema/tsconfig.lib.json"
+    },
+    {
       "path": "../../util/shared-constants/tsconfig.lib.json"
     }
   ]

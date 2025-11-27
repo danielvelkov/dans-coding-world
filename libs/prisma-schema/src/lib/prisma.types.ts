@@ -1,4 +1,4 @@
-import { Prisma } from '../generated/prisma/client.js';
+import { Prisma, Comment } from '../generated/prisma/client.js';
 
 export type {
   User,
@@ -19,3 +19,8 @@ export type CommentWhereInput = Prisma.CommentWhereInput;
 export type CommentsOrderByInput = Prisma.CommentOrderByWithRelationInput;
 export type TagWhereInput = Prisma.TagWhereInput;
 export type TagsOrderByInput = Prisma.TagOrderByWithRelationInput;
+
+export type CommentWithReplies = Comment & {
+  replies: CommentWithReplies[];
+  replyCount: number;
+};

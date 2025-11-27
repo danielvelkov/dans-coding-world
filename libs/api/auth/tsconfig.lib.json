@@ -26,6 +26,9 @@
       "path": "../../shared/util/exceptions/tsconfig.lib.json"
     },
     {
+      "path": "../../prisma-schema/tsconfig.lib.json"
+    },
+    {
       "path": "../../shared/util/shared-constants/tsconfig.lib.json"
     },
     {

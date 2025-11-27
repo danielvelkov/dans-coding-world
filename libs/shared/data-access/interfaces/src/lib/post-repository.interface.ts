@@ -21,4 +21,5 @@ export interface IPostRepository<Post, TWhereInput, TOrderBy> {
   deleteMany(where: TWhereInput): Promise<number>;
   exists(title: string): Promise<boolean>;
   count(where?: TWhereInput): Promise<number>;
+  getPublishedYears(): Promise<number[]>;
 }

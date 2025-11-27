@@ -5,11 +5,12 @@ export * from './lib/get-posts-response.dto.js';
 export * from './lib/get-posts.dto.js';
 export * from './lib/get-post.dto.js';
 export * from './lib/filter-posts-by.dto.js';
+export * from './lib/get-posts-metadata-response.dto.js';
 
 export * from './lib/post-comments/create-comment.dto.js';
 export * from './lib/post-comments/delete-comment.dto.js';
-export * from './lib/post-comments/get-post-comment-replies-response.dto.js';
-export * from './lib/post-comments/get-post-comment-replies.dto.js';
+export * from './lib/post-comments/get-comment.response.dto.js';
+export * from './lib/post-comments/get-comment.dto.js';
 export * from './lib/post-comments/get-post-comments.dto.js';
 export * from './lib/post-comments/get-post-comments-response.dto.js';
 export * from './lib/post-comments/update-comment.dto.js';

@@ -1,9 +1,9 @@
 import { Comment } from '@dans-coding-world/prisma-schema';
 import {
-  GetPostCommentRepliesDto,
+  GetCommentDto,
   GetPostCommentsDto,
   GetPostCommentsResponseDto,
-  GetPostCommentRepliesResponseDto,
+  GetCommentResponseDto,
   CreateCommentDto,
   DeleteCommentDto,
   UpdateCommentDto,
@@ -31,23 +31,28 @@ export interface ICommentsService {
   /**
    * Retrieves paginated top-level comments for a post.
    *
-   * Returns comments with their immediate replies and total reply count.
-   * Comments can be sorted by creation or modification date.
+   * Comments come with their replies and total reply count.
+   * The top-level comments can also be sorted by creation or modification date.
+   *
+   * Reply nesting can be limited by specifying the maxReplyLevels (1-3)
+   * Replies deeper than the specified level are excluded from the response.
    *
    * **Access control:**
    * - Draft and archived post comments: Visible only to the post author
    * - Members-only posts: Require viewerId to be provided
    * - Published posts: Publicly accessible
+   * - All posts: Accessible by mods and admins
    *
-   * @param dto Contains postId, viewerId (optional), and pagination and sorting params (optional).
-   * @returns A promise that resolves to a paginated list of direct comments to post.
+   * @param dto Contains postId, viewerId (optional), maxReplyLevels(optional), pagination and sorting params (optional).
+   * @returns A promise that resolves to a paginated list of top-level comments to post.
    * @example
    * ```typescript
    * const { items, count, pagination } = await commentsService.getPostComments({
    *   postId: 1,
    *   viewerId: 1,
    *   pageSize: 20,
-   *   pageOffset: 0
+   *   pageOffset: 0,
+   *   maxReplyLevels: 2
    * });
    * ```
    *
@@ -58,22 +63,20 @@ export interface ICommentsService {
   getPostComments(dto: GetPostCommentsDto): Promise<GetPostCommentsResponseDto>;
 
   /**
-   * Retrieves all direct replies to a specific comment.
+   * Returns the specified comment with all its replies by its id.
    *
-   * Returns one level of nested replies along with the parent comment that started the thread.
-   * Does not return nested replies beyond the first level.
+   * Reply nesting can be limited by specifying the maxReplyLevels (1-3)
+   * Replies deeper than the specified level are excluded from the response.
    *
-   * @param dto - Request parameters including commentId, postId, and optional viewerId
-   * @returns Parent comment and its direct replies
+   * @param dto - Request parameters including commentId, postId, and optional viewerId and maxReplyLevels
+   * @returns Requested comment and its replies
    *
    * @throws {Error} Post not found (SER002)
    * @throws {Error} Parent comment not found on the specified post (SER002)
    * @throws {Error} Members-only post accessed without viewerId (AUTH005)
    * @throws {Error} Post is not published (SER003)
    */
-  getCommentReplies(
-    dto: GetPostCommentRepliesDto
-  ): Promise<GetPostCommentRepliesResponseDto>;
+  getById(dto: GetCommentDto): Promise<GetCommentResponseDto>;
 
   /**
    * Creates a new comment on a post or reply to an existing comment.
@@ -97,8 +100,9 @@ export interface ICommentsService {
   /**
    * Deletes a comment and all of its replies.
    *
-   * Only the comment author can delete their own comments. All nested replies
-   * are permanently removed along with the parent comment.
+   * **Access control:**
+   * - The comment author can delete their own comments.
+   * - Deletion of comments is also accessible by admins and mods
    *
    * @param dto - Deletion parameters including commentId, postId, and authorId
    * @returns The deleted comment object
@@ -119,10 +123,12 @@ export interface ICommentsService {
   delete(dto: DeleteCommentDto): Promise<Comment>;
 
   /**
-   * Updates the content of an existing comment.
-   *
-   * Only the comment author can modify their own comments. The modification
+   * Updates the content of an existing comment. The modification
    * timestamp is automatically updated.
+   *
+   * **Access control:**
+   * - The comment author can update their own comments.
+   * - Update of comments is also accessible by admins and mods
    *
    * @param dto - Update parameters including commentId, postId, authorId, and new content
    * @returns The updated comment object

@@ -13,9 +13,14 @@ export type {
   Comment,
   CommentWhereInput,
   CommentsOrderByInput,
+  CommentWithReplies,
   Tag,
   TagWhereInput,
   TagsOrderByInput,
 } from './lib/prisma.types.js';
 
-export { PostStatusEnum, PostVisibilityEnum } from './lib/prisma.enums.js';
+export {
+  PostStatusEnum,
+  PostVisibilityEnum,
+  RoleEnum,
+} from './lib/prisma.enums.js';

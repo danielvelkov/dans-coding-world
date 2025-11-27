@@ -6,6 +6,7 @@ import {
   MaxLength,
   Matches,
   ArrayNotEmpty,
+  IsInt,
 } from 'class-validator';
 import {
   PostStatus,
@@ -18,6 +19,7 @@ import {
   TAG_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
+import { toInteger } from './custom-transformers/to-integer.js';
 
 export class FilterPostsByDto {
   @IsOptional()
@@ -66,4 +68,9 @@ export class FilterPostsByDto {
     message: VALIDATION_MESSAGES.tags.invalid,
   })
   tags?: string[];
+
+  @IsOptional()
+  @Transform(toInteger)
+  @IsInt()
+  year?: number;
 }

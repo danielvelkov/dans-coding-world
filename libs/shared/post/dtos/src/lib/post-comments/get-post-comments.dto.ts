@@ -1,6 +1,7 @@
 import { Comment } from '@dans-coding-world/prisma-schema';
-import { IsIn, IsInt, IsOptional, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
 import {
+  COMMENT_CONSTRAINTS,
   PAGINATION,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
@@ -42,6 +43,13 @@ export class GetPostCommentsDto {
   @IsOptional()
   @IsSortBy(['createdAt', 'updatedAt'] as CommentSortKey[])
   sortBy?: Partial<Record<CommentSortKey, 'asc' | 'desc'>>;
+
+  @IsOptional()
+  @Transform(toInteger)
+  @IsInt()
+  @Min(COMMENT_CONSTRAINTS.MIN_REPLY_TREE_DEPTH)
+  @Max(COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH)
+  maxReplyLevels?: number;
 }
 
 type AllowedPageSizes =

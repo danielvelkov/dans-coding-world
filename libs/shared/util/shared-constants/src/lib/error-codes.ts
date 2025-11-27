@@ -27,6 +27,7 @@ export const ERROR_CODES = {
     USER_MISSING: 'VAL003',
     TAG_EXISTS: 'VAL004',
     POST_EXISTS: 'VAL005',
+    MAX_REPLY_DEPTH_REACHED: 'VAL006',
   },
 } as const;
 
@@ -51,6 +52,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   VAL003: 'Provided user does not exist',
   VAL004: 'Tag with this name already exists',
   VAL005: 'Post with that title already exists',
+  VAL006:
+    'Replies are limited to 3 levels deep to keep discussions easy to follow',
 };
 
 /**
@@ -72,4 +75,5 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   VAL003: StatusCodes.BAD_REQUEST,
   VAL004: StatusCodes.CONFLICT,
   VAL005: StatusCodes.CONFLICT,
+  VAL006: StatusCodes.BAD_REQUEST,
 };

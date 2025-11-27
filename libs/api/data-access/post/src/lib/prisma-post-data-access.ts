@@ -151,4 +151,26 @@ export class PrismaPostDataAccess
   async count(where: PostWhereInput): Promise<number> {
     return await client.post.count({ where });
   }
+
+  async getPublishedYears(): Promise<number[]> {
+    const res = await client.post.findMany({
+      where: {
+        status: 'PUBLISHED',
+        publishedAt: {
+          not: null,
+        },
+      },
+      select: {
+        publishedAt: true,
+      },
+    });
+
+    return res
+      .filter((d) => d.publishedAt)
+      .map((d) => new Date(d.publishedAt!).getFullYear())
+      .reduce(
+        (acc, val) => (acc.includes(val) ? acc : [...acc, val]),
+        [] as number[]
+      );
+  }
 }

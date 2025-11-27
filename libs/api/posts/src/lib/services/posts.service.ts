@@ -12,6 +12,7 @@ import {
   GetPostDto,
   GetPostsDto,
   FilterPostsByDto,
+  GetPostsMetadataResponse,
 } from '@dans-coding-world/shared-post-dto';
 import { IPostsService } from '../interfaces/posts-service.interface.js';
 import { Inject, Injectable } from 'injection-js';
@@ -34,13 +35,6 @@ export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 
 type DirectPrismaFilters = Pick<FilterPostsByDto, 'status' | 'visibility'>;
 
-/*
-  NOTE
-  I really don't like how this is turning out. 
-  A lot of implicit logic is happening behind the scenes of every method call here.
-  Should be refactored somehow. 
- */
-
 @Injectable()
 export class PostsService implements IPostsService {
   constructor(
@@ -53,11 +47,10 @@ export class PostsService implements IPostsService {
   async getById(dto: GetPostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, GetPostDto);
 
-    const post = await this.posts.getById(dto.postId);
-    if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+    const post = (await this.posts.getById(dto.postId)) as Post;
 
     // Authorization check
-    this.verifyPostAccess(post, dto.viewerId);
+    await this.validatePostReadAccess(post, dto.viewerId);
 
     const tagNames = this.extractTagNames(post);
 
@@ -79,7 +72,7 @@ export class PostsService implements IPostsService {
   async getAll(dto?: GetPostsDto): Promise<GetPostsResponseDto> {
     if (dto) dto = await transformAndValidateDto(dto, GetPostsDto);
 
-    const where = this.buildPostsWhereClause(
+    const where = await this.buildPostsWhereClause(
       dto?.viewerId,
       dto?.filterBy,
       dto?.searchQuery
@@ -162,11 +155,9 @@ export class PostsService implements IPostsService {
   async update(dto: UpdatePostDto): Promise<PostDetail> {
     dto = await transformAndValidateDto(dto, UpdatePostDto);
 
-    const postForUpdate = await this.posts.getById(dto.postId);
-    if (!postForUpdate) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+    const postForUpdate = (await this.posts.getById(dto.postId)) as Post;
 
-    if (postForUpdate.authorId !== dto.userId)
-      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+    await this.validatePostWriteAccess(postForUpdate, dto.userId);
 
     if (
       dto.title &&
@@ -195,41 +186,94 @@ export class PostsService implements IPostsService {
 
     const post = await this.posts.getById(dto.postId);
 
-    if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
-    else if (post.authorId !== dto.authorId)
-      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+    await this.validatePostWriteAccess(post, dto.authorId);
 
     return await this.posts.delete(dto.postId);
   }
+  /**
+   * Checks if post exists and that the user is allowed READ access to it.
+   *
+   * **Access control:**
+   * - For PUBLISHED posts everyone has access
+   * - Author of the post has access by default
+   * - Admins and Mods have access too
+   *
+   * @param post The post in question
+   * @param viewerId Id of the user trying to access the post
+   */
+  private async validatePostReadAccess(
+    post: PostDetail | null,
+    viewerId?: number
+  ): Promise<void> {
+    if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
-  private verifyPostAccess(post: PostDetail, userId?: number): void {
-    if (!this.isPublished(post) && !this.isAuthor(post, userId)) {
+    if (viewerId) {
+      const user = await this.users.getById(viewerId.toString());
+      if (user && (user.role === 'ADMIN' || user.role === 'MOD')) return;
+    }
+    if (!this.isPublished(post) && !this.isAuthor(post, viewerId)) {
       throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
     }
   }
 
-  private buildPostsWhereClause(
+  /**
+   * Checks if post exists and that the user is allowed WRITE access to it.
+   *
+   * **Access control:**
+   * - Author of the post has access by default
+   * - Admins have access too
+   *
+   * @param post The post in question
+   * @param viewerId Id of the user trying to access the post
+   */
+  private async validatePostWriteAccess(
+    post: PostDetail | null,
+    viewerId: number
+  ): Promise<void> {
+    if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    const user = await this.users.getById(viewerId.toString());
+    if (user && user.role === 'ADMIN') return;
+
+    if (!this.isAuthor(post, viewerId)) {
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+    }
+  }
+
+  private async buildPostsWhereClause(
     viewerId?: number,
     filters?: GetPostsDto['filterBy'],
     searchQuery?: string
-  ): PostWhereInput {
+  ): Promise<PostWhereInput> {
     const clauses: PostWhereInput[] = [];
 
+    let isAdmin = false;
+
+    if (viewerId) {
+      const user = await this.users.getById(viewerId.toString());
+      if (!user) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
+      if (user && user.role === 'ADMIN') {
+        isAdmin = true;
+      }
+    }
+
     // STEP 1: Access Control - What CAN the user see?
-    if (!viewerId) {
-      // Not logged in: exclude private posts entirely
-      clauses.push({
-        NOT: {
-          status: {
-            in: ['DRAFT', 'ARCHIVED'],
+    if (!isAdmin) {
+      if (!viewerId) {
+        // Not logged in: exclude private posts entirely
+        clauses.push({
+          NOT: {
+            status: {
+              in: ['DRAFT', 'ARCHIVED'],
+            },
           },
-        },
-      });
-    } else {
-      // Logged in: can see own posts (any status) OR others' published posts
-      clauses.push({
-        OR: [{ authorId: viewerId }, { status: 'PUBLISHED' }],
-      });
+        });
+      } else {
+        // Logged in (Non-Admin): can see own posts (any status) OR others' published posts
+        clauses.push({
+          OR: [{ authorId: viewerId }, { status: 'PUBLISHED' }],
+        });
+      }
     }
 
     // STEP 2: Default Filters - Apply only if no explicit filtering and search specified
@@ -247,13 +291,14 @@ export class PostsService implements IPostsService {
         visibility: filters.visibility,
       };
 
+      // STEP 3.1: Filtering by status and visibility
       const filterConditions = Object.entries(directFilters)
         .filter(([, arr]) => Array.isArray(arr) && arr.length)
         .map(([key, value]) => ({ [key]: { in: value } }));
 
       clauses.push(...filterConditions);
 
-      // Filtering by post tags
+      // STEP 3.2: Filtering by post tags
       if (filters.tags && filters.tags.length > 0) {
         clauses.push({
           tags: {
@@ -267,6 +312,15 @@ export class PostsService implements IPostsService {
           },
         });
       }
+
+      // STEP 3.3: Filtering by year
+      if (filters.year && Number.isInteger(filters.year))
+        clauses.push({
+          publishedAt: {
+            gte: new Date(filters.year, 0, 1),
+            lte: new Date(filters.year, 11, 31),
+          },
+        });
     }
 
     // STEP 4: Search Query
@@ -280,6 +334,11 @@ export class PostsService implements IPostsService {
     }
 
     return { AND: clauses };
+  }
+
+  async getMetadata(): Promise<GetPostsMetadataResponse> {
+    const years = await this.posts.getPublishedYears();
+    return { years };
   }
 
   private isAuthor = (post: Post, userId?: number) =>
