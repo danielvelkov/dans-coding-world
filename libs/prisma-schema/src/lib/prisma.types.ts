@@ -20,6 +20,8 @@ export type CommentWhereInput = Prisma.CommentWhereInput;
 export type CommentsOrderByInput = Prisma.CommentOrderByWithRelationInput;
 export type TagWhereInput = Prisma.TagWhereInput;
 export type TagsOrderByInput = Prisma.TagOrderByWithRelationInput;
+export type ReportWhereInput = Prisma.ReportWhereInput;
+export type ReportOrderByInput = Prisma.ReportOrderByWithRelationInput;
 
 export type CommentWithReplies = Comment & {
   replies: CommentWithReplies[];

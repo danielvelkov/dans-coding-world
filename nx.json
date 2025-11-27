@@ -48,7 +48,8 @@
         "libs/shared/util/validation/*",
         "libs/api/data-access/post/*",
         "libs/shared/post/dtos/*",
-        "libs/api/posts/*"
+        "libs/api/posts/*",
+        "libs/api/data-access/report/*"
       ]
     },
     {
@@ -126,7 +127,8 @@
         "libs/shared/util/validation/*",
         "libs/api/data-access/post/*",
         "libs/shared/post/dtos/*",
-        "libs/api/posts/*"
+        "libs/api/posts/*",
+        "libs/api/data-access/report/*"
       ],
       "options": {
         "typecheck": {
