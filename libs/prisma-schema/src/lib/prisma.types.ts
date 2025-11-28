@@ -10,6 +10,8 @@ export type {
   Comment,
   Tag,
   Report,
+  ReportHistory,
+  ReportStatus,
 } from '../generated/prisma/client.js';
 
 export type UserWhereInput = Prisma.UserWhereInput;
@@ -22,6 +24,9 @@ export type TagWhereInput = Prisma.TagWhereInput;
 export type TagsOrderByInput = Prisma.TagOrderByWithRelationInput;
 export type ReportWhereInput = Prisma.ReportWhereInput;
 export type ReportOrderByInput = Prisma.ReportOrderByWithRelationInput;
+export type ReportHistoryWhereInput = Prisma.ReportHistoryWhereInput;
+export type ReportHistoryOrderByInput =
+  Prisma.ReportHistoryOrderByWithRelationInput;
 
 export type CommentWithReplies = Comment & {
   replies: CommentWithReplies[];

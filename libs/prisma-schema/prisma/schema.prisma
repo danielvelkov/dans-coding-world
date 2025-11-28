@@ -24,6 +24,7 @@ model User {
   posts Post[]
   comments Comment[]
   reports Report[]
+  moderationHistory ReportHistory[]
 }
 
 model RefreshToken {
@@ -89,7 +90,28 @@ model Report {
   commentId Int
   reason String
   createdAt  DateTime   @default(now())
+  status ReportStatus @default(PENDING) 
+  history ReportHistory[]
   @@unique([reporterId, commentId])
+}
+
+model ReportHistory {
+  id Int @id @default(autoincrement())
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reportId Int 
+  moderator User @relation(fields: [moderatorId], references: [id])
+  moderatorId Int 
+  previousStatus ReportStatus 
+  newStatus ReportStatus 
+  note String?
+  changedAt DateTime @default(now())
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWING
+  RESOLVED
+  DISMISSED
 }
 
 enum Role {
