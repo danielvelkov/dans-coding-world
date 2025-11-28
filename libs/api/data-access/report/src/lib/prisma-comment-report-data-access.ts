@@ -45,6 +45,13 @@ export class PrismaCommentReportDataAccess
     });
   }
 
+  async update(id: number, data: Partial<Report>): Promise<Report> {
+    return await client.report.update({
+      where: { id },
+      data,
+    });
+  }
+
   async delete(id: number): Promise<Report> {
     return await client.report.delete({
       where: { id },
