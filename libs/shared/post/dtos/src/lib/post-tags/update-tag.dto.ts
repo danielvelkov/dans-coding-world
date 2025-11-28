@@ -3,7 +3,6 @@ import {
   TAG_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { Transform } from 'class-transformer';
 import { ToInteger } from '@dans-coding-world/validation';
 
 export class UpdateTagDto {

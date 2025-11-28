@@ -1,4 +1,3 @@
-import { Transform } from 'class-transformer';
 import { IsInt, Min, IsOptional, Max } from 'class-validator';
 import { ToInteger } from '@dans-coding-world/validation';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';

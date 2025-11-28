@@ -2,7 +2,6 @@ import {
   COMMENT_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { Transform } from 'class-transformer';
 import { IsInt, Min, MinLength, MaxLength } from 'class-validator';
 import { ToInteger } from '@dans-coding-world/validation';
 

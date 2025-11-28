@@ -12,7 +12,7 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import { Post } from '@dans-coding-world/prisma-schema';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { FilterPostsByDto } from './filter-posts-by.dto.js';
 
 import {

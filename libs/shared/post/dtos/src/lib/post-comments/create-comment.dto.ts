@@ -1,7 +1,6 @@
 import { IsInt, Min, MinLength, MaxLength, IsOptional } from 'class-validator';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import { VALIDATION_MESSAGES } from '@dans-coding-world/shared-constants';
-import { Transform } from 'class-transformer';
 import { ToInteger } from '@dans-coding-world/validation';
 
 export class CreateCommentDto {
