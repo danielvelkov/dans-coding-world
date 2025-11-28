@@ -1,19 +1,19 @@
 import { Transform } from 'class-transformer';
 import { IsInt, Min } from 'class-validator';
-import { toInteger } from '../custom-transformers/to-integer.js';
+import { ToInteger } from '@dans-coding-world/validation';
 
 export class DeleteCommentDto {
-  @Transform(toInteger)
+  @ToInteger()
   @Min(0)
   @IsInt()
   commentId: number;
 
-  @Transform(toInteger)
+  @ToInteger()
   @Min(0)
   @IsInt()
   postId: number;
 
-  @Transform(toInteger)
+  @ToInteger()
   @Min(0)
   @IsInt()
   authorId: number;

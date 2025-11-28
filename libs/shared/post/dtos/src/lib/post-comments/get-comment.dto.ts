@@ -1,27 +1,27 @@
 import { Transform } from 'class-transformer';
 import { IsInt, Min, IsOptional, Max } from 'class-validator';
-import { toInteger } from '../custom-transformers/to-integer.js';
+import { ToInteger } from '@dans-coding-world/validation';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
 export class GetCommentDto {
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   commentId: number;
 
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   postId: number;
 
-  @Transform(toInteger)
+  @ToInteger()
   @IsOptional()
   @IsInt()
   @Min(0)
   viewerId?: number;
 
   @IsOptional()
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(COMMENT_CONSTRAINTS.MIN_REPLY_TREE_DEPTH)
   @Max(COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH)

@@ -1,10 +1,10 @@
 import { IsInt, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { toInteger } from '../custom-transformers/to-integer.js';
+import { ToInteger } from '@dans-coding-world/validation';
 
 export class GetTagDto {
   @IsInt()
   @Min(0)
-  @Transform(toInteger)
+  @ToInteger()
   tagId: number;
 }

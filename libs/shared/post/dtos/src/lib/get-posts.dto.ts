@@ -12,21 +12,24 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import { Post } from '@dans-coding-world/prisma-schema';
-import { IsOffsetAlignedWithSize } from './custom-validators/is-offset-aligned-with-size.js';
 import { Transform, Type } from 'class-transformer';
-import { toInteger } from './custom-transformers/to-integer.js';
 import { FilterPostsByDto } from './filter-posts-by.dto.js';
-import { IsSortBy } from './custom-validators/is-sort-by.js';
+
+import {
+  ToInteger,
+  IsSortBy,
+  IsOffsetAlignedWithSize,
+} from '@dans-coding-world/validation';
 
 export class GetPostsDto {
   @IsOptional()
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   viewerId?: number;
 
   @IsOptional()
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   @IsOffsetAlignedWithSize('pageSize', {
@@ -35,7 +38,7 @@ export class GetPostsDto {
   pageOffset?: number;
 
   @IsOptional()
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   @IsIn(PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS, {
