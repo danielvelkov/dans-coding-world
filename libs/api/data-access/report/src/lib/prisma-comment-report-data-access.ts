@@ -3,8 +3,17 @@ import {
   ReportWhereInput,
   ReportOrderByInput,
   client,
+  User,
+  Comment,
+  ReportHistory,
 } from '@dans-coding-world/prisma-schema';
 import { IReportRepository } from '@dans-coding-world/shared-data-access-interfaces';
+
+export type ReportDetail = Report & {
+  reportedBy: User;
+  reportedComment: Comment;
+  history: ReportHistory[];
+};
 
 export class PrismaCommentReportDataAccess
   implements IReportRepository<Report, ReportWhereInput, ReportOrderByInput>
@@ -13,8 +22,13 @@ export class PrismaCommentReportDataAccess
     return await client.report.findFirst({
       where: { id },
       include: {
-        reportedComment: true,
+        reportedComment: {
+          include: {
+            user: true,
+          },
+        },
         reportedBy: true,
+        history: true,
       },
     });
   }
@@ -39,8 +53,13 @@ export class PrismaCommentReportDataAccess
       skip: options?.skip,
       take: options?.take,
       include: {
-        reportedComment: true,
+        reportedComment: {
+          include: {
+            user: true,
+          },
+        },
         reportedBy: true,
+        history: true,
       },
     });
   }
