@@ -1,1 +1,1 @@
-export * from './lib/reports.js';
+export * from './lib/reports.module.js';
