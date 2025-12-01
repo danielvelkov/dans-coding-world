@@ -3,6 +3,12 @@ import {
   ReportWhereInput,
   ReportOrderByInput,
   User,
+  Post,
+  PostWhereInput,
+  PostOrderByInput,
+  Comment,
+  CommentWhereInput,
+  CommentsOrderByInput,
 } from '@dans-coding-world/prisma-schema';
 import {
   CreateReportDto,
@@ -15,6 +21,8 @@ import {
 } from '@dans-coding-world/shared-report-dto';
 import { Inject, Injectable } from 'injection-js';
 import type {
+  ICommentRepository,
+  IPostRepository,
   IReportRepository,
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
@@ -26,6 +34,8 @@ import { ReportDetail } from '@dans-coding-world/report-data-access';
 
 export const COMMENT_REPORTS_REPOSITORY_TOKEN = 'ICommentReportsRepository';
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
+export const POST_REPOSITORY_TOKEN = 'IPostRepository';
+export const COMMENT_REPOSITORY_TOKEN = 'ICommentRepository';
 
 /**
  * Service related to reports made on comments.
@@ -51,7 +61,15 @@ export class CommentReportsService implements ICommentReportsService {
       ReportOrderByInput
     >,
     @Inject(USER_REPOSITORY_TOKEN)
-    public users: IUserRepository
+    public users: IUserRepository,
+    @Inject(POST_REPOSITORY_TOKEN)
+    public posts: IPostRepository<Post, PostWhereInput, PostOrderByInput>,
+    @Inject(COMMENT_REPOSITORY_TOKEN)
+    public comments: ICommentRepository<
+      Comment,
+      CommentWhereInput,
+      CommentsOrderByInput
+    >
   ) {}
 
   getAll(dto: GetReportsDto): Promise<GetReportsResponseDto> {
@@ -67,13 +85,66 @@ export class CommentReportsService implements ICommentReportsService {
     return { report };
   }
 
-  create(dto: CreateReportDto): Promise<Report> {
-    throw new Error('Method not implemented.');
+  async create(dto: CreateReportDto): Promise<Report> {
+    dto = await transformAndValidateDto(dto, CreateReportDto);
+
+    await this.validateReportingAccess(
+      dto.commentId,
+      dto.postId,
+      dto.reporterId
+    );
+
+    const reportExists = await this.reports.exists({
+      reporterId: dto.reporterId,
+      commentId: dto.commentId,
+    });
+
+    if (reportExists)
+      throw new ApiException(ERROR_CODES.VALIDATION.REPORT_EXISTS);
+
+    const createdReport = await this.reports.create({
+      ...dto,
+      status: 'PENDING',
+      createdAt: new Date(),
+    });
+
+    return createdReport;
   }
   updateStatus(dto: UpdateReportDto): Promise<Report> {
     throw new Error('Method not implemented.');
   }
   delete(dto: DeleteReportDto): Promise<Report> {
     throw new Error('Method not implemented.');
+  }
+
+  /**
+   * 
+   * @param commentId Comment Id
+   * @param postId Post Id
+   * @param viewerId User trying to report a comment on a post
+   * @returns 
+   */
+  private async validateReportingAccess(
+    commentId: number,
+    postId: number,
+    viewerId: number
+  ): Promise<void> {
+    const post = await this.posts.getById(postId);
+    if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    const comment = await this.comments.getById(commentId);
+    if (!comment) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    const user = await this.users.getById(viewerId.toString());
+    if (!user) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
+
+    if (user.id === comment.userId)
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+
+    if (user.role === 'ADMIN' || user.role === 'MOD') return;
+
+    if (post.status !== 'PUBLISHED' && viewerId !== post.authorId) {
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+    }
   }
 }
