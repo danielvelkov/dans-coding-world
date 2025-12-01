@@ -27,7 +27,7 @@ import {
   PAGINATION,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { filterObject } from '../helper/util.js';
+import { filterObject } from '@dans-coding-world/helpers';
 import { PostDetail } from '@dans-coding-world/post-data-access';
 
 export const POST_REPOSITORY_TOKEN = 'IPostRepository';

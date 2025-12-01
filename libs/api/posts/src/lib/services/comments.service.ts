@@ -147,6 +147,7 @@ export class CommentsService implements ICommentsService {
       threadParentId: dto.replyToCommentId ?? null,
     });
   }
+
   async delete(dto: DeleteCommentDto): Promise<Comment> {
     dto = await transformAndValidateDto(dto, DeleteCommentDto);
 
@@ -249,6 +250,7 @@ export class CommentsService implements ICommentsService {
     });
     return sum;
   }
+  
   private setReplyCountRecursively(
     comment: CommentWithReplies
   ): CommentWithReplies {

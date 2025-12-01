@@ -51,7 +51,8 @@
         "libs/api/posts/*",
         "libs/api/data-access/report/*",
         "libs/api/reports/*",
-        "libs/shared/report/dtos/*"
+        "libs/shared/report/dtos/*",
+        "libs/shared/util/helpers/*"
       ]
     },
     {
@@ -132,7 +133,8 @@
         "libs/api/posts/*",
         "libs/api/data-access/report/*",
         "libs/api/reports/*",
-        "libs/shared/report/dtos/*"
+        "libs/shared/report/dtos/*",
+        "libs/shared/util/helpers/*"
       ],
       "options": {
         "typecheck": {

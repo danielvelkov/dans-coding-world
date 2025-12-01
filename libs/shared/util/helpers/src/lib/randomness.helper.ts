@@ -1,10 +1,3 @@
-export function filterObject<T extends Record<string, any>>(
-  obj: T,
-  allowedProps: string[]
-) {
-  return Object.fromEntries(allowedProps.map((key) => [key, obj[key]])) as T;
-}
-
 export function generateRandomString(length: number) {
   const LETTERS_IN_ALPHABET = 26;
   const lowercaseLetters = Array.from({ length: LETTERS_IN_ALPHABET }, (_, i) =>
@@ -16,8 +9,4 @@ export function generateRandomString(length: number) {
       lowercaseLetters[Math.floor(Math.random() * lowercaseLetters.length)]
     );
   return text.join('');
-}
-
-export function getKey<T>(key: keyof T): keyof T {
-  return key;
 }

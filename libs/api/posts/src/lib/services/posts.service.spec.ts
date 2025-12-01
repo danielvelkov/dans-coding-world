@@ -36,7 +36,7 @@ import {
   TAG_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { getKey, generateRandomString } from '../helper/util.js';
+import { generateRandomString, getKey } from '@dans-coding-world/helpers';
 import { FilterPostsByDto } from '@dans-coding-world/shared-post-dto';
 
 let mockUsersRepo: IUserRepository;

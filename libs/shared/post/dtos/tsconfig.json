@@ -10,6 +10,9 @@
       "path": "../../../prisma-schema"
     },
     {
+      "path": "../../util/validation"
+    },
+    {
       "path": "../../util/shared-constants"
     },
     {

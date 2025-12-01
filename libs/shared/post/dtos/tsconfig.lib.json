@@ -23,6 +23,9 @@
       "path": "../../../prisma-schema/tsconfig.lib.json"
     },
     {
+      "path": "../../util/validation/tsconfig.lib.json"
+    },
+    {
       "path": "../../util/shared-constants/tsconfig.lib.json"
     }
   ]

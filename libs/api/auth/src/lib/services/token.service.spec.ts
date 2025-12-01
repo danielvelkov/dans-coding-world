@@ -68,6 +68,7 @@ describe('Token service', () => {
       }).toThrow('secretOrPrivateKey must have a value');
     });
   });
+
   describe('token revocation', () => {
     let token = '';
     const TEST_USER_ID = '1';
