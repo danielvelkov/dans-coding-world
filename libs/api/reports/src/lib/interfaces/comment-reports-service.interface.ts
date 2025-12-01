@@ -70,11 +70,11 @@ export interface ICommentReportsService {
    *
    * @example
    * ```typescript
-   * const commentReport = await commentReportsService.create({postId: 42, userId: 1, commentId: 4, reason: 'Harassment'});
+   * const commentReport = await commentReportsService.create({postId: 42, reporterId: 1, commentId: 4, reason: 'Harassment'});
    * ```
    * @throws {Error} When the post with this postId is not found (SER002)
-   * @throws {Error} When the comment id is not found on the post (SER002)
-   * @throws {Error} When a report from this user for that comment already exists (VAL007)
+   * @throws {Error} When the comment with this commentId is not found on the post (SER002)
+   * @throws {Error} When a report from this user, for that comment already exists (VAL007)
    * @throws {Error} When the report is for a comment the user made themselves (SER003)
    * @throws {Error} When the post is not PUBLISHED and the userId is not
    * the author, ADMIN or MOD (SER003)
