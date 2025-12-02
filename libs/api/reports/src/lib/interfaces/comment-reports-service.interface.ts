@@ -106,14 +106,13 @@ export interface ICommentReportsService {
    *
    * @description Admin-only operation. Requires elevated privileges.
    *
-   * @param dto - Deletion parameters including reportId and moderatorId
+   * @param dto - Deletion parameters including reportId
    * @returns The deleted report
    *
    * @example
    * ```typescript
    * const deletedReport = await commentReports.delete({
    *   reportId: 1,
-   *   moderatorId: 1
    * });
    * ```
    *

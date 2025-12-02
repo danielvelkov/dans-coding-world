@@ -5,9 +5,4 @@ export class DeleteReportDto {
   @Min(0)
   @ToInteger()
   reportId: number;
-
-  @IsInt()
-  @Min(0)
-  @ToInteger()
-  moderatorId: number;
 }

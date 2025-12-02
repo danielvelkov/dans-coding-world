@@ -162,8 +162,16 @@ export class CommentReportsService implements ICommentReportsService {
     };
   }
 
-  delete(dto: DeleteReportDto): Promise<Report> {
-    throw new Error('Method not implemented.');
+  async delete(dto: DeleteReportDto): Promise<Report> {
+    dto = await transformAndValidateDto(dto, DeleteReportDto);
+
+    const reportExists = await this.reports.exists({
+      id: dto.reportId,
+    });
+
+    if (!reportExists) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    return await this.reports.delete(dto.reportId);
   }
 
   /**
