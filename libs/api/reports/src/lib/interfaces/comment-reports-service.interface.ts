@@ -96,6 +96,7 @@ export interface ICommentReportsService {
    * const commentReport = await commentReportsService.updateStatus({reportId: 4, moderatorId: 1, status: 'RESOLVED', moderatorNote: 'User banned'});
    * ```
    * @throws {Error} Report not found (SER002)
+   * @throws {Error} When same status is set when updating (VAL001)
    * @throws {Error} Forbidden update attempt - moderatorId is author of the reported comment (SER003)
    */
   updateStatus(dto: UpdateReportDto): Promise<Report>;
@@ -103,8 +104,7 @@ export interface ICommentReportsService {
   /**
    * Deletes a comment report along with its related report history.
    *
-   * @description Admin or Moderator-only operation. Requires elevated privileges.
-   * The requesting user cannot be deleting reports made about themselves
+   * @description Admin-only operation. Requires elevated privileges.
    *
    * @param dto - Deletion parameters including reportId and moderatorId
    * @returns The deleted report
@@ -118,7 +118,6 @@ export interface ICommentReportsService {
    * ```
    *
    * @throws {Error} Report not found (SER002)
-   * @throws {Error} Forbidden deletion attempt - moderatorId is author of the reported comment (SER003)
    */
   delete(dto: DeleteReportDto): Promise<Report>;
 }

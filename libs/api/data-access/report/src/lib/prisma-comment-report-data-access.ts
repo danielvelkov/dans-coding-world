@@ -68,6 +68,9 @@ export class PrismaCommentReportDataAccess
     return await client.report.update({
       where: { id },
       data,
+      include: {
+        history: true,
+      },
     });
   }
 

@@ -27,6 +27,9 @@ export const VALIDATION_MESSAGES = {
   tags: {
     invalid: 'A tag must only include lower case letters, numbers and hyphens',
   },
+  reports: {
+    sameStatus: 'Cannot update report to its current status',
+  },
   token: {
     invalid: 'Refresh token must be a valid JWT',
   },
