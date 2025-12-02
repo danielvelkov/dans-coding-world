@@ -505,4 +505,157 @@ describe('CommentReportsService', () => {
       }
     );
   });
+
+  describe('updateStatus()', () => {
+    it('should add update entry in report moderation history', async () => {
+      const MOD_NOTE = 'checking report out';
+
+      const report = (await commentReportsService.updateStatus({
+        moderatorId: mod.id,
+        reportId: reportByAuthor.id,
+        status: 'REVIEWING',
+        note: MOD_NOTE,
+      })) as ReportDetail;
+
+      const reportHistoryEntry = await client.reportHistory.findFirst({
+        where: {
+          note: MOD_NOTE,
+          newStatus: 'REVIEWING',
+          previousStatus: reportByAuthor.status,
+        },
+      });
+      if (!reportHistoryEntry) throw new Error('Failed');
+
+      expect(reportHistoryEntry).toBeDefined();
+
+      // Report should contain: History by far + new entry
+      expect(report.history.length).toBe(historyForReport.length + 1);
+      expect(
+        report.history.map((e) => e.id).includes(reportHistoryEntry?.id)
+      ).toBe(true);
+      expect(
+        report.history.map((e) => e.note).includes(historyForReport[0].note)
+      ).toBe(true);
+    });
+
+    it('should throw error when updating report to the same status', async () => {
+      expect.assertions(1);
+      return commentReportsService
+        .updateStatus({
+          reportId: reportByAuthor.id,
+          moderatorId: mod.id,
+          status: reportByAuthor.status,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(VALIDATION_MESSAGES.reports.sameStatus);
+        });
+    });
+
+    it('should throw error when moderatorId matches the user who got reported', async () => {
+      expect.assertions(1);
+      return commentReportsService
+        .updateStatus({
+          reportId: reportByAuthor.id,
+          moderatorId: reportedComment.userId,
+          status: 'RESOLVED',
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+          );
+        });
+    });
+
+    test.each(['ANALYZING', 'POWER_TRIPPING'])(
+      'should throw when setting unknown status',
+      async (status) => {
+        expect.assertions(1);
+        return commentReportsService
+          .updateStatus({
+            reportId: reportByAuthor.id,
+            moderatorId: mod.id,
+            status: status as any,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+
+    it('should throw when report with that id does not exist', async () => {
+      expect.assertions(1);
+      return commentReportsService
+        .updateStatus({
+          reportId: 9999,
+          moderatorId: mod.id,
+          status: 'REVIEWING',
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          );
+        });
+    });
+
+    test.each([
+      [
+        'is too long',
+        generateRandomString(REPORT_CONSTRAINTS.MAX_REASON_LENGTH + 1),
+      ],
+    ])('should throw validation error when note field %s', async (_, note) => {
+      expect.assertions(1);
+      return commentReportsService
+        .updateStatus({
+          note: note as any,
+          moderatorId: mod.id,
+          reportId: reportByAuthor.id,
+          status: 'RESOLVED',
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])(
+      'should throw validation error when moderatorId %s',
+      async (_, modId) => {
+        expect.assertions(1);
+        return commentReportsService
+          .updateStatus({
+            note: REPORT_REASON,
+            moderatorId: modId as any,
+            reportId: reportByAuthor.id,
+            status: 'RESOLVED',
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])(
+      'should throw validation error when reportId %s',
+      async (_, reportId) => {
+        expect.assertions(1);
+        return commentReportsService
+          .updateStatus({
+            note: REPORT_REASON,
+            moderatorId: mod.id,
+            reportId: reportId as any,
+            status: 'RESOLVED',
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+  });
 });
