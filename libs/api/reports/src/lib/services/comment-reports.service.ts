@@ -9,6 +9,7 @@ import {
   Comment,
   CommentWhereInput,
   CommentsOrderByInput,
+  client,
 } from '@dans-coding-world/prisma-schema';
 import {
   CreateReportDto,
@@ -28,7 +29,11 @@ import type {
 } from '@dans-coding-world/shared-data-access-interfaces';
 import { transformAndValidateDto } from '@dans-coding-world/validation';
 import { ApiException } from '@dans-coding-world/exceptions';
-import { ERROR_CODES, PAGINATION } from '@dans-coding-world/shared-constants';
+import {
+  ERROR_CODES,
+  PAGINATION,
+  VALIDATION_MESSAGES,
+} from '@dans-coding-world/shared-constants';
 import { ICommentReportsService } from '../interfaces/comment-reports-service.interface.js';
 import { ReportDetail } from '@dans-coding-world/report-data-access';
 
@@ -110,19 +115,63 @@ export class CommentReportsService implements ICommentReportsService {
 
     return createdReport;
   }
-  updateStatus(dto: UpdateReportDto): Promise<Report> {
-    throw new Error('Method not implemented.');
+
+  async updateStatus(dto: UpdateReportDto): Promise<ReportDetail> {
+    dto = await transformAndValidateDto(dto, UpdateReportDto);
+
+    const reportForUpdate = (await this.reports.getById(
+      dto.reportId
+    )) as ReportDetail;
+
+    if (!reportForUpdate) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    if (reportForUpdate.status === dto.status)
+      throw new ApiException(
+        ERROR_CODES.VALIDATION.VALIDATION_ERROR,
+        VALIDATION_MESSAGES.reports.sameStatus
+      );
+
+    const { reportedComment } = reportForUpdate;
+
+    if (reportedComment.userId === dto.moderatorId)
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+
+    const [report, historyEntry] = await client.$transaction([
+      client.report.update({
+        where: { id: reportForUpdate.id },
+        data: { status: dto.status },
+        include: {
+          history: true,
+        },
+      }),
+      client.reportHistory.create({
+        data: {
+          reportId: reportForUpdate.id,
+          previousStatus: reportForUpdate.status,
+          moderatorId: dto.moderatorId,
+          newStatus: dto.status,
+          note: dto.note,
+          changedAt: new Date(),
+        },
+      }),
+    ]);
+
+    return {
+      ...(report as ReportDetail),
+      history: [...report.history, historyEntry],
+    };
   }
+
   delete(dto: DeleteReportDto): Promise<Report> {
     throw new Error('Method not implemented.');
   }
 
   /**
-   * 
+   *
    * @param commentId Comment Id
    * @param postId Post Id
    * @param viewerId User trying to report a comment on a post
-   * @returns 
+   * @returns
    */
   private async validateReportingAccess(
     commentId: number,
