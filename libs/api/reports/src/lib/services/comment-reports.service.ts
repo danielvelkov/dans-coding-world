@@ -2,7 +2,6 @@ import {
   Report,
   ReportWhereInput,
   ReportOrderByInput,
-  User,
   Post,
   PostWhereInput,
   PostOrderByInput,
@@ -14,6 +13,7 @@ import {
 import {
   CreateReportDto,
   DeleteReportDto,
+  FilterReportsByDto,
   GetReportDto,
   GetReportResponseDto,
   GetReportsDto,
@@ -46,7 +46,7 @@ export const COMMENT_REPOSITORY_TOKEN = 'ICommentRepository';
  * Service related to reports made on comments.
  *
  * **Access control:**
- * - Users can create reports on comments
+ * - All users can create reports on comments, except on their own comments
  * - Moderators have view rights for all reports, but edit rights only to reports that are not about themselves
  * - Admins have access to everything
  *
@@ -77,8 +77,37 @@ export class CommentReportsService implements ICommentReportsService {
     >
   ) {}
 
-  getAll(dto: GetReportsDto): Promise<GetReportsResponseDto> {
-    throw new Error('Method not implemented.');
+  async getAll(dto: GetReportsDto): Promise<GetReportsResponseDto> {
+    dto = await transformAndValidateDto(dto, GetReportsDto);
+
+    const where = this.buildReportsWhereClause(dto?.filterBy);
+    const orderBy = { ...dto?.sortBy } as ReportOrderByInput;
+
+    const [items, total] = await Promise.all([
+      this.reports.search(where, orderBy, {
+        skip: dto?.pageOffset ?? 0,
+        take: dto?.pageSize ?? PAGINATION.REPORTS.DEFAULT_ITEMS_PER_PAGE,
+      }) as Promise<ReportDetail[]>,
+      this.reports.count(where),
+    ]);
+
+    const reportsPerPage =
+      dto?.pageSize ?? PAGINATION.REPORTS.DEFAULT_ITEMS_PER_PAGE;
+    const currentPage = Math.floor((dto?.pageOffset ?? 0) / reportsPerPage) + 1;
+    const totalPages = Math.ceil(total / reportsPerPage);
+
+    return {
+      items,
+      count: items.length,
+      pagination: {
+        total,
+        limit: reportsPerPage,
+        page: currentPage,
+        totalPages,
+        hasNext: currentPage < totalPages,
+        hasPrev: currentPage > 1,
+      },
+    };
   }
 
   async getById(dto: GetReportDto): Promise<GetReportResponseDto> {
@@ -203,5 +232,40 @@ export class CommentReportsService implements ICommentReportsService {
     if (post.status !== 'PUBLISHED' && viewerId !== post.authorId) {
       throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
     }
+  }
+
+  private buildReportsWhereClause(
+    filters?: FilterReportsByDto
+  ): ReportWhereInput {
+    if (!filters)
+      return {
+        status: 'PENDING',
+      };
+    const clauses: ReportWhereInput[] = [];
+
+    if (filters.maliciousUserId)
+      clauses.push({
+        reportedComment: {
+          userId: filters.maliciousUserId,
+        },
+      });
+
+    if (filters.postId)
+      clauses.push({
+        reportedComment: {
+          postId: filters.postId,
+        },
+      });
+
+    if (filters.status && filters.status.length > 0)
+      clauses.push({
+        status: {
+          in: filters.status,
+        },
+      });
+
+    return {
+      AND: clauses,
+    };
   }
 }

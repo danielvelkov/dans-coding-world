@@ -28,7 +28,7 @@ import {
  */
 export interface ICommentReportsService {
   /**
-   * Retrieves comment reports.
+   * Retrieves comment reports. By default retrieves PENDING reports if no filters specified.
    *
    * **Filtering options:**
    * - By post id
