@@ -53,13 +53,7 @@ export class PrismaCommentReportDataAccess
       skip: options?.skip,
       take: options?.take,
       include: {
-        reportedComment: {
-          include: {
-            user: true,
-          },
-        },
-        reportedBy: true,
-        history: true,
+        reportedComment: true,
       },
     });
   }
@@ -91,5 +85,9 @@ export class PrismaCommentReportDataAccess
       select: { id: true },
     });
     return !!post;
+  }
+
+  async count(where: ReportWhereInput): Promise<number> {
+    return await client.report.count({ where });
   }
 }

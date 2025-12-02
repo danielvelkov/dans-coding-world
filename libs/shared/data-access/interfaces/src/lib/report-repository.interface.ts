@@ -16,4 +16,5 @@ export interface IReportRepository<Report, TWhereInput, TOrderBy> {
   delete(id: number): Promise<Report>;
   deleteMany(where: TWhereInput): Promise<number>;
   exists(where: TWhereInput): Promise<boolean>;
+  count(where: TWhereInput): Promise<number>;
 }
