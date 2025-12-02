@@ -658,4 +658,82 @@ describe('CommentReportsService', () => {
       }
     );
   });
+
+  describe('delete()', () => {
+    it('should delete report and its related report history', async () => {
+      const report = await commentReportsService.delete({
+        reportId: reportByAuthor.id,
+      });
+      expect(report.id).toBe(reportByAuthor.id);
+
+      expect(mockCommentReportsRepo.delete).toHaveBeenCalledTimes(1);
+
+      expect(
+        await client.report.count({
+          where: {
+            id: reportByAuthor.id,
+          },
+        })
+      ).toBe(0);
+      expect(
+        await client.reportHistory.count({
+          where: {
+            reportId: reportByAuthor.id,
+          },
+        })
+      ).toBe(0);
+    });
+
+    it('should not delete reported comment entity and reporter', async () => {
+      await commentReportsService.delete({
+        reportId: reportByAuthor.id,
+      });
+
+      expect(
+        await client.comment.count({
+          where: {
+            id: reportByAuthor.commentId,
+          },
+        })
+      ).toBe(1);
+      expect(
+        await client.user.count({
+          where: {
+            id: reportByAuthor.reporterId,
+          },
+        })
+      ).toBe(1);
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])(
+      'should throw validation error when reportId %s',
+      async (_, reportId) => {
+        expect.assertions(1);
+        return commentReportsService
+          .delete({
+            reportId: reportId as any,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+  });
+
+  it('should throw when report with that id does not exist', async () => {
+    expect.assertions(1);
+    return commentReportsService
+      .delete({
+        reportId: 9999,
+      })
+      .catch((error) => {
+        expect(error.message).toMatch(
+          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+        );
+      });
+  });
 });
