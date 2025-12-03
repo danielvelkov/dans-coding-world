@@ -24,10 +24,26 @@ export class PrismaCommentReportDataAccess
       include: {
         reportedComment: {
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+                username: true,
+                role: true,
+                password: false,
+              },
+            },
           },
         },
-        reportedBy: true,
+        reportedBy: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            role: true,
+            password: false,
+          },
+        },
         history: true,
       },
     });

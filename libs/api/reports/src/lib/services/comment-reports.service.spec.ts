@@ -568,6 +568,7 @@ describe('CommentReportsService', () => {
 
       expect(report.reportedBy.id).toBe(author.id);
       expect(report.reportedBy.email).toBe(author.email);
+      expect(report.reportedBy.password).not.toBeDefined();
 
       expect(report.reportedComment.id).toBe(reportedComment.id);
       expect(report.reportedComment.content).toBe(reportedComment.content);
@@ -576,6 +577,7 @@ describe('CommentReportsService', () => {
 
       expect(commentAuthor.id).toBe(maliciousUser.id);
       expect(commentAuthor.email).toBe(maliciousUser.email);
+      expect(commentAuthor.password).not.toBeDefined();
 
       for (let i = 0; i < historyForReport.length; i++) {
         const reportHistoryChange = report.history[i];
