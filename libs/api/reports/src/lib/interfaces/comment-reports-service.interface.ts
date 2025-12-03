@@ -56,6 +56,11 @@ export interface ICommentReportsService {
    * @param dto - Request parameters like reportId
    * @returns Requested comment report with details
    *
+   * @example
+   * ```typescript
+   * const commentReport = await commentReportsService.getById({reportId: 42});
+   * ```
+   *
    * @throws {Error} Report not found (SER002)
    */
   getById(dto: GetReportDto): Promise<GetReportResponseDto>;
