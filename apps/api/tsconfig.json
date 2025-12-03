@@ -13,6 +13,9 @@
       "path": "../../libs/api/reports"
     },
     {
+      "path": "../../libs/shared/report/dtos"
+    },
+    {
       "path": "../../libs/prisma-schema"
     },
     {

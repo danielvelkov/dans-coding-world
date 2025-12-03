@@ -20,7 +20,7 @@ export class CommentReportsController {
     try {
       const { id } = req.params;
 
-      const report = await this.reportsService.getById({
+      const { report } = await this.reportsService.getById({
         reportId: id as any,
       });
 
