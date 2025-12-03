@@ -31,4 +31,11 @@ export const SUCCESS_MESSAGES = {
     update: 'Comment updated successfully',
     create: 'Comment posted successfully',
   },
+  REPORTS: {
+    create: 'Report submitted successfully',
+    delete: 'Report deleted successfully',
+    updateStatus: 'Report status changed successfully',
+    get: 'Report retrieved successfully',
+    getAll: 'Reports retrieved successfully',
+  },
 };
