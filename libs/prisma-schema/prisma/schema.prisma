@@ -99,8 +99,8 @@ model ReportHistory {
   id Int @id @default(autoincrement())
   report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
   reportId Int 
-  moderator User @relation(fields: [moderatorId], references: [id])
-  moderatorId Int 
+  moderator User? @relation(fields: [moderatorId], references: [id], onDelete: SetNull)
+  moderatorId Int? 
   previousStatus ReportStatus 
   newStatus ReportStatus 
   note String?
