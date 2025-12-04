@@ -1,9 +1,13 @@
 import type { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { GetReportsDto } from '@dans-coding-world/shared-report-dto';
+import {
+  CreateReportDto,
+  GetReportsDto,
+} from '@dans-coding-world/shared-report-dto';
 import { Authorized, RequiredRole } from '@dans-coding-world/api-auth';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 import { ICommentReportsService } from '@dans-coding-world/api-reports';
+import { User } from '@dans-coding-world/prisma-schema';
 
 export class CommentReportsController {
   constructor(private reportsService: ICommentReportsService) {
@@ -41,7 +45,9 @@ export class CommentReportsController {
         ...req.query,
       };
 
-      const reportsWithMetadata = await this.reportsService.getAll(getReportsDto);
+      const reportsWithMetadata = await this.reportsService.getAll(
+        getReportsDto
+      );
 
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.REPORTS.getAll,
@@ -54,7 +60,23 @@ export class CommentReportsController {
 
   @Authorized()
   async create(req: Request, res: Response, next: NextFunction) {
-    throw new Error('Not implemented');
+    try {
+      const user = req.user as User;
+
+      const createReportDto: CreateReportDto = {
+        ...req.body,
+        reporterId: user.id,
+      };
+
+      const report = await this.reportsService.create(createReportDto);
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.REPORTS.create,
+        report,
+      });
+    } catch (error) {
+      return next(error);
+    }
   }
 
   @Authorized()
