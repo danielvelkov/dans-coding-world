@@ -120,7 +120,7 @@ export default commentReportsRouter;
  *             schema:
  *               $ref: '#/components/schemas/UnauthorizedError'
  *       403:
- *         description: Forbidden - you do not have access to this post
+ *         description: Forbidden
  *         content:
  *           application/json:
  *             schema:
