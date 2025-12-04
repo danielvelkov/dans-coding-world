@@ -551,6 +551,19 @@ describe('CommentReportsService', () => {
         expect(resDto.pagination.page).toBe(expectedPageNum);
       }
     );
+
+    it('should return 0 items when offset is beyond total number of reports', async () => {
+      const totalRoundUpToHundred = Math.ceil(mockReports.length / 100) * 100;
+      const resDto = await commentReportsService.getAll({
+        pageOffset: totalRoundUpToHundred,
+        pageSize: pageSizeOptions[2],
+        filterBy: {
+          status: ['PENDING', 'RESOLVED', 'DISMISSED', 'REVIEWING'],
+        },
+      });
+      expect(resDto.count).toBe(0);
+      expect(resDto.items.length).toBe(0);
+    });
   });
 
   describe('getById()', () => {
