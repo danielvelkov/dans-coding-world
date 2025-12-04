@@ -641,7 +641,6 @@ describe('CommentReportsService', () => {
 
       const createdReport = await commentReportsService.create({
         commentId: reportedComment.id,
-        postId: reportedComment.postId,
         reason: REPORT_REASON,
         reporterId: author.id,
       });
@@ -662,7 +661,6 @@ describe('CommentReportsService', () => {
         .create({
           reason: REPORT_REASON,
           reporterId: reportByAuthor.reporterId,
-          postId: reportedComment.postId,
           commentId: reportedComment.id,
         })
         .catch((error) => {
@@ -678,7 +676,6 @@ describe('CommentReportsService', () => {
         .create({
           reason: REPORT_REASON,
           reporterId: reportedComment.userId,
-          postId: reportedComment.postId,
           commentId: reportedComment.id,
         })
         .catch((error) => {
@@ -701,7 +698,6 @@ describe('CommentReportsService', () => {
           .create({
             reason,
             reporterId: admin.id,
-            postId: publishedPost.id,
             commentId: reportedComment.id,
           })
           .catch((error) => {
@@ -722,7 +718,6 @@ describe('CommentReportsService', () => {
           .create({
             reason: REPORT_REASON,
             reporterId: admin.id,
-            postId: publishedPost.id,
             commentId: commentId as any,
           })
           .catch((error) => {
@@ -743,7 +738,6 @@ describe('CommentReportsService', () => {
           .create({
             reason: REPORT_REASON,
             reporterId: reporterId as any,
-            postId: publishedPost.id,
             commentId: reportedComment.id,
           })
           .catch((error) => {
@@ -752,30 +746,12 @@ describe('CommentReportsService', () => {
       }
     );
 
-    test.each([
-      ['is null', null],
-      ['is undefined', undefined],
-      ['is empty string', ''],
-    ])('should throw validation error when postId %s', async (_, id) => {
-      return commentReportsService
-        .create({
-          reason: REPORT_REASON,
-          reporterId: admin.id,
-          postId: id as any,
-          commentId: reportedComment.id,
-        })
-        .catch((error) => {
-          expect(error.message).toMatch(/failed.*validation/i);
-        });
-    });
-
     it('should throw when comment with that id does not exist', async () => {
       expect.assertions(1);
       return commentReportsService
         .create({
           reason: REPORT_REASON,
           reporterId: admin.id,
-          postId: reportedComment.postId,
           commentId: 9999,
         })
         .catch((error) => {
@@ -791,28 +767,11 @@ describe('CommentReportsService', () => {
         .create({
           reason: REPORT_REASON,
           reporterId: 9999,
-          postId: reportedComment.postId,
           commentId: reportedComment.id,
         })
         .catch((error) => {
           expect(error.message).toMatch(
             ERROR_MESSAGES[ERROR_CODES.VALIDATION.USER_MISSING]
-          );
-        });
-    });
-
-    it('should throw when post with that id does not exist', async () => {
-      expect.assertions(1);
-      return commentReportsService
-        .create({
-          reason: REPORT_REASON,
-          reporterId: admin.id,
-          postId: 9999,
-          commentId: reportedComment.id,
-        })
-        .catch((error) => {
-          expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
           );
         });
     });
@@ -833,7 +792,6 @@ describe('CommentReportsService', () => {
         .create({
           reason: REPORT_REASON,
           reporterId: user.id,
-          postId: draftAuthorPost.id,
           commentId: reportedComment.id,
         })
         .catch((error) => {
@@ -867,7 +825,6 @@ describe('CommentReportsService', () => {
 
         const report = await commentReportsService.create({
           commentId: commentForReportOnPrivatePost.id,
-          postId: draftAuthorPost.id,
           reporterId: reporter.id,
           reason: REPORT_REASON,
         });

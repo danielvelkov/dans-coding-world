@@ -13,11 +13,6 @@ export class CreateReportDto {
   @IsInt()
   @Min(0)
   @ToInteger()
-  postId: number;
-
-  @IsInt()
-  @Min(0)
-  @ToInteger()
   commentId: number;
 
   @MinLength(REPORT_CONSTRAINTS.MIN_REASON_LENGTH, {

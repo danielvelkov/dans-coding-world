@@ -70,15 +70,14 @@ export interface ICommentReportsService {
    * User cannot create more than 1 report per comment.
    * User cannot create report on a comment he made.
    *
-   * @param dto - commentId, postId, reporterId and the reason (optional)
+   * @param dto - commentId, reporterId and the reason (optional)
    * @returns The newly created report
    *
    * @example
    * ```typescript
-   * const commentReport = await commentReportsService.create({postId: 42, reporterId: 1, commentId: 4, reason: 'Harassment'});
+   * const commentReport = await commentReportsService.create({reporterId: 1, commentId: 4, reason: 'Harassment'});
    * ```
-   * @throws {Error} When the post with this postId is not found (SER002)
-   * @throws {Error} When the comment with this commentId is not found on the post (SER002)
+   * @throws {Error} When the comment with this commentId is not found (SER002)
    * @throws {Error} When a report from this user, for that comment already exists (VAL007)
    * @throws {Error} When the report is for a comment the user made themselves (SER003)
    * @throws {Error} When the post is not PUBLISHED and the userId is not

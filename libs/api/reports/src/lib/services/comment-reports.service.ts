@@ -122,11 +122,7 @@ export class CommentReportsService implements ICommentReportsService {
   async create(dto: CreateReportDto): Promise<Report> {
     dto = await transformAndValidateDto(dto, CreateReportDto);
 
-    await this.validateReportingAccess(
-      dto.commentId,
-      dto.postId,
-      dto.reporterId
-    );
+    await this.validateReportingAccess(dto.commentId, dto.reporterId);
 
     const reportExists = await this.reports.exists({
       reporterId: dto.reporterId,
@@ -137,7 +133,9 @@ export class CommentReportsService implements ICommentReportsService {
       throw new ApiException(ERROR_CODES.VALIDATION.REPORT_EXISTS);
 
     const createdReport = await this.reports.create({
-      ...dto,
+      commentId: dto.commentId,
+      reason: dto.reason,
+      reporterId: dto.reporterId,
       status: 'PENDING',
       createdAt: new Date(),
     });
@@ -204,22 +202,20 @@ export class CommentReportsService implements ICommentReportsService {
   }
 
   /**
-   *
+   * Check if comment exists and if user has access to the comment
    * @param commentId Comment Id
-   * @param postId Post Id
    * @param viewerId User trying to report a comment on a post
    * @returns
    */
   private async validateReportingAccess(
     commentId: number,
-    postId: number,
     viewerId: number
   ): Promise<void> {
-    const post = await this.posts.getById(postId);
-    if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
-
     const comment = await this.comments.getById(commentId);
     if (!comment) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    const post = await this.posts.getById(comment.postId);
+    if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
     const user = await this.users.getById(viewerId.toString());
     if (!user) throw new ApiException(ERROR_CODES.VALIDATION.USER_MISSING);
