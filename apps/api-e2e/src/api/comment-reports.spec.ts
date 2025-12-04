@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  client as prismaClient,
   Comment,
   Post,
   Report,
@@ -18,6 +19,7 @@ import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   ERROR_CODES,
   PAGINATION,
+  REPORT_CONSTRAINTS,
   SUCCESS_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { createAuthRouteHelper } from '../helper/auth-request.helper';
@@ -30,7 +32,11 @@ import {
 } from '@dans-coding-world/shared-report-dto';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
-import { randomSelect } from '@dans-coding-world/helpers';
+import {
+  generateRandomString,
+  randomInteger,
+  randomSelect,
+} from '@dans-coding-world/helpers';
 import { ReportDetail } from '@dans-coding-world/report-data-access';
 
 describe('/api/v1/reports/comments', () => {
@@ -42,11 +48,11 @@ describe('/api/v1/reports/comments', () => {
   let getReports: (params?: any) => Promise<AxiosResponse<unknown>>;
   let getReport: (id: any) => Promise<AxiosResponse<unknown>>;
   let createReport: (
-    data: Omit<CreateReportDto, 'authorId'>
+    data: Omit<CreateReportDto, 'reporterId'>
   ) => Promise<AxiosResponse<unknown>>;
   let updateReport: (
     id: string,
-    data: Omit<UpdateReportDto, 'userId' | 'postId'>
+    data: Omit<UpdateReportDto, 'reportId' | 'moderatorId'>
   ) => Promise<AxiosResponse<unknown>>;
   let deleteReport: (id: string) => Promise<AxiosResponse<unknown>>;
 
@@ -591,5 +597,278 @@ describe('/api/v1/reports/comments', () => {
         );
       });
     });
+  });
+
+  describe('POST /api/v1/reports/comments', () => {
+    let testPosts: Post[];
+    let testComments: Comment[];
+    const testReports: Report[] = [];
+
+    beforeAll(async () => {
+      const postsForCreation: Post[] = [
+        {
+          id: 200,
+          content: 'RANDOM CONTENT',
+          title: 'RANDOM TITLE',
+          status: 'PUBLISHED',
+          visibility: 'PUBLIC',
+          authorId: author.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          publishedAt: null,
+        },
+        {
+          id: 201,
+          content: 'RANDOM CONTENT',
+          title: 'RANDOM TITLE',
+          status: 'DRAFT',
+          visibility: 'PUBLIC',
+          authorId: author.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          publishedAt: null,
+        },
+      ];
+
+      testPosts = await seedPosts(postsForCreation, {
+        clearExisting: false,
+        useDefaults: false,
+      });
+
+      const commentsToCreate: any[] = [];
+
+      for (const post of testPosts) {
+        const randomNumOfComments = randomInteger(2, 10);
+
+        for (let i = 0; i < randomNumOfComments; i++) {
+          const commenter = randomSelect(users);
+
+          const comment = {
+            content: `Comment ${i} on post ${post.id}`,
+            postId: post.id,
+            userId: commenter.id,
+            depth: 0,
+            threadParentId: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          commentsToCreate.push(comment);
+        }
+      }
+
+      testComments = await seedComments(commentsToCreate, {
+        clearExisting: false,
+        useDefaults: false,
+      });
+    });
+
+    afterAll(async () => {
+      // cascade delete everything referenced
+      await prismaClient.post.deleteMany({
+        where: {
+          id: {
+            in: testPosts.map((p) => p.id),
+          },
+        },
+      });
+    });
+
+    it('should create a PENDING report with createdAt being the current datetime', async () => {
+      const now = new Date();
+      const reportReason = generateRandomString(10);
+
+      await login(mod.email, mod.password);
+      const res = await createReport({
+        commentId: randomSelect(testComments).id,
+        reason: reportReason,
+      });
+      const { data } = res.data as BaseResponse;
+
+      const createdReport = (data as any).report as Report;
+      expect(createdReport).toBeDefined();
+
+      expect(createdReport.reason).toBe(reportReason);
+      expect(createdReport.status).toBe('PENDING');
+      // Check date and time down to minutes
+      expect(new Date(createdReport.createdAt).toISOString().slice(0, 16)).toBe(
+        now.toISOString().slice(0, 16)
+      );
+
+      testReports.push(createdReport);
+    });
+
+    it('should not allow the user to make another report on the same comment', async () => {
+      const commentToReport = testComments.find(
+        (c) =>
+          !testReports.map((r) => r.commentId).includes(c.id) &&
+          testPosts
+            .filter((p) => p.status === 'PUBLISHED')
+            .map((p) => p.id)
+            .includes(c.postId)
+      );
+
+      if (!commentToReport) throw new Error('Missing test comment');
+
+      await login(user.email, user.password);
+
+      const res = await createReport({
+        commentId: commentToReport.id,
+        reason: generateRandomString(10),
+      });
+      const { data } = res.data as BaseResponse;
+
+      const createdReport = (data as any).report as Report;
+      testReports.push(createdReport);
+
+      await expect(
+        createReport({
+          commentId: commentToReport.id,
+          reason: generateRandomString(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.REPORT_EXISTS)
+      );
+    });
+
+    it(`should return 403 FORBIDDEN when the same user
+       that made the comment - is trying to report it`, async () => {
+      const commentReportedByMod = testComments.find(
+        (c) =>
+          c.userId === mod.id &&
+          !testReports.map((r) => r.commentId).includes(c.id)
+      );
+      if (!commentReportedByMod) throw new Error('Missing test comment');
+
+      await login(mod.email, mod.password);
+      await expect(
+        createReport({
+          commentId: commentReportedByMod.id,
+          reason: generateRandomString(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
+    it('should return 401 UNAUTHORIZED when not logged-in', async () => {
+      await expect(
+        createReport({
+          commentId: comments[0].id,
+          reason: generateRandomString(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+
+    it('should return 404 NOT_FOUND when comment does not exist', async () => {
+      await login(mod.email, mod.password);
+      await expect(
+        createReport({
+          commentId: 9999,
+          reason: generateRandomString(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it(`should return 403 FORBIDDEN when the comment's post's status is 
+    not PUBLISHED and the logged-in user is not ADMIN, MOD or the AUTHOR`, async () => {
+      const commentNotMadeOrReportedByUserOnAPrivatePost = testComments.find(
+        (c) =>
+          c.userId !== user.id &&
+          !testReports.map((r) => r.commentId).includes(c.id) &&
+          testPosts.find((p) => p.status !== 'PUBLISHED')?.id === c.postId
+      );
+      if (!commentNotMadeOrReportedByUserOnAPrivatePost)
+        throw new Error('Missing test comment');
+
+      await login(user.email, user.password);
+      await expect(
+        createReport({
+          commentId: commentNotMadeOrReportedByUserOnAPrivatePost.id,
+          reason: generateRandomString(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
+    test.each([
+      ['user is ADMIN', 'ADMIN'],
+      ['user is MOD', 'MOD'],
+      ['user is the author of the private post', 'AUTHOR'],
+    ])(
+      'should allow to create reports on private posts when %s',
+      async (_, role) => {
+        const users = [mod, user, author, admin];
+        const reporter = users.find((u) => u.role === role);
+        if (!reporter) throw new Error('Missing test user');
+
+        const commentOnAPrivatePostWithoutReports = testComments.find(
+          (c) =>
+            !testReports.map((r) => r.commentId).includes(c.id) &&
+            testPosts.find((p) => p.status !== 'PUBLISHED')?.id === c.postId &&
+            c.userId !== reporter.id
+        );
+        if (!commentOnAPrivatePostWithoutReports)
+          throw new Error('Missing test comment');
+
+        await login(reporter.email, reporter.password);
+
+        const res = await createReport({
+          commentId: commentOnAPrivatePostWithoutReports.id,
+          reason: generateRandomString(10),
+        });
+        const { data } = res.data as BaseResponse;
+
+        const report = (data as any).report as Report;
+        expect(report).toBeDefined();
+        expect(report.reporterId).toBe(reporter.id);
+
+        testReports.push(report);
+      }
+    );
+
+    test.each([
+      [
+        'is too long',
+        generateRandomString(REPORT_CONSTRAINTS.MAX_REASON_LENGTH + 1),
+      ],
+    ])(
+      'should throw validation error when report reason field %s',
+      async (_, reason) => {
+        await login(admin.email, admin.password);
+
+        await expect(
+          createReport({
+            commentId: testComments[0].id,
+            reason,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
+
+    test.each([
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])(
+      'should throw validation error when commentId %s',
+      async (_, commentId) => {
+        await login(admin.email, admin.password);
+
+        await expect(
+          createReport({
+            commentId: commentId as any,
+            reason: generateRandomString(10),
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
   });
 });
