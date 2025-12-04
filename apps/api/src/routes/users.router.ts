@@ -24,7 +24,10 @@ export default usersRouter;
  *   post:
  *     tags: [Users]
  *     summary: Revoke all user refresh tokens
- *     description: Gets all refresh tokens for an user given his id, then sets the token status to 'revoked', making each one invalid.
+ *     description: |
+ *       Roles required: ADMIN or MOD
+ *
+ *       Gets all refresh tokens for an user given his id, then sets the token status to 'revoked', making each one invalid.
  *     parameters:
  *       - in: path
  *         name: userId

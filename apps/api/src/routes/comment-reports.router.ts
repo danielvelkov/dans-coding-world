@@ -38,6 +38,8 @@ export default commentReportsRouter;
  *     tags: [Reports]
  *     summary: Get reports made on comments with pagination metadata.
  *     description: |
+ *       Roles required: ADMIN or MOD
+ *
  *       Get all user reports regarding comments. Each report comes with the comment in question. Provides pagination and sorting.
  *
  *       **Authentication:**
@@ -140,7 +142,9 @@ export default commentReportsRouter;
  *     tags: [Reports]
  *     summary: Get report by id.
  *     description: |
- *       Get a report by its Id along with reported comment and user, alongside report history.
+ *       Roles required: ADMIN or MOD
+ *
+ *       Get a report by its Id along with moderation history, reported comment and user.
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, returns 401 UNAUTHORIZED error
@@ -207,6 +211,82 @@ export default commentReportsRouter;
 
 /**
  * @openapi
+ * /reports/comments:
+ *   post:
+ *     tags: [Reports]
+ *     summary: Create a report on a given comment.
+ *     description: |
+ *       Create a PENDING report on comment.<br /> Must be logged in, otherwise returns UNAUTHORIZED error.<br />
+ *       Users cannot report the same comment twice. Users cannot report their own comments. <br />
+ *       If post is not PUBLISHED and the user posting the report on the comment is not the author of the post, MOD or ADMIN - returns FORBIDDEN error. <br />
+ *
+ *       **Authentication:**
+ *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
+ *       - If access_token is valid, user can report comments
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateReportDto'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateReportDto'
+ *     responses:
+ *       201:
+ *         description: Report created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CreateCommentReportResponse'
+ *       400:
+ *         description: Bad Request - Invalid report data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: One or more fields failed validation
+ *       401:
+ *         description: Unauthorized - Login first
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden - you do not have access to this action
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *       404:
+ *         description: Not Found - comment does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: SER002
+ *                 message: Resource not found
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
  * components:
  *   schemas:
  *     Report:
@@ -236,6 +316,25 @@ export default commentReportsRouter;
  *           type: string
  *           format: date-time
  *           description: When the report was created.
+ *
+ *     CreateReportDto:
+ *       type: object
+ *       required:
+ *         - commentId
+ *         - reason
+ *       properties:
+ *         commentId:
+ *           type: number
+ *           description: The reported comment Id
+ *           min: 0
+ *         reason:
+ *           type: string
+ *           minLength: 0,
+ *           maxLength: 500
+ *           description: The reason for reporting
+ *       example:
+ *         commentId: 1
+ *         reason: Inappropriate comment
  *
  *     ReportHistory:
  *       type: object
@@ -304,7 +403,7 @@ export default commentReportsRouter;
  *             data:
  *               type: object
  *               properties:
- *                 post:
+ *                 report:
  *                   allOf:
  *                     - $ref: '#/components/schemas/Report'
  *                     - type: object
@@ -323,4 +422,15 @@ export default commentReportsRouter;
  *                         reportedBy:
  *                           $ref: '#/components/schemas/User'
  *
+ *     CreateCommentReportResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SuccessResponse'
+ *         - type: object
+ *           properties:
+ *             data:
+ *               type: object
+ *               properties:
+ *                 report:
+ *                   allOf:
+ *                     - $ref: '#/components/schemas/Report'
  */
