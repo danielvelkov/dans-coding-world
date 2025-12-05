@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import {
   CreateReportDto,
   GetReportsDto,
+  UpdateReportDto,
 } from '@dans-coding-world/shared-report-dto';
 import { Authorized, RequiredRole } from '@dans-coding-world/api-auth';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
@@ -82,7 +83,25 @@ export class CommentReportsController {
   @Authorized()
   @RequiredRole('ADMIN', 'MOD')
   async updateStatus(req: Request, res: Response, next: NextFunction) {
-    throw new Error('Not implemented');
+    try {
+      const user = req.user as User;
+      const { id } = req.params;
+
+      const updateReportDto: UpdateReportDto = {
+        ...req.body,
+        reportId: +id,
+        moderatorId: user?.id,
+      };
+
+      const report = await this.reportsService.updateStatus(updateReportDto);
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.REPORTS.updateStatus,
+        report,
+      });
+    } catch (error) {
+      return next(error);
+    }
   }
 
   @Authorized()

@@ -22,6 +22,7 @@ export const seedReports = async (
     const seeded: Report[] = [];
     if (options.clearExisting) {
       await client.report.deleteMany();
+      await client.$queryRaw`ALTER SEQUENCE "Report_id_seq" RESTART WITH 1;`;
     }
 
     if (customReports) {

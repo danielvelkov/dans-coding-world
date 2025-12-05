@@ -92,12 +92,12 @@ export interface ICommentReportsService {
    * @description Admin or Moderator-only operation. Requires elevated privileges.
    * The requesting user cannot be updating the status of reports made about themselves
    *
-   * @param dto - reportId, moderatorId, new status and the moderatorNote (optional)
+   * @param dto - reportId, moderatorId, status and the note (optional)
    * @returns The updated report
    *
    * @example
    * ```typescript
-   * const commentReport = await commentReportsService.updateStatus({reportId: 4, moderatorId: 1, status: 'RESOLVED', moderatorNote: 'User banned'});
+   * const commentReport = await commentReportsService.updateStatus({reportId: 4, moderatorId: 1, status: 'RESOLVED', note: 'User banned'});
    * ```
    * @throws {Error} Report not found (SER002)
    * @throws {Error} When same status is set when updating (VAL001)

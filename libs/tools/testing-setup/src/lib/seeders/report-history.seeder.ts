@@ -22,6 +22,7 @@ export const seedReportHistories = async (
     const seeded: ReportHistory[] = [];
     if (options.clearExisting) {
       await client.reportHistory.deleteMany();
+      await client.$queryRaw`ALTER SEQUENCE "ReportHistory_id_seq" RESTART WITH 1;`;
     }
 
     if (customReportHistories) {
