@@ -287,6 +287,90 @@ export default commentReportsRouter;
 
 /**
  * @openapi
+ * /reports/comments/{id}:
+ *   patch:
+ *     tags: [Reports]
+ *     summary: Update a report's status.
+ *     description: |
+ *       Roles required: ADMIN or MOD
+ *
+ *       Update a report's status and optionally leave a note about what action was taken.
+ *       Users cannot update a report made about themselves.
+ *       The new report status must be different from the current one.
+ *
+ *       **Authentication:**
+ *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
+ *       - If access_token is valid and the user is MOD or ADMIN, he can update the report's status.
+ *     parameters:
+ *       - in: path
+ *         name: reportId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the report
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateReportDto'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateReportDto'
+ *     responses:
+ *       200:
+ *         description: Report updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CreateCommentReportResponse'
+ *       400:
+ *         description: Bad Request - Invalid query params | Invalid form body
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: One or more fields failed validation
+ *       401:
+ *         description: Unauthorized - Login first
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden - you do not have access rights
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *       404:
+ *         description: Not Found - Report does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: SER002
+ *                 message: Resource not found
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
  * components:
  *   schemas:
  *     Report:
@@ -367,6 +451,23 @@ export default commentReportsRouter;
  *           type: string
  *           format: date-time
  *           description: When the history change occurred.
+ *
+ *     UpdateReportDto:
+ *       type: object
+ *       required:
+ *         - status
+ *       properties:
+ *         note:
+ *           type: string
+ *           description: Moderator note
+ *           maxLength: 500
+ *         status:
+ *           type: string
+ *           enum: [PENDING , REVIEWING , RESOLVED , DISMISSED]
+ *           description: New report status. Must be different than the report's current one.
+ *       example:
+ *         status: REVIEWING
+ *         note: Mod (mod123@email.com) is reviewing report
  *
  *     GetCommentReportsResponse:
  *       allOf:
