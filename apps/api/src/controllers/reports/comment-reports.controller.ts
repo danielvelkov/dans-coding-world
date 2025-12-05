@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import {
   CreateReportDto,
+  DeleteReportDto,
   GetReportsDto,
   UpdateReportDto,
 } from '@dans-coding-world/shared-report-dto';
@@ -107,6 +108,21 @@ export class CommentReportsController {
   @Authorized()
   @RequiredRole('ADMIN')
   async delete(req: Request, res: Response, next: NextFunction) {
-    throw new Error('Not implemented');
+    try {
+      const { id } = req.params;
+
+      const deleteReportDto: DeleteReportDto = {
+        reportId: +id,
+      };
+
+      const report = await this.reportsService.delete(deleteReportDto);
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.REPORTS.delete,
+        report,
+      });
+    } catch (error) {
+      return next(error);
+    }
   }
 }
