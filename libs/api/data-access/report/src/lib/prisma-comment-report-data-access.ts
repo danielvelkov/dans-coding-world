@@ -87,9 +87,6 @@ export class PrismaCommentReportDataAccess
   async delete(id: number): Promise<Report> {
     return await client.report.delete({
       where: { id },
-      include: {
-        history: true,
-      },
     });
   }
 

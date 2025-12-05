@@ -115,11 +115,10 @@ export class CommentReportsController {
         reportId: +id,
       };
 
-      const report = await this.reportsService.delete(deleteReportDto);
+      await this.reportsService.delete(deleteReportDto);
 
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.REPORTS.delete,
-        report,
       });
     } catch (error) {
       return next(error);

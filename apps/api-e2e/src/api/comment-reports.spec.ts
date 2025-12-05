@@ -1073,13 +1073,27 @@ describe('/api/v1/reports/comments', () => {
 
   describe('DELETE /api/v1/reports/comments/:id', () => {
     let reportForDeletion: Report;
-    let reportForDeletionHistory: ReportHistory[];
+    let commentWithoutReport: Comment;
 
     beforeAll(async () => {
-      const commentWithoutReport = comments.find((c) =>
-        reports.map((r) => r.commentId).includes(c.id)
+      [commentWithoutReport] = await seedComments(
+        [
+          {
+            id: 2000,
+            content: 'Random content',
+            createdAt: new Date(),
+            depth: 0,
+            postId: posts[0].id,
+            threadParentId: null,
+            userId: user.id,
+            updatedAt: new Date(),
+          },
+        ],
+        {
+          clearExisting: false,
+          useDefaults: false,
+        }
       );
-      if (!commentWithoutReport) throw new Error('Missing test report');
 
       [reportForDeletion] = await seedReports(
         [
@@ -1097,7 +1111,7 @@ describe('/api/v1/reports/comments', () => {
         }
       );
 
-      reportForDeletionHistory = await seedReportHistories([
+      await seedReportHistories([
         {
           changedAt: new Date(),
           moderatorId: mod.id,
@@ -1109,6 +1123,14 @@ describe('/api/v1/reports/comments', () => {
       ]);
     });
 
+    afterAll(async () => {
+      await prismaClient.comment.delete({
+        where: {
+          id: commentWithoutReport.id,
+        },
+      });
+    });
+
     it(`should delete a report and its related report 
       history if user requesting it is ADMIN`, async () => {
       await login(admin.email, admin.password);
@@ -1117,20 +1139,15 @@ describe('/api/v1/reports/comments', () => {
       const { data } = res.data as BaseResponse;
       expect(data).toHaveProperty('message', SUCCESS_MESSAGES.REPORTS.delete);
 
-      const report = (data as any).report as ReportDetail;
-      expect(report.id).toBe(reportForDeletion.id);
-      expect(report.reason).toBe(reportForDeletion.reason);
-
-      const { history } = report;
-
-      for (const entry of history) {
-        expect(
-          reportForDeletionHistory.map((e) => e.id).includes(entry.id)
-        ).toBe(true);
-      }
+      const reportHistories = await prismaClient.reportHistory.findMany({
+        where: {
+          reportId: reportForDeletion.id,
+        },
+      });
+      expect(reportHistories.length).toBe(0);
 
       // Deleted Comment should not exist afterwards
-      await expect(getReport(report.id)).rejects.toMatchObject(
+      await expect(getReport(reportForDeletion.id)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
