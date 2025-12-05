@@ -993,6 +993,33 @@ describe('/api/v1/reports/comments', () => {
       }
     );
 
+    test.each(['USER', 'AUTHOR'])(
+      'should return 403 FORBIDDEN when user role is %s',
+      async (role) => {
+        const user = users.find((u) => u.role === role);
+        if (!user) throw new Error('Missing test user');
+
+        await login(user.email, user.password);
+        await expect(
+          updateReport(reports[0].id.toString(), {
+            status: 'DISMISSED',
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
+      }
+    );
+
+    it('should return 401 UNAUTHORIZED when not logged-in', async () => {
+      await expect(
+        updateReport(reports[0].id.toString(), {
+          status: 'DISMISSED',
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+
     it('should throw when report with that id does not exist', async () => {
       await login(mod.email, mod.password);
       await expect(
@@ -1039,6 +1066,117 @@ describe('/api/v1/reports/comments', () => {
           note: generateRandomString(10),
         })
       ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+    });
+  });
+
+  describe('DELETE /api/v1/reports/comments/:id', () => {
+    let reportForDeletion: Report;
+    let reportForDeletionHistory: ReportHistory[];
+
+    beforeAll(async () => {
+      const commentWithoutReport = comments.find((c) =>
+        reports.map((r) => r.commentId).includes(c.id)
+      );
+      if (!commentWithoutReport) throw new Error('Missing test report');
+
+      [reportForDeletion] = await seedReports(
+        [
+          {
+            commentId: commentWithoutReport.id,
+            createdAt: new Date(),
+            reason: 'Idk, hes pissing me off',
+            reporterId: user.id,
+            status: 'REVIEWING',
+          },
+        ],
+        {
+          clearExisting: false,
+          useDefaults: false,
+        }
+      );
+
+      reportForDeletionHistory = await seedReportHistories([
+        {
+          changedAt: new Date(),
+          moderatorId: mod.id,
+          newStatus: 'REVIEWING',
+          previousStatus: 'PENDING',
+          note: 'Reviewing user report',
+          reportId: reportForDeletion.id,
+        },
+      ]);
+    });
+
+    it(`should delete a report and its related report 
+      history if user requesting it is ADMIN`, async () => {
+      await login(admin.email, admin.password);
+
+      const res = await deleteReport(reportForDeletion.id.toString());
+      const { data } = res.data as BaseResponse;
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.REPORTS.delete);
+
+      const report = (data as any).report as ReportDetail;
+      expect(report.id).toBe(reportForDeletion.id);
+      expect(report.reason).toBe(reportForDeletion.reason);
+
+      const { history } = report;
+
+      for (const entry of history) {
+        expect(
+          reportForDeletionHistory.map((e) => e.id).includes(entry.id)
+        ).toBe(true);
+      }
+
+      // Deleted Comment should not exist afterwards
+      await expect(getReport(report.id)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    test.each(['USER', 'AUTHOR', 'MOD'])(
+      'should return 403 FORBIDDEN when user role is %s',
+      async (role) => {
+        const user = users.find((u) => u.role === role);
+        if (!user) throw new Error('Missing test user');
+
+        await login(user.email, user.password);
+        await expect(
+          deleteReport(reports[0].id.toString())
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
+      }
+    );
+
+    it('should return 401 UNAUTHORIZED when not logged-in', async () => {
+      await expect(
+        deleteReport(reports[0].id.toString())
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+
+    it('should throw when report with that id does not exist', async () => {
+      await login(admin.email, admin.password);
+      await expect(deleteReport('9999')).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    test.each([
+      ['is letter', 'a'],
+      ['is special character', '@'],
+      ['is decimal number', '12.34'],
+      ['is negative number', '-5'],
+      ['is boolean true', 'true'],
+      ['is boolean false', 'false'],
+      ['is null string', 'null'],
+      ['is undefined string', 'undefined'],
+    ])('should return validation error when report id %s', async (_, id) => {
+      await login(admin.email, admin.password);
+      await expect(deleteReport(id as any)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
       );
     });
