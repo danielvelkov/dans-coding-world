@@ -21,6 +21,7 @@ import {
   PAGINATION,
   REPORT_CONSTRAINTS,
   SUCCESS_MESSAGES,
+  VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { createAuthRouteHelper } from '../helper/auth-request.helper';
 import { createAxiosClient } from '../helper/test-client.helper';
@@ -82,9 +83,7 @@ describe('/api/v1/reports/comments', () => {
     const reportsToCreate: Omit<Report, 'id'>[] = [];
 
     const postsForTest = posts.filter(
-      (post) =>
-        post.status === 'PUBLISHED' ||
-        (post.status === 'DRAFT' && post.visibility === 'PUBLIC')
+      (post) => post.status === 'PUBLISHED' || post.status === 'DRAFT'
     );
 
     const commentsForTest = comments.filter((comment) =>
@@ -219,6 +218,7 @@ describe('/api/v1/reports/comments', () => {
         );
       }
     );
+
     test.each([
       ['is letter', 'a'],
       ['is special character', '@'],
@@ -638,10 +638,10 @@ describe('/api/v1/reports/comments', () => {
       const commentsToCreate: any[] = [];
 
       for (const post of testPosts) {
-        const randomNumOfComments = randomInteger(2, 10);
+        const numOfCommentsNeededForEachUser = users.length;
 
-        for (let i = 0; i < randomNumOfComments; i++) {
-          const commenter = randomSelect(users);
+        for (let i = 0; i < numOfCommentsNeededForEachUser; i++) {
+          const commenter = users[i];
 
           const comment = {
             content: `Comment ${i} on post ${post.id}`,
@@ -677,9 +677,17 @@ describe('/api/v1/reports/comments', () => {
       const now = new Date();
       const reportReason = generateRandomString(10);
 
+      const commentToReport = testComments.find(
+        (c) =>
+          !testReports.map((r) => r.commentId).includes(c.id) &&
+          c.userId !== mod.id
+      );
+
+      if (!commentToReport) throw new Error('Missing test comment');
+
       await login(mod.email, mod.password);
       const res = await createReport({
-        commentId: randomSelect(testComments).id,
+        commentId: commentToReport.id,
         reason: reportReason,
       });
       const { data } = res.data as BaseResponse;
@@ -701,6 +709,7 @@ describe('/api/v1/reports/comments', () => {
       const commentToReport = testComments.find(
         (c) =>
           !testReports.map((r) => r.commentId).includes(c.id) &&
+          c.userId !== user.id &&
           testPosts
             .filter((p) => p.status === 'PUBLISHED')
             .map((p) => p.id)
@@ -732,17 +741,17 @@ describe('/api/v1/reports/comments', () => {
 
     it(`should return 403 FORBIDDEN when the same user
        that made the comment - is trying to report it`, async () => {
-      const commentReportedByMod = testComments.find(
+      const commentReportedByUser = testComments.find(
         (c) =>
-          c.userId === mod.id &&
+          c.userId === user.id &&
           !testReports.map((r) => r.commentId).includes(c.id)
       );
-      if (!commentReportedByMod) throw new Error('Missing test comment');
+      if (!commentReportedByUser) throw new Error('Missing test comment');
 
-      await login(mod.email, mod.password);
+      await login(user.email, user.password);
       await expect(
         createReport({
-          commentId: commentReportedByMod.id,
+          commentId: commentReportedByUser.id,
           reason: generateRandomString(10),
         })
       ).rejects.toMatchObject(
@@ -870,5 +879,168 @@ describe('/api/v1/reports/comments', () => {
         );
       }
     );
+  });
+
+  describe('PATCH /api/v1/reports/comments/:id', () => {
+    it(`should return new updated entry with its
+       change included in moderation history`, async () => {
+      const MOD_NOTE = 'checking report out';
+
+      const reportForUpdate = reports.find((r) =>
+        comments
+          .filter((c) => c.userId !== mod.id)
+          .map((c) => c.id)
+          .includes(r.commentId)
+      );
+      if (!reportForUpdate) throw new Error('Missing test report');
+
+      const newStatus = randomSelect(
+        Object.values(ReportStatusEnum).filter(
+          (s) => s !== reportForUpdate.status
+        )
+      );
+
+      const now = new Date();
+
+      await login(mod.email, mod.password);
+      const res = await updateReport(reportForUpdate.id.toString(), {
+        status: newStatus,
+        note: MOD_NOTE,
+      });
+      const { data } = res.data as BaseResponse;
+
+      const report = (data as any).report as ReportDetail;
+      expect(report).toBeDefined();
+
+      // Report should contain: History by far + new entry
+      expect(report.history.length).toBe(
+        reportsHistories.filter((rh) => rh.reportId === reportForUpdate.id)
+          .length + 1
+      );
+
+      const latestModerationHistoryEntry =
+        report.history[report.history.length - 1];
+
+      expect(latestModerationHistoryEntry.moderatorId).toBe(mod.id);
+      expect(latestModerationHistoryEntry.newStatus).toBe(newStatus);
+      expect(latestModerationHistoryEntry.note).toBe(MOD_NOTE);
+      expect(
+        new Date(latestModerationHistoryEntry.changedAt)
+          .toISOString()
+          .slice(0, 16)
+      ).toBe(now.toISOString().slice(0, 16));
+    });
+
+    it('should throw error when updating report to the same status', async () => {
+      const reportForUpdate = reports.find((r) =>
+        comments
+          .filter((c) => c.userId !== admin.id)
+          .map((c) => c.id)
+          .includes(r.commentId)
+      );
+      if (!reportForUpdate) throw new Error('Missing test report');
+      await login(admin.email, admin.password);
+
+      await expect(
+        updateReport(reportForUpdate.id.toString(), {
+          status: reportForUpdate.status,
+          note: generateRandomString(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(
+          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
+          VALIDATION_MESSAGES.reports.sameStatus
+        )
+      );
+    });
+
+    it('should throw error when moderatorId matches the user who got reported', async () => {
+      const reportForUpdate = reports.find((r) =>
+        comments
+          .filter((c) => c.userId === mod.id)
+          .map((c) => c.id)
+          .includes(r.commentId)
+      );
+      if (!reportForUpdate) throw new Error('Missing test report');
+
+      await login(mod.email, mod.password);
+      await expect(
+        updateReport(reportForUpdate.id.toString(), {
+          status: randomSelect(
+            Object.values(ReportStatusEnum).filter(
+              (s) => s !== reportForUpdate.status
+            )
+          ),
+          note: generateRandomString(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
+    test.each(['ANALYZING', 'POWER_TRIPPING'])(
+      'should throw when setting unknown status',
+      async (status) => {
+        await login(mod.email, mod.password);
+        await expect(
+          updateReport(reports[0].id.toString(), {
+            status: status as any,
+            note: generateRandomString(10),
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
+
+    it('should throw when report with that id does not exist', async () => {
+      await login(mod.email, mod.password);
+      await expect(
+        updateReport('9999', {
+          status: 'PENDING',
+          note: generateRandomString(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    test.each([
+      [
+        'is too long',
+        generateRandomString(REPORT_CONSTRAINTS.MAX_REASON_LENGTH + 1),
+      ],
+    ])('should throw validation error when note field %s', async (_, note) => {
+      await login(mod.email, mod.password);
+      await expect(
+        updateReport(reports[0].id.toString(), {
+          status: 'PENDING',
+          note,
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+    });
+
+    test.each([
+      ['is letter', 'a'],
+      ['is special character', '@'],
+      ['is decimal number', '12.34'],
+      ['is negative number', '-5'],
+      ['is boolean true', 'true'],
+      ['is boolean false', 'false'],
+      ['is null string', 'null'],
+      ['is undefined string', 'undefined'],
+    ])('should return validation error when report id %s', async (_, id) => {
+      await login(admin.email, admin.password);
+      await expect(
+        updateReport(id as any, {
+          status: 'PENDING',
+          note: generateRandomString(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+    });
   });
 });
