@@ -303,7 +303,7 @@ export default commentReportsRouter;
  *       - If access_token is valid and the user is MOD or ADMIN, he can update the report's status.
  *     parameters:
  *       - in: path
- *         name: reportId
+ *         name: id
  *         schema:
  *           type: integer
  *         required: true
@@ -344,6 +344,79 @@ export default commentReportsRouter;
  *               $ref: '#/components/schemas/UnauthorizedError'
  *       403:
  *         description: Forbidden - you do not have access rights
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *       404:
+ *         description: Not Found - Report does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: SER002
+ *                 message: Resource not found
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
+ * /reports/comments/{id}:
+ *   delete:
+ *     tags: [Reports]
+ *     summary: Delete a report by Id.
+ *     description: |
+ *       Roles required: ADMIN
+ *
+ *       Delete a report and its related report history by report Id.
+ *
+ *       Returns 403 FORBIDDEN error if the user requesting it
+ *       is not ADMIN.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the report
+ *     responses:
+ *       200:
+ *         description: Report deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: Bad Request - Invalid query params
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: One or more fields failed validation
+ *       401:
+ *         description: Unauthorized - Login first
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden
  *         content:
  *           application/json:
  *             schema:
