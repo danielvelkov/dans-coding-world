@@ -19,7 +19,7 @@ import {
   TAG_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { toInteger } from './custom-transformers/to-integer.js';
+import { ToInteger } from '@dans-coding-world/validation';
 
 export class FilterPostsByDto {
   @IsOptional()
@@ -70,7 +70,7 @@ export class FilterPostsByDto {
   tags?: string[];
 
   @IsOptional()
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   year?: number;
 }

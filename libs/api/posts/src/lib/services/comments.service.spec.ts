@@ -39,7 +39,7 @@ import {
   PostsService,
   USER_REPOSITORY_TOKEN,
 } from './posts.service.js';
-import { generateRandomString, getKey } from '../helper/util.js';
+import { generateRandomString, getKey } from '@dans-coding-world/helpers';
 
 let mockCommentsRepository: ICommentRepository<
   Comment,

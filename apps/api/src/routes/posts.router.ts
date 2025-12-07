@@ -332,6 +332,12 @@ export default postsRouter;
  *                 status: 400
  *                 errorCode: VAL001
  *                 message: One or more fields failed validation
+ *       401:
+ *         description: Unauthorized - Login first
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
  *       403:
  *         description: Forbidden - you do not have access to this post
  *         content:

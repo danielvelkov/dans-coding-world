@@ -1,14 +1,13 @@
 import { IsInt, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { toInteger } from './custom-transformers/to-integer.js';
+import { ToInteger } from '@dans-coding-world/validation';
 
 export class DeletePostDto {
-  @Transform(toInteger)
+  @ToInteger()
   @Min(0)
   @IsInt()
   authorId: number;
 
-  @Transform(toInteger)
+  @ToInteger()
   @Min(0)
   @IsInt()
   postId: number;

@@ -1,9 +1,8 @@
 import { IsInt, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { toInteger } from '../custom-transformers/to-integer.js';
+import { ToInteger } from '@dans-coding-world/validation';
 
 export class DeleteTagDto {
-  @Transform(toInteger)
+  @ToInteger()
   @Min(0)
   @IsInt()
   tagId: number;

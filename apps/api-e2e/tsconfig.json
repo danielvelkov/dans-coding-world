@@ -15,6 +15,15 @@
       "path": "../../libs/shared/post/dtos"
     },
     {
+      "path": "../../libs/api/data-access/report"
+    },
+    {
+      "path": "../../libs/shared/util/helpers"
+    },
+    {
+      "path": "../../libs/shared/report/dtos"
+    },
+    {
       "path": "../../libs/api/auth"
     },
     {

@@ -16,11 +16,10 @@ import {
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { Transform } from 'class-transformer';
-import { toInteger } from './custom-transformers/to-integer.js';
-import { ToBoolean } from './custom-transformers/to-boolean.js';
+import { ToInteger, ToBoolean } from '@dans-coding-world/validation';
 
 export class CreatePostDto {
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   authorId: number;

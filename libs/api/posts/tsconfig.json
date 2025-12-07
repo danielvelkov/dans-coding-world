@@ -4,13 +4,13 @@
   "include": [],
   "references": [
     {
-      "path": "../../prisma-schema"
-    },
-    {
       "path": "../../shared/util/exceptions"
     },
     {
       "path": "../../shared/util/validation"
+    },
+    {
+      "path": "../../shared/util/helpers"
     },
     {
       "path": "../../shared/util/shared-constants"
@@ -26,6 +26,9 @@
     },
     {
       "path": "../../shared/post/dtos"
+    },
+    {
+      "path": "../../prisma-schema"
     },
     {
       "path": "./tsconfig.lib.json"

@@ -10,7 +10,7 @@ export default defineConfig(() => ({
     host: 'localhost',
   },
   preview: {
-    port: 4300,
+    port: 4200,
     host: 'localhost',
   },
   plugins: [react()],
@@ -27,6 +27,7 @@ export default defineConfig(() => ({
     },
   },
   test: {
+    name: '@dans-coding-world/public-blog',
     watch: false,
     globals: true,
     environment: 'jsdom',

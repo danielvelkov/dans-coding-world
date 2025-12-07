@@ -24,15 +24,15 @@ import {
   PostVisibilityEnum,
 } from '@dans-coding-world/prisma-schema';
 import { Transform } from 'class-transformer';
-import { toInteger } from './custom-transformers/to-integer.js';
+import { ToInteger } from '@dans-coding-world/validation';
 
 export class UpdatePostDto {
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   postId: number;
 
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   userId: number;

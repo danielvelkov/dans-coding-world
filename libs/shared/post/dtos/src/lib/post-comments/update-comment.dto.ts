@@ -2,22 +2,21 @@ import {
   COMMENT_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { Transform } from 'class-transformer';
 import { IsInt, Min, MinLength, MaxLength } from 'class-validator';
-import { toInteger } from '../custom-transformers/to-integer.js';
+import { ToInteger } from '@dans-coding-world/validation';
 
 export class UpdateCommentDto {
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   postId: number;
 
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   commentId: number;
 
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   userId: number;

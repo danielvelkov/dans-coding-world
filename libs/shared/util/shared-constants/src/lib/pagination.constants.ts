@@ -7,4 +7,8 @@ export const PAGINATION = {
     ITEMS_PER_PAGE_OPTIONS: [10, 25, 50],
     DEFAULT_ITEMS_PER_PAGE: 10,
   },
+  REPORTS: {
+    ITEMS_PER_PAGE_OPTIONS: [10, 25, 50],
+    DEFAULT_ITEMS_PER_PAGE: 10,
+  },
 } as const;

@@ -29,7 +29,7 @@ import {
   ERROR_MESSAGES,
   TAG_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
-import { generateRandomString } from '../helper/util.js';
+import { generateRandomString } from '@dans-coding-world/helpers';
 import { ITagsService } from '../interfaces/tags-service.interface.js';
 
 let tagsService: ITagsService;

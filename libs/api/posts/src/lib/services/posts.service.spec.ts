@@ -36,7 +36,7 @@ import {
   TAG_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { getKey, generateRandomString } from '../helper/util.js';
+import { generateRandomString, getKey } from '@dans-coding-world/helpers';
 import { FilterPostsByDto } from '@dans-coding-world/shared-post-dto';
 
 let mockUsersRepo: IUserRepository;
@@ -834,7 +834,7 @@ describe('PostsService', () => {
     });
 
     test.each(['UNORGANIZED', 'HOT_TAKE', 'SHUNNED_ON_TWITTER'])(
-      'should throw when filtering by unknown status',
+      'should throw when filtering by unknown post status',
       async (status) => {
         expect.assertions(1);
         return postsService
@@ -850,7 +850,7 @@ describe('PostsService', () => {
     );
 
     test.each(['HIDDEN', 'premium', 'members_only'])(
-      'should throw when filtering by unknown visibility',
+      'should throw when filtering by unknown post visibility',
       async (visibility) => {
         expect.assertions(1);
         return postsService
@@ -869,7 +869,7 @@ describe('PostsService', () => {
       [['DRAFT'] as PostStatus[], [] as PostVisibility[]],
       [[] as PostStatus[], ['PUBLIC'] as PostVisibility[]],
     ])(
-      'should throw when either visibility or status filtering are empty',
+      'should throw when either post visibility or status filtering are empty',
       async (status, visibility) => {
         expect.assertions(1);
         return postsService
@@ -1106,17 +1106,17 @@ describe('PostsService', () => {
       ['updated date (DESC)', getKey<Post>('updatedAt'), true],
     ])(
       'should sort items provided that sorting by %s is applied',
-      async (_, propName, isAscending: boolean) => {
+      async (_, propName, isDescending: boolean) => {
         const res = await postsService.getAll({
           sortBy: {
-            [propName]: isAscending ? 'asc' : 'desc',
+            [propName]: isDescending ? 'desc' : 'asc',
           },
         });
         const sortedItems = [...res.items].sort((prev, next) => {
           if (!prev[propName] || !next[propName]) return 0;
           const prevDate = (prev[propName] as Date).getTime();
           const nextDate = (next[propName] as Date).getTime();
-          return isAscending ? prevDate - nextDate : nextDate - prevDate;
+          return isDescending ? nextDate - prevDate : prevDate - nextDate;
         });
 
         sortedItems.forEach((post, i) => {

@@ -5,25 +5,26 @@ import {
   PAGINATION,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { IsOffsetAlignedWithSize } from '../custom-validators/is-offset-aligned-with-size.js';
-import { Transform } from 'class-transformer';
-import { toInteger } from '../custom-transformers/to-integer.js';
-import { IsSortBy } from '../custom-validators/is-sort-by.js';
+import {
+  ToInteger,
+  IsSortBy,
+  IsOffsetAlignedWithSize,
+} from '@dans-coding-world/validation';
 
 export class GetPostCommentsDto {
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   postId: number;
 
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   @IsOptional()
   viewerId?: number;
 
   @IsOptional()
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(0)
   @IsOffsetAlignedWithSize('pageSize', {
@@ -32,7 +33,7 @@ export class GetPostCommentsDto {
   pageOffset?: number;
 
   @IsOptional()
-  @Transform(toInteger)
+  @ToInteger()
   @IsIn(PAGINATION.COMMENTS.ITEMS_PER_PAGE_OPTIONS, {
     message: VALIDATION_MESSAGES.allowedValues([
       ...PAGINATION.COMMENTS.ITEMS_PER_PAGE_OPTIONS,
@@ -45,7 +46,7 @@ export class GetPostCommentsDto {
   sortBy?: Partial<Record<CommentSortKey, 'asc' | 'desc'>>;
 
   @IsOptional()
-  @Transform(toInteger)
+  @ToInteger()
   @IsInt()
   @Min(COMMENT_CONSTRAINTS.MIN_REPLY_TREE_DEPTH)
   @Max(COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH)

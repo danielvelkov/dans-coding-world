@@ -24,7 +24,10 @@ export default usersRouter;
  *   post:
  *     tags: [Users]
  *     summary: Revoke all user refresh tokens
- *     description: Gets all refresh tokens for an user given his id, then sets the token status to 'revoked', making each one invalid.
+ *     description: |
+ *       Roles required: ADMIN or MOD
+ *
+ *       Gets all refresh tokens for an user given his id, then sets the token status to 'revoked', making each one invalid.
  *     parameters:
  *       - in: path
  *         name: userId
@@ -66,4 +69,29 @@ export default usersRouter;
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: User ID
+ *           example: 1
+ *         email:
+ *           type: string
+ *           description: User email
+ *           example: user123@email.com
+ *         username:
+ *           type: string
+ *           description: User name
+ *           example: user123
+ *         role:
+ *           type: string
+ *           description: User role. Can be either ADMIN, MOD, AUTHOR or USER
+ *           example: USER
  */

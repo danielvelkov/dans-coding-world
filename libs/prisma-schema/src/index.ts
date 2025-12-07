@@ -17,10 +17,18 @@ export type {
   Tag,
   TagWhereInput,
   TagsOrderByInput,
+  Report,
+  ReportWhereInput,
+  ReportOrderByInput,
+  ReportHistory,
+  ReportStatus,
+  ReportHistoryOrderByInput,
+  ReportHistoryWhereInput,
 } from './lib/prisma.types.js';
 
 export {
   PostStatusEnum,
   PostVisibilityEnum,
   RoleEnum,
+  ReportStatusEnum,
 } from './lib/prisma.enums.js';

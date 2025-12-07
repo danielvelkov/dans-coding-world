@@ -52,6 +52,9 @@ jobs:
       - name: Install lsof
         run: sudo apt-get update && sudo apt-get install -y lsof
 
+      - name: Install cypress dependencies
+        run: sudo apt-get install -y libgtk-3-0t64 libgbm-dev libnotify-dev libnss3 libxss1 libasound2t64 libxtst6 xauth xvfb
+
       - run: npm ci --legacy-peer-deps
 
       # Generate prisma client

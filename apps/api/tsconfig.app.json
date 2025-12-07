@@ -33,6 +33,12 @@
       "path": "../../libs/shared/util/exceptions/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/api/reports/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/report/dtos/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/prisma-schema/tsconfig.lib.json"
     },
     {

@@ -1,0 +1,4 @@
+export const REPORT_CONSTRAINTS = {
+  MIN_REASON_LENGTH: 0,
+  MAX_REASON_LENGTH: 500,
+} as const;

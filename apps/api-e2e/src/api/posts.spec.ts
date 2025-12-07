@@ -547,10 +547,10 @@ describe('/api/v1/posts', () => {
         ['updated date (DESC)', 'updatedAt', true],
       ])(
         'should sort items provided that sorting by %s is applied',
-        async (_, propName, isAscending: boolean) => {
+        async (_, propName, isDescending: boolean) => {
           const res = await getPosts({
             sortBy: {
-              [propName]: isAscending ? 'asc' : 'desc',
+              [propName]: isDescending ? 'desc' : 'asc',
             },
           });
 
@@ -561,7 +561,7 @@ describe('/api/v1/posts', () => {
             if (!prev[propName] || !next[propName]) return 0;
             const prevDate = new Date(prev[propName]).getTime();
             const nextDate = new Date(next[propName]).getTime();
-            return isAscending ? prevDate - nextDate : nextDate - prevDate;
+            return isDescending ? nextDate - prevDate : prevDate - nextDate;
           });
 
           sortedItems.forEach((post, i) => {
