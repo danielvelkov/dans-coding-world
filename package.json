@@ -125,6 +125,7 @@
     "lib/*",
     "libs/api/data-access/*",
     "libs/shared/post/*",
-    "libs/shared/report/*"
+    "libs/shared/report/*",
+    "libs/shared/user/*"
   ]
 }

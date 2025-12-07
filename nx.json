@@ -53,7 +53,8 @@
         "libs/api/reports/*",
         "libs/shared/report/dtos/*",
         "libs/shared/util/helpers/*",
-        "libs/api/users/*"
+        "libs/api/users/*",
+        "libs/shared/user/dtos/*"
       ]
     },
     {
@@ -136,7 +137,8 @@
         "libs/api/reports/*",
         "libs/shared/report/dtos/*",
         "libs/shared/util/helpers/*",
-        "libs/api/users/*"
+        "libs/api/users/*",
+        "libs/shared/user/dtos/*"
       ],
       "options": {
         "typecheck": {

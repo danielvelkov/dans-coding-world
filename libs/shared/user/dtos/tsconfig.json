@@ -1,0 +1,16 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../util/shared-constants"
+    },
+    {
+      "path": "../../util/validation"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    }
+  ]
+}

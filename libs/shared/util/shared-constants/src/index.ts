@@ -11,3 +11,4 @@ export * from './lib/constraints/tag.constraints.js';
 
 export * from './lib/pagination.constants.js';
 export * from './lib/auth.constants.js';
+export * from './lib/shared.constants.js';
