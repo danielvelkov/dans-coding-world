@@ -68,6 +68,9 @@
     },
     {
       "path": "./libs/shared/util/helpers"
+    },
+    {
+      "path": "./libs/api/users"
     }
   ]
 }
