@@ -23,6 +23,7 @@ export class PostsController {
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
   }
+  
   @AttachUser()
   async get(req: Request, res: Response, next: NextFunction) {
     try {

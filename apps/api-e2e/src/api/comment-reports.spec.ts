@@ -39,6 +39,7 @@ import {
   randomSelect,
 } from '@dans-coding-world/helpers';
 import { ReportDetail } from '@dans-coding-world/report-data-access';
+import { testInvalidIds } from '../helper/validation.helper';
 
 describe('/api/v1/reports/comments', () => {
   let client: AxiosInstance;
@@ -219,21 +220,10 @@ describe('/api/v1/reports/comments', () => {
       }
     );
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when report id %s', async (_, id) => {
+    testInvalidIds(async (id) => {
       await login(admin.email, admin.password);
-      await expect(getReport(id as any)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
-    });
+      return getReport(id);
+    }, 'report id');
 
     it('should return 404 NOT FOUND for unknown report id', async () => {
       await login(admin.email, admin.password);
@@ -1049,26 +1039,13 @@ describe('/api/v1/reports/comments', () => {
       );
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when report id %s', async (_, id) => {
+    testInvalidIds(async (id) => {
       await login(admin.email, admin.password);
-      await expect(
-        updateReport(id as any, {
-          status: 'PENDING',
-          note: generateRandomString(10),
-        })
-      ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
-    });
+      return updateReport(id, {
+        status: 'PENDING',
+        note: generateRandomString(10),
+      });
+    }, 'report id');
   });
 
   describe('DELETE /api/v1/reports/comments/:id', () => {
@@ -1182,20 +1159,9 @@ describe('/api/v1/reports/comments', () => {
       );
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when report id %s', async (_, id) => {
+    testInvalidIds(async (id) => {
       await login(admin.email, admin.password);
-      await expect(deleteReport(id as any)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
-    });
+      return deleteReport(id);
+    }, 'report id');
   });
 });

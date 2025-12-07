@@ -29,6 +29,7 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
 import { StatusCodes } from 'http-status-codes';
+import { testInvalidIds } from '../helper/validation.helper';
 
 describe('/api/v1/posts', () => {
   let client: AxiosInstance;
@@ -58,7 +59,6 @@ describe('/api/v1/posts', () => {
   let user: User;
 
   let PUBLISHED_PUBLIC_POSTS_NUM: number;
-  let DRAFT_POSTS_NUM: number;
   let PUBLISHED_MEMBERS_ONLY_POSTS_NUM: number;
 
   const testData = {
@@ -77,16 +77,11 @@ describe('/api/v1/posts', () => {
     PUBLISHED_PUBLIC_POSTS_NUM = posts.filter(
       (p) => p.visibility === 'PUBLIC' && p.status === 'PUBLISHED'
     ).length;
-    DRAFT_POSTS_NUM = posts.filter((p) => p.status === 'DRAFT').length;
     PUBLISHED_MEMBERS_ONLY_POSTS_NUM = posts.filter(
       (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
     ).length;
 
-    if (
-      !PUBLISHED_PUBLIC_POSTS_NUM ||
-      !DRAFT_POSTS_NUM ||
-      !PUBLISHED_MEMBERS_ONLY_POSTS_NUM
-    )
+    if (!PUBLISHED_PUBLIC_POSTS_NUM || !PUBLISHED_MEMBERS_ONLY_POSTS_NUM)
       throw new Error('Missing posts');
 
     if (tags.length < 30) throw new Error('Not enough test tags');
@@ -254,20 +249,7 @@ describe('/api/v1/posts', () => {
       }
     );
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when id %s', async (_, id) => {
-      await expect(getPost(id as any)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
-    });
+    testInvalidIds((id) => getPost(id), 'post id');
 
     it('should return 404 NOT FOUND for unknown post id', async () => {
       return await expect(getPost(999)).rejects.toMatchObject(
@@ -1458,21 +1440,10 @@ describe('/api/v1/posts', () => {
       );
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when id %s', async (_, id) => {
+    testInvalidIds(async (id) => {
       await login(admin.email, admin.password);
-      await expect(updatePost(id as any, {})).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
-    });
+      return updatePost(id, { content: 'NEW CONTENT' });
+    }, 'post id');
   });
 
   describe('DELETE /api/v1/posts/:id', () => {
@@ -1575,21 +1546,10 @@ describe('/api/v1/posts', () => {
       expect(count).toBe(0);
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when id %s', async (_, id) => {
+    testInvalidIds(async (id) => {
       await login(admin.email, admin.password);
-      return await expect(deletePost(id as any)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
-    });
+      return deletePost(id);
+    }, 'post id');
   });
 
   describe('GET /api/v1/posts/metadata', () => {
