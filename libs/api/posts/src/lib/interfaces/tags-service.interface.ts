@@ -28,7 +28,7 @@ import {
  */
 export interface ITagsService {
   /**
-   * Retrieves a single tag by its unique identifier.
+   * Retrieves a tag by its unique identifier.
    *
    * @param dto - Parameters like the tag id
    * @returns The requested tag object
@@ -66,12 +66,13 @@ export interface ITagsService {
    * ```typescript
    * const tag = await tagsService.create({name: 'tech'});
    * ```
-   * @throws {Error} When a tag with that name already exists
+   * @throws {Error} When tag name fails validation (VAL001)
+   * @throws {Error} When a tag with that name already exists (VAL004)
    */
   create(dto: CreateTagDto): Promise<Tag>;
 
   /**
-   * Deletes a tag
+   * Deletes a tag.
    *
    * @param dto - Parameters like the tag id
    * @returns The deleted tag object
@@ -99,8 +100,9 @@ export interface ITagsService {
    * });
    * ```
    *
+   * @throws {Error} When tag name fails validation (VAL001)
    * @throws {Error} Tag not found (SER002)
-   * @throws {Error} When a tag with that name already exists
+   * @throws {Error} When a tag with that name already exists (VAL004)
    */
   update(dto: UpdateTagDto): Promise<Tag>;
 }

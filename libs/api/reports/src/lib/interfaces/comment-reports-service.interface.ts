@@ -77,8 +77,9 @@ export interface ICommentReportsService {
    * ```typescript
    * const commentReport = await commentReportsService.create({reporterId: 1, commentId: 4, reason: 'Harassment'});
    * ```
-   * @throws {Error} When the comment with this commentId is not found (SER002)
-   * @throws {Error} When a report from this user, for that comment already exists (VAL007)
+   * @throws {Error} When report data validation fails (VAL001)
+   * @throws {Error} When the comment with this id is not found (SER002)
+   * @throws {Error} When a report from this user, for that comment - already exists (VAL007)
    * @throws {Error} When the report is for a comment the user made themselves (SER003)
    * @throws {Error} When the post is not PUBLISHED and the userId is not
    * the author, ADMIN or MOD (SER003)
@@ -99,6 +100,7 @@ export interface ICommentReportsService {
    * ```typescript
    * const commentReport = await commentReportsService.updateStatus({reportId: 4, moderatorId: 1, status: 'RESOLVED', note: 'User banned'});
    * ```
+   * @throws {Error} When report data validation fails (VAL001)
    * @throws {Error} Report not found (SER002)
    * @throws {Error} When same status is set when updating (VAL001)
    * @throws {Error} Forbidden update attempt - moderatorId is author of the reported comment (SER003)

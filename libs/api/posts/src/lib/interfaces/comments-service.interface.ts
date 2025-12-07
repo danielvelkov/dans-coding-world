@@ -91,6 +91,7 @@ export interface ICommentsService {
    * ```typescript
    * const comment = await commentsService.create({postId: 42, userId: 1, content: 'I Like Trains'});
    * ```
+   * @throws {Error} When comment data validation fails (VAL001)
    * @throws {Error} When the post with this postId is not found (SER002)
    * @throws {Error} When the replyTo comment id is not found on the post (SER002)
    * @throws {Error} When the post is not PUBLISHED (SER003)
