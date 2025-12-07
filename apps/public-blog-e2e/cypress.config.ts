@@ -11,7 +11,7 @@ export default defineConfig({
         production: 'npx nx run @dans-coding-world/public-blog:preview',
       },
       ciWebServerCommand: 'npx nx run @dans-coding-world/public-blog:preview',
-      ciBaseUrl: 'http://localhost:4300',
+      ciBaseUrl: 'http://localhost:4200',
     }),
     baseUrl: 'http://localhost:4200',
   },
