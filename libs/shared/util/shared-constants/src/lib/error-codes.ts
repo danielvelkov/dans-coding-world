@@ -30,6 +30,11 @@ export const ERROR_CODES = {
     MAX_REPLY_DEPTH_REACHED: 'VAL006',
     REPORT_EXISTS: 'VAL007',
   },
+  SECURITY: {
+    ADMIN_PRIVILEGE_VIOLATION: 'SEC001',
+    MODERATION_CONFLICT: 'SEC002',
+    SELF_ACTION_FORBIDDEN: 'SEC003',
+  },
 } as const;
 
 export type ErrorCode = ValueOf<ValueOf<typeof ERROR_CODES>>;
@@ -56,6 +61,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   VAL006:
     'Replies are limited to 3 levels deep to keep discussions easy to follow',
   VAL007: 'You have already reported this comment',
+
+  SEC001: 'The target user is an administrator; operation denied',
+  SEC002:
+    'The target user has elevated status and cannot be managed by your current role',
+  SEC003: 'You cannot perform this action on your own account',
 };
 
 /**
@@ -79,4 +89,8 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   VAL005: StatusCodes.CONFLICT,
   VAL006: StatusCodes.BAD_REQUEST,
   VAL007: StatusCodes.FORBIDDEN,
+
+  SEC001: StatusCodes.FORBIDDEN,
+  SEC002: StatusCodes.FORBIDDEN,
+  SEC003: StatusCodes.FORBIDDEN,
 };
