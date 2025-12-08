@@ -4,11 +4,13 @@ import {
   ChangePasswordDto,
   GetUserDto,
   UpdateUserDto,
+  ChangeRoleDto,
+  ChangeBanStatusDto,
 } from '@dans-coding-world/shared-user-dto';
 /**
  * Service for user related actions.
  *
- * Provides account update and deletion methods, password reset, email change and other methods.
+ * Provides account update and deletion methods, password change and other methods.
  *
  * @example
  * ```typescript
@@ -24,14 +26,18 @@ import {
  */
 export interface IUserService {
   /**
-   * Retrieves a user by its unique identifier.
+   * Retrieves a user by its unique identifier along with its profile data.
    *
-   * @param dto - Request parameters including userId
-   * @returns The requested user object
+   * **Access control:**
+   * - Users who query other users do not access private fields like email
+   * - ADMINS and MODS have access to email
+   *
+   * @param dto - Request parameters including userId and viewerId (optional)
+   * @returns The requested user object with profile details
    *
    * @example
    * ```typescript
-   * const user = await userService.getById({ userId: 42 });
+   * const user = await userService.getById({ userId: 42, viewerId: 1 });
    * ```
    *
    * @throws {Error} User not found (SER002)
@@ -58,10 +64,10 @@ export interface IUserService {
   update(dto: UpdateUserDto): Promise<User>;
 
   /**
-   * Change user password provided that the passed old password matches the current one.
+   * Change user password provided that the old password matches the current one.
    *
    * @param dto - Update data including userId, oldPassword and newPassword
-   * @returns The user object with the updated pass
+   * @returns The user object
    *
    * @example
    * ```typescript
@@ -78,11 +84,63 @@ export interface IUserService {
   changePassword(dto: ChangePasswordDto): Promise<User>;
 
   /**
+   * Change user's role. Admins can't change the role of another admin.
+   *
+   * Only an existing ADMIN can promote/demote, and no one can promote a user to the ADMIN role via this method
+   * @description Admin-only operation. Requires elevated privileges.
+   *
+   * @param dto - Update data including userId and role
+   * @returns The user object with the updated role
+   *
+   * @example
+   * ```typescript
+   * const userPromotedToMod = await userService.changeRole({
+   *   userId: 42,
+   *   role: MOD
+   * });
+   * ```
+   *
+   * @throws {Error} When new role matches old one. (VAL001)
+   * @throws {Error} When trying to change an ADMIN's role. (SEC001)
+   * @throws {Error} When trying to change user to ADMIN role. (SEC003)
+   * @throws {Error} User not found (SER002)
+   */
+  changeRole(dto: ChangeRoleDto): Promise<User>;
+
+  /**
+   * Change user "banned" status. Users can't change their own ban status
+   *
+   * - Mods can't ban other mods
+   * - ADMINS can't be banned
+   *
+   * @description Admin or Moderator-only operation. Requires elevated privileges.
+   *
+   * @param dto - Update data including userId, isBanned and userToChangeId
+   * @returns The user object with the updated ban status
+   *
+   * @example
+   * ```typescript
+   * const bannedUser = await userService.changeBanStatus({
+   *   userId: 42,
+   *   userToChangeId: 23,
+   *   isBanned: true
+   * });
+   * ```
+   *
+   * @throws {Error} User not found (SER002)
+   * @throws {Error} When trying to ban an ADMIN. (SEC001)
+   * @throws {Error} When a MOD is trying to ban another MOD. (SEC002)
+   * @throws {Error} When User is trying to ban himself. (SEC003)
+   */
+  changeBanStatus(dto: ChangeBanStatusDto): Promise<User>;
+
+  /**
    * Permanently removes an user record and all related data - posts, comments, reports , etc.
    *
    * **Access control:**
    * - The owner of the account
-   * - Deletion of users is also accessible to admins
+   * - Deletion of specific users is also accessible to admins
+   * - Admins can't delete another admin
    *
    * @param dto - Deletion parameters including userId and userToDeleteId
    * @returns The deleted user object
@@ -97,6 +155,8 @@ export interface IUserService {
    *
    * @throws {Error} User not found (SER002)
    * @throws {Error} Unauthorized deletion attempt (VAL003)
+   * @throws {Error} When trying to delete an admin (SEC001)
+   * @throws {Error} When trying to delete yourself (SEC003)
    */
   delete(dto: DeleteUserDto): Promise<User>;
 }
