@@ -33,23 +33,18 @@ export class PrismaUserDataAccess implements IUserRepository {
     data: Partial<User>,
     profileData?: Partial<Profile>
   ): Promise<User> {
-    const updatePayload: any = {
-      ...data,
-    };
-
-    if (profileData) {
-      updatePayload.profile = {
-        upsert: {
-          update: profileData,
-          create: profileData,
-        },
-      };
-    }
     return await prisma.user.update({
       where: {
         id,
       },
-      data: updatePayload,
+      data: {
+        ...data,
+        profile: {
+          update: {
+            ...profileData,
+          },
+        },
+      },
       include: {
         profile: true,
       },

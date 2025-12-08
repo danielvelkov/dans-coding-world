@@ -47,13 +47,14 @@ export interface IUserService {
 
   /**
    * Used to change non-sensitive details like avatar img or first name, last name, bio etc.
+   * If user has no profile details set yet, the method also creates the profile relation
    *
    * @param dto - Update data including userId and fields to modify
-   * @returns The updated user object
+   * @returns The response dto with updated user object and profile details
    *
    * @example
    * ```typescript
-   * const updatedUser = await userService.update({
+   * const { user } = await userService.update({
    *   userId: 42,
    *   firstName: Bang
    * });
@@ -62,7 +63,7 @@ export interface IUserService {
    * @throws {Error} New user data failed validation (VAL001)
    * @throws {Error} User not found (SER002)
    */
-  update(dto: UpdateUserDto): Promise<User>;
+  update(dto: UpdateUserDto): Promise<GetUserResponseDto>;
 
   /**
    * Change user password provided that the old password matches the current one.

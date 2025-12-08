@@ -1,4 +1,4 @@
-import { User } from '@dans-coding-world/prisma-schema';
+import { User, client } from '@dans-coding-world/prisma-schema';
 import { Inject, Injectable } from 'injection-js';
 import type { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { transformAndValidateDto } from '@dans-coding-world/validation';
@@ -18,6 +18,7 @@ import {
   ChangeRoleDto,
   GetUserResponseDto,
 } from '@dans-coding-world/shared-user-dto';
+import { UserDetail } from '@dans-coding-world/user-data-access';
 
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 
@@ -64,13 +65,39 @@ export class UserService implements IUserService {
     return { user: filteredUser };
   }
 
+  async update(dto: UpdateUserDto): Promise<GetUserResponseDto> {
+    dto = await transformAndValidateDto(dto, UpdateUserDto);
+
+    let user = (await this.users.getById(dto.userId.toString())) as UserDetail;
+    if (!user) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    if (!user.profile) {
+      const profile = await client.profile.create({
+        data: {
+          userId: dto.userId,
+          firstName: dto.firstName ?? '',
+          lastName: dto.lastName ?? '',
+          bio: dto.bio ?? '',
+          avatarURL: dto.avatarUrl ?? '',
+        },
+      });
+      user.profile = profile;
+    } else user = await this.users.update(dto.userId, {}, dto);
+
+    const filteredUser = filterObject(
+      user,
+      Object.keys(user).filter(
+        (key) => !this.PRIVATE_FIELDS.includes(key as keyof User)
+      )
+    );
+
+    return { user: filteredUser };
+  }
+
   changeRole(dto: ChangeRoleDto): Promise<User> {
     throw new Error('Method not implemented.');
   }
   changeBanStatus(dto: ChangeBanStatusDto): Promise<User> {
-    throw new Error('Method not implemented.');
-  }
-  update(dto: UpdateUserDto): Promise<User> {
     throw new Error('Method not implemented.');
   }
   changePassword(dto: ChangePasswordDto): Promise<User> {

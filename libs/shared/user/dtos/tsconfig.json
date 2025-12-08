@@ -4,6 +4,12 @@
   "include": [],
   "references": [
     {
+      "path": "../../../api/data-access/user"
+    },
+    {
+      "path": "../../../prisma-schema"
+    },
+    {
       "path": "../../util/shared-constants"
     },
     {
