@@ -5,6 +5,9 @@ import {
   User,
   Profile,
 } from '@dans-coding-world/prisma-schema';
+
+export type UserDetail = User & { profile?: Profile };
+
 export class PrismaUserDataAccess implements IUserRepository {
   async getById(id: string): Promise<User | null> {
     return await prisma.user.findFirst({

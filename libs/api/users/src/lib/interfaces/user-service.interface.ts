@@ -6,6 +6,7 @@ import {
   UpdateUserDto,
   ChangeRoleDto,
   ChangeBanStatusDto,
+  GetUserResponseDto,
 } from '@dans-coding-world/shared-user-dto';
 /**
  * Service for user related actions.
@@ -29,20 +30,20 @@ export interface IUserService {
    * Retrieves a user by its unique identifier along with its profile data.
    *
    * **Access control:**
-   * - Users who query other users do not access private fields like email
+   * - Users who query other users do not have access to private fields like email
    * - ADMINS and MODS have access to email
    *
    * @param dto - Request parameters including userId and viewerId (optional)
-   * @returns The requested user object with profile details
+   * @returns The response dto with user object and profile details
    *
    * @example
    * ```typescript
-   * const user = await userService.getById({ userId: 42, viewerId: 1 });
+   * const { user } = await userService.getById({ userId: 42, viewerId: 1 });
    * ```
    *
    * @throws {Error} User not found (SER002)
    */
-  getById(dto: GetUserDto): Promise<User>;
+  getById(dto: GetUserDto): Promise<GetUserResponseDto>;
 
   /**
    * Used to change non-sensitive details like avatar img or first name, last name, bio etc.
