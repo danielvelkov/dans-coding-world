@@ -25,6 +25,17 @@ model User {
   comments Comment[]
   reports Report[]
   moderationHistory ReportHistory[]
+  profile Profile? 
+}
+
+model Profile {
+  id Int  @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id])
+  userId Int @unique 
+  firstName String
+  lastName String
+  bio String
+  avatarURL String
 }
 
 model RefreshToken {
