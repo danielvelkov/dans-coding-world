@@ -559,4 +559,128 @@ describe('UserService', () => {
         });
     });
   });
+
+  describe('changeBanStatus()', () => {
+    test.each(['MOD', 'ADMIN'] as Role[])(
+      'should ban/un-ban user if its done by %s',
+      async (role) => {
+        const userWithElevatedPrivileges = [mod, admin].find(
+          (u) => u.role === role
+        );
+        if (!userWithElevatedPrivileges) throw new Error('Missing test user');
+
+        for (const bannedStatus of [true, false]) {
+          const bannedUser = await userService.changeBanStatus({
+            userId: userWithElevatedPrivileges.id,
+            userToChangeId: user.id,
+            isBanned: bannedStatus,
+          });
+          expect(bannedUser.isBanned).toBe(bannedStatus);
+        }
+      }
+    );
+
+    it('should be able ban/un-ban MOD if done by ADMIN', async () => {
+      for (const bannedStatus of [true, false]) {
+        const bannedUser = await userService.changeBanStatus({
+          userId: admin.id,
+          userToChangeId: mod.id,
+          isBanned: bannedStatus,
+        });
+        expect(bannedUser.isBanned).toBe(bannedStatus);
+      }
+    });
+
+    it(`should throw when trying to ban another MOD as moderator`, async () => {
+      const anotherMod = await mockUsersRepo.create({
+        email: 'anotherMod@email.com',
+        username: 'mod2',
+        password: passwordGenerator(10),
+        isBanned: false,
+        role: 'MOD',
+      });
+
+      expect.assertions(1);
+      return userService
+        .changeBanStatus({
+          userId: mod.id,
+          userToChangeId: anotherMod.id,
+          isBanned: true,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION]
+          );
+        });
+    });
+
+    it('should throw when the user is trying to ban/un-ban himself', async () => {
+      expect.assertions(2);
+      for (const bannedStatus of [true, false])
+        userService
+          .changeBanStatus({
+            userId: mod.id,
+            userToChangeId: mod.id,
+            isBanned: bannedStatus,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(
+              ERROR_MESSAGES[ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN]
+            );
+          });
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])(
+      'should throw validation error when userToChangeId %s',
+      async (_, id) => {
+        expect.assertions(1);
+        return userService
+          .changeBanStatus({
+            userId: mod.id,
+            userToChangeId: id as any,
+            isBanned: true,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])('should throw validation error when userId %s', async (_, id) => {
+      expect.assertions(1);
+      return userService
+        .changeBanStatus({
+          userId: id as any,
+          userToChangeId: user.id,
+          isBanned: true,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    it('should throw when any of the specified user Ids do not exist', async () => {
+      expect.assertions(2);
+      for (const isMod of [true, false])
+        userService
+          .changeBanStatus({
+            userId: isMod ? mod.id : 9999,
+            userToChangeId: isMod ? 9999 : user.id,
+            isBanned: true,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(
+              ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            );
+          });
+    });
+  });
 });
