@@ -155,9 +155,29 @@ export class UserService implements IUserService {
     return filteredUser;
   }
 
-  delete(dto: DeleteUserDto): Promise<User> {
-    throw new Error('Method not implemented.');
+  async delete(dto: DeleteUserDto): Promise<User> {
+    dto = await transformAndValidateDto(dto, DeleteUserDto);
+
+    const [user, userToDelete] = await Promise.all([
+      this.users.getById(dto.userId.toString()),
+      this.users.getById(dto.userToDeleteId.toString()),
+    ]);
+
+    if (!user || !userToDelete)
+      throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    if (userToDelete.role === 'ADMIN')
+      throw new ApiException(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION);
+
+    if (user.role !== 'ADMIN' && user.id !== userToDelete.id)
+      throw new ApiException(ERROR_CODES.SERVER.FORBIDDEN);
+
+    const deletedUser = await this.users.delete(dto.userToDeleteId);
+
+    const filteredUser = this.filterUserData(deletedUser, true, false);
+    return filteredUser;
   }
+
   private filterUserData(
     user: User | UserDetail,
     hidePrivateFields = false,

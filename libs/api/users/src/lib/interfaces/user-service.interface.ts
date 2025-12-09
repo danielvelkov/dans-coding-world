@@ -143,7 +143,7 @@ export interface IUserService {
    * Permanently removes an user record and all related data - posts, comments, reports , etc.
    *
    * **Access control:**
-   * - The owner of the account
+   * - If the requesting user is the same as the user to be deleted
    * - Deletion of specific users is also accessible to admins
    * - Admins can't delete another admin
    *
@@ -159,9 +159,8 @@ export interface IUserService {
    * ```
    *
    * @throws {Error} User not found (SER002)
-   * @throws {Error} Unauthorized deletion attempt (VAL003)
+   * @throws {Error} Unauthorized deletion attempt (SER003)
    * @throws {Error} When trying to delete an admin (SEC001)
-   * @throws {Error} When trying to delete yourself (SEC003)
    */
   delete(dto: DeleteUserDto): Promise<User>;
 }
