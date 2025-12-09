@@ -12,6 +12,7 @@ import {
   ERROR_CODES,
   ERROR_MESSAGES,
   USER_CONSTRAINTS,
+  VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { UserService, USER_REPOSITORY_TOKEN } from './user.service.js';
 import { generateRandomString } from '@dans-coding-world/helpers';
@@ -444,6 +445,111 @@ describe('UserService', () => {
           newPassword: passwordGenerator(
             USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
           ),
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          );
+        });
+    });
+  });
+
+  describe('changeRole()', () => {
+    it('should promote or demote user if valid role and userId is provided', async () => {
+      // promote to mod
+      let updatedUser = await userService.changeRole({
+        userId: user.id,
+        role: 'MOD',
+      });
+      expect(updatedUser?.role).toBe('MOD');
+
+      // demote back to USER
+      updatedUser = await userService.changeRole({
+        userId: user.id,
+        role: 'USER',
+      });
+      expect(updatedUser?.role).toBe('USER');
+
+      expect(mockUsersRepo.update).toHaveBeenCalledTimes(2);
+    });
+
+    it(`should throw when trying to change admin's role`, async () => {
+      expect.assertions(1);
+      return userService
+        .changeRole({
+          userId: admin.id,
+          role: 'USER',
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION]
+          );
+        });
+    });
+
+    it('should throw when changing the user to the same role', async () => {
+      expect.assertions(1);
+      return userService
+        .changeRole({
+          userId: user.id,
+          role: user.role,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(VALIDATION_MESSAGES.users.sameRole);
+        });
+    });
+
+    it('should throw when new user role is ADMIN', async () => {
+      expect.assertions(1);
+      return userService
+        .changeRole({
+          userId: user.id,
+          role: 'ADMIN',
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN]
+          );
+        });
+    });
+
+    test.each(['admin', 'MODERATOR', 'owner'])(
+      'should throw when role is not from the specified user role enum',
+      async (role) => {
+        expect.assertions(1);
+        return userService
+          .changeRole({
+            userId: user.id,
+            role: role as any,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])('should throw validation error when user id %s', async (_, id) => {
+      expect.assertions(1);
+      return userService
+        .changeRole({
+          userId: id as any,
+          role: 'AUTHOR',
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    it('should throw when user with that id does not exist', async () => {
+      expect.assertions(1);
+      return userService
+        .changeRole({
+          userId: 9999,
+          role: 'AUTHOR',
         })
         .catch((error) => {
           expect(error.message).toMatch(
