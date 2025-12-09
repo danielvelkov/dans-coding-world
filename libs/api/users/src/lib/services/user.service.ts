@@ -81,13 +81,30 @@ export class UserService implements IUserService {
     return { user: filteredUser };
   }
 
+  async changePassword(dto: ChangePasswordDto): Promise<User> {
+    dto = await transformAndValidateDto(dto, ChangePasswordDto);
+
+    const user = await this.users.getById(dto.userId.toString());
+    if (!user) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    if (user.password !== dto.oldPassword)
+      throw new ApiException(ERROR_CODES.AUTH.INVALID_CREDENTIALS);
+
+    if (user.password === dto.newPassword)
+      throw new ApiException(ERROR_CODES.AUTH.SAME_PASSWORD);
+
+    const updatedUser = await this.users.update(dto.userId, {
+      password: dto.newPassword,
+    });
+
+    const filteredUser = this.filterUserData(updatedUser, true, false);
+    return filteredUser;
+  }
+
   changeRole(dto: ChangeRoleDto): Promise<User> {
     throw new Error('Method not implemented.');
   }
   changeBanStatus(dto: ChangeBanStatusDto): Promise<User> {
-    throw new Error('Method not implemented.');
-  }
-  changePassword(dto: ChangePasswordDto): Promise<User> {
     throw new Error('Method not implemented.');
   }
   delete(dto: DeleteUserDto): Promise<User> {

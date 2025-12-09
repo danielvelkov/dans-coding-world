@@ -15,6 +15,7 @@ export const ERROR_CODES = {
     INVALID_TOKEN: 'AUTH003',
     TOKEN_NOT_FOUND: 'AUTH004',
     UNAUTHORIZED: 'AUTH005',
+    SAME_PASSWORD: 'AUTH006',
   },
   SERVER: {
     INTERNAL_ERROR: 'SER001',
@@ -48,6 +49,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AUTH003: 'Invalid or expired token',
   AUTH004: 'Token no longer exists',
   AUTH005: 'You must be logged in to perform this action',
+  AUTH006: 'New password cannot be the same as your current password',
 
   SER001: 'Something went wrong',
   SER002: 'Resource not found',
@@ -77,6 +79,7 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   AUTH003: StatusCodes.UNAUTHORIZED,
   AUTH004: StatusCodes.NOT_FOUND,
   AUTH005: StatusCodes.UNAUTHORIZED,
+  AUTH006: StatusCodes.BAD_REQUEST,
 
   SER001: StatusCodes.INTERNAL_SERVER_ERROR,
   SER002: StatusCodes.NOT_FOUND,
