@@ -101,8 +101,30 @@ export class UserService implements IUserService {
     return filteredUser;
   }
 
-  changeRole(dto: ChangeRoleDto): Promise<User> {
-    throw new Error('Method not implemented.');
+  async changeRole(dto: ChangeRoleDto): Promise<User> {
+    dto = await transformAndValidateDto(dto, ChangeRoleDto);
+
+    const user = await this.users.getById(dto.userId.toString());
+    if (!user) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
+
+    if (user.role === dto.role)
+      throw new ApiException(
+        ERROR_CODES.VALIDATION.VALIDATION_ERROR,
+        VALIDATION_MESSAGES.users.sameRole
+      );
+
+    if (user.role === 'ADMIN')
+      throw new ApiException(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION);
+
+    if (dto.role === 'ADMIN')
+      throw new ApiException(ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN);
+
+    const updatedUser = await this.users.update(dto.userId, {
+      role: dto.role,
+    });
+
+    const filteredUser = this.filterUserData(updatedUser, true, false);
+    return filteredUser;
   }
   changeBanStatus(dto: ChangeBanStatusDto): Promise<User> {
     throw new Error('Method not implemented.');

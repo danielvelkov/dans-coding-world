@@ -33,6 +33,9 @@ export const VALIDATION_MESSAGES = {
   token: {
     invalid: 'Refresh token must be a valid JWT',
   },
+  users: {
+    sameRole: 'Cannot promote/demote user to the same role'
+  },
   name: 'For name only use letters (including accented), spaces, apostrophes, or hyphens.',
   allowedValues: (values: string[] | number[]) =>
     `Only the following values are allowed: ${values.join(', ')}`,

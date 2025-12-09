@@ -15,5 +15,5 @@ export class ChangeRoleDto {
       Object.values(RoleEnum).filter((r) => r !== 'ADMIN')
     ),
   })
-  status: Role;
+  role: Role;
 }

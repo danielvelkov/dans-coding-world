@@ -87,9 +87,11 @@ export interface IUserService {
   changePassword(dto: ChangePasswordDto): Promise<User>;
 
   /**
-   * Change user's role. Admins can't change the role of another admin.
+   * Change user's role.
    *
-   * Only an existing ADMIN can promote/demote, and no one can promote a user to the ADMIN role via this method
+   * - Admins can't change the role of another admin.
+   * - can't promote any user to role of ADMIN
+   *
    * @description Admin-only operation. Requires elevated privileges.
    *
    * @param dto - Update data including userId and role
