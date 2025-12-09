@@ -683,4 +683,123 @@ describe('UserService', () => {
           });
     });
   });
+
+  describe('delete()', () => {
+    it('should allow userId with role USER to delete his own account', async () => {
+      await userService.delete({
+        userId: user.id,
+        userToDeleteId: user.id,
+      });
+      expect(mockUsersRepo.delete).toHaveBeenCalledTimes(1);
+    });
+
+    test.each(['USER', 'MOD', 'AUTHOR'])(
+      'should be able to delete a %s if done by ADMIN',
+      async (role) => {
+        const userToDelete = [mod, author, user].find((u) => u.role === role);
+        if (!userToDelete) throw new Error('Missing test user');
+
+        await userService.delete({
+          userId: admin.id,
+          userToDeleteId: userToDelete.id,
+        });
+        expect(mockUsersRepo.delete).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    it(`should throw when trying to delete another user as USER`, async () => {
+      const anotherUser = await mockUsersRepo.create({
+        email: 'anotherUser@email.com',
+        username: 'User2',
+        password: passwordGenerator(10),
+        isBanned: false,
+        role: 'USER',
+      });
+
+      expect.assertions(1);
+      return userService
+        .delete({
+          userId: user.id,
+          userToDeleteId: anotherUser.id,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+          );
+        });
+    });
+
+    it('should throw when the admin is trying to delete another admin (including himself)', async () => {
+      const anotherAdmin = await mockUsersRepo.create({
+        email: 'anotherAdmin@email.com',
+        username: 'Admin2',
+        password: passwordGenerator(10),
+        isBanned: false,
+        role: 'ADMIN',
+      });
+
+      expect.assertions(2);
+      for (const user of [admin, anotherAdmin])
+        userService
+          .delete({
+            userId: admin.id,
+            userToDeleteId: user.id,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(
+              ERROR_MESSAGES[ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION]
+            );
+          });
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])(
+      'should throw validation error when userToDeleteId %s',
+      async (_, id) => {
+        expect.assertions(1);
+        return userService
+          .delete({
+            userId: mod.id,
+            userToDeleteId: id as any,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])('should throw validation error when userId %s', async (_, id) => {
+      expect.assertions(1);
+      return userService
+        .delete({
+          userId: id as any,
+          userToDeleteId: user.id,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    it('should throw when any of the specified user Ids do not exist', async () => {
+      expect.assertions(2);
+      for (const isAdmin of [true, false])
+        userService
+          .delete({
+            userId: isAdmin ? admin.id : 9999,
+            userToDeleteId: isAdmin ? 9999 : user.id,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(
+              ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            );
+          });
+    });
+  });
 });
