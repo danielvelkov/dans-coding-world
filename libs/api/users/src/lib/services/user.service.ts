@@ -24,8 +24,8 @@ export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 
 @Injectable()
 export class UserService implements IUserService {
-  PRIVATE_FIELDS = [getKey<User>('password')];
-  PROTECTED_FIELDS = [getKey<User>('email')];
+  private readonly PRIVATE_FIELDS = [getKey<User>('password')];
+  private readonly PROTECTED_FIELDS = [getKey<User>('email')];
 
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
@@ -48,18 +48,10 @@ export class UserService implements IUserService {
     const hasElevatedPrivileges =
       viewer && (viewer.role === 'ADMIN' || viewer.role === 'MOD');
 
-    const filteredUser = filterObject(
+    const filteredUser = this.filterUserData(
       user,
-      Object.keys(user).filter((key) => {
-        if (this.PRIVATE_FIELDS.includes(key as keyof User)) return false;
-        if (
-          this.PROTECTED_FIELDS.includes(key as keyof User) &&
-          !isAuthor &&
-          !hasElevatedPrivileges
-        )
-          return false;
-        return true;
-      })
+      true,
+      !isAuthor && !hasElevatedPrivileges
     );
 
     return { user: filteredUser };
@@ -84,12 +76,7 @@ export class UserService implements IUserService {
       user.profile = profile;
     } else user = await this.users.update(dto.userId, {}, dto);
 
-    const filteredUser = filterObject(
-      user,
-      Object.keys(user).filter(
-        (key) => !this.PRIVATE_FIELDS.includes(key as keyof User)
-      )
-    );
+    const filteredUser = this.filterUserData(user, true, false);
 
     return { user: filteredUser };
   }
@@ -105,5 +92,21 @@ export class UserService implements IUserService {
   }
   delete(dto: DeleteUserDto): Promise<User> {
     throw new Error('Method not implemented.');
+  }
+  private filterUserData(
+    user: User | UserDetail,
+    hidePrivateFields = false,
+    hideProtectedFields = false
+  ) {
+    return filterObject(
+      user,
+      Object.keys(user).filter((key) => {
+        const k = key as keyof User;
+        if (hidePrivateFields && this.PRIVATE_FIELDS.includes(k)) return false;
+        if (hideProtectedFields && this.PROTECTED_FIELDS.includes(k))
+          return false;
+        return true;
+      })
+    );
   }
 }

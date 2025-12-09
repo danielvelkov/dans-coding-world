@@ -80,7 +80,8 @@ export interface IUserService {
    * });
    * ```
    *
-   * @throws {Error} New password matches old one. (VAL001)
+   * @throws {Error} Old password is wrong. (AUTH001)
+   * @throws {Error} New password matches old one. (AUTH006)
    * @throws {Error} User not found (SER002)
    */
   changePassword(dto: ChangePasswordDto): Promise<User>;
