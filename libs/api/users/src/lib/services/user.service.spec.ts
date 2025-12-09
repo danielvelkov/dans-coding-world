@@ -15,6 +15,7 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { UserService, USER_REPOSITORY_TOKEN } from './user.service.js';
 import { generateRandomString } from '@dans-coding-world/helpers';
+import { passwordGenerator } from '@dans-coding-world/api-auth';
 
 let mockUsersRepo: IUserRepository;
 let injector: ReflectiveInjector;
@@ -39,7 +40,7 @@ describe('UserService', () => {
       roles.map((role) =>
         mockUsersRepo.create({
           email: `fake${role.toLowerCase()}123@gmail.com`,
-          password: `fake${role.toLowerCase()}Pass`,
+          password: passwordGenerator(USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1),
           username: `fake${role.toLowerCase()}123`,
           role,
         })
@@ -294,6 +295,155 @@ describe('UserService', () => {
       return userService
         .update({
           userId: 9999,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          );
+        });
+    });
+  });
+
+  describe('changePassword()', () => {
+    it(`should update password if new one is
+       valid and old password matches current one`, async () => {
+      const NEW_PASS = passwordGenerator(
+        USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+      );
+      await userService.changePassword({
+        userId: user.id,
+        oldPassword: user.password,
+        newPassword: NEW_PASS,
+      });
+      expect(mockUsersRepo.update).toHaveBeenCalledTimes(1);
+
+      const updatedUser = await mockUsersRepo.getById(user.id.toString());
+      expect(updatedUser?.password).toBe(NEW_PASS);
+    });
+
+    it(`should throw when old password doesn't match the current one`, async () => {
+      expect.assertions(1);
+      return userService
+        .changePassword({
+          userId: user.id,
+          oldPassword: passwordGenerator(10),
+          newPassword: user.password,
+        })
+        .catch((error) => {
+          expect(error.message).toBe(
+            ERROR_MESSAGES[ERROR_CODES.AUTH.INVALID_CREDENTIALS]
+          );
+        });
+    });
+
+    it('should throw error when old password matches the new one', async () => {
+      expect.assertions(1);
+      return userService
+        .changePassword({
+          userId: user.id,
+          oldPassword: user.password,
+          newPassword: user.password,
+        })
+        .catch((error) => {
+          expect(error.message).toBe(
+            ERROR_MESSAGES[ERROR_CODES.AUTH.SAME_PASSWORD]
+          );
+        });
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])('should throw validation error when user id %s', async (_, id) => {
+      expect.assertions(1);
+      return userService
+        .changePassword({
+          userId: id as any,
+          oldPassword: passwordGenerator(
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+          ),
+          newPassword: passwordGenerator(
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+          ),
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    test.each([
+      [
+        'is too short',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH - 1),
+      ],
+      [
+        'is too long',
+        passwordGenerator(USER_CONSTRAINTS.MAX_PASSWORD_LENGTH + 1),
+      ],
+      [
+        'has no symbols',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1, {
+          includeSymbols: false,
+        }),
+      ],
+      [
+        'has no numbers',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1, {
+          includeNumbers: false,
+        }),
+      ],
+      [
+        'has no uppercase characters',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1, {
+          includeUppercase: false,
+        }),
+      ],
+      [
+        'has no lowercase characters',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1, {
+          includeLowercase: false,
+        }),
+      ],
+    ])('should throw when either password %s', async (_, password) => {
+      expect.assertions(3);
+      expect(mockUsersRepo.update).not.toHaveBeenCalled();
+      userService
+        .changePassword({
+          userId: user.id,
+          oldPassword: passwordGenerator(
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+          ),
+          newPassword: password,
+        })
+        .catch((err) => {
+          expect(err.message).toMatch(/failed.*validation/);
+        });
+
+      userService
+        .changePassword({
+          userId: user.id,
+          oldPassword: password,
+          newPassword: passwordGenerator(
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+          ),
+        })
+        .catch((err) => {
+          expect(err.message).toMatch(/failed.*validation/);
+        });
+    });
+
+    it('should throw when user with that id does not exist', async () => {
+      expect.assertions(1);
+      return userService
+        .changePassword({
+          userId: 9999,
+          oldPassword: passwordGenerator(
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+          ),
+          newPassword: passwordGenerator(
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+          ),
         })
         .catch((error) => {
           expect(error.message).toMatch(
