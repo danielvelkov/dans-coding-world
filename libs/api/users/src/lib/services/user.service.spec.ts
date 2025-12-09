@@ -11,6 +11,7 @@ import {
 import {
   ERROR_CODES,
   ERROR_MESSAGES,
+  USER_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
 import { UserService, USER_REPOSITORY_TOKEN } from './user.service.js';
 import { generateRandomString } from '@dans-coding-world/helpers';
@@ -24,6 +25,8 @@ describe('UserService', () => {
   let author: User;
   let admin: User;
   let mod: User;
+
+  let userProfile: Profile;
 
   beforeEach(async () => {
     await client.user.deleteMany();
@@ -43,6 +46,16 @@ describe('UserService', () => {
       )
     );
 
+    userProfile = await client.profile.create({
+      data: {
+        userId: user.id,
+        avatarURL: 'URL',
+        bio: '',
+        firstName: 'Bang',
+        lastName: 'Dong',
+      },
+    });
+
     injector = ReflectiveInjector.resolveAndCreate([
       UserService,
       {
@@ -58,20 +71,6 @@ describe('UserService', () => {
   });
 
   describe('getById()', () => {
-    let userProfile: Profile;
-
-    beforeEach(async () => {
-      userProfile = await client.profile.create({
-        data: {
-          userId: user.id,
-          avatarURL: 'URL',
-          bio: '',
-          firstName: 'Bang',
-          lastName: 'Dong',
-        },
-      });
-    });
-
     it(`should return user data with profile details, excluding password always
       and removing protected fields like email if no viewerId is provided`, async () => {
       const res = await userService.getById({
@@ -129,6 +128,171 @@ describe('UserService', () => {
       expect.assertions(1);
       return userService
         .getById({
+          userId: 9999,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          );
+        });
+    });
+  });
+
+  describe('update()', () => {
+    it('should update specific profile field if valid data provided', async () => {
+      const NEW_BIO = 'Im tired';
+      const res = await userService.update({
+        userId: user.id,
+        bio: NEW_BIO,
+      });
+
+      const receivedUser = res.user as UserDetail;
+      if (!receivedUser.profile) throw new Error('Missing profile');
+
+      expect(mockUsersRepo.update).toHaveBeenCalledTimes(1);
+
+      expect(receivedUser.profile.id).toBe(userProfile.id);
+      expect(receivedUser.profile.firstName).toBe(userProfile.firstName);
+      expect(receivedUser.profile.lastName).toBe(userProfile.lastName);
+      expect(receivedUser.profile.bio).toBe(NEW_BIO);
+    });
+
+    it(`should create profile, if user does not have one to update`, async () => {
+      const profileData = {
+        firstName: 'Yessss',
+        lastName: 'Kinggggg',
+        bio: 'Bro im new to this. IM NEW',
+      };
+
+      const res = await userService.update({
+        userId: author.id,
+        ...profileData,
+      });
+
+      const updatedAuthor = res.user as UserDetail;
+      if (!updatedAuthor.profile) throw new Error('Missing profile');
+
+      expect(updatedAuthor.profile.firstName).toEqual(profileData.firstName);
+      expect(updatedAuthor.profile.lastName).toEqual(profileData.lastName);
+      expect(updatedAuthor.profile.bio).toEqual(profileData.bio);
+    });
+
+    it(`should create profile with all fields empty, if user does not have one to update
+      and the dto fields are all empty`, async () => {
+      const profileData = {};
+
+      const res = await userService.update({
+        userId: author.id,
+        ...profileData,
+      });
+
+      const updatedAuthor = res.user as UserDetail;
+      if (!updatedAuthor.profile) throw new Error('Missing profile');
+
+      expect(updatedAuthor.profile.firstName).toBe('');
+      expect(updatedAuthor.profile.lastName).toBe('');
+      expect(updatedAuthor.profile.bio).toBe('');
+    });
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+    ])('should throw validation error when user id %s', async (_, id) => {
+      expect.assertions(1);
+      return userService
+        .update({
+          userId: id as any,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    test.each([
+      [
+        'first name is too long',
+        {
+          firstName: generateRandomString(
+            USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH + 1
+          ),
+        },
+      ],
+      [
+        'first name is too short',
+        {
+          firstName: generateRandomString(
+            USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH - 1
+          ),
+        },
+      ],
+      [
+        'last name is too long',
+        {
+          lastName: generateRandomString(
+            USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH + 1
+          ),
+        },
+      ],
+      [
+        'last name is too short',
+        {
+          lastName: generateRandomString(
+            USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH - 1
+          ),
+        },
+      ],
+      [
+        'bio is too long',
+        {
+          lastName: generateRandomString(USER_CONSTRAINTS.MAX_BIO_LENGTH + 1),
+        },
+      ],
+    ])('should throw validation error when %s', async (_, profileData) => {
+      expect.assertions(1);
+      return userService
+        .update({
+          userId: userProfile.id,
+          ...profileData,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    test.each([
+      ['contains number', 'John123'],
+      ['contains at sign', 'Jane@'],
+      ['contains special symbol', 'Jane!'],
+      ['contains underscore', 'Mary_Jane'],
+      ['contains emoji', 'Anna😊'],
+      ['contains non-Latin script', 'Иван'],
+      ['contains Chinese characters', '张伟'],
+    ])('should validate name regex %s correctly', (_, name) => {
+      expect.assertions(2);
+      userService
+        .update({
+          userId: userProfile.id,
+          firstName: name,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+
+      userService
+        .update({
+          userId: userProfile.id,
+          lastName: name,
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
+
+    it('should throw when user with that id does not exist', async () => {
+      expect.assertions(1);
+      return userService
+        .update({
           userId: 9999,
         })
         .catch((error) => {

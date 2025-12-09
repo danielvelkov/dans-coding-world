@@ -5,6 +5,7 @@ import {
   MaxLength,
   IsOptional,
   IsUrl,
+  Matches,
 } from 'class-validator';
 import { ToInteger } from '@dans-coding-world/validation';
 import {
@@ -30,6 +31,9 @@ export class UpdateUserDto {
       USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH
     ),
   })
+  @Matches(/^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/, {
+    message: VALIDATION_MESSAGES.name,
+  })
   firstName?: string;
 
   @IsOptional()
@@ -42,6 +46,9 @@ export class UpdateUserDto {
     message: VALIDATION_MESSAGES.maxLength(
       USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH
     ),
+  })
+  @Matches(/^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/, {
+    message: VALIDATION_MESSAGES.name,
   })
   lastName?: string;
 
