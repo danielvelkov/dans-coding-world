@@ -44,6 +44,7 @@ describe('UserService', () => {
           password: passwordGenerator(USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1),
           username: `fake${role.toLowerCase()}123`,
           role,
+          isBanned: false,
         })
       )
     );

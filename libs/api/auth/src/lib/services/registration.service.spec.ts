@@ -20,6 +20,7 @@ const REGISTRATION_DATA: User = {
   username: 'fakeUser123',
   id: 1,
   role: 'USER',
+  isBanned: false,
 };
 
 describe('Registration service', () => {

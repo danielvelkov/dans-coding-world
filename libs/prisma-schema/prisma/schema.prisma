@@ -20,6 +20,7 @@ model User {
   email String @unique
   password String
   role Role @default(USER)
+  isBanned Boolean @default(false)
   refreshTokens RefreshToken[]
   posts Post[]
   comments Comment[]
