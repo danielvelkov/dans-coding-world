@@ -12,6 +12,9 @@
       "path": "../../libs/shared/util/exceptions"
     },
     {
+      "path": "../../libs/api/data-access/user"
+    },
+    {
       "path": "../../libs/shared/post/dtos"
     },
     {
