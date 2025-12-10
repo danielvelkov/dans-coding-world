@@ -10,7 +10,10 @@ const usersController = new UsersController(
 
 const usersRouter = Router();
 usersRouter.patch('/', usersController.update);
-usersRouter.route('/:id').get(usersController.get);
+usersRouter
+  .route('/:id')
+  .get(usersController.get)
+  .delete(usersController.delete);
 
 usersRouter.post('/:id/revoke-tokens', usersController.revokeUserTokens);
 

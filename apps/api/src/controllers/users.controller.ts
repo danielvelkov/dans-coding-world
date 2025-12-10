@@ -19,6 +19,7 @@ export class UsersController {
     this.revokeUserTokens = this.revokeUserTokens.bind(this);
     this.get = this.get.bind(this);
     this.update = this.update.bind(this);
+    this.delete = this.delete.bind(this);
   }
   @Authorized()
   @RequiredRole('MOD', 'ADMIN')
@@ -73,6 +74,25 @@ export class UsersController {
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.USERS.update,
         user,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  @Authorized()
+  async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = req.user as User;
+      const { id } = req.params;
+
+      await this.userService.delete({
+        userId: user.id,
+        userToDeleteId: +id,
+      });
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.USERS.delete,
       });
     } catch (error) {
       return next(error);
