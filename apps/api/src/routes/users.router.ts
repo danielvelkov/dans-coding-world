@@ -206,6 +206,75 @@ export default usersRouter;
 
 /**
  * @openapi
+ * /users/{id}:
+ *   delete:
+ *     tags: [Users]
+ *     summary: Delete a user by Id.
+ *     description: |
+ *
+ *       Delete a user's account and all content that spans from it by user Id.
+ *
+ *       Returns 403 FORBIDDEN error if the user requesting it
+ *       is not the author (**does not apply to admins**).
+ *
+ *       **Admins CANNOT delete themselves or other admins!*
+ *
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the user
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: Bad Request - Invalid query params
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: One or more fields failed validation
+ *       403:
+ *         description: Forbidden - invalid deletion attempt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *       404:
+ *         description: Not Found - User does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: SER002
+ *                 message: Resource not found
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
  * components:
  *   schemas:
  *     User:
