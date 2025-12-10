@@ -70,11 +70,21 @@ export class UserService implements IUserService {
           firstName: dto.firstName ?? '',
           lastName: dto.lastName ?? '',
           bio: dto.bio ?? '',
-          avatarURL: dto.avatarUrl ?? '',
+          avatarURL: dto.avatarURL ?? '',
         },
       });
       user.profile = profile;
-    } else user = await this.users.update(dto.userId, {}, dto);
+    } else
+      user = await this.users.update(
+        dto.userId,
+        {},
+        {
+          ...(dto.firstName ? { firstName: dto.firstName } : undefined),
+          ...(dto.lastName ? { lastName: dto.lastName } : undefined),
+          ...(dto.bio ? { bio: dto.bio } : undefined),
+          ...(dto.avatarURL ? { avatarURL: dto.avatarURL } : undefined),
+        }
+      );
 
     const filteredUser = this.filterUserData(user, true, false);
 

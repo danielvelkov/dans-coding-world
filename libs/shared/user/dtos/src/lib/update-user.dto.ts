@@ -31,7 +31,7 @@ export class UpdateUserDto {
       USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH
     ),
   })
-  @Matches(/^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/, {
+  @Matches(USER_CONSTRAINTS.NAME_PATTERN, {
     message: VALIDATION_MESSAGES.name,
   })
   firstName?: string;
@@ -47,7 +47,7 @@ export class UpdateUserDto {
       USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH
     ),
   })
-  @Matches(/^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/, {
+  @Matches(USER_CONSTRAINTS.NAME_PATTERN, {
     message: VALIDATION_MESSAGES.name,
   })
   lastName?: string;
@@ -66,5 +66,5 @@ export class UpdateUserDto {
   @MaxLength(SHARED_CONSTANTS.MAX_URL_LENGTH, {
     message: VALIDATION_MESSAGES.maxLength(SHARED_CONSTANTS.MAX_URL_LENGTH),
   })
-  avatarUrl?: string;
+  avatarURL?: string;
 }

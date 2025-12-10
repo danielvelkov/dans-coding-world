@@ -21,4 +21,6 @@ export const USER_CONSTRAINTS = {
   // BIO
   MIN_BIO_LENGTH: 0,
   MAX_BIO_LENGTH: 300,
+
+  NAME_PATTERN: /^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/,
 } as const;
