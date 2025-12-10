@@ -11,6 +11,7 @@ export const SUCCESS_MESSAGES = {
   },
   USERS: {
     get: 'User details retrieved successfully',
+    update: 'Profile updated successfully',
     delete: 'Account deleted successfully',
   },
   POSTS: {

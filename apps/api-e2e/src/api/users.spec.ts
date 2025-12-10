@@ -14,6 +14,7 @@ import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   ERROR_CODES,
   SUCCESS_MESSAGES,
+  USER_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
 import { createAuthRouteHelper } from '../helper/auth-request.helper';
 import { createAxiosClient } from '../helper/test-client.helper';
@@ -21,6 +22,8 @@ import { testInvalidIds } from '../helper/validation.helper';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { UserDetail } from '@dans-coding-world/user-data-access';
+import { UpdateUserDto } from '@dans-coding-world/shared-user-dto';
+import { generateRandomString } from '@dans-coding-world/helpers';
 
 describe('/api/v1/users', () => {
   let client: AxiosInstance;
@@ -29,6 +32,9 @@ describe('/api/v1/users', () => {
     password: string
   ) => Promise<AxiosResponse<BaseResponse>>;
   let getUser: (id: string) => Promise<AxiosResponse<unknown>>;
+  let updateUser: (
+    profileData: Omit<UpdateUserDto, 'userId'>
+  ) => Promise<AxiosResponse<unknown>>;
   let revokeUserTokens: (id: string) => Promise<AxiosResponse<unknown>>;
 
   let users: User[] = [];
@@ -66,7 +72,8 @@ describe('/api/v1/users', () => {
     client = createAxiosClient();
     ({ login } = createAuthRouteHelper(client));
 
-    ({ revokeUserTokens, getUser } = createUsersRouteHelper(client));
+    ({ revokeUserTokens, getUser, updateUser } =
+      createUsersRouteHelper(client));
   });
 
   describe('GET /api/v1/users/:id', () => {
@@ -112,6 +119,138 @@ describe('/api/v1/users', () => {
       await login(admin.email, admin.password);
       return await expect(getUser('999')).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+  });
+
+  describe('PATCH /api/v1/users', () => {
+    it(`should update logged-in user's profile details if valid`, async () => {
+      const NEW_PROFILE_DATA = {
+        firstName: 'Bingus',
+        lastName: 'Dingus',
+      };
+      await login(user.email, user.password);
+
+      const res = await updateUser(NEW_PROFILE_DATA);
+      const { data } = res.data as BaseResponse;
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.USERS.update);
+
+      const userData = (data as any).user as UserDetail;
+      expect(userData.profile?.firstName).toBe(NEW_PROFILE_DATA.firstName);
+      expect(userData.profile?.lastName).toBe(NEW_PROFILE_DATA.lastName);
+
+      expect(userData.profile?.bio).toBe(userProfile.bio);
+    });
+
+    it(`should create profile details when updating if user does not have one`, async () => {
+      const NEW_PROFILE_DATA = {
+        firstName: 'Bingus',
+        lastName: 'Dingus',
+      };
+      await login(author.email, author.password);
+
+      const res_get = await getUser(author.id.toString());
+      const { data: getUserData } = res_get.data as BaseResponse;
+      const oldProfile = (getUserData as any).profile as UserDetail;
+
+      expect(oldProfile).not.toBeDefined();
+
+      const res = await updateUser(NEW_PROFILE_DATA);
+      const { data } = res.data as BaseResponse;
+
+      const userData = (data as any).user as UserDetail;
+      expect(userData.profile?.firstName).toBe(NEW_PROFILE_DATA.firstName);
+      expect(userData.profile?.lastName).toBe(NEW_PROFILE_DATA.lastName);
+
+      // Set other fields to empty string
+      expect(userData.profile?.bio).toBe('');
+      expect(userData.profile?.avatarURL).toBe('');
+    });
+
+    it('should return 401 UNAUTHORIZED when not logged in', async () => {
+      return await expect(
+        updateUser({
+          firstName: 'Jon',
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+
+    test.each([
+      [
+        'first name is too long',
+        {
+          firstName: generateRandomString(
+            USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH + 1
+          ),
+        },
+      ],
+      [
+        'first name is too short',
+        {
+          firstName: generateRandomString(
+            USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH - 1
+          ),
+        },
+      ],
+      [
+        'last name is too long',
+        {
+          lastName: generateRandomString(
+            USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH + 1
+          ),
+        },
+      ],
+      [
+        'last name is too short',
+        {
+          lastName: generateRandomString(
+            USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH - 1
+          ),
+        },
+      ],
+      [
+        'bio is too long',
+        {
+          lastName: generateRandomString(USER_CONSTRAINTS.MAX_BIO_LENGTH + 1),
+        },
+      ],
+    ])('should throw validation error when %s', async (_, profileData) => {
+      await login(user.email, user.password);
+      await expect(
+        updateUser({
+          ...profileData,
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+    });
+
+    test.each([
+      ['contains number', 'John123'],
+      ['contains at sign', 'Jane@'],
+      ['contains special symbol', 'Jane!'],
+      ['contains underscore', 'Mary_Jane'],
+      ['contains emoji', 'Anna😊'],
+      ['contains non-Latin script', 'Иван'],
+      ['contains Chinese characters', '张伟'],
+    ])('should validate name regex %s correctly', async (_, name) => {
+      await login(user.email, user.password);
+      await expect(
+        updateUser({
+          firstName: name,
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+
+      await expect(
+        updateUser({
+          lastName: name,
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
       );
     });
   });
