@@ -24,6 +24,7 @@ import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { UserDetail } from '@dans-coding-world/user-data-access';
 import { UpdateUserDto } from '@dans-coding-world/shared-user-dto';
 import { generateRandomString } from '@dans-coding-world/helpers';
+import { passwordGenerator } from '@dans-coding-world/api-auth';
 
 describe('/api/v1/users', () => {
   let client: AxiosInstance;
@@ -35,6 +36,7 @@ describe('/api/v1/users', () => {
   let updateUser: (
     profileData: Omit<UpdateUserDto, 'userId'>
   ) => Promise<AxiosResponse<unknown>>;
+  let deleteUser: (id: string) => Promise<AxiosResponse<unknown>>;
   let revokeUserTokens: (id: string) => Promise<AxiosResponse<unknown>>;
 
   let users: User[] = [];
@@ -72,7 +74,7 @@ describe('/api/v1/users', () => {
     client = createAxiosClient();
     ({ login } = createAuthRouteHelper(client));
 
-    ({ revokeUserTokens, getUser, updateUser } =
+    ({ revokeUserTokens, getUser, updateUser, deleteUser } =
       createUsersRouteHelper(client));
   });
 
@@ -303,6 +305,110 @@ describe('/api/v1/users', () => {
         SUCCESS_MESSAGES.AUTH.revoke
       );
       expect(revokeData).toHaveProperty('revokedCount', 0);
+    });
+  });
+
+  describe('DELETE /api/v1/users/:id', () => {
+    let anotherUser: User;
+    let anotherAdmin: User;
+
+    beforeAll(async () => {
+      [anotherUser, anotherAdmin] = await seedUsers(
+        [
+          {
+            id: 8,
+            email: 'anotherUser@email.com',
+            username: 'User2',
+            password: passwordGenerator(10),
+            isBanned: false,
+            role: 'USER',
+          },
+          {
+            id: 9,
+            email: 'anotherAdmin@email.com',
+            username: 'Admin2',
+            password: passwordGenerator(10),
+            isBanned: false,
+            role: 'ADMIN',
+          },
+        ],
+        { clearExisting: false, useDefaults: false }
+      );
+    });
+
+    afterAll(async () => {
+      users = await seedUsers();
+      admin = users.find((u) => u.role === 'ADMIN') as User;
+      author = users.find((u) => u.role === 'AUTHOR') as User;
+      user = users.find((u) => u.role === 'USER') as User;
+      mod = users.find((u) => u.role === 'MOD') as User;
+    });
+
+    it(`should delete account if logged-in user matches the one to delete`, async () => {
+      await login(user.email, user.password);
+      const res = await deleteUser(user.id.toString());
+      const { data } = res.data as BaseResponse;
+
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.USERS.delete);
+
+      return await expect(getUser(user.id.toString())).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it(`should delete another user's account if done by ADMIN and the target
+      account is not ADMIN`, async () => {
+      await login(admin.email, admin.password);
+      const res = await deleteUser(mod.id.toString());
+      const { data } = res.data as BaseResponse;
+
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.USERS.delete);
+
+      return await expect(getUser(mod.id.toString())).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it(`should return error when trying to delete yourself as admin`, async () => {
+      await login(admin.email, admin.password);
+
+      return await expect(
+        deleteUser(admin.id.toString())
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION)
+      );
+    });
+
+    it(`should return 403 FORBIDDEN when trying to delete another user as USER`, async () => {
+      await login(anotherUser.email, anotherUser.password);
+
+      return await expect(
+        deleteUser(author.id.toString())
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
+    it(`should return 403 FORBIDDEN when trying to delete another admin as ADMIN`, async () => {
+      await login(admin.email, admin.password);
+
+      return await expect(
+        deleteUser(anotherAdmin.id.toString())
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION)
+      );
+    });
+
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return deleteUser(id);
+    }, 'user id');
+
+    it('should return 404 NOT FOUND for unknown user id', async () => {
+      await login(admin.email, admin.password);
+      return await expect(deleteUser('999')).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
     });
   });
 });

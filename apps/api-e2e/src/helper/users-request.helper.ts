@@ -27,5 +27,9 @@ export function createUsersRouteHelper(client: AxiosInstance) {
         },
       });
     },
+
+    async deleteUser(userId: string) {
+      return await client.delete(`/api/v1/users/${userId}`);
+    },
   };
 }
