@@ -33,6 +33,9 @@
       "path": "../../libs/shared/util/exceptions/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/api/users/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/api/reports/tsconfig.lib.json"
     },
     {

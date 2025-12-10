@@ -1,12 +1,15 @@
 import { Router } from 'express';
 import { authInjector, TOKEN_SERVICE_TOKEN } from '@dans-coding-world/api-auth';
+import { userInjector, UserService } from '@dans-coding-world/api-users';
 import { UsersController } from '../controllers/users.controller';
 
 const usersController = new UsersController(
+  userInjector.get(UserService),
   authInjector.get(TOKEN_SERVICE_TOKEN)
 );
 
 const usersRouter = Router();
+usersRouter.route('/:id').get(usersController.get);
 usersRouter.post('/:id/revoke-tokens', usersController.revokeUserTokens);
 
 export default usersRouter;
