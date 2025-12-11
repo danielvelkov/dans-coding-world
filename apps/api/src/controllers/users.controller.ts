@@ -21,6 +21,7 @@ export class UsersController {
     this.update = this.update.bind(this);
     this.changePassword = this.changePassword.bind(this);
     this.changeRole = this.changeRole.bind(this);
+    this.changeBanStatus = this.changeBanStatus.bind(this);
     this.delete = this.delete.bind(this);
   }
   @Authorized()
@@ -113,6 +114,30 @@ export class UsersController {
 
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.USERS.roleChange,
+        user: changedUser,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  @Authorized()
+  @RequiredRole('ADMIN', 'MOD')
+  async changeBanStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const banIssuer = req.user as User;
+      const { id } = req.params;
+
+      const changedUser = await this.userService.changeBanStatus({
+        userId: banIssuer.id as any,
+        userToChangeId: id as any,
+        isBanned: req.body.isBanned,
+      });
+
+      return res.status(StatusCodes.OK).json({
+        message: changedUser.isBanned
+          ? SUCCESS_MESSAGES.USERS.banned
+          : SUCCESS_MESSAGES.USERS.unbanned,
         user: changedUser,
       });
     } catch (error) {

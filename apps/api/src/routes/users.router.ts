@@ -18,6 +18,7 @@ usersRouter
 usersRouter.route('/password').patch(usersController.changePassword);
 
 usersRouter.route('/:id/role').patch(usersController.changeRole);
+usersRouter.route('/:id/ban').patch(usersController.changeBanStatus);
 usersRouter.post('/:id/revoke-tokens', usersController.revokeUserTokens);
 
 export default usersRouter;

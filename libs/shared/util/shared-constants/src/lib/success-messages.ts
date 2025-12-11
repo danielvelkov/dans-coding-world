@@ -15,6 +15,8 @@ export const SUCCESS_MESSAGES = {
     delete: 'Account deleted successfully',
     password: 'Password changed successfully',
     roleChange: 'User role changed successfully',
+    banned: 'User banned successfully',
+    unbanned: 'User unbanned successfully',
   },
   POSTS: {
     create: 'Post created successfully',
