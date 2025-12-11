@@ -639,7 +639,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION]
+            ERROR_MESSAGES[ERROR_CODES.SECURITY.MODERATION_CONFLICT]
           );
         });
     });

@@ -163,7 +163,7 @@ export class UserService implements IUserService {
       throw new ApiException(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION);
 
     if (user.role === 'MOD' && userToChange.role === 'MOD')
-      throw new ApiException(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION);
+      throw new ApiException(ERROR_CODES.SECURITY.MODERATION_CONFLICT);
 
     const updatedUser = await this.users.update(dto.userToChangeId, {
       isBanned: dto.isBanned,
