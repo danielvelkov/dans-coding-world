@@ -107,7 +107,7 @@ export interface IUserService {
    *
    * @throws {Error} When new role matches old one. (VAL001)
    * @throws {Error} When trying to change an ADMIN's role. (SEC001)
-   * @throws {Error} When trying to change user to ADMIN role. (SEC003)
+   * @throws {Error} When trying to change user to ADMIN role. (SEC004)
    * @throws {Error} User not found (SER002)
    */
   changeRole(dto: ChangeRoleDto): Promise<User>;

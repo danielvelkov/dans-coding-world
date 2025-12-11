@@ -135,7 +135,7 @@ export class UserService implements IUserService {
       throw new ApiException(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION);
 
     if (dto.role === 'ADMIN')
-      throw new ApiException(ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN);
+      throw new ApiException(ERROR_CODES.SECURITY.FORBIDDEN_PROMOTION);
 
     const updatedUser = await this.users.update(dto.userId, {
       role: dto.role,

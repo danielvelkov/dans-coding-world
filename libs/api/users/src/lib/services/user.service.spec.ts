@@ -539,7 +539,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SECURITY.FORBIDDEN_PROMOTION]
           );
         });
     });

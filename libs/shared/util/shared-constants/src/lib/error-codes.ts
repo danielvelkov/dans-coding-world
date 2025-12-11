@@ -35,6 +35,7 @@ export const ERROR_CODES = {
     ADMIN_PRIVILEGE_VIOLATION: 'SEC001',
     MODERATION_CONFLICT: 'SEC002',
     SELF_ACTION_FORBIDDEN: 'SEC003',
+    FORBIDDEN_PROMOTION: 'SEC004',
   },
 } as const;
 
@@ -68,6 +69,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SEC002:
     'The target user has elevated status and cannot be managed by your current role',
   SEC003: 'You cannot perform this action on your own account',
+  SEC004: 'You cannot promote user to administrator',
 };
 
 /**
@@ -96,4 +98,5 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   SEC001: StatusCodes.FORBIDDEN,
   SEC002: StatusCodes.FORBIDDEN,
   SEC003: StatusCodes.FORBIDDEN,
+  SEC004: StatusCodes.FORBIDDEN,
 };
