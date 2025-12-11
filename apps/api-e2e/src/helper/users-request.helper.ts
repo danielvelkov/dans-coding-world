@@ -1,5 +1,6 @@
 import { AxiosInstance } from 'axios';
 import {
+  ChangeBanStatusDto,
   ChangePasswordDto,
   ChangeRoleDto,
   UpdateUserDto,
@@ -60,6 +61,26 @@ export function createUsersRouteHelper(client: AxiosInstance) {
         }
       }
       return await client.patch(`/api/v1/users/${id}/role`, urlSearchParams, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+    },
+
+    async changeBanStatus(
+      id: string,
+      data: Omit<ChangeBanStatusDto, 'userId' | 'userToChangeId'>
+    ) {
+      const urlSearchParams = new URLSearchParams();
+
+      for (const [key, value] of Object.entries(data)) {
+        if (value === undefined) {
+          urlSearchParams.append(key, 'undefined');
+        } else {
+          urlSearchParams.append(key, value.toString());
+        }
+      }
+      return await client.patch(`/api/v1/users/${id}/ban`, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },

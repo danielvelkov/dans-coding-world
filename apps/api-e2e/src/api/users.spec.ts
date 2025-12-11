@@ -24,6 +24,7 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { UserDetail } from '@dans-coding-world/user-data-access';
 import {
+  ChangeBanStatusDto,
   ChangePasswordDto,
   ChangeRoleDto,
   UpdateUserDto,
@@ -49,6 +50,10 @@ describe('/api/v1/users', () => {
   let changeUserRole: (
     id: string,
     changeRoleData: Omit<ChangeRoleDto, 'userId'>
+  ) => Promise<AxiosResponse<unknown>>;
+  let changeBanStatus: (
+    id: string,
+    changeBanStatusData: Omit<ChangeBanStatusDto, 'userId' | 'userToChangeId'>
   ) => Promise<AxiosResponse<unknown>>;
 
   let users: User[] = [];
@@ -93,6 +98,7 @@ describe('/api/v1/users', () => {
       changePassword,
       deleteUser,
       changeUserRole,
+      changeBanStatus,
     } = createUsersRouteHelper(client));
   });
 
@@ -622,6 +628,152 @@ describe('/api/v1/users', () => {
       return await expect(
         changeUserRole(user.id.toString(), {
           role: 'USER',
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+  });
+
+  describe('PATCH /api/v1/users/:id/ban', () => {
+    let anotherMod: User;
+    let anotherAdmin: User;
+
+    beforeAll(async () => {
+      [anotherAdmin, anotherMod] = await seedUsers(
+        [
+          {
+            id: 9,
+            email: 'anotherAdmin@email.com',
+            username: 'Admin2',
+            password: passwordGenerator(10),
+            isBanned: false,
+            role: 'ADMIN',
+          },
+          {
+            id: 10,
+            email: 'anotherMod@email.com',
+            username: 'Mod2',
+            password: passwordGenerator(10),
+            isBanned: false,
+            role: 'MOD',
+          },
+        ],
+        { clearExisting: false, useDefaults: false }
+      );
+    });
+
+    afterAll(async () => {
+      users = await seedUsers();
+      admin = users.find((u) => u.role === 'ADMIN') as User;
+      author = users.find((u) => u.role === 'AUTHOR') as User;
+      user = users.find((u) => u.role === 'USER') as User;
+      mod = users.find((u) => u.role === 'MOD') as User;
+    });
+
+    test.each(['MOD', 'ADMIN'])(
+      'should ban/un-ban USER or AUTHOR if its done by %s',
+      async (role) => {
+        const userWithElevatedPrivileges = [mod, admin].find(
+          (u) => u.role === role
+        );
+        if (!userWithElevatedPrivileges) throw new Error('Missing test user');
+        await login(
+          userWithElevatedPrivileges.email,
+          userWithElevatedPrivileges.password
+        );
+        for (const userToBan of [user, author])
+          for (const bannedStatus of [true, false]) {
+            const res_promote = await changeBanStatus(userToBan.id.toString(), {
+              isBanned: bannedStatus,
+            });
+            const { data } = res_promote.data as BaseResponse;
+
+            expect(data).toHaveProperty(
+              'message',
+              bannedStatus
+                ? SUCCESS_MESSAGES.USERS.banned
+                : SUCCESS_MESSAGES.USERS.unbanned
+            );
+            const updatedUser = (data as any).user as UserDetail;
+            expect(updatedUser.isBanned).toBe(bannedStatus);
+          }
+      }
+    );
+
+    it(`should return an error when trying to ban/un-ban another MOD as moderator`, async () => {
+      await login(mod.email, mod.password);
+      for (const bannedStatus of [true, false])
+        await expect(
+          changeBanStatus(anotherMod.id.toString(), {
+            isBanned: bannedStatus,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SECURITY.MODERATION_CONFLICT)
+        );
+    });
+
+    it(`should return an error when trying to ban/un-ban another ADMIN as admin`, async () => {
+      await login(admin.email, admin.password);
+      for (const bannedStatus of [true, false])
+        await expect(
+          changeBanStatus(anotherAdmin.id.toString(), {
+            isBanned: bannedStatus,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(
+            ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION
+          )
+        );
+    });
+
+    it('should return an error when the user is trying to ban/un-ban himself', async () => {
+      await login(mod.email, mod.password);
+      for (const bannedStatus of [true, false])
+        await expect(
+          changeBanStatus(mod.id.toString(), {
+            isBanned: bannedStatus,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN)
+        );
+    });
+
+    test.each(['USER', 'AUTHOR'])(
+      'should return 403 FORBIDDEN when user who is trying to initiate a ban is an %s',
+      async (role) => {
+        const user = users.find((u) => u.role === role);
+        if (!user) throw new Error('Missing test user');
+
+        await login(user.email, user.password);
+        await expect(
+          changeBanStatus(mod.id.toString(), {
+            isBanned: true,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
+      }
+    );
+
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return changeBanStatus(id, { isBanned: true });
+    }, 'user id');
+
+    it('should return 404 NOT FOUND for unknown user id', async () => {
+      await login(admin.email, admin.password);
+      return await expect(
+        changeBanStatus('999', { isBanned: true })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it('should return 401 UNAUTHORIZED when not logged in', async () => {
+      return await expect(
+        changeBanStatus(user.id.toString(), {
+          isBanned: true,
         })
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
