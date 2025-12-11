@@ -16,6 +16,7 @@ export const ERROR_CODES = {
     TOKEN_NOT_FOUND: 'AUTH004',
     UNAUTHORIZED: 'AUTH005',
     SAME_PASSWORD: 'AUTH006',
+    BANNED: 'AUTH007',
   },
   SERVER: {
     INTERNAL_ERROR: 'SER001',
@@ -51,6 +52,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AUTH004: 'Token no longer exists',
   AUTH005: 'You must be logged in to perform this action',
   AUTH006: 'New password cannot be the same as your current password',
+  AUTH007: 'Your account has been banned; access to this resource is denied',
 
   SER001: 'Something went wrong',
   SER002: 'Resource not found',
@@ -82,6 +84,7 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   AUTH004: StatusCodes.NOT_FOUND,
   AUTH005: StatusCodes.UNAUTHORIZED,
   AUTH006: StatusCodes.BAD_REQUEST,
+  AUTH007: StatusCodes.FORBIDDEN,
 
   SER001: StatusCodes.INTERNAL_SERVER_ERROR,
   SER002: StatusCodes.NOT_FOUND,
