@@ -54,6 +54,7 @@ describe('Registration service', () => {
       expect(response.user).not.toBeNull();
       expect(response.user.id).not.toBeNull();
       expect(response.user.email).toBe(registerDto.email);
+      expect((response.user as any).password).not.toBeDefined();
       expect(response.user.role).toBe('USER');
     });
 
