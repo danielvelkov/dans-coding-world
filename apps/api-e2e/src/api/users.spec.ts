@@ -15,6 +15,7 @@ import {
   ERROR_CODES,
   SUCCESS_MESSAGES,
   USER_CONSTRAINTS,
+  VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { createAuthRouteHelper } from '../helper/auth-request.helper';
 import { createAxiosClient } from '../helper/test-client.helper';
@@ -24,6 +25,7 @@ import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { UserDetail } from '@dans-coding-world/user-data-access';
 import {
   ChangePasswordDto,
+  ChangeRoleDto,
   UpdateUserDto,
 } from '@dans-coding-world/shared-user-dto';
 import { generateRandomString } from '@dans-coding-world/helpers';
@@ -44,6 +46,10 @@ describe('/api/v1/users', () => {
   ) => Promise<AxiosResponse<unknown>>;
   let deleteUser: (id: string) => Promise<AxiosResponse<unknown>>;
   let revokeUserTokens: (id: string) => Promise<AxiosResponse<unknown>>;
+  let changeUserRole: (
+    id: string,
+    changeRoleData: Omit<ChangeRoleDto, 'userId'>
+  ) => Promise<AxiosResponse<unknown>>;
 
   let users: User[] = [];
   let refreshTokens: RefreshToken[] = [];
@@ -80,8 +86,14 @@ describe('/api/v1/users', () => {
     client = createAxiosClient();
     ({ login } = createAuthRouteHelper(client));
 
-    ({ revokeUserTokens, getUser, updateUser, changePassword, deleteUser } =
-      createUsersRouteHelper(client));
+    ({
+      revokeUserTokens,
+      getUser,
+      updateUser,
+      changePassword,
+      deleteUser,
+      changeUserRole,
+    } = createUsersRouteHelper(client));
   });
 
   describe('GET /api/v1/users/:id', () => {
@@ -469,6 +481,154 @@ describe('/api/v1/users', () => {
     });
   });
 
+  describe('PATCH /api/v1/users/:id/role', () => {
+    let anotherAdmin: User;
+
+    beforeAll(async () => {
+      [anotherAdmin] = await seedUsers(
+        [
+          {
+            id: 9,
+            email: 'anotherAdmin@email.com',
+            username: 'Admin2',
+            password: passwordGenerator(10),
+            isBanned: false,
+            role: 'ADMIN',
+          },
+        ],
+        { clearExisting: false, useDefaults: false }
+      );
+    });
+
+    afterAll(async () => {
+      users = await seedUsers();
+      admin = users.find((u) => u.role === 'ADMIN') as User;
+      author = users.find((u) => u.role === 'AUTHOR') as User;
+      user = users.find((u) => u.role === 'USER') as User;
+      mod = users.find((u) => u.role === 'MOD') as User;
+    });
+
+    it('should promote or demote user if valid role and userId is provided', async () => {
+      await login(admin.email, admin.password);
+
+      const newRole = 'MOD';
+      const oldRole = 'USER';
+
+      const res_promote = await changeUserRole(user.id.toString(), {
+        role: newRole,
+      });
+      const { data: promotionData } = res_promote.data as BaseResponse;
+
+      expect(promotionData).toHaveProperty(
+        'message',
+        SUCCESS_MESSAGES.USERS.roleChange
+      );
+      const promotedUser = (promotionData as any).user as UserDetail;
+
+      expect(promotedUser.role).toBe(newRole);
+      expect(promotedUser.password).not.toBeDefined();
+
+      const res_demote = await changeUserRole(user.id.toString(), {
+        role: oldRole,
+      });
+      const { data: demotionData } = res_demote.data as BaseResponse;
+      const demotedUser = (demotionData as any).user as UserDetail;
+
+      expect(demotedUser.role).toBe(oldRole);
+    });
+
+    it(`should return an error when the targeted user is an ADMIN`, async () => {
+      await login(admin.email, admin.password);
+      return await expect(
+        changeUserRole(anotherAdmin.id.toString(), {
+          role: 'USER',
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION)
+      );
+    });
+
+    it(`should return an error when changing to the same role`, async () => {
+      await login(admin.email, admin.password);
+      return await expect(
+        changeUserRole(user.id.toString(), {
+          role: 'USER',
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(
+          ERROR_CODES.VALIDATION.VALIDATION_ERROR,
+          VALIDATION_MESSAGES.users.sameRole
+        )
+      );
+    });
+
+    test.each(['USER', 'AUTHOR', 'MOD'])(
+      'should return 403 FORBIDDEN when user who is trying to change role is %s',
+      async (role) => {
+        const user = users.find((u) => u.role === role);
+        if (!user) throw new Error('Missing test user');
+
+        await login(user.email, user.password);
+        await expect(
+          changeUserRole(admin.id.toString(), {
+            role: 'USER',
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
+      }
+    );
+
+    it('should return an error when new user role is ADMIN', async () => {
+      await login(admin.email, admin.password);
+      return await expect(
+        changeUserRole(user.id.toString(), {
+          role: 'ADMIN',
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SECURITY.FORBIDDEN_PROMOTION)
+      );
+    });
+
+    test.each(['admin', 'MODERATOR', 'owner'])(
+      'should return validation error when role is not valid',
+      async (role) => {
+        await login(admin.email, admin.password);
+        return await expect(
+          changeUserRole(user.id.toString(), {
+            role: role as any,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
+
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return changeUserRole(id, { role: 'USER' });
+    }, 'user id');
+
+    it('should return 404 NOT FOUND for unknown user id', async () => {
+      await login(admin.email, admin.password);
+      return await expect(
+        changeUserRole('999', { role: 'USER' })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it('should return 401 UNAUTHORIZED when not logged in', async () => {
+      return await expect(
+        changeUserRole(user.id.toString(), {
+          role: 'USER',
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+  });
+
   describe('DELETE /api/v1/users/:id', () => {
     let anotherUser: User;
     let anotherAdmin: User;
@@ -569,6 +729,12 @@ describe('/api/v1/users', () => {
       await login(admin.email, admin.password);
       return await expect(deleteUser('999')).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+      );
+    });
+
+    it('should return 401 UNAUTHORIZED when not logged in', async () => {
+      return await expect(deleteUser(user.id.toString())).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
   });
