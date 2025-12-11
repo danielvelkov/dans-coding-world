@@ -157,6 +157,82 @@ export default usersRouter;
 
 /**
  * @openapi
+ * /users/{id}/role:
+ *   patch:
+ *     tags: [Users]
+ *     summary: Update user's role.
+ *     description: |
+ *       Roles required: ADMIN
+ *
+ *       Update another user's role by user Id.
+ *       Cannot change role to ADMIN or change role of another ADMIN.
+ *
+ *       **Authentication:**
+ *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
+ *       - If access_token is valid and user is ADMIN - he can change another user's role.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateRoleDto'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateRoleDto'
+ *     responses:
+ *       200:
+ *         description: Role updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GetUserResponse'
+ *       400:
+ *         description: Bad Request - Invalid form body
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: One or more fields failed validation
+ *       401:
+ *         description: Unauthorized - Login first
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden - Invalid role change
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *       404:
+ *         description: Not Found - User does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: SER002
+ *                 message: Resource not found
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
  * /users:
  *   patch:
  *     tags: [Users]
@@ -286,7 +362,7 @@ export default usersRouter;
  *       Delete a user's account and all content that spans from it by user Id.
  *
  *       Returns 403 FORBIDDEN error if the user requesting it
- *       is not the author (**does not apply to admins**).
+ *       is not the owner of the account (**does not apply to admins**).
  *
  *       **Admins CANNOT delete themselves or other admins!*
  *
@@ -448,5 +524,15 @@ export default usersRouter;
  *       example:
  *         oldPassword: badPassword1.
  *         newPassword: dkjafdld_skfj!al
+ *
+ *     UpdateRoleDto:
+ *       type: object
+ *       properties:
+ *         role:
+ *           type: string
+ *           enum: [USER, MOD, AUTHOR]
+ *           description: New role. Could be one of [USER, MOD, AUTHOR]
+ *       example:
+ *         role: USER
  *
  */
