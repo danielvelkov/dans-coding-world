@@ -10,12 +10,11 @@ const usersController = new UsersController(
 
 const usersRouter = Router();
 usersRouter.patch('/', usersController.update);
+usersRouter.route('/password').patch(usersController.changePassword);
 usersRouter
   .route('/:id')
   .get(usersController.get)
   .delete(usersController.delete);
-
-usersRouter.route('/password').patch(usersController.changePassword);
 
 usersRouter.route('/:id/role').patch(usersController.changeRole);
 usersRouter.route('/:id/ban').patch(usersController.changeBanStatus);
@@ -93,7 +92,7 @@ export default usersRouter;
  * /users/password:
  *   patch:
  *     tags: [Users]
- *     summary: Update user's password.
+ *     summary: Update a user's password.
  *     description: |
  *       Update logged-in user's password if the provided old password matches the
  *       current one and the new password is valid. Requires user to be logged in.
@@ -158,6 +157,91 @@ export default usersRouter;
 
 /**
  * @openapi
+ * /users/{id}/ban:
+ *   patch:
+ *     tags: [Users]
+ *     summary: Ban or un-ban a user.
+ *     description: |
+ *       Roles required: ADMIN or MOD
+ *
+ *       Update another user's ban status by user Id.
+ *       Cannot change the ban status of another ADMIN/MOD, or your own account.
+ *
+ *       **Banned users are not allowed certain user privileges and have no access to some parts of the API.**
+ *
+ *       **Authentication:**
+ *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
+ *       - If access_token is valid and user is ADMIN/MOD - he can change another user's ban status.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the user that will be banned/un-banned
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ChangeBanStatusDto'
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/ChangeBanStatusDto'
+ *     responses:
+ *       200:
+ *         description: Ban status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GetUserResponse'
+ *       400:
+ *         description: Bad Request - Invalid form body
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: One or more fields failed validation
+ *       401:
+ *         description: Unauthorized - Login first
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden - Invalid ban status change
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *       404:
+ *         description: Not Found - User does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: SER002
+ *                 message: Resource not found
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+
+/**
+ * @openapi
  * /users/{id}/role:
  *   patch:
  *     tags: [Users]
@@ -171,6 +255,13 @@ export default usersRouter;
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
  *       - If access_token is valid and user is ADMIN - he can change another user's role.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the user that will have his role changed
  *     requestBody:
  *       content:
  *         application/json:
@@ -429,7 +520,7 @@ export default usersRouter;
  *       type: object
  *       properties:
  *         id:
- *           type: string
+ *           type: integer
  *           description: User ID
  *           example: 1
  *         email:
@@ -444,12 +535,16 @@ export default usersRouter;
  *           type: string
  *           description: User role. Can be either ADMIN, MOD, AUTHOR or USER
  *           example: USER
+ *         isBanned:
+ *           type: boolean
+ *           description: Whether user is banned or not
+ *           example: false
  *
  *     Profile:
  *       type: object
  *       properties:
  *         id:
- *           type: string
+ *           type: integer
  *           description: Profile ID
  *           example: 1
  *         firstName:
@@ -535,5 +630,14 @@ export default usersRouter;
  *           description: New role. Could be one of [USER, MOD, AUTHOR]
  *       example:
  *         role: USER
+ *
+ *     ChangeBanStatusDto:
+ *       type: object
+ *       properties:
+ *         isBanned:
+ *           type: boolean
+ *           description: Whether user is banned or not.
+ *       example:
+ *         isBanned: true
  *
  */
