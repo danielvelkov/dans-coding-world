@@ -22,9 +22,12 @@ import { testInvalidIds } from '../helper/validation.helper';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { UserDetail } from '@dans-coding-world/user-data-access';
-import { UpdateUserDto } from '@dans-coding-world/shared-user-dto';
+import {
+  ChangePasswordDto,
+  UpdateUserDto,
+} from '@dans-coding-world/shared-user-dto';
 import { generateRandomString } from '@dans-coding-world/helpers';
-import { passwordGenerator } from '@dans-coding-world/api-auth';
+import { passwordGenerator, validPassword } from '@dans-coding-world/api-auth';
 
 describe('/api/v1/users', () => {
   let client: AxiosInstance;
@@ -35,6 +38,9 @@ describe('/api/v1/users', () => {
   let getUser: (id: string) => Promise<AxiosResponse<unknown>>;
   let updateUser: (
     profileData: Omit<UpdateUserDto, 'userId'>
+  ) => Promise<AxiosResponse<unknown>>;
+  let changePassword: (
+    profileData: Omit<ChangePasswordDto, 'userId'>
   ) => Promise<AxiosResponse<unknown>>;
   let deleteUser: (id: string) => Promise<AxiosResponse<unknown>>;
   let revokeUserTokens: (id: string) => Promise<AxiosResponse<unknown>>;
@@ -74,7 +80,7 @@ describe('/api/v1/users', () => {
     client = createAxiosClient();
     ({ login } = createAuthRouteHelper(client));
 
-    ({ revokeUserTokens, getUser, updateUser, deleteUser } =
+    ({ revokeUserTokens, getUser, updateUser, changePassword, deleteUser } =
       createUsersRouteHelper(client));
   });
 
@@ -305,6 +311,161 @@ describe('/api/v1/users', () => {
         SUCCESS_MESSAGES.AUTH.revoke
       );
       expect(revokeData).toHaveProperty('revokedCount', 0);
+    });
+  });
+
+  describe('PATCH /api/v1/users/password', () => {
+    let userToChange: User;
+
+    beforeAll(async () => {
+      [userToChange] = await seedUsers(
+        [
+          {
+            id: 10,
+            isBanned: false,
+            email: 'newUser123@email.com',
+            username: 'newUser123',
+            password: passwordGenerator(10),
+            role: 'USER',
+          },
+        ],
+        {
+          clearExisting: false,
+          useDefaults: false,
+        }
+      );
+    });
+
+    afterAll(async () => {
+      await prisma.user.delete({
+        where: {
+          id: userToChange.id,
+        },
+      });
+    });
+
+    it(`should change logged-in user password if oldPassword
+       field matches his current one and newPassword field is valid`, async () => {
+      const NEW_PASSWORD = passwordGenerator(
+        USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+      );
+      await login(userToChange.email, userToChange.password);
+
+      const res = await changePassword({
+        oldPassword: userToChange.password,
+        newPassword: NEW_PASSWORD,
+      });
+      const { data } = res.data as BaseResponse;
+
+      const userData = (data as any).user as UserDetail;
+      expect(userData.password).not.toBeDefined();
+
+      const user = await prisma.user.findFirst({
+        where: {
+          id: userToChange.id,
+        },
+      });
+      if (!user) throw new Error('Something went wrong');
+
+      const isValidPassword = await validPassword(NEW_PASSWORD, user?.password);
+      expect(isValidPassword).toBe(true);
+    });
+
+    it(`should throw when oldPassword field doesn't match 
+      the current logged-in user password`, async () => {
+      await login(admin.email, admin.password);
+      await expect(
+        changePassword({
+          oldPassword: passwordGenerator(10),
+          newPassword: passwordGenerator(10),
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_CREDENTIALS)
+      );
+    });
+
+    it('should return error when new password matches the old one', async () => {
+      await login(admin.email, admin.password);
+      await expect(
+        changePassword({
+          oldPassword: admin.password,
+          newPassword: admin.password,
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+      );
+    });
+
+    test.each([
+      [
+        'is too short',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH - 1),
+      ],
+      [
+        'is too long',
+        passwordGenerator(USER_CONSTRAINTS.MAX_PASSWORD_LENGTH + 1),
+      ],
+      [
+        'has no symbols',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1, {
+          includeSymbols: false,
+        }),
+      ],
+      [
+        'has no numbers',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1, {
+          includeNumbers: false,
+        }),
+      ],
+      [
+        'has no uppercase characters',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1, {
+          includeUppercase: false,
+        }),
+      ],
+      [
+        'has no lowercase characters',
+        passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1, {
+          includeLowercase: false,
+        }),
+      ],
+    ])(
+      'should return validation error when either password %s',
+      async (_, password) => {
+        await login(admin.email, admin.password);
+        await expect(
+          changePassword({
+            oldPassword: passwordGenerator(
+              USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+            ),
+            newPassword: password,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+
+        await expect(
+          changePassword({
+            oldPassword: password,
+            newPassword: passwordGenerator(
+              USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+            ),
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
+
+    it('should return 401 UNAUTHORIZED when not logged in', async () => {
+      return await expect(
+        changePassword({
+          oldPassword: 'Jon',
+          newPassword: 'Jon',
+        })
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
     });
   });
 
