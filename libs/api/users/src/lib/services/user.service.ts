@@ -19,6 +19,7 @@ import {
   GetUserResponseDto,
 } from '@dans-coding-world/shared-user-dto';
 import { UserDetail } from '@dans-coding-world/user-data-access';
+import { validPassword, hashPassword } from '@dans-coding-world/api-auth';
 
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
 
@@ -97,14 +98,21 @@ export class UserService implements IUserService {
     const user = await this.users.getById(dto.userId.toString());
     if (!user) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
-    if (user.password !== dto.oldPassword)
+    const isPasswordValid = await validPassword(dto.oldPassword, user.password);
+
+    if (!isPasswordValid)
       throw new ApiException(ERROR_CODES.AUTH.INVALID_CREDENTIALS);
 
-    if (user.password === dto.newPassword)
+    const isNewPasswordSameAsOldPassword = await validPassword(
+      dto.newPassword,
+      user.password
+    );
+
+    if (isNewPasswordSameAsOldPassword)
       throw new ApiException(ERROR_CODES.AUTH.SAME_PASSWORD);
 
     const updatedUser = await this.users.update(dto.userId, {
-      password: dto.newPassword,
+      password: await hashPassword(dto.newPassword),
     });
 
     const filteredUser = this.filterUserData(updatedUser, true, false);

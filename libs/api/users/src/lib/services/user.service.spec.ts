@@ -16,13 +16,22 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { UserService, USER_REPOSITORY_TOKEN } from './user.service.js';
 import { generateRandomString } from '@dans-coding-world/helpers';
-import { passwordGenerator } from '@dans-coding-world/api-auth';
+import {
+  passwordGenerator,
+  hashPassword,
+  validPassword,
+} from '@dans-coding-world/api-auth';
 
 let mockUsersRepo: IUserRepository;
 let injector: ReflectiveInjector;
 let userService: IUserService;
 
 describe('UserService', () => {
+  const roles: Role[] = ['USER', 'ADMIN', 'MOD', 'AUTHOR'];
+
+  let initialPasswords: string[];
+  let hashedPasswords: string[];
+
   let user: User;
   let author: User;
   let admin: User;
@@ -30,24 +39,37 @@ describe('UserService', () => {
 
   let userProfile: Profile;
 
+  beforeAll(async () => {
+    initialPasswords = roles.map((_) =>
+      passwordGenerator(USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1)
+    );
+    hashedPasswords = await Promise.all(
+      initialPasswords.map((pass) => hashPassword(pass))
+    );
+  });
+
   beforeEach(async () => {
     await client.user.deleteMany();
 
     mockUsersRepo = new MockUserRepository();
 
-    const roles: Role[] = ['USER', 'ADMIN', 'MOD', 'AUTHOR'];
-
-    [user, admin, mod, author] = await Promise.all(
-      roles.map((role) =>
+    let users = [user, admin, mod, author];
+    users = await Promise.all(
+      roles.map((role, i) =>
         mockUsersRepo.create({
           email: `fake${role.toLowerCase()}123@gmail.com`,
-          password: passwordGenerator(USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1),
+          password: hashedPasswords[i],
           username: `fake${role.toLowerCase()}123`,
           role,
           isBanned: false,
         })
       )
     );
+
+    [user, admin, mod, author] = users.map((u, i) => ({
+      ...u,
+      password: initialPasswords[i],
+    }));
 
     userProfile = await client.profile.create({
       data: {
@@ -320,7 +342,15 @@ describe('UserService', () => {
       expect(mockUsersRepo.update).toHaveBeenCalledTimes(1);
 
       const updatedUser = await mockUsersRepo.getById(user.id.toString());
-      expect(updatedUser?.password).toBe(NEW_PASS);
+      if (!updatedUser) throw new Error('Failed to update password');
+
+      // Updating your password should also hash
+      // the new password like in registration service
+      const isValidPassword = await validPassword(
+        NEW_PASS,
+        updatedUser.password
+      );
+      expect(isValidPassword).toBe(true);
     });
 
     it(`should throw when old password doesn't match the current one`, async () => {
@@ -329,7 +359,7 @@ describe('UserService', () => {
         .changePassword({
           userId: user.id,
           oldPassword: passwordGenerator(10),
-          newPassword: user.password,
+          newPassword: passwordGenerator(10),
         })
         .catch((error) => {
           expect(error.message).toBe(
