@@ -17,6 +17,7 @@ usersRouter
 
 usersRouter.route('/password').patch(usersController.changePassword);
 
+usersRouter.route('/:id/role').patch(usersController.changeRole);
 usersRouter.post('/:id/revoke-tokens', usersController.revokeUserTokens);
 
 export default usersRouter;

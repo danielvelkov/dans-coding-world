@@ -20,6 +20,7 @@ export class UsersController {
     this.get = this.get.bind(this);
     this.update = this.update.bind(this);
     this.changePassword = this.changePassword.bind(this);
+    this.changeRole = this.changeRole.bind(this);
     this.delete = this.delete.bind(this);
   }
   @Authorized()
@@ -94,6 +95,25 @@ export class UsersController {
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.USERS.password,
         user: updatedUser,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  @Authorized()
+  @RequiredRole('ADMIN')
+  async changeRole(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const changedUser = await this.userService.changeRole({
+        userId: id as any,
+        ...req.body,
+      });
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.USERS.roleChange,
+        user: changedUser,
       });
     } catch (error) {
       return next(error);
