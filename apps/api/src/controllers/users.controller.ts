@@ -19,6 +19,7 @@ export class UsersController {
     this.revokeUserTokens = this.revokeUserTokens.bind(this);
     this.get = this.get.bind(this);
     this.update = this.update.bind(this);
+    this.changePassword = this.changePassword.bind(this);
     this.delete = this.delete.bind(this);
   }
   @Authorized()
@@ -74,6 +75,25 @@ export class UsersController {
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.USERS.update,
         user,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  @Authorized()
+  async changePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = req.user as User;
+
+      const updatedUser = await this.userService.changePassword({
+        userId: user.id,
+        ...req.body,
+      });
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.USERS.password,
+        user: updatedUser,
       });
     } catch (error) {
       return next(error);

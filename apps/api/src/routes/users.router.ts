@@ -15,6 +15,8 @@ usersRouter
   .get(usersController.get)
   .delete(usersController.delete);
 
+usersRouter.route('/password').patch(usersController.changePassword);
+
 usersRouter.post('/:id/revoke-tokens', usersController.revokeUserTokens);
 
 export default usersRouter;

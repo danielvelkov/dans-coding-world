@@ -13,6 +13,7 @@ export const SUCCESS_MESSAGES = {
     get: 'User details retrieved successfully',
     update: 'Profile updated successfully',
     delete: 'Account deleted successfully',
+    password: 'Password changed successfully',
   },
   POSTS: {
     create: 'Post created successfully',
