@@ -4,6 +4,7 @@ import {
   CommentWithReplies,
   Post,
   User,
+  client as prisma,
 } from '@dans-coding-world/prisma-schema';
 import {
   seedUsers,
@@ -105,6 +106,15 @@ describe('/api/v1/posts/{postId}/comments', () => {
       updateComment,
       createComment,
     } = createPostsRouteHelper(client));
+  });
+
+  afterEach(async () => {
+    // un-ban banned users
+    await prisma.user.updateMany({
+      data: {
+        isBanned: false,
+      },
+    });
   });
 
   describe('GET /api/v1/posts/{postId}/comments', () => {
@@ -1006,6 +1016,22 @@ describe('/api/v1/posts/{postId}/comments', () => {
         comments = await seedComments();
       }
     );
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(
+        deleteComment(posts[0].id, comments[0].id)
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+    });
   });
 
   describe('POST /api/v1/posts/{postId}/comments', () => {
@@ -1149,6 +1175,22 @@ describe('/api/v1/posts/{postId}/comments', () => {
         ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
         );
+    });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(
+        createComment(posts[0].id, 'new content')
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
     });
   });
 
@@ -1303,6 +1345,22 @@ describe('/api/v1/posts/{postId}/comments', () => {
         );
       }
     );
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(
+        updateComment(posts[0].id, comments[0].id, 'new content')
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+    });
   });
 });
 

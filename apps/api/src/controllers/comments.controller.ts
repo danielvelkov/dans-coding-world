@@ -8,7 +8,11 @@ import {
   GetPostCommentsDto,
   UpdateCommentDto,
 } from '@dans-coding-world/shared-post-dto';
-import { Authorized, AttachUser } from '@dans-coding-world/api-auth';
+import {
+  Authorized,
+  AttachUser,
+  BlockBanned,
+} from '@dans-coding-world/api-auth';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 import { User } from '@dans-coding-world/prisma-schema';
 
@@ -74,6 +78,7 @@ export class CommentsController {
   }
 
   @Authorized()
+  @BlockBanned()
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
@@ -97,6 +102,7 @@ export class CommentsController {
   }
 
   @Authorized()
+  @BlockBanned()
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
@@ -121,6 +127,7 @@ export class CommentsController {
   }
 
   @Authorized()
+  @BlockBanned()
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
