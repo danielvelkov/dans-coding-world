@@ -94,6 +94,7 @@ export class TokenService implements ITokenService {
 
   async revokeAllUserRefreshTokens(dto: RevokeUserTokensDto): Promise<number> {
     dto = await transformAndValidateDto(dto, RevokeUserTokensDto);
+
     return await this.refreshTokens.updateMany(
       { userId: dto.userId, revoked: false },
       { revoked: true }
