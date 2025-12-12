@@ -81,6 +81,7 @@ describe('Token service', () => {
         password: 'password',
         role: 'USER',
         username: 'example',
+        isBanned: false,
       });
 
       const { jti } = jwt.decode(token) as JwtPayload;
@@ -104,7 +105,7 @@ describe('Token service', () => {
     });
 
     it('should set "revoke" flag to false when revoking refresh token', async () => {
-      const res = await tokenService.revokeRefreshToken(token);
+      const res = await tokenService.revokeRefreshToken({ token });
 
       expect(mockRefreshTokenRepo.update).toHaveBeenCalledTimes(1);
       expect(res.revoked).toBe(true);
@@ -120,28 +121,35 @@ describe('Token service', () => {
         password: 'password',
         role: 'USER',
         username: 'example',
+        isBanned: false,
       });
       expect.assertions(1);
-      return tokenService.revokeRefreshToken(randomToken).catch((err) => {
-        expect(err.message).toMatch(
-          ERROR_MESSAGES[ERROR_CODES.AUTH.TOKEN_NOT_FOUND]
-        );
-      });
+      return tokenService
+        .revokeRefreshToken({ token: randomToken })
+        .catch((err) => {
+          expect(err.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.AUTH.TOKEN_NOT_FOUND]
+          );
+        });
     });
 
     it('should throw when token is invalid ', async () => {
       expect.assertions(1);
-      return tokenService.revokeRefreshToken('bad.token').catch((err) => {
-        expect(err.message).toMatch(
-          ERROR_MESSAGES[ERROR_CODES.AUTH.INVALID_TOKEN]
-        );
-      });
+      return tokenService
+        .revokeRefreshToken({ token: 'bad.token' })
+        .catch((err) => {
+          expect(err.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+          );
+        });
     });
 
     it(`should set each token's "revoke" flag to false when revoking all user's tokens`, async () => {
       await mockRefreshTokenRepo.create('2', TEST_USER_ID, new Date());
       await mockRefreshTokenRepo.create('3', 'NOT TEST USER ID', new Date());
-      const count = await tokenService.revokeAllUserRefreshTokens(TEST_USER_ID);
+      const count = await tokenService.revokeAllUserRefreshTokens({
+        userId: +TEST_USER_ID,
+      });
       expect(mockRefreshTokenRepo.updateMany).toHaveBeenCalledTimes(1);
       expect(count).toBe(2);
       expect(

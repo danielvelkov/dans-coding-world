@@ -330,6 +330,32 @@ describe('/api/v1/users', () => {
       );
       expect(revokeData).toHaveProperty('revokedCount', 0);
     });
+
+    test.each(['USER', 'AUTHOR'])(
+      'should return 403 FORBIDDEN when user who is trying to revoke tokens is %s',
+      async (role) => {
+        const user = users.find((u) => u.role === role);
+        if (!user) throw new Error('Missing test user');
+
+        await login(user.email, user.password);
+        await expect(revokeUserTokens(mod.id.toString())).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
+      }
+    );
+
+    testInvalidIds(async (id) => {
+      await login(admin.email, admin.password);
+      return revokeUserTokens(id);
+    }, 'user id');
+
+    it('should return 401 UNAUTHORIZED when not logged in', async () => {
+      return await expect(
+        revokeUserTokens(user.id.toString())
+      ).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
   });
 
   describe('PATCH /api/v1/users/password', () => {

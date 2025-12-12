@@ -9,6 +9,11 @@ import type { AuthConfiguration } from '../config/auth.config.js';
 import type { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { ApiException } from '@dans-coding-world/exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
+import {
+  RefreshTokenDto,
+  RevokeUserTokensDto,
+} from '@dans-coding-world/shared-auth-dto';
+import { transformAndValidateDto } from '@dans-coding-world/validation';
 
 export const AUTH_CONFIG_TOKEN = 'AuthConfiguration';
 export const TOKEN_SERVICE_TOKEN = 'ITokenService';
@@ -63,7 +68,9 @@ export class TokenService implements ITokenService {
     return jwt.verify(token, options.secret) as jwt.JwtPayload;
   }
 
-  async revokeRefreshToken(token: string): Promise<RefreshToken> {
+  async revokeRefreshToken(dto: RefreshTokenDto): Promise<RefreshToken> {
+    const { token } = await transformAndValidateDto(dto, RefreshTokenDto);
+
     let payload: JwtPayload;
     try {
       payload = this.verifyRefreshToken(token);
@@ -84,12 +91,15 @@ export class TokenService implements ITokenService {
     refreshToken.revoked = true;
     return await this.refreshTokens.update(refreshToken.jti, refreshToken);
   }
-  async revokeAllUserRefreshTokens(userId: string): Promise<number> {
+
+  async revokeAllUserRefreshTokens(dto: RevokeUserTokensDto): Promise<number> {
+    dto = await transformAndValidateDto(dto, RevokeUserTokensDto);
     return await this.refreshTokens.updateMany(
-      { userId: +userId, revoked: false },
+      { userId: dto.userId, revoked: false },
       { revoked: true }
     );
   }
+
   async revokeAllRefreshTokens(): Promise<number> {
     return await this.refreshTokens.updateMany(
       { revoked: false },

@@ -128,7 +128,7 @@ export class AuthController {
     try {
       const refreshDto: RefreshTokenDto = req.body;
       const revokedToken = await this.tokenService.revokeRefreshToken(
-        refreshDto.token
+        refreshDto
       );
 
       return res.status(StatusCodes.OK).json({

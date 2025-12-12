@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import {
   AttachUser,
   Authorized,
+  BlockBanned,
   ITokenService,
   RequiredRole,
 } from '@dans-coding-world/api-auth';
@@ -25,13 +26,14 @@ export class UsersController {
     this.delete = this.delete.bind(this);
   }
   @Authorized()
+  @BlockBanned()
   @RequiredRole('MOD', 'ADMIN')
   async revokeUserTokens(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const revokedTokens = await this.tokenService.revokeAllUserRefreshTokens(
-        id
-      );
+      const revokedTokens = await this.tokenService.revokeAllUserRefreshTokens({
+        userId: id as any,
+      });
 
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.AUTH.revoke,
@@ -64,6 +66,7 @@ export class UsersController {
   }
 
   @Authorized()
+  @BlockBanned()
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const viewer = req.user as User;
@@ -122,6 +125,7 @@ export class UsersController {
   }
 
   @Authorized()
+  @BlockBanned()
   @RequiredRole('ADMIN', 'MOD')
   async changeBanStatus(req: Request, res: Response, next: NextFunction) {
     try {
@@ -146,6 +150,7 @@ export class UsersController {
   }
 
   @Authorized()
+  @BlockBanned()
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
