@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Post, PostStatus, Tag, User } from '@dans-coding-world/prisma-schema';
+import {
+  Post,
+  PostStatus,
+  Tag,
+  User,
+  client as prisma,
+} from '@dans-coding-world/prisma-schema';
 import {
   seedUsers,
   seedPosts,
@@ -178,6 +184,15 @@ describe('/api/v1/posts', () => {
       getTags,
       getPostsMetadata,
     } = createPostsRouteHelper(client));
+  });
+
+  afterEach(async () => {
+    // un-ban banned users
+    await prisma.user.updateMany({
+      data: {
+        isBanned: false,
+      },
+    });
   });
 
   describe('GET /api/v1/posts/:id', () => {
@@ -1141,6 +1156,24 @@ describe('/api/v1/posts', () => {
         createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS)
       );
     });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(
+        createPost({
+          ...VALID_POST_DATA,
+        })
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+    });
   });
 
   describe('PATCH /api/v1/posts/:id', () => {
@@ -1444,6 +1477,24 @@ describe('/api/v1/posts', () => {
       await login(admin.email, admin.password);
       return updatePost(id, { content: 'NEW CONTENT' });
     }, 'post id');
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(
+        updatePost(posts[0].id.toString(), {
+          content: 'new content',
+        })
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+    });
   });
 
   describe('DELETE /api/v1/posts/:id', () => {
@@ -1550,6 +1601,22 @@ describe('/api/v1/posts', () => {
       await login(admin.email, admin.password);
       return deletePost(id);
     }, 'post id');
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(
+        deletePost(posts[0].id.toString())
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+    });
   });
 
   describe('GET /api/v1/posts/metadata', () => {
