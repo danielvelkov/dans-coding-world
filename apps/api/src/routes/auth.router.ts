@@ -188,7 +188,7 @@ export default authRouter;
  * /auth/register:
  *   post:
  *     tags: [Authentication]
- *     summary: Register a user.
+ *     summary: Register a user
  *     description: Validates signup data, then creates and returns the new user.
  *     requestBody:
  *       required: true
@@ -245,7 +245,7 @@ export default authRouter;
  * /auth/revoke-token:
  *   post:
  *     tags: [Authentication]
- *     summary: End a user session by revoking the refresh token.
+ *     summary: End a user session by revoking the refresh token
  *     description: |
  *       Roles required: ADMIN or MOD
  *
@@ -322,14 +322,14 @@ export default authRouter;
  * /auth/revoke-all:
  *   post:
  *     tags: [Authentication]
- *     summary: End all user session by revoking all refresh tokens
+ *     summary: End all user sessions by revoking all refresh tokens
  *     description: |
  *       Roles required: ADMIN
  *
- *       Sets all tokens to status 'revoked', making them invalid.
+ *       Invalidates all current tokens, effectively logging everyone out.
  *     responses:
  *       200:
- *         description: Tokens revoked
+ *         description: Tokens revoked successfully
  *         content:
  *           application/json:
  *             schema:

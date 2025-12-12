@@ -28,7 +28,7 @@ export default tagsRouter;
  * /tags:
  *   get:
  *     tags: [Tags]
- *     summary: Get all tags.
+ *     summary: Get all tags
  *     description: |
  *       Get all unique tags used in PUBLISHED posts.
  *
@@ -54,7 +54,7 @@ export default tagsRouter;
  * /tags/{id}:
  *   get:
  *     tags: [Tags]
- *     summary: Get a tag by Id.
+ *     summary: Get a tag by Id
  *     description: |
  *       Get a specific tag by its Id
  *     parameters:
@@ -110,7 +110,7 @@ export default tagsRouter;
  * /tags:
  *   post:
  *     tags: [Tags]
- *     summary: Create a new tag.
+ *     summary: Create a new tag
  *     description: |
  *       Roles required: ADMIN or AUTHOR
  *
@@ -182,7 +182,7 @@ export default tagsRouter;
  * /tags/{id}:
  *   patch:
  *     tags: [Tags]
- *     summary: Update a tag by Id.
+ *     summary: Update a tag by Id
  *     description: |
  *       Roles required: ADMIN or AUTHOR
  *
@@ -273,7 +273,7 @@ export default tagsRouter;
  * /tags/{id}:
  *   delete:
  *     tags: [Tags]
- *     summary: Delete a tag by Id.
+ *     summary: Delete a tag by Id
  *     description: |
  *       Roles required: ADMIN or AUTHOR
  *

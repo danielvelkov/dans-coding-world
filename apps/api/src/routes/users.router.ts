@@ -34,10 +34,9 @@ export default usersRouter;
  * /users/{id}:
  *   get:
  *     tags: [Users]
- *     summary: Get user by Id.
+ *     summary: Get user by Id
  *     description: |
- *       Get a specific user by its Id along with its profile details if he has his profile set up.
- *       If the user requesting it is the owner of the account, Moderator or Admin - the "email" field is included in the response
+ *       Retrieve a user by their ID, including profile details if the profile is set up. If the requesting user is the account owner, a Moderator, or an Admin, the response will also include the email field
  *
  *     parameters:
  *       - in: path
@@ -92,10 +91,10 @@ export default usersRouter;
  * /users/password:
  *   patch:
  *     tags: [Users]
- *     summary: Update a user's password.
+ *     summary: Update the currently logged-in user's password
  *     description: |
- *       Update logged-in user's password if the provided old password matches the
- *       current one and the new password is valid. Requires user to be logged in.
+ *       Update currently logged-in user's password if the provided old password matches the
+ *       current one and the new password is valid
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
@@ -160,12 +159,12 @@ export default usersRouter;
  * /users/{id}/ban:
  *   patch:
  *     tags: [Users]
- *     summary: Ban or un-ban a user.
+ *     summary: Update ban status of an user
  *     description: |
  *       Roles required: ADMIN or MOD
  *
  *       Update another user's ban status by user Id.
- *       Cannot change the ban status of another ADMIN/MOD, or your own account.
+ *       Cannot change the ban status of another administrator, moderator, or your own account.
  *
  *       **Banned users are not allowed certain user privileges and have no access to some parts of the API.**
  *
@@ -245,7 +244,7 @@ export default usersRouter;
  * /users/{id}/role:
  *   patch:
  *     tags: [Users]
- *     summary: Update user's role.
+ *     summary: Update user's role
  *     description: |
  *       Roles required: ADMIN
  *
@@ -328,9 +327,9 @@ export default usersRouter;
  * /users:
  *   patch:
  *     tags: [Users]
- *     summary: Update user's profile details.
+ *     summary: Update the currently logged-in user's profile
  *     description: |
- *       Update or create profile details if they are not defined. Requires user to be logged in.
+ *       Updates the profile of the currently authenticated user. If profile details are not yet defined, they will be created.
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
@@ -399,7 +398,7 @@ export default usersRouter;
  *     description: |
  *       Roles required: ADMIN or MOD
  *
- *       Gets all refresh tokens for an user given his id, then sets the token status to 'revoked', making each one invalid.
+ *       Retrieves all refresh tokens for a user by their ID and updates each token’s status to revoked, rendering them invalid.
  *     parameters:
  *       - in: path
  *         name: userId
@@ -409,7 +408,7 @@ export default usersRouter;
  *         description: Numeric ID of the user
  *     responses:
  *       200:
- *         description: Tokens revoked
+ *         description: User's tokens revoked successfully
  *         content:
  *           application/json:
  *             schema:
@@ -424,13 +423,13 @@ export default usersRouter;
  *                             type: number
  *                             description: Number of revoked tokens
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Login first
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/UnauthorizedError'
  *       403:
- *         description: Forbidden
+ *         description: Forbidden - you do not have access to this action
  *         content:
  *           application/json:
  *             schema:
@@ -448,7 +447,7 @@ export default usersRouter;
  * /users/{id}:
  *   delete:
  *     tags: [Users]
- *     summary: Delete a user by Id.
+ *     summary: Delete a user by Id
  *     description: |
  *
  *       Delete a user's account and all content that spans from it by user Id.
