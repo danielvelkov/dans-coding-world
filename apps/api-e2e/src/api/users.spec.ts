@@ -102,6 +102,15 @@ describe('/api/v1/users', () => {
     } = createUsersRouteHelper(client));
   });
 
+  afterEach(async () => {
+    // un-ban banned users
+    await prisma.user.updateMany({
+      data: {
+        isBanned: false,
+      },
+    });
+  });
+
   describe('GET /api/v1/users/:id', () => {
     it(`should return user with profile details, but without email if 
       logged-in user isn't the owner of the account, ADMIN or MOD`, async () => {
@@ -279,6 +288,24 @@ describe('/api/v1/users', () => {
         createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
       );
     });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(user.email, user.password);
+      return await expect(
+        updateUser({
+          firstName: 'I hate this blog. Link to virus: ...',
+        })
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+    });
   });
 
   describe('POST /api/v1/users/:userId/revoke-tokens', () => {
@@ -354,6 +381,22 @@ describe('/api/v1/users', () => {
         revokeUserTokens(user.id.toString())
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+      );
+    });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: mod.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(mod.email, mod.password);
+      await expect(revokeUserTokens(user.id.toString())).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
       );
     });
   });
@@ -805,6 +848,24 @@ describe('/api/v1/users', () => {
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: mod.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(mod.email, mod.password);
+      return await expect(
+        changeBanStatus(user.id.toString(), {
+          isBanned: true,
+        })
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+    });
   });
 
   describe('DELETE /api/v1/users/:id', () => {
@@ -914,6 +975,22 @@ describe('/api/v1/users', () => {
       return await expect(deleteUser(user.id.toString())).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
+    });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(
+        deleteUser(author.id.toString())
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
     });
   });
 });
