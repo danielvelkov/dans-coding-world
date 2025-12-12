@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Tag, Post, User } from '@dans-coding-world/prisma-schema';
+import {
+  Tag,
+  Post,
+  User,
+  client as prisma,
+} from '@dans-coding-world/prisma-schema';
 import {
   seedUsers,
   seedPosts,
@@ -145,6 +150,15 @@ describe('/api/v1/tags', () => {
     ({ login } = createAuthRouteHelper(client));
     ({ getTagById, getTags, deleteTag, updateTag, createTag, getPost } =
       createPostsRouteHelper(client));
+  });
+
+  afterEach(async () => {
+    // un-ban banned users
+    await prisma.user.updateMany({
+      data: {
+        isBanned: false,
+      },
+    });
   });
 
   describe('GET /api/v1/tags', () => {
@@ -301,6 +315,24 @@ describe('/api/v1/tags', () => {
         );
       }
     );
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(
+        createTag({
+          name: 'tag-name',
+        })
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+    });
   });
 
   describe('PATCH /api/v1/tags/{id}', () => {
@@ -402,6 +434,22 @@ describe('/api/v1/tags', () => {
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(
+        updateTag(tags[0].id, 'new-name')
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+    });
   });
 
   describe('DELETE /api/v1/tags/{id}', () => {
@@ -470,6 +518,22 @@ describe('/api/v1/tags', () => {
       await login(user.email, user.password);
       await expect(deleteTag(tags[0].id)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+      );
+    });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(author.email, author.password);
+      return await expect(deleteTag(tags[0].id)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
       );
     });
   });
