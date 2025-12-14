@@ -450,7 +450,7 @@ export default authRouter;
  *           description: User's password
  *       example:
  *         email: user123@gmail.com
- *         password: user123
+ *         password: User123@
  *
  *     RegistrationDTO:
  *       type: object

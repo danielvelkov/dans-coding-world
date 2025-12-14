@@ -1,6 +1,7 @@
 import {
   Profile,
   RefreshToken,
+  Role,
   User,
   client as prisma,
 } from '@dans-coding-world/prisma-schema';
@@ -10,7 +11,6 @@ import {
   getTokenById,
 } from '@dans-coding-world/testing-setup';
 import { createUsersRouteHelper } from '../helper/users-request.helper';
-import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   ERROR_CODES,
   SUCCESS_MESSAGES,
@@ -18,43 +18,23 @@ import {
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { createAuthRouteHelper } from '../helper/auth-request.helper';
-import { createAxiosClient } from '../helper/test-client.helper';
+import { createAxiosClient, setupClient } from '../helper/test-client.helper';
 import { testInvalidIds } from '../helper/validation.helper';
-import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { UserDetail } from '@dans-coding-world/user-data-access';
-import {
-  ChangeBanStatusDto,
-  ChangePasswordDto,
-  ChangeRoleDto,
-  UpdateUserDto,
-} from '@dans-coding-world/shared-user-dto';
 import { generateRandomString } from '@dans-coding-world/helpers';
 import { passwordGenerator, validPassword } from '@dans-coding-world/api-auth';
+import { getData, getMessage } from '../helper/common.helper';
 
 describe('/api/v1/users', () => {
-  let client: AxiosInstance;
-  let login: (
-    email: string,
-    password: string
-  ) => Promise<AxiosResponse<BaseResponse>>;
-  let getUser: (id: string) => Promise<AxiosResponse<unknown>>;
-  let updateUser: (
-    profileData: Omit<UpdateUserDto, 'userId'>
-  ) => Promise<AxiosResponse<unknown>>;
-  let changePassword: (
-    profileData: Omit<ChangePasswordDto, 'userId'>
-  ) => Promise<AxiosResponse<unknown>>;
-  let deleteUser: (id: string) => Promise<AxiosResponse<unknown>>;
-  let revokeUserTokens: (id: string) => Promise<AxiosResponse<unknown>>;
-  let changeUserRole: (
-    id: string,
-    changeRoleData: Omit<ChangeRoleDto, 'userId'>
-  ) => Promise<AxiosResponse<unknown>>;
-  let changeBanStatus: (
-    id: string,
-    changeBanStatusData: Omit<ChangeBanStatusDto, 'userId' | 'userToChangeId'>
-  ) => Promise<AxiosResponse<unknown>>;
+  // 1. Define separate helpers per role to avoid re-logging in
+  type UserHelpers = ReturnType<typeof createUsersRouteHelper>;
+
+  let adminHelpers: UserHelpers;
+  let userHelpers: UserHelpers;
+  let authorHelpers: UserHelpers;
+  let modHelpers: UserHelpers;
+  let anonHelpers: UserHelpers; // For unauthenticated requests
 
   let users: User[] = [];
   let refreshTokens: RefreshToken[] = [];
@@ -64,18 +44,88 @@ describe('/api/v1/users', () => {
   let author: User;
   let user: User;
 
+  // Extra users for specific destructive tests
+  let userToDelete: User;
+  let userToChangePassword: User;
+  let anotherAdmin: User;
+  let anotherMod: User;
+  let anotherUser: User;
+
   let userProfile: Profile;
 
+  const TEST_IDS = {
+    userToBeDeletedId: 67,
+    userForPasswordChangeId: 42,
+    anotherAdminId: 1337,
+    anotherModId: 1448,
+    anotherUserId: 55,
+  };
+
   beforeAll(async () => {
-    users = await seedUsers();
+    users = await seedUsers([
+      // Add specific users for destructive tests to avoid re-seeding
+      {
+        role: 'USER',
+        username: 'toBeDeleted',
+        email: 'del@test.com',
+        id: TEST_IDS.userToBeDeletedId,
+        isBanned: false,
+        password: passwordGenerator(10),
+      },
+      {
+        role: 'USER',
+        username: 'passChange',
+        email: 'pass@test.com',
+        id: TEST_IDS.userForPasswordChangeId,
+        isBanned: false,
+        password: passwordGenerator(10),
+      },
+      {
+        role: 'ADMIN',
+        username: 'adminHacker2',
+        email: 'admin@test.com',
+        id: TEST_IDS.anotherAdminId,
+        isBanned: false,
+        password: passwordGenerator(10),
+      },
+      {
+        role: 'MOD',
+        username: 'modBoy132',
+        email: 'mod@test.com',
+        id: TEST_IDS.anotherModId,
+        isBanned: false,
+        password: passwordGenerator(10),
+      },
+      {
+        role: 'USER',
+        username: 'User2',
+        email: 'anotherUser@email.com',
+        id: TEST_IDS.anotherUserId,
+        isBanned: false,
+        password: passwordGenerator(10),
+      },
+    ]);
 
     admin = users.find((u) => u.role === 'ADMIN') as User;
     author = users.find((u) => u.role === 'AUTHOR') as User;
-    user = users.find((u) => u.role === 'USER') as User;
+    user = users.find(
+      (u) =>
+        u.role === 'USER' &&
+        u.id !== TEST_IDS.userForPasswordChangeId &&
+        u.id !== TEST_IDS.userToBeDeletedId
+    ) as User;
     mod = users.find((u) => u.role === 'MOD') as User;
+    userToDelete = users.find(
+      (u) => u.id === TEST_IDS.userToBeDeletedId
+    ) as User;
+    userToChangePassword = users.find(
+      (u) => u.id === TEST_IDS.userForPasswordChangeId
+    ) as User;
+    anotherAdmin = users.find((u) => u.id === TEST_IDS.anotherAdminId) as User;
+    anotherMod = users.find((u) => u.id === TEST_IDS.anotherModId) as User;
+    anotherUser = users.find((u) => u.id === TEST_IDS.anotherUserId) as User;
 
-    if (!admin || !author || !user || !mod) throw new Error('Missing users');
-
+    // Profile Setup
     userProfile = await prisma.profile.create({
       data: {
         userId: user.id,
@@ -85,134 +135,118 @@ describe('/api/v1/users', () => {
         avatarURL: 'some.image.site/1',
       },
     });
-  });
 
-  beforeEach(async () => {
-    client = createAxiosClient();
-    ({ login } = createAuthRouteHelper(client));
-
-    ({
-      revokeUserTokens,
-      getUser,
-      updateUser,
-      changePassword,
-      deleteUser,
-      changeUserRole,
-      changeBanStatus,
-    } = createUsersRouteHelper(client));
-  });
-
-  afterEach(async () => {
-    // un-ban banned users
-    await prisma.user.updateMany({
-      data: {
-        isBanned: false,
-      },
-    });
+    [adminHelpers, userHelpers, authorHelpers, modHelpers, anonHelpers] =
+      await Promise.all([
+        setupClient(createUsersRouteHelper, admin),
+        setupClient(createUsersRouteHelper, user),
+        setupClient(createUsersRouteHelper, author),
+        setupClient(createUsersRouteHelper, mod),
+        setupClient(createUsersRouteHelper, undefined),
+      ]);
   });
 
   describe('GET /api/v1/users/:id', () => {
-    it(`should return user with profile details, but without email if 
-      logged-in user isn't the owner of the account, ADMIN or MOD`, async () => {
-      await login(author.email, author.password);
-      const res = await getUser(user.id.toString());
-      const { data } = res.data as BaseResponse;
+    it.concurrent(
+      `should return user details without email if viewer is not owner/admin/mod`,
+      async () => {
+        const res = await authorHelpers.getUser(user.id.toString());
 
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.USERS.get);
+        expect(getMessage(res)).toBe(SUCCESS_MESSAGES.USERS.get);
+        const userData = getData<UserDetail>(res, 'user');
+        expect(userData.id).toBe(user.id);
+        expect(userData.username).toBe(user.username);
 
-      const userData = (data as any).user as UserDetail;
-      expect(userData.id).toBe(user.id);
-      expect(userData.username).toBe(user.username);
+        expect(userData.email).not.toBeDefined();
+        expect(userData.password).not.toBeDefined();
 
-      expect(userData.email).not.toBeDefined();
-      expect(userData.password).not.toBeDefined();
+        expect(userData.profile).toBeDefined();
+        expect(userData.profile).toEqual(userProfile);
+      }
+    );
 
-      expect(userData.profile).toBeDefined();
-      expect(userData.profile).toEqual(userProfile);
-    });
-
-    test.each([
-      ['owner of the account', 'USER'],
+    test.concurrent.each([
+      ['the owner of the account', 'USER'],
       ['an ADMIN', 'ADMIN'],
       ['a MOD', 'MOD'],
     ])('should return email when user is %s', async (_, role) => {
-      const viewer = users.find((u) => u.role === role);
-      if (!viewer) throw new Error('Missing test user');
+      const helper =
+        role === 'ADMIN'
+          ? adminHelpers
+          : role === 'MOD'
+          ? modHelpers
+          : userHelpers;
 
-      await login(viewer.email, viewer.password);
-
-      const res = await getUser(user.id.toString());
-      const { data } = res.data as BaseResponse;
-
-      const userData = (data as any).user as User;
+      const res = await helper.getUser(user.id.toString());
+      const userData = getData<User>(res, 'user');
       expect(userData.email).toBe(user.email);
     });
 
-    testInvalidIds((id) => getUser(id), 'user id');
+    testInvalidIds((id) => adminHelpers.getUser(id), 'user id');
 
-    it('should return 404 NOT FOUND for unknown user id', async () => {
-      await login(admin.email, admin.password);
-      return await expect(getUser('999')).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
-      );
-    });
+    it.concurrent(
+      'should return 404 NOT FOUND for unknown user id',
+      async () => {
+        return await expect(adminHelpers.getUser('999')).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        );
+      }
+    );
   });
 
   describe('PATCH /api/v1/users', () => {
-    it(`should update logged-in user's profile details if valid`, async () => {
-      const NEW_PROFILE_DATA = {
-        firstName: 'Bingus',
-        lastName: 'Dingus',
-      };
-      await login(user.email, user.password);
+    it(`should update logged-in user's profile details`, async () => {
+      const NEW_PROFILE_DATA = { firstName: 'Bogus', lastName: 'Dingus' };
+      // Using userHelpers means we are already logged in as 'user'
+      const res = await userHelpers.updateUser(NEW_PROFILE_DATA);
 
-      const res = await updateUser(NEW_PROFILE_DATA);
-      const { data } = res.data as BaseResponse;
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.USERS.update);
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.USERS.update);
 
-      const userData = (data as any).user as UserDetail;
+      const userData = getData<UserDetail>(res, 'user');
+
       expect(userData.profile?.firstName).toBe(NEW_PROFILE_DATA.firstName);
       expect(userData.profile?.lastName).toBe(NEW_PROFILE_DATA.lastName);
 
       expect(userData.profile?.bio).toBe(userProfile.bio);
     });
 
-    it(`should create profile details when updating if user does not have one`, async () => {
+    it(`should create profile details, if user does not have them defined yet`, async () => {
       const NEW_PROFILE_DATA = {
-        firstName: 'Bingus',
+        firstName: 'Bogus',
         lastName: 'Dingus',
       };
-      await login(author.email, author.password);
 
-      const res_get = await getUser(author.id.toString());
-      const { data: getUserData } = res_get.data as BaseResponse;
-      const oldProfile = (getUserData as any).profile as UserDetail;
+      const res_get = await authorHelpers.getUser(author.id.toString());
+      const oldProfile = getData<UserDetail>(res_get, 'user').profile;
 
-      expect(oldProfile).not.toBeDefined();
+      expect(oldProfile).toBeNull();
 
-      const res = await updateUser(NEW_PROFILE_DATA);
-      const { data } = res.data as BaseResponse;
+      const res = await authorHelpers.updateUser(NEW_PROFILE_DATA);
 
-      const userData = (data as any).user as UserDetail;
+      const userData = getData<UserDetail>(res, 'user');
       expect(userData.profile?.firstName).toBe(NEW_PROFILE_DATA.firstName);
       expect(userData.profile?.lastName).toBe(NEW_PROFILE_DATA.lastName);
 
-      // Set other fields to empty string
+      // Missing fields in request are set to empty string
       expect(userData.profile?.bio).toBe('');
       expect(userData.profile?.avatarURL).toBe('');
     });
 
-    it('should return 401 UNAUTHORIZED when not logged in', async () => {
-      return await expect(
-        updateUser({
-          firstName: 'Jon',
-        })
-      ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
-      );
-    });
+    it.concurrent(
+      'should return 401 UNAUTHORIZED when not logged in',
+      async () => {
+        return await expect(
+          anonHelpers.updateUser({
+            firstName: 'Jon',
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        );
+      }
+    );
 
-    test.each([
+    // Use concurrent for validation loops
+    test.concurrent.each([
       [
         'first name is too long',
         {
@@ -252,17 +286,12 @@ describe('/api/v1/users', () => {
         },
       ],
     ])('should throw validation error when %s', async (_, profileData) => {
-      await login(user.email, user.password);
-      await expect(
-        updateUser({
-          ...profileData,
-        })
-      ).rejects.toMatchObject(
+      await expect(userHelpers.updateUser(profileData)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
       );
     });
 
-    test.each([
+    test.concurrent.each([
       ['contains number', 'John123'],
       ['contains at sign', 'Jane@'],
       ['contains special symbol', 'Jane!'],
@@ -271,9 +300,8 @@ describe('/api/v1/users', () => {
       ['contains non-Latin script', 'Иван'],
       ['contains Chinese characters', '张伟'],
     ])('should validate name regex %s correctly', async (_, name) => {
-      await login(user.email, user.password);
       await expect(
-        updateUser({
+        userHelpers.updateUser({
           firstName: name,
         })
       ).rejects.toMatchObject(
@@ -281,7 +309,7 @@ describe('/api/v1/users', () => {
       );
 
       await expect(
-        updateUser({
+        userHelpers.updateUser({
           lastName: name,
         })
       ).rejects.toMatchObject(
@@ -289,29 +317,31 @@ describe('/api/v1/users', () => {
       );
     });
 
-    it(`should return error when logged-in user is banned and trying to
-      access endpoint`, async () => {
+    it(`should return error when logged-in user is banned`, async () => {
+      // Explicitly ban just for this test, then revert
       await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          isBanned: true,
-        },
+        where: { id: user.id },
+        data: { isBanned: true },
       });
-      await login(user.email, user.password);
-      return await expect(
-        updateUser({
-          firstName: 'I hate this blog. Link to virus: ...',
-        })
-      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+
+      try {
+        await expect(
+          userHelpers.updateUser({ firstName: 'Fail' })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+        );
+      } finally {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { isBanned: false },
+        });
+      }
     });
   });
 
   describe('POST /api/v1/users/:userId/revoke-tokens', () => {
-    beforeEach(async () => {
-      const user = users.find((u) => u.role === 'USER');
-      if (!user) throw new Error('Missing test user');
+    beforeAll(async () => {
+      // Seed tokens once for this user
       refreshTokens = await seedRefreshTokens([
         {
           expiresAt: new Date(Date.now()),
@@ -323,146 +353,122 @@ describe('/api/v1/users', () => {
     });
 
     it('should revoke all tokens related to user', async () => {
-      const user = users.find((u) => u.role === 'USER');
-      const admin = users.find((u) => u.role === 'ADMIN');
-      if (!admin || !user) throw new Error('Missing test user');
+      const res = await adminHelpers.revokeUserTokens(user.id.toString());
+      const revokedCount = getData<number>(res, 'revokedCount');
 
-      await login(admin.email, admin.password);
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.AUTH.revoke);
 
-      const res = await revokeUserTokens(user.id.toString());
-      const { data: revokeData } = res.data as BaseResponse;
-      if (!revokeData) throw new Error('Missing data');
+      const userTokens = refreshTokens.filter((rt) => rt.userId === user.id);
+      expect(revokedCount).toBe(userTokens.length);
 
-      expect(revokeData).toHaveProperty(
-        'message',
-        SUCCESS_MESSAGES.AUTH.revoke
-      );
-      expect(revokeData).toHaveProperty('revokedCount', 1);
-      expect((await getTokenById(refreshTokens[0].jti)).revoked).toBe(true);
+      for (const token of userTokens)
+        expect((await getTokenById(token.jti)).revoked).toBe(true);
     });
 
-    it('should return no revoked tokens when user does not exist', async () => {
-      const admin = users.find((u) => u.role === 'ADMIN');
-      if (!admin) throw new Error('Missing test user');
+    it.concurrent(
+      'should return no revoked tokens when user does not exist',
+      async () => {
+        const res = await adminHelpers.revokeUserTokens('9999');
+        const revokedCount = getData<number>(res, 'revokedCount');
 
-      await login(admin.email, admin.password);
+        expect(revokedCount).toBe(0);
+      }
+    );
 
-      const res = await revokeUserTokens('9999');
-      const { data: revokeData } = res.data as BaseResponse;
-      if (!revokeData) throw new Error('Missing data');
-
-      expect(revokeData).toHaveProperty(
-        'message',
-        SUCCESS_MESSAGES.AUTH.revoke
-      );
-      expect(revokeData).toHaveProperty('revokedCount', 0);
-    });
-
-    test.each(['USER', 'AUTHOR'])(
+    test.concurrent.each(['USER', 'AUTHOR'])(
       'should return 403 FORBIDDEN when user who is trying to revoke tokens is %s',
       async (role) => {
-        const user = users.find((u) => u.role === role);
-        if (!user) throw new Error('Missing test user');
-
-        await login(user.email, user.password);
-        await expect(revokeUserTokens(mod.id.toString())).rejects.toMatchObject(
+        const helper = role === 'USER' ? userHelpers : authorHelpers;
+        await expect(
+          helper.revokeUserTokens(mod.id.toString())
+        ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
         );
       }
     );
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return revokeUserTokens(id);
+      return adminHelpers.revokeUserTokens(id);
     }, 'user id');
 
-    it('should return 401 UNAUTHORIZED when not logged in', async () => {
-      return await expect(
-        revokeUserTokens(user.id.toString())
-      ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
-      );
-    });
+    it.concurrent(
+      'should return 401 UNAUTHORIZED when not logged in',
+      async () => {
+        return await expect(
+          anonHelpers.revokeUserTokens(user.id.toString())
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        );
+      }
+    );
 
-    it(`should return error when logged-in user is banned and trying to
-      access endpoint`, async () => {
-      await prisma.user.update({
-        where: {
-          id: mod.id,
-        },
-        data: {
-          isBanned: true,
-        },
-      });
-      await login(mod.email, mod.password);
-      await expect(revokeUserTokens(user.id.toString())).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
-      );
-    });
+    it.concurrent(
+      `should return error when logged-in user is banned and trying to
+      access endpoint`,
+      async () => {
+        await prisma.user.update({
+          where: {
+            id: mod.id,
+          },
+          data: {
+            isBanned: true,
+          },
+        });
+        try {
+          await expect(
+            modHelpers.revokeUserTokens(user.id.toString())
+          ).rejects.toMatchObject(
+            createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+          );
+        } finally {
+          await prisma.user.update({
+            where: {
+              id: mod.id,
+            },
+            data: {
+              isBanned: false,
+            },
+          });
+        }
+      }
+    );
   });
 
   describe('PATCH /api/v1/users/password', () => {
-    let userToChange: User;
+    it(`should change logged-in user password`, async () => {
+      // We need a specific client for this user since they aren't the main 'user'
+      const client = createAxiosClient();
+      const { login } = createAuthRouteHelper(client);
+      await login(userToChangePassword.email, userToChangePassword.password);
+      const { changePassword } = createUsersRouteHelper(client);
 
-    beforeAll(async () => {
-      [userToChange] = await seedUsers(
-        [
-          {
-            id: 10,
-            isBanned: false,
-            email: 'newUser123@email.com',
-            username: 'newUser123',
-            password: passwordGenerator(10),
-            role: 'USER',
-          },
-        ],
-        {
-          clearExisting: false,
-          useDefaults: false,
-        }
-      );
-    });
-
-    afterAll(async () => {
-      await prisma.user.delete({
-        where: {
-          id: userToChange.id,
-        },
-      });
-    });
-
-    it(`should change logged-in user password if oldPassword
-       field matches his current one and newPassword field is valid`, async () => {
-      const NEW_PASSWORD = passwordGenerator(
+      const NEW_PASS = passwordGenerator(
         USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
       );
-      await login(userToChange.email, userToChange.password);
 
       const res = await changePassword({
-        oldPassword: userToChange.password,
-        newPassword: NEW_PASSWORD,
+        oldPassword: userToChangePassword.password,
+        newPassword: NEW_PASS,
       });
-      const { data } = res.data as BaseResponse;
 
-      const userData = (data as any).user as UserDetail;
+      const userData = getData<UserDetail>(res, 'user');
       expect(userData.password).not.toBeDefined();
 
       const user = await prisma.user.findFirst({
         where: {
-          id: userToChange.id,
+          id: userToChangePassword.id,
         },
       });
       if (!user) throw new Error('Something went wrong');
 
-      const isValidPassword = await validPassword(NEW_PASSWORD, user?.password);
+      const isValidPassword = await validPassword(NEW_PASS, user?.password);
       expect(isValidPassword).toBe(true);
     });
 
-    it(`should throw when oldPassword field doesn't match 
+    it(`should throw when old password field doesn't match 
       the current logged-in user password`, async () => {
-      await login(admin.email, admin.password);
       await expect(
-        changePassword({
+        adminHelpers.changePassword({
           oldPassword: passwordGenerator(10),
           newPassword: passwordGenerator(10),
         })
@@ -472,18 +478,17 @@ describe('/api/v1/users', () => {
     });
 
     it('should return error when new password matches the old one', async () => {
-      await login(admin.email, admin.password);
       await expect(
-        changePassword({
+        adminHelpers.changePassword({
           oldPassword: admin.password,
           newPassword: admin.password,
         })
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        createErrorCodeResponse(ERROR_CODES.AUTH.SAME_PASSWORD)
       );
     });
 
-    test.each([
+    test.concurrent.each([
       [
         'is too short',
         passwordGenerator(USER_CONSTRAINTS.MIN_PASSWORD_LENGTH - 1),
@@ -519,24 +524,21 @@ describe('/api/v1/users', () => {
     ])(
       'should return validation error when either password %s',
       async (_, password) => {
-        await login(admin.email, admin.password);
+        // new password field
         await expect(
-          changePassword({
-            oldPassword: passwordGenerator(
-              USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
-            ),
+          adminHelpers.changePassword({
+            oldPassword: admin.password,
             newPassword: password,
           })
         ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
         );
 
+        // old password field
         await expect(
-          changePassword({
+          adminHelpers.changePassword({
             oldPassword: password,
-            newPassword: passwordGenerator(
-              USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
-            ),
+            newPassword: passwordGenerator(10),
           })
         ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
@@ -546,9 +548,9 @@ describe('/api/v1/users', () => {
 
     it('should return 401 UNAUTHORIZED when not logged in', async () => {
       return await expect(
-        changePassword({
+        anonHelpers.changePassword({
           oldPassword: 'Jon',
-          newPassword: 'Jon',
+          newPassword: 'Doe',
         })
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
@@ -557,65 +559,30 @@ describe('/api/v1/users', () => {
   });
 
   describe('PATCH /api/v1/users/:id/role', () => {
-    let anotherAdmin: User;
+    test.each([
+      ['promote', 'MOD'],
+      ['demote', 'USER'],
+    ])(
+      'should %s user if valid role and userId is provided',
+      async (_, role) => {
+        const newRole = role as Role;
 
-    beforeAll(async () => {
-      [anotherAdmin] = await seedUsers(
-        [
-          {
-            id: 9,
-            email: 'anotherAdmin@email.com',
-            username: 'Admin2',
-            password: passwordGenerator(10),
-            isBanned: false,
-            role: 'ADMIN',
-          },
-        ],
-        { clearExisting: false, useDefaults: false }
-      );
-    });
+        const res = await adminHelpers.changeUserRole(user.id.toString(), {
+          role: newRole,
+        });
 
-    afterAll(async () => {
-      users = await seedUsers();
-      admin = users.find((u) => u.role === 'ADMIN') as User;
-      author = users.find((u) => u.role === 'AUTHOR') as User;
-      user = users.find((u) => u.role === 'USER') as User;
-      mod = users.find((u) => u.role === 'MOD') as User;
-    });
+        expect(getMessage(res)).toBe(SUCCESS_MESSAGES.USERS.roleChange);
 
-    it('should promote or demote user if valid role and userId is provided', async () => {
-      await login(admin.email, admin.password);
+        const promotedUser = getData<User>(res, 'user');
 
-      const newRole = 'MOD';
-      const oldRole = 'USER';
-
-      const res_promote = await changeUserRole(user.id.toString(), {
-        role: newRole,
-      });
-      const { data: promotionData } = res_promote.data as BaseResponse;
-
-      expect(promotionData).toHaveProperty(
-        'message',
-        SUCCESS_MESSAGES.USERS.roleChange
-      );
-      const promotedUser = (promotionData as any).user as UserDetail;
-
-      expect(promotedUser.role).toBe(newRole);
-      expect(promotedUser.password).not.toBeDefined();
-
-      const res_demote = await changeUserRole(user.id.toString(), {
-        role: oldRole,
-      });
-      const { data: demotionData } = res_demote.data as BaseResponse;
-      const demotedUser = (demotionData as any).user as UserDetail;
-
-      expect(demotedUser.role).toBe(oldRole);
-    });
+        expect(promotedUser.role).toBe(newRole);
+        expect(promotedUser.password).not.toBeDefined();
+      }
+    );
 
     it(`should return an error when the targeted user is an ADMIN`, async () => {
-      await login(admin.email, admin.password);
       return await expect(
-        changeUserRole(anotherAdmin.id.toString(), {
+        adminHelpers.changeUserRole(anotherAdmin.id.toString(), {
           role: 'USER',
         })
       ).rejects.toMatchObject(
@@ -624,9 +591,8 @@ describe('/api/v1/users', () => {
     });
 
     it(`should return an error when changing to the same role`, async () => {
-      await login(admin.email, admin.password);
       return await expect(
-        changeUserRole(user.id.toString(), {
+        adminHelpers.changeUserRole(user.id.toString(), {
           role: 'USER',
         })
       ).rejects.toMatchObject(
@@ -640,12 +606,15 @@ describe('/api/v1/users', () => {
     test.each(['USER', 'AUTHOR', 'MOD'])(
       'should return 403 FORBIDDEN when user who is trying to change role is %s',
       async (role) => {
-        const user = users.find((u) => u.role === role);
-        if (!user) throw new Error('Missing test user');
+        const helper =
+          role === 'ADMIN'
+            ? adminHelpers
+            : role === 'MOD'
+            ? modHelpers
+            : userHelpers;
 
-        await login(user.email, user.password);
         await expect(
-          changeUserRole(admin.id.toString(), {
+          helper.changeUserRole(admin.id.toString(), {
             role: 'USER',
           })
         ).rejects.toMatchObject(
@@ -655,9 +624,8 @@ describe('/api/v1/users', () => {
     );
 
     it('should return an error when new user role is ADMIN', async () => {
-      await login(admin.email, admin.password);
       return await expect(
-        changeUserRole(user.id.toString(), {
+        adminHelpers.changeUserRole(user.id.toString(), {
           role: 'ADMIN',
         })
       ).rejects.toMatchObject(
@@ -665,12 +633,11 @@ describe('/api/v1/users', () => {
       );
     });
 
-    test.each(['admin', 'MODERATOR', 'owner'])(
+    test.concurrent.each(['admin', 'MODERATOR', 'owner'])(
       'should return validation error when role is not valid',
       async (role) => {
-        await login(admin.email, admin.password);
         return await expect(
-          changeUserRole(user.id.toString(), {
+          adminHelpers.changeUserRole(user.id.toString(), {
             role: role as any,
           })
         ).rejects.toMatchObject(
@@ -679,15 +646,14 @@ describe('/api/v1/users', () => {
       }
     );
 
-    testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return changeUserRole(id, { role: 'USER' });
-    }, 'user id');
+    testInvalidIds(
+      async (id) => adminHelpers.changeUserRole(id, { role: 'USER' }),
+      'user id'
+    );
 
     it('should return 404 NOT FOUND for unknown user id', async () => {
-      await login(admin.email, admin.password);
       return await expect(
-        changeUserRole('999', { role: 'USER' })
+        adminHelpers.changeUserRole('999', { role: 'USER' })
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
@@ -695,7 +661,7 @@ describe('/api/v1/users', () => {
 
     it('should return 401 UNAUTHORIZED when not logged in', async () => {
       return await expect(
-        changeUserRole(user.id.toString(), {
+        anonHelpers.changeUserRole(user.id.toString(), {
           role: 'USER',
         })
       ).rejects.toMatchObject(
@@ -705,76 +671,35 @@ describe('/api/v1/users', () => {
   });
 
   describe('PATCH /api/v1/users/:id/ban', () => {
-    let anotherMod: User;
-    let anotherAdmin: User;
-
-    beforeAll(async () => {
-      [anotherAdmin, anotherMod] = await seedUsers(
-        [
-          {
-            id: 9,
-            email: 'anotherAdmin@email.com',
-            username: 'Admin2',
-            password: passwordGenerator(10),
-            isBanned: false,
-            role: 'ADMIN',
-          },
-          {
-            id: 10,
-            email: 'anotherMod@email.com',
-            username: 'Mod2',
-            password: passwordGenerator(10),
-            isBanned: false,
-            role: 'MOD',
-          },
-        ],
-        { clearExisting: false, useDefaults: false }
-      );
-    });
-
-    afterAll(async () => {
-      users = await seedUsers();
-      admin = users.find((u) => u.role === 'ADMIN') as User;
-      author = users.find((u) => u.role === 'AUTHOR') as User;
-      user = users.find((u) => u.role === 'USER') as User;
-      mod = users.find((u) => u.role === 'MOD') as User;
-    });
-
     test.each(['MOD', 'ADMIN'])(
       'should ban/un-ban USER or AUTHOR if its done by %s',
       async (role) => {
-        const userWithElevatedPrivileges = [mod, admin].find(
-          (u) => u.role === role
-        );
-        if (!userWithElevatedPrivileges) throw new Error('Missing test user');
-        await login(
-          userWithElevatedPrivileges.email,
-          userWithElevatedPrivileges.password
-        );
+        const helper = role === 'ADMIN' ? adminHelpers : modHelpers;
+
         for (const userToBan of [user, author])
           for (const bannedStatus of [true, false]) {
-            const res_promote = await changeBanStatus(userToBan.id.toString(), {
-              isBanned: bannedStatus,
-            });
-            const { data } = res_promote.data as BaseResponse;
+            const res_promote = await helper.changeBanStatus(
+              userToBan.id.toString(),
+              {
+                isBanned: bannedStatus,
+              }
+            );
 
-            expect(data).toHaveProperty(
-              'message',
+            expect(getMessage(res_promote)).toBe(
               bannedStatus
                 ? SUCCESS_MESSAGES.USERS.banned
                 : SUCCESS_MESSAGES.USERS.unbanned
             );
-            const updatedUser = (data as any).user as UserDetail;
+            const updatedUser = getData<User>(res_promote, 'user');
             expect(updatedUser.isBanned).toBe(bannedStatus);
           }
       }
     );
 
     it(`should return an error when trying to ban/un-ban another MOD as moderator`, async () => {
-      await login(mod.email, mod.password);
       for (const bannedStatus of [true, false])
         await expect(
-          changeBanStatus(anotherMod.id.toString(), {
+          modHelpers.changeBanStatus(anotherMod.id.toString(), {
             isBanned: bannedStatus,
           })
         ).rejects.toMatchObject(
@@ -783,10 +708,9 @@ describe('/api/v1/users', () => {
     });
 
     it(`should return an error when trying to ban/un-ban another ADMIN as admin`, async () => {
-      await login(admin.email, admin.password);
       for (const bannedStatus of [true, false])
         await expect(
-          changeBanStatus(anotherAdmin.id.toString(), {
+          adminHelpers.changeBanStatus(anotherAdmin.id.toString(), {
             isBanned: bannedStatus,
           })
         ).rejects.toMatchObject(
@@ -797,10 +721,9 @@ describe('/api/v1/users', () => {
     });
 
     it('should return an error when the user is trying to ban/un-ban himself', async () => {
-      await login(mod.email, mod.password);
       for (const bannedStatus of [true, false])
         await expect(
-          changeBanStatus(mod.id.toString(), {
+          modHelpers.changeBanStatus(mod.id.toString(), {
             isBanned: bannedStatus,
           })
         ).rejects.toMatchObject(
@@ -814,9 +737,8 @@ describe('/api/v1/users', () => {
         const user = users.find((u) => u.role === role);
         if (!user) throw new Error('Missing test user');
 
-        await login(user.email, user.password);
         await expect(
-          changeBanStatus(mod.id.toString(), {
+          userHelpers.changeBanStatus(mod.id.toString(), {
             isBanned: true,
           })
         ).rejects.toMatchObject(
@@ -826,14 +748,12 @@ describe('/api/v1/users', () => {
     );
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return changeBanStatus(id, { isBanned: true });
+      return adminHelpers.changeBanStatus(id, { isBanned: true });
     }, 'user id');
 
     it('should return 404 NOT FOUND for unknown user id', async () => {
-      await login(admin.email, admin.password);
       return await expect(
-        changeBanStatus('999', { isBanned: true })
+        adminHelpers.changeBanStatus('999', { isBanned: true })
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
@@ -841,7 +761,7 @@ describe('/api/v1/users', () => {
 
     it('should return 401 UNAUTHORIZED when not logged in', async () => {
       return await expect(
-        changeBanStatus(user.id.toString(), {
+        anonHelpers.changeBanStatus(user.id.toString(), {
           isBanned: true,
         })
       ).rejects.toMatchObject(
@@ -859,9 +779,8 @@ describe('/api/v1/users', () => {
           isBanned: true,
         },
       });
-      await login(mod.email, mod.password);
       return await expect(
-        changeBanStatus(user.id.toString(), {
+        modHelpers.changeBanStatus(user.id.toString(), {
           isBanned: true,
         })
       ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
@@ -869,78 +788,47 @@ describe('/api/v1/users', () => {
   });
 
   describe('DELETE /api/v1/users/:id', () => {
-    let anotherUser: User;
-    let anotherAdmin: User;
-
-    beforeAll(async () => {
-      [anotherUser, anotherAdmin] = await seedUsers(
-        [
-          {
-            id: 8,
-            email: 'anotherUser@email.com',
-            username: 'User2',
-            password: passwordGenerator(10),
-            isBanned: false,
-            role: 'USER',
-          },
-          {
-            id: 9,
-            email: 'anotherAdmin@email.com',
-            username: 'Admin2',
-            password: passwordGenerator(10),
-            isBanned: false,
-            role: 'ADMIN',
-          },
-        ],
-        { clearExisting: false, useDefaults: false }
-      );
-    });
-
-    afterAll(async () => {
-      users = await seedUsers();
-      admin = users.find((u) => u.role === 'ADMIN') as User;
-      author = users.find((u) => u.role === 'AUTHOR') as User;
-      user = users.find((u) => u.role === 'USER') as User;
-      mod = users.find((u) => u.role === 'MOD') as User;
-    });
-
     it(`should delete account if logged-in user matches the one to delete`, async () => {
-      await login(user.email, user.password);
-      const res = await deleteUser(user.id.toString());
-      const { data } = res.data as BaseResponse;
+      // Create a fresh client/login just for this disposable user
+      const client = createAxiosClient();
+      const { login } = createAuthRouteHelper(client);
+      await login(userToDelete.email, userToDelete.password);
+      const { deleteUser } = createUsersRouteHelper(client);
 
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.USERS.delete);
+      const res = await deleteUser(userToDelete.id.toString());
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.USERS.delete);
 
-      return await expect(getUser(user.id.toString())).rejects.toMatchObject(
+      return await expect(
+        adminHelpers.getUser(userToDelete.id.toString())
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
 
     it(`should delete another user's account if done by ADMIN and the target
       account is not ADMIN`, async () => {
-      await login(admin.email, admin.password);
-      const res = await deleteUser(mod.id.toString());
-      const { data } = res.data as BaseResponse;
+      await adminHelpers.deleteUser(mod.id.toString());
 
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.USERS.delete);
-
-      return await expect(getUser(mod.id.toString())).rejects.toMatchObject(
+      return await expect(
+        adminHelpers.getUser(mod.id.toString())
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
 
     it(`should return error when trying to delete yourself as admin`, async () => {
-      await login(admin.email, admin.password);
-
       return await expect(
-        deleteUser(admin.id.toString())
+        adminHelpers.deleteUser(admin.id.toString())
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION)
       );
     });
 
     it(`should return 403 FORBIDDEN when trying to delete another user as USER`, async () => {
+      const client = createAxiosClient();
+      const { login } = createAuthRouteHelper(client);
       await login(anotherUser.email, anotherUser.password);
+      const { deleteUser } = createUsersRouteHelper(client);
 
       return await expect(
         deleteUser(author.id.toString())
@@ -950,29 +838,29 @@ describe('/api/v1/users', () => {
     });
 
     it(`should return 403 FORBIDDEN when trying to delete another admin as ADMIN`, async () => {
-      await login(admin.email, admin.password);
-
       return await expect(
-        deleteUser(anotherAdmin.id.toString())
+        adminHelpers.deleteUser(anotherAdmin.id.toString())
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION)
       );
     });
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return deleteUser(id);
+      return adminHelpers.deleteUser(id);
     }, 'user id');
 
     it('should return 404 NOT FOUND for unknown user id', async () => {
-      await login(admin.email, admin.password);
-      return await expect(deleteUser('999')).rejects.toMatchObject(
+      return await expect(
+        adminHelpers.deleteUser('9999')
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
 
     it('should return 401 UNAUTHORIZED when not logged in', async () => {
-      return await expect(deleteUser(user.id.toString())).rejects.toMatchObject(
+      return await expect(
+        anonHelpers.deleteUser(user.id.toString())
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
@@ -987,9 +875,8 @@ describe('/api/v1/users', () => {
           isBanned: true,
         },
       });
-      await login(author.email, author.password);
       return await expect(
-        deleteUser(author.id.toString())
+        authorHelpers.deleteUser(author.id.toString())
       ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
     });
   });

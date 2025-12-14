@@ -2,25 +2,25 @@
   {
     "username": "admin123",
     "email": "admin123@gmail.com",
-    "password": "admin123",
+    "password": "Admin123@",
     "role": "ADMIN"
   },
   {
     "username": "moderator123",
     "email": "moderator123@gmail.com",
-    "password": "moderator123",
+    "password": "Moderator123@",
     "role": "MOD"
   },
   {
     "username": "user123",
     "email": "user123@gmail.com",
-    "password": "user123",
+    "password": "User123@",
     "role": "USER"
   },
   {
     "username": "author123",
     "email": "author123@gmail.com",
-    "password": "author123",
+    "password": "Author123@",
     "role": "AUTHOR"
   }
 ]
