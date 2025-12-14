@@ -11,66 +11,45 @@ import {
   seedPosts,
   seedComments,
 } from '@dans-coding-world/testing-setup';
-import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   COMMENT_CONSTRAINTS,
   ERROR_CODES,
   PAGINATION,
   SUCCESS_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { createAuthRouteHelper } from '../helper/auth-request.helper';
-import { createAxiosClient } from '../helper/test-client.helper';
 import { createPostsRouteHelper } from '../helper/posts-request.helper';
 import {
   GetCommentResponseDto,
   GetPostCommentsResponseDto,
 } from '@dans-coding-world/shared-post-dto';
-import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
 import { testInvalidIds } from '../helper/validation.helper';
+import { getData, getMessage } from '../helper/common.helper';
+import { setupClient } from '../helper/test-client.helper';
 
 describe('/api/v1/posts/{postId}/comments', () => {
-  let client: AxiosInstance;
-  let login: (
-    email: string,
-    password: string
-  ) => Promise<AxiosResponse<BaseResponse>>;
-  let getPostComments: (
-    id: any,
-    params?: any
-  ) => Promise<AxiosResponse<unknown>>;
-  let getComment: (
-    postId: any,
-    commentId: any,
-    params?: any
-  ) => Promise<AxiosResponse<unknown>>;
-  let updateComment: (
-    postId: any,
-    commentId: any,
-    content: string
-  ) => Promise<AxiosResponse<unknown>>;
-  let deleteComment: (
-    postId: any,
-    commentId: any
-  ) => Promise<AxiosResponse<unknown>>;
-  let createComment: (
-    postId: any,
-    commentData: any
-  ) => Promise<AxiosResponse<unknown>>;
-
   let users: User[] = [];
   let posts: Post[] = [];
   let comments: Comment[] = [];
 
   let admin: User;
   let mod: User;
+  let user: User;
   let author: User;
 
   let publishedPublicPosts: Post[];
   let draftPosts: Post[];
   let archivedPosts: Post[];
   let membersOnlyPosts: Post[];
+
+  type PostHelpers = ReturnType<typeof createPostsRouteHelper>;
+
+  let adminHelpers: PostHelpers;
+  let userHelpers: PostHelpers;
+  let authorHelpers: PostHelpers;
+  let modHelpers: PostHelpers;
+  let anonHelpers: PostHelpers; // For unauthenticated requests
 
   beforeAll(async () => {
     users = await seedUsers();
@@ -92,29 +71,18 @@ describe('/api/v1/posts/{postId}/comments', () => {
     admin = users.find((u) => u.role === 'ADMIN') as any;
     author = users.find((u) => u.role === 'AUTHOR') as any;
     mod = users.find((u) => u.role === 'MOD') as any;
+    user = users.find((u) => u.role === 'USER') as any;
 
-    if (!admin || !author || !mod) throw new Error('Missing users');
-  });
+    if (!admin || !author || !mod || !user) throw new Error('Missing users');
 
-  beforeEach(() => {
-    client = createAxiosClient();
-    ({ login } = createAuthRouteHelper(client));
-    ({
-      getPostComments,
-      getComment,
-      deleteComment,
-      updateComment,
-      createComment,
-    } = createPostsRouteHelper(client));
-  });
-
-  afterEach(async () => {
-    // un-ban banned users
-    await prisma.user.updateMany({
-      data: {
-        isBanned: false,
-      },
-    });
+    [adminHelpers, userHelpers, authorHelpers, modHelpers, anonHelpers] =
+      await Promise.all([
+        setupClient(createPostsRouteHelper, admin),
+        setupClient(createPostsRouteHelper, user),
+        setupClient(createPostsRouteHelper, author),
+        setupClient(createPostsRouteHelper, mod),
+        setupClient(createPostsRouteHelper, undefined),
+      ]);
   });
 
   describe('GET /api/v1/posts/{postId}/comments', () => {
@@ -126,15 +94,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
       if (!publishedPosts) throw new Error('Missing published test posts');
 
       for (const post of publishedPosts) {
-        const res = await getPostComments(post.id.toString());
-        const { data } = res.data as BaseResponse;
+        const res = await anonHelpers.getPostComments(post.id.toString());
 
-        expect(data).toHaveProperty(
-          'message',
+        expect(getMessage(res)).toBe(
           SUCCESS_MESSAGES.COMMENTS.getPostsComments
         );
 
-        const commentsData = data as GetPostCommentsResponseDto;
+        const commentsData = getData<GetPostCommentsResponseDto>(res);
         const postComments = commentsData.items;
 
         // Total should show only direct replies to post (depth === 0)
@@ -156,13 +122,18 @@ describe('/api/v1/posts/{postId}/comments', () => {
       }
     });
 
-    testInvalidIds((id) => getPostComments(id), 'postId');
+    testInvalidIds((id) => anonHelpers.getPostComments(id), 'postId');
 
-    it('should return 404 NOT FOUND for unknown post id', async () => {
-      return await expect(getPostComments(999)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
-      );
-    });
+    it.concurrent(
+      'should return 404 NOT FOUND for unknown post id',
+      async () => {
+        return await expect(
+          anonHelpers.getPostComments('9999')
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        );
+      }
+    );
 
     describe('?depth=y', () => {
       let postWithDeeplyNestedReplies: Post;
@@ -176,11 +147,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
       });
 
       it(`should return all replies for each comment when depth is omitted from query`, async () => {
-        await login(admin.email, admin.password);
-        const res = await getPostComments(postWithDeeplyNestedReplies.id);
-        const { data } = res.data as BaseResponse;
+        const res = await adminHelpers.getPostComments(
+          postWithDeeplyNestedReplies.id.toString()
+        );
 
-        const commentsData = data as GetPostCommentsResponseDto;
+        const commentsData = getData<GetPostCommentsResponseDto>(res);
 
         for (const comment of commentsData.items)
           checkRepliesRecursively(
@@ -190,18 +161,19 @@ describe('/api/v1/posts/{postId}/comments', () => {
       });
 
       it(`should return the expected amount of replies when depth is set`, async () => {
-        await login(admin.email, admin.password);
         for (
           let replyLevel = 1;
           replyLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
           replyLevel++
         ) {
-          const res = await getPostComments(postWithDeeplyNestedReplies.id, {
-            depth: replyLevel,
-          });
-          const { data } = res.data as BaseResponse;
+          const res = await adminHelpers.getPostComments(
+            postWithDeeplyNestedReplies.id.toString(),
+            {
+              depth: replyLevel,
+            }
+          );
 
-          const commentsData = data as GetPostCommentsResponseDto;
+          const commentsData = getData<GetPostCommentsResponseDto>(res);
 
           for (const comment of commentsData.items)
             checkRepliesRecursively(
@@ -223,19 +195,19 @@ describe('/api/v1/posts/{postId}/comments', () => {
         );
         if (!commentWithoutReplies) throw new Error('Missing test comment');
 
-        await login(admin.email, admin.password);
-
         for (
           let depthLevel = 1;
           depthLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
           depthLevel++
         ) {
-          const res = await getPostComments(commentWithoutReplies?.postId, {
-            maxReplyLevels: depthLevel,
-          });
-          const { data } = res.data as BaseResponse;
+          const res = await adminHelpers.getPostComments(
+            commentWithoutReplies?.postId.toString(),
+            {
+              maxReplyLevels: depthLevel,
+            }
+          );
 
-          const commentsData = data as GetPostCommentsResponseDto;
+          const commentsData = getData<GetPostCommentsResponseDto>(res);
 
           const lonelyComment = commentsData.items.find(
             (c) => c.id === commentWithoutReplies.id
@@ -245,7 +217,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         }
       });
 
-      test.each([
+      test.concurrent.each([
         ['is not a number', 'a'],
         ['is a decimal', 1.5],
         ['is a non numeric string', 'a1'],
@@ -259,7 +231,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         ],
       ])('should return validation error when depth %s', async (_, depth) => {
         return await expect(
-          getPostComments(publishedPublicPosts[0].id, {
+          anonHelpers.getPostComments(publishedPublicPosts[0].id.toString(), {
             depth,
           })
         ).rejects.toMatchObject(
@@ -269,7 +241,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
     });
 
     describe('?sortBy[x]=y', () => {
-      test.each([
+      test.concurrent.each([
         ['option does not exist', 'modifiedAt', 'asc'],
         ['option exists, but wrong value', 'createdAt', 'descending'],
         ['option exists, but value is empty', 'createdAt', ''],
@@ -278,7 +250,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         'should return validation error when sortBy %s',
         async (_, key, value) => {
           return await expect(
-            getPostComments(publishedPublicPosts[0].id, {
+            anonHelpers.getPostComments(publishedPublicPosts[0].id.toString(), {
               sortBy: {
                 [key]: value,
               },
@@ -289,7 +261,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         }
       );
 
-      test.each([
+      test.concurrent.each([
         ['created date (ASC)', 'createdAt', false],
         ['created date (DESC)', 'createdAt', true],
         ['updated date (ASC)', 'updatedAt', false],
@@ -297,14 +269,16 @@ describe('/api/v1/posts/{postId}/comments', () => {
       ])(
         'should sort items provided that sorting by %s is applied',
         async (_, propName, isDescending: boolean) => {
-          const res = await getPostComments(publishedPublicPosts[0].id, {
-            sortBy: {
-              [propName]: isDescending ? 'desc' : 'asc',
-            },
-          });
+          const res = await anonHelpers.getPostComments(
+            publishedPublicPosts[0].id.toString(),
+            {
+              sortBy: {
+                [propName]: isDescending ? 'desc' : 'asc',
+              },
+            }
+          );
 
-          const { data } = res.data as BaseResponse;
-          const commentsData = data as GetPostCommentsResponseDto;
+          const commentsData = getData<GetPostCommentsResponseDto>(res);
 
           const sortedItems = [...commentsData.items].sort((prev, next) => {
             if (!prev[propName] || !next[propName]) return 0;
@@ -362,11 +336,14 @@ describe('/api/v1/posts/{postId}/comments', () => {
       it(`should return the default items per page (${defaultPageSize})
        when pageSize is not defined`, async () => {
         const offset = defaultPageSize * 2;
-        const res = await getPostComments(postWithoutCommentsId, {
-          pageOffset: offset,
-        });
-        const { data } = res.data as BaseResponse;
-        const commentsData = data as GetPostCommentsResponseDto;
+        const res = await anonHelpers.getPostComments(
+          postWithoutCommentsId.toString(),
+          {
+            pageOffset: offset,
+          }
+        );
+
+        const commentsData = getData<GetPostCommentsResponseDto>(res);
 
         expect(commentsData.count).toBe(defaultPageSize);
         expect(commentsData.items.length).toBe(defaultPageSize);
@@ -374,12 +351,15 @@ describe('/api/v1/posts/{postId}/comments', () => {
       });
 
       it('should return 0 items when offset is beyond total number of comments', async () => {
-        const res = await getPostComments(postWithoutCommentsId, {
-          pageOffset: totalNumberOfComments,
-          pageSize: pageSizeOptions[2],
-        });
-        const { data } = res.data as BaseResponse;
-        const commentsData = data as GetPostCommentsResponseDto;
+        const res = await anonHelpers.getPostComments(
+          postWithoutCommentsId.toString(),
+          {
+            pageOffset: totalNumberOfComments,
+            pageSize: pageSizeOptions[2],
+          }
+        );
+
+        const commentsData = getData<GetPostCommentsResponseDto>(res);
 
         expect(commentsData.pagination.page).toBe(
           Math.ceil(totalNumberOfComments / pageSizeOptions[2]) + 1
@@ -402,19 +382,22 @@ describe('/api/v1/posts/{postId}/comments', () => {
       ])(
         'should return page #%s when [ offset: %s ; pageLimit %s ]',
         async (expectedPageNum, pageOffset, pageSize) => {
-          const res = await getPostComments(postWithoutCommentsId, {
-            pageOffset,
-            pageSize,
-          });
-          const { data } = res.data as BaseResponse;
-          const commentsData = data as GetPostCommentsResponseDto;
+          const res = await anonHelpers.getPostComments(
+            postWithoutCommentsId.toString(),
+            {
+              pageOffset,
+              pageSize,
+            }
+          );
+
+          const commentsData = getData<GetPostCommentsResponseDto>(res);
 
           expect(commentsData.pagination.page).toBe(expectedPageNum);
           expect(commentsData.pagination.total).toBe(totalNumberOfComments);
         }
       );
 
-      test.each([
+      test.concurrent.each([
         [
           'selected page size is not in the allowed options',
           {
@@ -455,7 +438,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         ],
       ])('should return validation error when %s', async (_, params) => {
         await expect(
-          getPostComments(postWithoutCommentsId, params)
+          anonHelpers.getPostComments(postWithoutCommentsId.toString(), params)
         ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
         );
@@ -470,7 +453,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
       it(`should return 401 UNAUTHORIZED when trying to get comments from a
         MEMBERS_ONLY post`, async () => {
         for (const post of membersOnlyPosts)
-          await expect(getPostComments(post.id)).rejects.toMatchObject(
+          await expect(
+            anonHelpers.getPostComments(post.id.toString())
+          ).rejects.toMatchObject(
             createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
           );
       });
@@ -478,7 +463,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
       it(`should return 403 FORBIDDEN when trying to get comments from a
         DRAFT or ARCHIVED post`, async () => {
         for (const post of draftPosts.concat(archivedPosts))
-          await expect(getPostComments(post.id)).rejects.toMatchObject(
+          await expect(
+            anonHelpers.getPostComments(post.id.toString())
+          ).rejects.toMatchObject(
             createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
           );
       });
@@ -498,12 +485,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
           (c) => c.postId === membersOnlyPost.id && c.depth === 0
         ).length;
 
-        await login(author.email, author.password);
+        const res = await authorHelpers.getPostComments(
+          membersOnlyPost.id.toString()
+        );
 
-        const res = await getPostComments(membersOnlyPost.id);
-
-        const { data } = res.data as BaseResponse;
-        const commentsData = data as GetPostCommentsResponseDto;
+        const commentsData = getData<GetPostCommentsResponseDto>(res);
 
         expect(commentsData.pagination.total).toBe(expectedNumberOfComments);
       });
@@ -523,15 +509,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
         );
         if (!archivedPost || !draftPost) throw new Error('Missing test posts');
 
-        await login(admin.email, admin.password);
-
         for (const post of [archivedPost, draftPost]) {
           const expectedNumberOfComments = comments.filter(
             (c) => c.postId === post.id && c.depth === 0
           ).length;
-          const res = await getPostComments(post.id);
-          const { data } = res.data as BaseResponse;
-          const commentsData = data as GetPostCommentsResponseDto;
+          const res = await adminHelpers.getPostComments(post.id.toString());
+
+          const commentsData = getData<GetPostCommentsResponseDto>(res);
 
           expect(commentsData.pagination.total).toBe(expectedNumberOfComments);
         }
@@ -549,15 +533,17 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
         // Not logged in
         for (const id of [archivedPost.id, draftPost.id])
-          await expect(getPostComments(id)).rejects.toMatchObject(
+          await expect(
+            anonHelpers.getPostComments(id.toString())
+          ).rejects.toMatchObject(
             createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
           );
 
-        await login(author.email, author.password);
-
         // Logged in as another user
         for (const id of [archivedPost.id, draftPost.id])
-          await expect(getPostComments(id)).rejects.toMatchObject(
+          await expect(
+            authorHelpers.getPostComments(id.toString())
+          ).rejects.toMatchObject(
             createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
           );
       });
@@ -586,12 +572,14 @@ describe('/api/v1/posts/{postId}/comments', () => {
           throw new Error('Missing replies for post');
 
         for (const comment of commentsWithReplies) {
-          const res = await getComment(post.id.toString(), comment.id);
-          const { data } = res.data as BaseResponse;
+          const res = await anonHelpers.getComment(
+            post.id.toString(),
+            comment.id.toString()
+          );
 
-          expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.get);
+          expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.get);
 
-          const commentsData = data as GetCommentResponseDto;
+          const commentsData = getData<GetCommentResponseDto>(res);
           const replies = commentsData.comment.replies;
 
           expect(replies.every((c) => c.threadParentId === comment.id)).toBe(
@@ -605,11 +593,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
       }
     });
 
-    testInvalidIds((id) => getComment(id, 1), 'postId');
-    testInvalidIds((id) => getComment(1, id), 'commentId');
+    testInvalidIds((id) => anonHelpers.getComment(id, '1'), 'postId');
+    testInvalidIds((id) => anonHelpers.getComment('1', id), 'commentId');
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
-      await expect(getComment(999, 1)).rejects.toMatchObject(
+      await expect(anonHelpers.getComment('999', '1')).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
 
@@ -622,7 +610,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
       if (!publishedPost) throw new Error('Missing published test post');
 
-      await expect(getComment(publishedPost.id, 999)).rejects.toMatchObject(
+      await expect(
+        anonHelpers.getComment(publishedPost.id.toString(), '9999')
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
@@ -668,14 +658,12 @@ describe('/api/v1/posts/{postId}/comments', () => {
       });
 
       it(`should return all the comment's replies when depth is not set`, async () => {
-        const res = await getComment(
-          commentWithDeeplyNestedReplies.postId,
-          commentWithDeeplyNestedReplies.id
+        const res = await anonHelpers.getComment(
+          commentWithDeeplyNestedReplies.postId.toString(),
+          commentWithDeeplyNestedReplies.id.toString()
         );
 
-        const { data } = res.data as BaseResponse;
-
-        const commentsData = data as GetCommentResponseDto;
+        const commentsData = getData<GetCommentResponseDto>(res);
         const replies = commentsData.comment.replies;
         for (const comment of replies)
           checkRepliesRecursively(comment.replies, commentReplies);
@@ -687,15 +675,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
           replyLevel <= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
           replyLevel++
         ) {
-          const res = await getComment(
-            commentWithDeeplyNestedReplies.postId,
-            commentWithDeeplyNestedReplies.id,
+          const res = await anonHelpers.getComment(
+            commentWithDeeplyNestedReplies.postId.toString(),
+            commentWithDeeplyNestedReplies.id.toString(),
             { depth: replyLevel }
           );
 
-          const { data } = res.data as BaseResponse;
-
-          const commentData = data as GetCommentResponseDto;
+          const commentData = getData<GetCommentResponseDto>(res);
 
           for (const comment of commentData.comment.replies)
             checkRepliesRecursively(
@@ -705,7 +691,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         }
       });
 
-      test.each([
+      test.concurrent.each([
         ['is not a number', 'a'],
         ['is a decimal', 1.5],
         ['is a non numeric string', 'a1'],
@@ -719,9 +705,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
         ],
       ])('should return validation error when depth %s', async (_, depth) => {
         return await expect(
-          getComment(
-            commentWithDeeplyNestedReplies.postId,
-            commentWithDeeplyNestedReplies.id,
+          anonHelpers.getComment(
+            commentWithDeeplyNestedReplies.postId.toString(),
+            commentWithDeeplyNestedReplies.id.toString(),
             {
               depth,
             }
@@ -736,7 +722,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
       it(`should return 401 UNAUTHORIZED when trying to get replies of a comment 
         from a MEMBERS_ONLY post`, async () => {
         for (const post of membersOnlyPosts)
-          await expect(getComment(post.id, 1)).rejects.toMatchObject(
+          await expect(
+            anonHelpers.getComment(post.id.toString(), '1')
+          ).rejects.toMatchObject(
             createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
           );
       });
@@ -744,7 +732,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
       it(`should return 403 FORBIDDEN when trying to get replies of a comment
          from a DRAFT or ARCHIVED post`, async () => {
         for (const post of draftPosts.concat(archivedPosts))
-          await expect(getComment(post.id, 1)).rejects.toMatchObject(
+          await expect(
+            anonHelpers.getComment(post.id.toString(), '1')
+          ).rejects.toMatchObject(
             createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
           );
       });
@@ -762,8 +752,6 @@ describe('/api/v1/posts/{postId}/comments', () => {
         );
         if (!membersOnlyPosts) throw new Error('Missing test posts');
 
-        await login(author.email, author.password);
-
         for (const post of membersOnlyPosts) {
           const postComments = comments.filter(
             (c) => c.postId === post.id && c.depth === 0
@@ -774,10 +762,12 @@ describe('/api/v1/posts/{postId}/comments', () => {
               (c) => c.postId === post.id && c.threadParentId === comment.id
             ).length;
 
-            const res = await getComment(post.id, comment.id);
+            const res = await authorHelpers.getComment(
+              post.id.toString(),
+              comment.id.toString()
+            );
 
-            const { data } = res.data as BaseResponse;
-            const repliesData = data as GetCommentResponseDto;
+            const repliesData = getData<GetCommentResponseDto>(res);
 
             expect(repliesData.comment.replyCount).toBe(
               expectedNumberOfComments
@@ -802,18 +792,18 @@ describe('/api/v1/posts/{postId}/comments', () => {
         );
         if (!archivedPost || !draftPost) throw new Error('Missing test posts');
 
-        await login(admin.email, admin.password);
-
         for (const post of [archivedPost, draftPost]) {
           const postComments = comments.filter(
             (c) => c.postId === post.id && c.depth === 0
           );
 
           for (const comment of postComments) {
-            const res = await getComment(post.id, comment.id);
+            const res = await adminHelpers.getComment(
+              post.id.toString(),
+              comment.id.toString()
+            );
 
-            const { data } = res.data as BaseResponse;
-            const repliesData = data as GetCommentResponseDto;
+            const repliesData = getData<GetCommentResponseDto>(res);
 
             expect(repliesData.comment.replyCount).toBe(
               getReplyCountRecursively(repliesData.comment)
@@ -847,13 +837,14 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
           for (const parentComment of postComments)
             await expect(
-              getComment(post.id, parentComment.id)
+              anonHelpers.getComment(
+                post.id.toString(),
+                parentComment.id.toString()
+              )
             ).rejects.toMatchObject(
               createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
             );
         }
-
-        await login(author.email, author.password);
 
         // Logged in as another user
         for (const post of [archivedPost, draftPost]) {
@@ -863,7 +854,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
           for (const parentComment of postComments)
             await expect(
-              getComment(post.id, parentComment.id)
+              authorHelpers.getComment(
+                post.id.toString(),
+                parentComment.id.toString()
+              )
             ).rejects.toMatchObject(
               createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
             );
@@ -883,10 +877,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
           if (!archivedPost) throw new Error('Missing test posts');
 
-          const user = users.find((u) => u.role === role);
-          if (!user) throw new Error('Missing test user');
-
-          await login(user.email, user.password);
+          const helper = role === 'ADMIN' ? adminHelpers : modHelpers;
 
           for (const post of [archivedPost]) {
             const postComments = comments.filter(
@@ -894,9 +885,12 @@ describe('/api/v1/posts/{postId}/comments', () => {
             );
 
             for (const parentComment of postComments) {
-              const res = await getComment(post.id, parentComment.id);
-              const { data } = res.data as BaseResponse;
-              const repliesData = data as GetCommentResponseDto;
+              const res = await helper.getComment(
+                post.id.toString(),
+                parentComment.id.toString()
+              );
+
+              const repliesData = getData<GetCommentResponseDto>(res);
 
               expect(repliesData).toBeDefined();
             }
@@ -916,18 +910,21 @@ describe('/api/v1/posts/{postId}/comments', () => {
         (c, i, arr) =>
           c.userId === admin.id && arr.find((r) => r.threadParentId === c.id)
       );
-      await login(admin.email, admin.password);
+      if (!commentWithReplies) throw new Error('Missing test comment');
 
-      const res = await deleteComment(
-        commentWithReplies?.postId,
-        commentWithReplies?.id
+      const res = await adminHelpers.deleteComment(
+        commentWithReplies?.postId.toString(),
+        commentWithReplies?.id.toString()
       );
-      const { data } = res.data as BaseResponse;
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.delete);
+
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.delete);
 
       // Deleted Comment
       await expect(
-        deleteComment(commentWithReplies?.postId, commentWithReplies?.id)
+        adminHelpers.deleteComment(
+          commentWithReplies?.postId.toString(),
+          commentWithReplies?.id.toString()
+        )
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
@@ -937,7 +934,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
         (c) => c.threadParentId === commentWithReplies?.id
       ))
         await expect(
-          deleteComment(commentWithReplies?.postId, reply?.id)
+          adminHelpers.deleteComment(
+            commentWithReplies?.postId.toString(),
+            reply?.id.toString()
+          )
         ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
         );
@@ -946,24 +946,25 @@ describe('/api/v1/posts/{postId}/comments', () => {
     });
 
     it('should return 401 UNAUTHORIZED when trying to delete comment as guest', async () => {
-      return await expect(deleteComment(1, 1)).rejects.toMatchObject(
+      return await expect(
+        anonHelpers.deleteComment('1', '1')
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return deleteComment(id, 1);
+      return adminHelpers.deleteComment(id, '1');
     }, 'postId');
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return deleteComment(1, id);
+      return adminHelpers.deleteComment('1', id);
     }, 'commentId');
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
-      await login(admin.email, admin.password);
-      await expect(deleteComment(999, 1)).rejects.toMatchObject(
+      await expect(
+        adminHelpers.deleteComment('999', '1')
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
 
@@ -976,17 +977,23 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
       if (!publishedPost) throw new Error('Missing published test post');
 
-      await expect(deleteComment(publishedPost.id, 999)).rejects.toMatchObject(
+      await expect(
+        adminHelpers.deleteComment(publishedPost.id.toString(), '999')
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
 
     it(`should return 403 FORBIDDEN when user is not ADMIN or MOD, 
         and the comment does not belong to the user`, async () => {
-      await login(author.email, author.password);
       const otherUserComment = comments.find((c) => c.userId !== author.id);
+      if (!otherUserComment) throw new Error('Missing test comment');
+
       await expect(
-        deleteComment(otherUserComment?.postId, otherUserComment?.id)
+        authorHelpers.deleteComment(
+          otherUserComment?.postId.toString(),
+          otherUserComment?.id.toString()
+        )
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
       );
@@ -996,22 +1003,19 @@ describe('/api/v1/posts/{postId}/comments', () => {
       `should allow deletion of comment if user is %s`,
       async (role) => {
         const user = users.find((u) => u.role === role);
-        if (!user) throw new Error('Missing test user');
+        if (!user) throw new Error('Missing test user for role: ' + role);
 
         const otherUserComment = comments.find((c) => c.userId !== user.id);
         if (!otherUserComment) throw new Error('Missing test data');
 
-        await login(user.email, user.password);
+        const helper = role === 'ADMIN' ? adminHelpers : modHelpers;
 
-        const res = await deleteComment(
-          otherUserComment?.postId,
-          otherUserComment.id
+        const res = await helper.deleteComment(
+          otherUserComment?.postId.toString(),
+          otherUserComment.id.toString()
         );
-        const { data } = res.data as BaseResponse;
-        expect(data).toHaveProperty(
-          'message',
-          SUCCESS_MESSAGES.COMMENTS.delete
-        );
+
+        expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.delete);
 
         comments = await seedComments();
       }
@@ -1027,10 +1031,26 @@ describe('/api/v1/posts/{postId}/comments', () => {
           isBanned: true,
         },
       });
-      await login(author.email, author.password);
-      return await expect(
-        deleteComment(posts[0].id, comments[0].id)
-      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+
+      try {
+        await expect(
+          authorHelpers.deleteComment(
+            posts[0].id.toString(),
+            comments[0].id.toString()
+          )
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+        );
+      } finally {
+        await prisma.user.update({
+          where: {
+            id: author.id,
+          },
+          data: {
+            isBanned: false,
+          },
+        });
+      }
     });
   });
 
@@ -1043,15 +1063,15 @@ describe('/api/v1/posts/{postId}/comments', () => {
       its status is PUBLISHED and user is logged-in`, async () => {
       const newContent = generateRandomString(20);
       const post = posts.find((p) => p.status === 'PUBLISHED');
+      if (!post) throw new Error('Missing post');
 
-      await login(admin.email, admin.password);
+      const res = await adminHelpers.createComment(post?.id.toString(), {
+        content: newContent,
+      });
 
-      const res = await createComment(post?.id, { content: newContent });
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.create);
 
-      const { data } = res.data as BaseResponse;
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.create);
-
-      const comment = (data as any).comment as Comment;
+      const comment = getData<Comment>(res, 'comment');
       expect(comment.content).toBe(newContent);
       expect(comment.postId).toBe(post?.id);
       expect(comment.userId).toBe(admin.id);
@@ -1064,20 +1084,18 @@ describe('/api/v1/posts/{postId}/comments', () => {
         (p) =>
           p.status === 'PUBLISHED' && comments.find((c) => c.postId === p.id)
       );
+      if (!post) throw new Error('Missing post');
 
       const commentToReplyTo = comments.find((c) => c.postId === post?.id);
 
-      await login(admin.email, admin.password);
-
-      const res = await createComment(post?.id, {
+      const res = await adminHelpers.createComment(post?.id.toString(), {
         content: newContent,
         replyToCommentId: commentToReplyTo?.id,
       });
 
-      const { data } = res.data as BaseResponse;
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.create);
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.create);
 
-      const comment = (data as any).comment as Comment;
+      const comment = getData<Comment>(res, 'comment');
       expect(comment.content).toBe(newContent);
       expect(comment.postId).toBe(post?.id);
       expect(comment.userId).toBe(admin.id);
@@ -1086,15 +1104,14 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
     it('should return 401 UNAUTHORIZED when trying to create comment as guest', async () => {
       return await expect(
-        createComment(1, { content: generateRandomString(10) })
+        anonHelpers.createComment('1', { content: generateRandomString(10) })
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return createComment(id, {
+      return adminHelpers.createComment(id, {
         content: generateRandomString(
           COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
         ),
@@ -1102,9 +1119,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
     }, 'postId');
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
       const post = posts.find((p) => p.status === 'PUBLISHED');
-      return createComment(post?.id, {
+      if (!post) throw new Error('Missing post');
+
+      return adminHelpers.createComment(post?.id.toString(), {
         content: generateRandomString(
           COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
         ),
@@ -1112,7 +1130,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
       });
     }, 'replyToCommentId');
 
-    test.each([
+    test.concurrent.each([
       [
         'is too short',
         generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH - 1),
@@ -1126,10 +1144,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
       'should return validation error when comment content field %s',
       async (_, content) => {
         const post = posts.find((p) => p.status === 'PUBLISHED');
-        await login(admin.email, admin.password);
+        if (!post) throw new Error('Missing post');
 
         await expect(
-          createComment(post?.id, { content })
+          adminHelpers.createComment(post?.id.toString(), { content })
         ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
         );
@@ -1137,9 +1155,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
     );
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
-      await login(admin.email, admin.password);
+      // Login: admin -> use adminHelpers
       await expect(
-        createComment(999, { content: generateRandomString(10) })
+        adminHelpers.createComment((999).toString(), {
+          content: generateRandomString(10),
+        })
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
@@ -1151,10 +1171,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
           p.status === 'PUBLISHED' && comments.find((c) => c.postId === p.id)
       );
 
-      await login(admin.email, admin.password);
+      if (!post)
+        throw new Error('Missing published post with comments for test setup.');
 
       await expect(
-        createComment(post?.id, {
+        adminHelpers.createComment(post.id.toString(), {
           content: generateRandomString(10),
           replyToCommentId: 999,
         })
@@ -1165,13 +1186,16 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
     it(`should return 403 FORBIDDEN when posting a comment on a 
       non-PUBLISHED post that the user is not the author of`, async () => {
-      await login(author.email, author.password);
+      // Login: author -> use authorHelpers
       const nonPublishedPosts = posts.filter(
         (p) => p.status !== 'PUBLISHED' && p.authorId !== author.id
       );
+      // NOTE: Assuming nonPublishedPosts is guaranteed to be non-empty by test setup
       for (const post of nonPublishedPosts)
         await expect(
-          createComment(post.id, { content: generateRandomString(10) })
+          authorHelpers.createComment(post.id.toString(), {
+            content: generateRandomString(10),
+          })
         ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
         );
@@ -1187,10 +1211,25 @@ describe('/api/v1/posts/{postId}/comments', () => {
           isBanned: true,
         },
       });
-      await login(author.email, author.password);
-      return await expect(
-        createComment(posts[0].id, 'new content')
-      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+
+      try {
+        await expect(
+          authorHelpers.createComment(posts[0].id.toString(), {
+            content: 'new content',
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+        );
+      } finally {
+        await prisma.user.update({
+          where: {
+            id: author.id,
+          },
+          data: {
+            isBanned: false,
+          },
+        });
+      }
     });
   });
 
@@ -1207,47 +1246,55 @@ describe('/api/v1/posts/{postId}/comments', () => {
           c.userId === admin.id &&
           posts.find((p) => p.id === c.postId && p.status === 'PUBLISHED')
       );
-      await login(admin.email, admin.password);
 
-      const res = await updateComment(
-        commentForUpdate?.postId,
-        commentForUpdate?.id,
+      if (!commentForUpdate)
+        throw new Error(
+          'Missing comment by admin on a published post for test setup.'
+        );
+
+      // Login: admin -> use adminHelpers
+      const res = await adminHelpers.updateComment(
+        commentForUpdate.postId.toString(),
+        commentForUpdate.id.toString(),
         newContent
       );
-      const { data } = res.data as BaseResponse;
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.COMMENTS.update);
 
-      const comment = (data as any).comment as Comment;
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.update);
+
+      const comment = getData<Comment>(res, 'comment');
       expect(comment.content).toBe(newContent);
     });
 
     it('should return 401 UNAUTHORIZED when trying to update comment as guest', async () => {
+      // No login -> use anonHelpers
       return await expect(
-        updateComment(1, 1, generateRandomString(10))
+        anonHelpers.updateComment(
+          (1).toString(),
+          (1).toString(),
+          generateRandomString(10)
+        )
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return updateComment(
-        1,
+      return adminHelpers.updateComment(
+        (1).toString(),
         id as any,
         generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
       );
     }, 'postId');
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return updateComment(
+      return adminHelpers.updateComment(
         id as any,
-        1,
+        (1).toString(),
         generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
       );
     }, 'commentId');
 
-    test.each([
+    test.concurrent.each([
       [
         'is too short',
         generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH - 1),
@@ -1266,10 +1313,17 @@ describe('/api/v1/posts/{postId}/comments', () => {
             posts.find((p) => p.id === c.postId && p.status === 'PUBLISHED')
         );
 
-        await login(admin.email, admin.password);
+        if (!commentForUpdate)
+          throw new Error(
+            'Missing comment by admin on a published post for test setup (validation test).'
+          );
 
         await expect(
-          updateComment(commentForUpdate?.postId, commentForUpdate?.id, content)
+          adminHelpers.updateComment(
+            commentForUpdate.postId.toString(),
+            commentForUpdate.id.toString(),
+            content
+          )
         ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
         );
@@ -1277,11 +1331,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
     );
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
-      await login(admin.email, admin.password);
       await expect(
-        updateComment(
-          999,
-          1,
+        adminHelpers.updateComment(
+          (999).toString(),
+          (1).toString(),
           generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
         )
       ).rejects.toMatchObject(
@@ -1295,12 +1348,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
           comments.find((c) => c.postId === p.id)
       );
 
-      if (!publishedPost) throw new Error('Missing published test post');
+      if (!publishedPost)
+        throw new Error('Missing published test post for 404 check');
 
       await expect(
-        updateComment(
-          publishedPost.id,
-          999,
+        adminHelpers.updateComment(
+          publishedPost.id.toString(),
+          (999).toString(),
           generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
         )
       ).rejects.toMatchObject(
@@ -1309,12 +1363,15 @@ describe('/api/v1/posts/{postId}/comments', () => {
     });
 
     it('should return 403 FORBIDDEN for updating a comment not belonging to the user', async () => {
-      await login(author.email, author.password);
       const otherUserComment = comments.find((c) => c.userId !== author.id);
+
+      if (!otherUserComment)
+        throw new Error('Missing comment from another user for 403 check.');
+
       await expect(
-        updateComment(
-          otherUserComment?.postId,
-          otherUserComment?.id,
+        authorHelpers.updateComment(
+          otherUserComment.postId.toString(),
+          otherUserComment.id.toString(),
           generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
         )
       ).rejects.toMatchObject(
@@ -1326,23 +1383,22 @@ describe('/api/v1/posts/{postId}/comments', () => {
       `should allow edit of other user's comment if user is %s`,
       async (role) => {
         const user = users.find((u) => u.role === role);
-        if (!user) throw new Error('Missing test user');
+        if (!user) throw new Error('Missing test user for role: ' + role);
+
+        const helper = role === 'ADMIN' ? adminHelpers : modHelpers;
 
         const otherUserComment = comments.find((c) => c.userId !== user.id);
-        if (!otherUserComment) throw new Error('Missing test data');
 
-        await login(user.email, user.password);
+        if (!otherUserComment)
+          throw new Error('Missing other user comment for role edit test.');
 
-        const res = await updateComment(
-          otherUserComment?.postId,
-          otherUserComment.id,
+        const res = await helper.updateComment(
+          otherUserComment.postId.toString(),
+          otherUserComment.id.toString(),
           'new content'
         );
-        const { data } = res.data as BaseResponse;
-        expect(data).toHaveProperty(
-          'message',
-          SUCCESS_MESSAGES.COMMENTS.update
-        );
+
+        expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.update);
       }
     );
 
@@ -1356,10 +1412,26 @@ describe('/api/v1/posts/{postId}/comments', () => {
           isBanned: true,
         },
       });
-      await login(author.email, author.password);
-      return await expect(
-        updateComment(posts[0].id, comments[0].id, 'new content')
-      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
+      try {
+        await expect(
+          authorHelpers.updateComment(
+            posts[0].id.toString(),
+            comments[0].id.toString(),
+            'new content'
+          )
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+        );
+      } finally {
+        await prisma.user.update({
+          where: {
+            id: author.id,
+          },
+          data: {
+            isBanned: false,
+          },
+        });
+      }
     });
   });
 });
