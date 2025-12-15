@@ -74,6 +74,9 @@
     },
     {
       "path": "./libs/shared/user/dtos"
+    },
+    {
+      "path": "./libs/shared/storage"
     }
   ]
 }
