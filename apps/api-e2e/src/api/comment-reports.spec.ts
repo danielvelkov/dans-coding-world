@@ -23,41 +23,16 @@ import {
   SUCCESS_MESSAGES,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { createAuthRouteHelper } from '../helper/auth-request.helper';
-import { createAxiosClient } from '../helper/test-client.helper';
+import { setupClient } from '../helper/test-client.helper';
 import { createReportsRouteHelper } from '../helper/reports-request.helper';
-import {
-  CreateReportDto,
-  GetReportsResponseDto,
-  UpdateReportDto,
-} from '@dans-coding-world/shared-report-dto';
-import { AxiosInstance, AxiosResponse } from 'axios';
+import { GetReportsResponseDto } from '@dans-coding-world/shared-report-dto';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
-import {
-  generateRandomString,
-  randomInteger,
-  randomSelect,
-} from '@dans-coding-world/helpers';
+import { generateRandomString, randomSelect } from '@dans-coding-world/helpers';
 import { ReportDetail } from '@dans-coding-world/report-data-access';
 import { testInvalidIds } from '../helper/validation.helper';
+import { getData, getMessage } from '../helper/common.helper';
 
 describe('/api/v1/reports/comments', () => {
-  let client: AxiosInstance;
-  let login: (
-    email: string,
-    password: string
-  ) => Promise<AxiosResponse<BaseResponse>>;
-  let getReports: (params?: any) => Promise<AxiosResponse<unknown>>;
-  let getReport: (id: any) => Promise<AxiosResponse<unknown>>;
-  let createReport: (
-    data: Omit<CreateReportDto, 'reporterId'>
-  ) => Promise<AxiosResponse<unknown>>;
-  let updateReport: (
-    id: string,
-    data: Omit<UpdateReportDto, 'reportId' | 'moderatorId'>
-  ) => Promise<AxiosResponse<unknown>>;
-  let deleteReport: (id: string) => Promise<AxiosResponse<unknown>>;
-
   let users: User[] = [];
   let posts: Post[] = [];
   let comments: Comment[] = [];
@@ -68,6 +43,14 @@ describe('/api/v1/reports/comments', () => {
   let mod: User;
   let author: User;
   let user: User;
+
+  type ReportHelpers = ReturnType<typeof createReportsRouteHelper>;
+
+  let adminHelpers: ReportHelpers;
+  let userHelpers: ReportHelpers;
+  let authorHelpers: ReportHelpers;
+  let modHelpers: ReportHelpers;
+  let anonHelpers: ReportHelpers; // For unauthenticated requests
 
   beforeAll(async () => {
     users = await seedUsers();
@@ -155,24 +138,23 @@ describe('/api/v1/reports/comments', () => {
     }
 
     reportsHistories = await seedReportHistories(reportHistoriesToCreate);
-  });
 
-  beforeEach(() => {
-    client = createAxiosClient();
-    ({ login } = createAuthRouteHelper(client));
-    ({ getReports, getReport, createReport, updateReport, deleteReport } =
-      createReportsRouteHelper(client));
+    [adminHelpers, userHelpers, authorHelpers, modHelpers, anonHelpers] =
+      await Promise.all([
+        setupClient(createReportsRouteHelper, admin),
+        setupClient(createReportsRouteHelper, user),
+        setupClient(createReportsRouteHelper, author),
+        setupClient(createReportsRouteHelper, mod),
+        setupClient(createReportsRouteHelper, undefined),
+      ]);
   });
 
   describe('GET /api/v1/reports/comments/:id', () => {
     test.each(['ADMIN', 'MOD'])(
-      `should return comment report with the reported comment,
+      `should return report with the reported comment,
       malicious user and report history IF %s is logged in`,
       async (role) => {
-        const viewer = users.find((u) => u.role === role);
-        if (!viewer) throw new Error('Missing test user');
-
-        await login(viewer.email, viewer.password);
+        const helper = role === 'ADMIN' ? adminHelpers : modHelpers;
 
         const reportWithHistory = reports.find((report) =>
           reportsHistories.map((h) => h.reportId).includes(report.id)
@@ -184,12 +166,11 @@ describe('/api/v1/reports/comments', () => {
         );
         if (!reportedComment) throw new Error('Missing test comment');
 
-        const res = await getReport(reportWithHistory.id.toString());
-        const { data } = res.data as BaseResponse;
+        const res = await helper.getReport(reportWithHistory.id.toString());
 
-        expect(data).toHaveProperty('message', SUCCESS_MESSAGES.REPORTS.get);
+        expect(getMessage(res)).toBe(SUCCESS_MESSAGES.REPORTS.get);
 
-        const report = (data as any).report as ReportDetail;
+        const report = getData<ReportDetail>(res, 'report');
 
         expect(report.id).toBe(reportWithHistory.id);
         expect(report.reportedBy.id).toBe(reportWithHistory.reporterId);
@@ -202,7 +183,7 @@ describe('/api/v1/reports/comments', () => {
     );
 
     it('should return 401 UNAUTHORIZED when not logged-in', async () => {
-      await expect(getReport(1)).rejects.toMatchObject(
+      await expect(anonHelpers.getReport('1')).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
@@ -210,24 +191,19 @@ describe('/api/v1/reports/comments', () => {
     test.each(['USER', 'AUTHOR'])(
       'should return 403 FORBIDDEN when user role is %s',
       async (role) => {
-        const user = users.find((u) => u.role === role);
-        if (!user) throw new Error('Missing test user');
-
-        await login(user.email, user.password);
-        await expect(getReport(1)).rejects.toMatchObject(
+        const helper = role === 'USER' ? userHelpers : authorHelpers;
+        await expect(helper.getReport('1')).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
         );
       }
     );
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return getReport(id);
+      return adminHelpers.getReport(id);
     }, 'report id');
 
     it('should return 404 NOT FOUND for unknown report id', async () => {
-      await login(admin.email, admin.password);
-      return await expect(getReport(999)).rejects.toMatchObject(
+      return await expect(adminHelpers.getReport('9999')).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
@@ -237,17 +213,13 @@ describe('/api/v1/reports/comments', () => {
     test.each(['ADMIN', 'MOD'])(
       `should return reports with the reported comment IF %s is logged in`,
       async (role) => {
-        const viewer = users.find((u) => u.role === role);
-        if (!viewer) throw new Error('Missing test user');
+        const helper = role === 'ADMIN' ? adminHelpers : modHelpers;
 
-        await login(viewer.email, viewer.password);
+        const res = await helper.getReports();
 
-        const res = await getReports();
-        const { data } = res.data as BaseResponse;
+        expect(getMessage(res)).toBe(SUCCESS_MESSAGES.REPORTS.getAll);
 
-        expect(data).toHaveProperty('message', SUCCESS_MESSAGES.REPORTS.getAll);
-
-        const { items } = data as GetReportsResponseDto;
+        const { items } = getData<GetReportsResponseDto>(res);
 
         for (const report of items) {
           const expectedComment = comments.find(
@@ -260,31 +232,28 @@ describe('/api/v1/reports/comments', () => {
         }
       }
     );
-    test.each(['USER', 'AUTHOR'])(
+
+    test.concurrent.each(['USER', 'AUTHOR'])(
       'should return 403 FORBIDDEN when user role is %s',
       async (role) => {
-        const user = users.find((u) => u.role === role);
-        if (!user) throw new Error('Missing test user');
+        const helper = role === 'USER' ? userHelpers : authorHelpers;
 
-        await login(user.email, user.password);
-        await expect(getReports()).rejects.toMatchObject(
+        await expect(helper.getReports()).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
         );
       }
     );
 
     it('should return 401 UNAUTHORIZED when not logged-in', async () => {
-      await expect(getReports()).rejects.toMatchObject(
+      await expect(anonHelpers.getReports()).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
 
     it('should retrieve only PENDING reports if no filters specified', async () => {
-      await login(mod.email, mod.password);
-      const res = await getReports();
-      const { data } = res.data as BaseResponse;
+      const res = await modHelpers.getReports();
 
-      const { items, pagination } = data as GetReportsResponseDto;
+      const { items, pagination } = getData<GetReportsResponseDto>(res);
 
       expect(pagination.total).toBe(
         reports.filter((r) => r.status === 'PENDING').length
@@ -315,15 +284,13 @@ describe('/api/v1/reports/comments', () => {
         throw new Error('Missing reports');
 
       for (const postId of idsOfPostsContainingReportedComments) {
-        await login(mod.email, mod.password);
-        const res = await getReports({
+        const res = await modHelpers.getReports({
           filterBy: {
             postId,
           },
         });
-        const { data } = res.data as BaseResponse;
 
-        const { items, pagination } = data as GetReportsResponseDto;
+        const { items, pagination } = getData<GetReportsResponseDto>(res);
 
         expect(items.length).toBeGreaterThan(0);
         expect(pagination.total).toBe(
@@ -351,15 +318,13 @@ describe('/api/v1/reports/comments', () => {
         throw new Error('Missing users');
 
       for (const maliciousUserId of idsOfReportedMaliciousUsers) {
-        await login(mod.email, mod.password);
-        const res = await getReports({
+        const res = await modHelpers.getReports({
           filterBy: {
             maliciousUserId,
           },
         });
-        const { data } = res.data as BaseResponse;
 
-        const { items, pagination } = data as GetReportsResponseDto;
+        const { items, pagination } = getData<GetReportsResponseDto>(res);
 
         expect(items.length).toBeGreaterThan(0);
         expect(pagination.total).toBe(
@@ -372,12 +337,11 @@ describe('/api/v1/reports/comments', () => {
       }
     });
 
-    test.each(['ANALYZING', 'POWER_TRIPPING', ''])(
+    test.concurrent.each(['ANALYZING', 'POWER_TRIPPING', ''])(
       'should throw when filtering by unknown report status',
       async (status) => {
-        await login(admin.email, admin.password);
         return await expect(
-          getReports({
+          adminHelpers.getReports({
             filterBy: {
               status: [status as any],
             },
@@ -389,7 +353,7 @@ describe('/api/v1/reports/comments', () => {
     );
 
     describe('?sortBy[x]=y', () => {
-      test.each([
+      test.concurrent.each([
         ['option does not exist', 'modifiedAt', 'asc'],
         ['option exists, but wrong value', 'createdAt', 'descending'],
         ['option exists, but value is empty', 'createdAt', ''],
@@ -397,9 +361,8 @@ describe('/api/v1/reports/comments', () => {
       ])(
         'should return validation error when sortBy %s',
         async (_, key, value) => {
-          await login(admin.email, admin.password);
           return await expect(
-            getReports({
+            adminHelpers.getReports({
               sortBy: {
                 [key]: value,
               },
@@ -410,21 +373,19 @@ describe('/api/v1/reports/comments', () => {
         }
       );
 
-      test.each([
+      test.concurrent.each([
         ['created date (DESC)', 'createdAt', true],
         ['created date (ASC)', 'createdAt', false],
       ])(
         'should sort items provided that sorting by %s is applied',
         async (_, propName, isDescending: boolean) => {
-          await login(admin.email, admin.password);
-          const res = await getReports({
+          const res = await adminHelpers.getReports({
             sortBy: {
               [propName]: isDescending ? 'desc' : 'asc',
             },
           });
 
-          const { data } = res.data as BaseResponse;
-          const reportsData = data as GetReportsResponseDto;
+          const reportsData = getData<GetReportsResponseDto>(res);
 
           const sortedItems = [...reportsData.items].sort((prev, next) => {
             if (!prev[propName] || !next[propName]) return 0;
@@ -451,16 +412,15 @@ describe('/api/v1/reports/comments', () => {
 
       it(`should return the default items per page (${defaultPageSize})
        when pageSize is not defined`, async () => {
-        await login(admin.email, admin.password);
         const offset = 10;
-        const res = await getReports({
+        const res = await adminHelpers.getReports({
           pageOffset: offset,
           filterBy: {
             status: ['PENDING', 'RESOLVED', 'DISMISSED', 'REVIEWING'],
           },
         });
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetReportsResponseDto;
+
+        const postsData = getData<GetReportsResponseDto>(res);
 
         expect(postsData.count).toBe(defaultPageSize);
         expect(postsData.items.length).toBe(defaultPageSize);
@@ -469,13 +429,13 @@ describe('/api/v1/reports/comments', () => {
 
       it('should return 0 items when offset is beyond total number of reports', async () => {
         const totalRoundUpToHundred = Math.ceil(reports.length / 100) * 100;
-        await login(admin.email, admin.password);
-        const res = await getReports({
+
+        const res = await adminHelpers.getReports({
           pageOffset: totalRoundUpToHundred,
           pageSize: pageSizeOptions[2],
         });
-        const { data } = res.data as BaseResponse;
-        const reportsData = data as GetReportsResponseDto;
+
+        const reportsData = getData<GetReportsResponseDto>(res);
 
         expect(reportsData.pagination.page).toBe(
           Math.ceil(totalRoundUpToHundred / pageSizeOptions[2]) + 1
@@ -484,7 +444,7 @@ describe('/api/v1/reports/comments', () => {
         expect(reportsData.items.length).toBe(0);
       });
 
-      test.each([
+      test.concurrent.each([
         [1, 0, pageSizeOptions[0]],
         [2, pageSizeOptions[0], pageSizeOptions[0]],
         [3, pageSizeOptions[0] * 2, pageSizeOptions[0]],
@@ -493,23 +453,22 @@ describe('/api/v1/reports/comments', () => {
       ])(
         'should return page #%s when [ offset: %s ; pageLimit %s ]',
         async (expectedPageNum, pageOffset, pageSize) => {
-          await login(admin.email, admin.password);
-          const res = await getReports({
+          const res = await adminHelpers.getReports({
             pageOffset,
             pageSize,
             filterBy: {
               status: ['PENDING', 'RESOLVED', 'DISMISSED', 'REVIEWING'],
             },
           });
-          const { data } = res.data as BaseResponse;
-          const reportsData = data as GetReportsResponseDto;
+
+          const reportsData = getData<GetReportsResponseDto>(res);
 
           expect(reportsData.pagination.page).toBe(expectedPageNum);
           expect(reportsData.pagination.total).toBe(totalNumberOfReports);
         }
       );
 
-      test.each([
+      test.concurrent.each([
         [
           'selected page size is not in the allowed options',
           {
@@ -581,8 +540,7 @@ describe('/api/v1/reports/comments', () => {
           },
         ],
       ])('should return validation error when %s', async (_, params) => {
-        await login(admin.email, admin.password);
-        await expect(getReports(params)).rejects.toMatchObject(
+        await expect(adminHelpers.getReports(params)).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
         );
       });
@@ -675,14 +633,12 @@ describe('/api/v1/reports/comments', () => {
 
       if (!commentToReport) throw new Error('Missing test comment');
 
-      await login(mod.email, mod.password);
-      const res = await createReport({
+      const res = await modHelpers.createReport({
         commentId: commentToReport.id,
         reason: reportReason,
       });
-      const { data } = res.data as BaseResponse;
 
-      const createdReport = (data as any).report as Report;
+      const createdReport = getData<Report>(res, 'report');
       expect(createdReport).toBeDefined();
 
       expect(createdReport.reason).toBe(reportReason);
@@ -708,19 +664,18 @@ describe('/api/v1/reports/comments', () => {
 
       if (!commentToReport) throw new Error('Missing test comment');
 
-      await login(user.email, user.password);
-
-      const res = await createReport({
+      const res = await userHelpers.createReport({
         commentId: commentToReport.id,
         reason: generateRandomString(10),
       });
+
       const { data } = res.data as BaseResponse;
 
       const createdReport = (data as any).report as Report;
       testReports.push(createdReport);
 
       await expect(
-        createReport({
+        userHelpers.createReport({
           commentId: commentToReport.id,
           reason: generateRandomString(10),
         })
@@ -730,7 +685,7 @@ describe('/api/v1/reports/comments', () => {
     });
 
     it(`should return 403 FORBIDDEN when the same user
-       that made the comment - is trying to report it`, async () => {
+      that made the comment - is trying to report it`, async () => {
       const commentReportedByUser = testComments.find(
         (c) =>
           c.userId === user.id &&
@@ -738,9 +693,8 @@ describe('/api/v1/reports/comments', () => {
       );
       if (!commentReportedByUser) throw new Error('Missing test comment');
 
-      await login(user.email, user.password);
       await expect(
-        createReport({
+        userHelpers.createReport({
           commentId: commentReportedByUser.id,
           reason: generateRandomString(10),
         })
@@ -750,8 +704,9 @@ describe('/api/v1/reports/comments', () => {
     });
 
     it('should return 401 UNAUTHORIZED when not logged-in', async () => {
+      if (!comments[0]) throw new Error('Missing initial comment data');
       await expect(
-        createReport({
+        anonHelpers.createReport({
           commentId: comments[0].id,
           reason: generateRandomString(10),
         })
@@ -761,9 +716,8 @@ describe('/api/v1/reports/comments', () => {
     });
 
     it('should return 404 NOT_FOUND when comment does not exist', async () => {
-      await login(mod.email, mod.password);
       await expect(
-        createReport({
+        modHelpers.createReport({
           commentId: 9999,
           reason: generateRandomString(10),
         })
@@ -783,9 +737,8 @@ describe('/api/v1/reports/comments', () => {
       if (!commentNotMadeOrReportedByUserOnAPrivatePost)
         throw new Error('Missing test comment');
 
-      await login(user.email, user.password);
       await expect(
-        createReport({
+        userHelpers.createReport({
           commentId: commentNotMadeOrReportedByUserOnAPrivatePost.id,
           reason: generateRandomString(10),
         })
@@ -801,9 +754,22 @@ describe('/api/v1/reports/comments', () => {
     ])(
       'should allow to create reports on private posts when %s',
       async (_, role) => {
-        const users = [mod, user, author, admin];
-        const reporter = users.find((u) => u.role === role);
+        const usersByRole: Record<string, any> = {
+          MOD: mod,
+          USER: user,
+          AUTHOR: author,
+          ADMIN: admin,
+        };
+        const reporter = usersByRole[role];
         if (!reporter) throw new Error('Missing test user');
+
+        // Use dynamic helper based on reporter role
+        const helper =
+          role === 'ADMIN'
+            ? adminHelpers
+            : role === 'MOD'
+            ? modHelpers
+            : authorHelpers;
 
         const commentOnAPrivatePostWithoutReports = testComments.find(
           (c) =>
@@ -814,12 +780,11 @@ describe('/api/v1/reports/comments', () => {
         if (!commentOnAPrivatePostWithoutReports)
           throw new Error('Missing test comment');
 
-        await login(reporter.email, reporter.password);
-
-        const res = await createReport({
+        const res = await helper.createReport({
           commentId: commentOnAPrivatePostWithoutReports.id,
           reason: generateRandomString(10),
         });
+
         const { data } = res.data as BaseResponse;
 
         const report = (data as any).report as Report;
@@ -838,10 +803,9 @@ describe('/api/v1/reports/comments', () => {
     ])(
       'should throw validation error when report reason field %s',
       async (_, reason) => {
-        await login(admin.email, admin.password);
-
+        if (!testComments[0]) throw new Error('Missing initial comment data');
         await expect(
-          createReport({
+          adminHelpers.createReport({
             commentId: testComments[0].id,
             reason,
           })
@@ -851,16 +815,14 @@ describe('/api/v1/reports/comments', () => {
       }
     );
 
-    test.each([
+    test.concurrent.each([
       ['is undefined', undefined],
       ['is empty string', ''],
     ])(
       'should throw validation error when commentId %s',
       async (_, commentId) => {
-        await login(admin.email, admin.password);
-
         await expect(
-          createReport({
+          adminHelpers.createReport({
             commentId: commentId as any,
             reason: generateRandomString(10),
           })
@@ -873,7 +835,7 @@ describe('/api/v1/reports/comments', () => {
 
   describe('PATCH /api/v1/reports/comments/:id', () => {
     it(`should return new updated entry with its
-       change included in moderation history`, async () => {
+    change included in moderation history`, async () => {
       const MOD_NOTE = 'checking report out';
 
       const reportForUpdate = reports.find((r) =>
@@ -892,14 +854,12 @@ describe('/api/v1/reports/comments', () => {
 
       const now = new Date();
 
-      await login(mod.email, mod.password);
-      const res = await updateReport(reportForUpdate.id.toString(), {
+      const res = await modHelpers.updateReport(reportForUpdate.id.toString(), {
         status: newStatus,
         note: MOD_NOTE,
       });
-      const { data } = res.data as BaseResponse;
 
-      const report = (data as any).report as ReportDetail;
+      const report = getData<ReportDetail>(res, 'report');
       expect(report).toBeDefined();
 
       // Report should contain: History by far + new entry
@@ -929,10 +889,9 @@ describe('/api/v1/reports/comments', () => {
           .includes(r.commentId)
       );
       if (!reportForUpdate) throw new Error('Missing test report');
-      await login(admin.email, admin.password);
 
       await expect(
-        updateReport(reportForUpdate.id.toString(), {
+        adminHelpers.updateReport(reportForUpdate.id.toString(), {
           status: reportForUpdate.status,
           note: generateRandomString(10),
         })
@@ -953,9 +912,8 @@ describe('/api/v1/reports/comments', () => {
       );
       if (!reportForUpdate) throw new Error('Missing test report');
 
-      await login(mod.email, mod.password);
       await expect(
-        updateReport(reportForUpdate.id.toString(), {
+        modHelpers.updateReport(reportForUpdate.id.toString(), {
           status: randomSelect(
             Object.values(ReportStatusEnum).filter(
               (s) => s !== reportForUpdate.status
@@ -968,12 +926,12 @@ describe('/api/v1/reports/comments', () => {
       );
     });
 
-    test.each(['ANALYZING', 'POWER_TRIPPING'])(
+    test.concurrent.each(['ANALYZING', 'POWER_TRIPPING'])(
       'should throw when setting unknown status',
       async (status) => {
-        await login(mod.email, mod.password);
+        if (!reports[0]) throw new Error('Missing initial report data');
         await expect(
-          updateReport(reports[0].id.toString(), {
+          modHelpers.updateReport(reports[0].id.toString(), {
             status: status as any,
             note: generateRandomString(10),
           })
@@ -983,15 +941,17 @@ describe('/api/v1/reports/comments', () => {
       }
     );
 
-    test.each(['USER', 'AUTHOR'])(
+    test.concurrent.each(['USER', 'AUTHOR'])(
       'should return 403 FORBIDDEN when user role is %s',
       async (role) => {
-        const user = users.find((u) => u.role === role);
-        if (!user) throw new Error('Missing test user');
+        const userToTest = users.find((u) => u.role === role);
+        if (!userToTest) throw new Error('Missing test user');
+        if (!reports[0]) throw new Error('Missing initial report data');
 
-        await login(user.email, user.password);
+        const helper = role === 'USER' ? userHelpers : authorHelpers;
+
         await expect(
-          updateReport(reports[0].id.toString(), {
+          helper.updateReport(reports[0].id.toString(), {
             status: 'DISMISSED',
           })
         ).rejects.toMatchObject(
@@ -1001,8 +961,9 @@ describe('/api/v1/reports/comments', () => {
     );
 
     it('should return 401 UNAUTHORIZED when not logged-in', async () => {
+      if (!reports[0]) throw new Error('Missing initial report data');
       await expect(
-        updateReport(reports[0].id.toString(), {
+        anonHelpers.updateReport(reports[0].id.toString(), {
           status: 'DISMISSED',
         })
       ).rejects.toMatchObject(
@@ -1011,9 +972,8 @@ describe('/api/v1/reports/comments', () => {
     });
 
     it('should throw when report with that id does not exist', async () => {
-      await login(mod.email, mod.password);
       await expect(
-        updateReport('9999', {
+        modHelpers.updateReport('9999', {
           status: 'PENDING',
           note: generateRandomString(10),
         })
@@ -1028,9 +988,9 @@ describe('/api/v1/reports/comments', () => {
         generateRandomString(REPORT_CONSTRAINTS.MAX_REASON_LENGTH + 1),
       ],
     ])('should throw validation error when note field %s', async (_, note) => {
-      await login(mod.email, mod.password);
+      if (!reports[0]) throw new Error('Missing initial report data');
       await expect(
-        updateReport(reports[0].id.toString(), {
+        modHelpers.updateReport(reports[0].id.toString(), {
           status: 'PENDING',
           note,
         })
@@ -1040,8 +1000,7 @@ describe('/api/v1/reports/comments', () => {
     });
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return updateReport(id, {
+      return adminHelpers.updateReport(id, {
         status: 'PENDING',
         note: generateRandomString(10),
       });
@@ -1071,6 +1030,8 @@ describe('/api/v1/reports/comments', () => {
           useDefaults: false,
         }
       );
+      if (!commentWithoutReport)
+        throw new Error('Missing comment for deletion test setup');
 
       [reportForDeletion] = await seedReports(
         [
@@ -1087,6 +1048,8 @@ describe('/api/v1/reports/comments', () => {
           useDefaults: false,
         }
       );
+      if (!reportForDeletion)
+        throw new Error('Missing report for deletion test setup');
 
       await seedReportHistories([
         {
@@ -1109,12 +1072,12 @@ describe('/api/v1/reports/comments', () => {
     });
 
     it(`should delete a report and its related report 
-      history if user requesting it is ADMIN`, async () => {
-      await login(admin.email, admin.password);
+    history if user requesting it is ADMIN`, async () => {
+      const res = await adminHelpers.deleteReport(
+        reportForDeletion.id.toString()
+      );
 
-      const res = await deleteReport(reportForDeletion.id.toString());
-      const { data } = res.data as BaseResponse;
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.REPORTS.delete);
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.REPORTS.delete);
 
       const reportHistories = await prismaClient.reportHistory.findMany({
         where: {
@@ -1124,7 +1087,9 @@ describe('/api/v1/reports/comments', () => {
       expect(reportHistories.length).toBe(0);
 
       // Deleted Comment should not exist afterwards
-      await expect(getReport(reportForDeletion.id)).rejects.toMatchObject(
+      await expect(
+        adminHelpers.getReport(reportForDeletion.id.toString())
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
@@ -1132,12 +1097,19 @@ describe('/api/v1/reports/comments', () => {
     test.each(['USER', 'AUTHOR', 'MOD'])(
       'should return 403 FORBIDDEN when user role is %s',
       async (role) => {
-        const user = users.find((u) => u.role === role);
-        if (!user) throw new Error('Missing test user');
+        const userToTest = users.find((u) => u.role === role);
+        if (!userToTest) throw new Error('Missing test user');
+        if (!reports[0]) throw new Error('Missing initial report data');
 
-        await login(user.email, user.password);
+        const helper =
+          role === 'USER'
+            ? userHelpers
+            : role === 'AUTHOR'
+            ? authorHelpers
+            : modHelpers;
+
         await expect(
-          deleteReport(reports[0].id.toString())
+          helper.deleteReport(reports[0].id.toString())
         ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
         );
@@ -1145,23 +1117,22 @@ describe('/api/v1/reports/comments', () => {
     );
 
     it('should return 401 UNAUTHORIZED when not logged-in', async () => {
+      if (!reports[0]) throw new Error('Missing initial report data');
       await expect(
-        deleteReport(reports[0].id.toString())
+        anonHelpers.deleteReport(reports[0].id.toString())
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
 
     it('should throw when report with that id does not exist', async () => {
-      await login(admin.email, admin.password);
-      await expect(deleteReport('9999')).rejects.toMatchObject(
+      await expect(adminHelpers.deleteReport('9999')).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
 
     testInvalidIds(async (id) => {
-      await login(admin.email, admin.password);
-      return deleteReport(id);
+      return adminHelpers.deleteReport(id);
     }, 'report id');
   });
 });
