@@ -3,4 +3,5 @@ export type ValidationErrorDetails = {
   constraints: {
     [type: string]: string;
   };
+  children?: ValidationErrorDetails[];
 };

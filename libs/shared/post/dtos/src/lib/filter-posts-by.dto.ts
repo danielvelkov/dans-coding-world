@@ -7,6 +7,7 @@ import {
   Matches,
   ArrayNotEmpty,
   IsInt,
+  IsPositive,
 } from 'class-validator';
 import {
   PostStatus,
@@ -72,5 +73,6 @@ export class FilterPostsByDto {
   @IsOptional()
   @ToInteger()
   @IsInt()
+  @IsPositive()
   year?: number;
 }
