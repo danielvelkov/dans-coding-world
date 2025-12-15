@@ -23,4 +23,8 @@ export const USER_CONSTRAINTS = {
   MAX_BIO_LENGTH: 300,
 
   NAME_PATTERN: /^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/,
+
+  // AVATAR IMAGE
+  AVATAR_IMAGE_ALLOWED_EXTENSIONS: ['.png', '.jpeg', '.jpg', '.webp'],
+  MAX_SIZE_AVATAR_IMAGE: 1024 * 1024 * 10, // 10 MB
 } as const;

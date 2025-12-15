@@ -4,15 +4,16 @@ import {
   MinLength,
   MaxLength,
   IsOptional,
-  IsUrl,
   Matches,
+  ValidateNested,
 } from 'class-validator';
 import { ToInteger } from '@dans-coding-world/validation';
 import {
-  SHARED_CONSTANTS,
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
+import { Type } from 'class-transformer';
+import { AvatarImageDto } from './avatar-image.dto.js';
 
 export class UpdateUserDto {
   @ToInteger()
@@ -62,9 +63,7 @@ export class UpdateUserDto {
   bio?: string;
 
   @IsOptional()
-  @IsUrl()
-  @MaxLength(SHARED_CONSTANTS.MAX_URL_LENGTH, {
-    message: VALIDATION_MESSAGES.maxLength(SHARED_CONSTANTS.MAX_URL_LENGTH),
-  })
-  avatarURL?: string;
+  @ValidateNested()
+  @Type(() => AvatarImageDto)
+  avatar?: AvatarImageDto;
 }

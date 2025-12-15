@@ -5,3 +5,4 @@ export * from './lib/delete-user.dto.js';
 export * from './lib/change-password.dto.js';
 export * from './lib/change-role.dto.js';
 export * from './lib/change-ban-status.dto.js';
+export * from './lib/avatar-image.dto.js';
