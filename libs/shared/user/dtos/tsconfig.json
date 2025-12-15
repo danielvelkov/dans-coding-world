@@ -10,10 +10,10 @@
       "path": "../../../prisma-schema"
     },
     {
-      "path": "../../util/shared-constants"
+      "path": "../../util/validation"
     },
     {
-      "path": "../../util/validation"
+      "path": "../../util/shared-constants"
     },
     {
       "path": "./tsconfig.lib.json"

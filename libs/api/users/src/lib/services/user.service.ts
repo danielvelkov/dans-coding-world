@@ -20,8 +20,11 @@ import {
 } from '@dans-coding-world/shared-user-dto';
 import { UserDetail } from '@dans-coding-world/user-data-access';
 import { validPassword, hashPassword } from '@dans-coding-world/api-auth';
+import type { IStorageProvider } from '@dans-coding-world/api-file-storage';
+import { unlink } from 'fs';
 
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
+export const STORAGE_PROVIDER_TOKEN = 'IStorageProvider';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -30,7 +33,9 @@ export class UserService implements IUserService {
 
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
-    public users: IUserRepository
+    public users: IUserRepository,
+    @Inject(STORAGE_PROVIDER_TOKEN)
+    public storageProvider: IStorageProvider
   ) {}
 
   async getById(dto: GetUserDto): Promise<GetUserResponseDto> {
@@ -211,5 +216,16 @@ export class UserService implements IUserService {
         return true;
       })
     );
+  }
+
+  private async uploadAvatar(filePath: string) {
+    try {
+      return await this.storageProvider.uploadFile(filePath);
+    } finally {
+      unlink(filePath, (err) => {
+        if (err) throw err;
+        console.debug(`File: (${filePath}) was deleted`);
+      });
+    }
   }
 }

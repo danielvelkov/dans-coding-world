@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../shared/storage"
+    },
+    {
       "path": "../../shared/util/exceptions"
     },
     {
