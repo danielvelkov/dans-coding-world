@@ -13,5 +13,12 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "nx": {
+    "tags": [
+      "layer:storage",
+      "scope:backend",
+      "type:lib"
+    ]
+  }
 }
