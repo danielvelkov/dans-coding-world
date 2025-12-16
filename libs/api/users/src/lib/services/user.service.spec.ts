@@ -14,18 +14,17 @@ import {
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import {
-  UserService,
-  USER_REPOSITORY_TOKEN,
-  STORAGE_PROVIDER_TOKEN,
-} from './user.service.js';
+import { UserService, USER_REPOSITORY_TOKEN } from './user.service.js';
 import { generateRandomString, randomSelect } from '@dans-coding-world/helpers';
 import {
   passwordGenerator,
   hashPassword,
   validPassword,
 } from '@dans-coding-world/api-auth';
-import { IStorageProvider } from '@dans-coding-world/api-file-storage';
+import {
+  IStorageProvider,
+  STORAGE_PROVIDER_TOKEN,
+} from '@dans-coding-world/api-file-storage';
 import { AvatarImageDto } from '@dans-coding-world/shared-user-dto';
 import fs from 'fs';
 

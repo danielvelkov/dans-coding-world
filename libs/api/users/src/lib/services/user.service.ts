@@ -21,10 +21,10 @@ import {
 import { UserDetail } from '@dans-coding-world/user-data-access';
 import { validPassword, hashPassword } from '@dans-coding-world/api-auth';
 import type { IStorageProvider } from '@dans-coding-world/api-file-storage';
+import { STORAGE_PROVIDER_TOKEN } from '@dans-coding-world/api-file-storage';
 import { unlink } from 'fs';
 
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
-export const STORAGE_PROVIDER_TOKEN = 'IStorageProvider';
 
 @Injectable()
 export class UserService implements IUserService {
