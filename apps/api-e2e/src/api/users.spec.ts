@@ -25,6 +25,8 @@ import { UserDetail } from '@dans-coding-world/user-data-access';
 import { generateRandomString } from '@dans-coding-world/helpers';
 import { passwordGenerator, validPassword } from '@dans-coding-world/api-auth';
 import { getData, getMessage } from '../helper/common.helper';
+import { MOCK_RESULT } from '@dans-coding-world/api-file-storage';
+import path from 'path';
 
 describe('/api/v1/users', () => {
   // 1. Define separate helpers per role to avoid re-logging in
@@ -230,6 +232,22 @@ describe('/api/v1/users', () => {
       // Missing fields in request are set to empty string
       expect(userData.profile?.bio).toBe('');
       expect(userData.profile?.avatarURL).toBe('');
+    });
+
+    it(`should set profile avatar_url if valid avatar image is passed`, async () => {
+      const rootPath = process.env.NX_WORKSPACE_ROOT;
+      if (!rootPath) throw new Error('Missing env variable');
+
+      const pathToTestFile = path.join(
+        rootPath,
+        'apps/api-e2e/src/data/avatar.png'
+      );
+      const res = await authorHelpers.updateUser({}, pathToTestFile);
+
+      const userData = getData<UserDetail>(res, 'user');
+      // Missing fields in request are set to empty string
+      expect(userData.profile?.bio).toBe('');
+      expect(userData.profile?.avatarURL).toBe(MOCK_RESULT);
     });
 
     it.concurrent(

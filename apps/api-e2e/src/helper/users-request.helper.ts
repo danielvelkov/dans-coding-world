@@ -5,6 +5,8 @@ import {
   ChangeRoleDto,
   UpdateUserDto,
 } from '@dans-coding-world/shared-user-dto';
+import FormData from 'form-data';
+import { createReadStream } from 'fs';
 
 export function createUsersRouteHelper(client: AxiosInstance) {
   return {
@@ -16,19 +18,28 @@ export function createUsersRouteHelper(client: AxiosInstance) {
       return await client.get(`/api/v1/users/${userId}`);
     },
 
-    async updateUser(profileData: Omit<UpdateUserDto, 'userId'>) {
-      const urlSearchParams = new URLSearchParams();
+    async updateUser(
+      profileData: Omit<UpdateUserDto, 'userId' | 'avatar'>,
+      avatarFilePath?: string
+    ) {
+      const formData = new FormData();
 
       for (const [key, value] of Object.entries(profileData)) {
         if (value === undefined) {
-          urlSearchParams.append(key, 'undefined');
+          formData.append(key, 'undefined');
         } else {
-          urlSearchParams.append(key, value.toString());
+          formData.append(key, value.toString());
         }
       }
-      return await client.patch(`/api/v1/users`, urlSearchParams, {
+
+      if (avatarFilePath) {
+        const buffer = createReadStream(avatarFilePath);
+        formData.append('avatar', buffer);
+      }
+
+      return await client.patch(`/api/v1/users`, formData, {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'multipart/form-data',
         },
       });
     },
