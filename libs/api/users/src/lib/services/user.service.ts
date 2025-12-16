@@ -69,6 +69,11 @@ export class UserService implements IUserService {
     let user = (await this.users.getById(dto.userId.toString())) as UserDetail;
     if (!user) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
+    const avatarURL =
+      dto.avatar && dto.avatar.path
+        ? await this.uploadAvatar(dto.avatar.path)
+        : undefined;
+
     if (!user.profile) {
       const profile = await client.profile.create({
         data: {
@@ -76,11 +81,14 @@ export class UserService implements IUserService {
           firstName: dto.firstName ?? '',
           lastName: dto.lastName ?? '',
           bio: dto.bio ?? '',
-          avatarURL: dto.avatarURL ?? '',
+          avatarURL: avatarURL ?? '',
         },
       });
       user.profile = profile;
-    } else
+    } else {
+      if (user.profile && user.profile.avatarURL && dto.avatar)
+        await this.storageProvider.deleteFile(user.profile.avatarURL);
+
       user = await this.users.update(
         dto.userId,
         {},
@@ -88,9 +96,10 @@ export class UserService implements IUserService {
           ...(dto.firstName ? { firstName: dto.firstName } : undefined),
           ...(dto.lastName ? { lastName: dto.lastName } : undefined),
           ...(dto.bio ? { bio: dto.bio } : undefined),
-          ...(dto.avatarURL ? { avatarURL: dto.avatarURL } : undefined),
+          ...(dto.avatar ? { avatarURL: avatarURL } : undefined),
         }
       );
+    }
 
     const filteredUser = this.filterUserData(user, true, false);
 
