@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authInjector, TOKEN_SERVICE_TOKEN } from '@dans-coding-world/api-auth';
 import { userInjector, UserService } from '@dans-coding-world/api-users';
 import { UsersController } from '../controllers/users.controller';
+import { upload } from '../middlewares/file-uploader.middleware';
 
 const usersController = new UsersController(
   userInjector.get(UserService),
@@ -9,7 +10,7 @@ const usersController = new UsersController(
 );
 
 const usersRouter = Router();
-usersRouter.patch('/', usersController.update);
+usersRouter.patch('/', [upload.single('avatar'), usersController.update]);
 usersRouter.route('/password').patch(usersController.changePassword);
 usersRouter
   .route('/:id')
@@ -336,10 +337,7 @@ export default usersRouter;
  *       - If access_token is valid, he can update his own profile.
  *     requestBody:
  *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/UpdateProfileDto'
- *         application/x-www-form-urlencoded:
+ *        multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/UpdateProfileDto'
  *     responses:
@@ -587,21 +585,22 @@ export default usersRouter;
  *           description: User first name
  *           minLength: 2
  *           maxLength: 50
+ *           example: ''
  *         lastName:
  *           type: string
  *           description: User last name
  *           minLength: 2
  *           maxLength: 90
+ *           example: ''
  *         bio:
  *           type: string
  *           description: User's bio
  *           maxLength: 300
- *         avatarUrl:
+ *           example: ''
+ *         avatar:
  *           type: string
- *           description: User's avatar url
- *       example:
- *         firstName: Jon.
- *         lastName: Doe
+ *           format: binary
+ *           description: User's avatar file
  *
  *     UpdatePasswordDto:
  *       type: object
@@ -618,7 +617,7 @@ export default usersRouter;
  *           maxLength: 32
  *       example:
  *         oldPassword: badPassword1.
- *         newPassword: dkjafdld_skfj!al
+ *         newPassword: coolNewPass1@3
  *
  *     UpdateRoleDto:
  *       type: object

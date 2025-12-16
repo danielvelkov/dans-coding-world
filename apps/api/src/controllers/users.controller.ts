@@ -10,7 +10,11 @@ import {
 import { IUserService } from '@dans-coding-world/api-users';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 import { User } from '@dans-coding-world/prisma-schema';
-import { UpdateUserDto } from '@dans-coding-world/shared-user-dto';
+import {
+  AvatarImageDto,
+  UpdateUserDto,
+} from '@dans-coding-world/shared-user-dto';
+import path from 'path';
 
 export class UsersController {
   constructor(
@@ -70,11 +74,23 @@ export class UsersController {
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const viewer = req.user as User;
+      let avatar: AvatarImageDto | undefined;
+
+      if (req.file)
+        // populated by multer
+        avatar = {
+          path: req.file.path,
+          size: req.file.size,
+          extension: path.extname(req.file.originalname),
+        };
 
       const updateUserDto: UpdateUserDto = {
         userId: viewer.id,
         ...req.body,
       };
+
+      if (avatar) updateUserDto.avatar = avatar;
+
       const { user } = await this.userService.update(updateUserDto);
 
       return res.status(StatusCodes.OK).json({
