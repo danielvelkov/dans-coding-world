@@ -14,13 +14,31 @@ import {
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { UserService, USER_REPOSITORY_TOKEN } from './user.service.js';
-import { generateRandomString } from '@dans-coding-world/helpers';
+import {
+  UserService,
+  USER_REPOSITORY_TOKEN,
+  STORAGE_PROVIDER_TOKEN,
+} from './user.service.js';
+import { generateRandomString, randomSelect } from '@dans-coding-world/helpers';
 import {
   passwordGenerator,
   hashPassword,
   validPassword,
 } from '@dans-coding-world/api-auth';
+import { IStorageProvider } from '@dans-coding-world/api-file-storage';
+import { AvatarImageDto } from '@dans-coding-world/shared-user-dto';
+import fs from 'fs';
+
+const AVATAR_URL =
+  'https://res.cloudinary.com/lfdakj/image/upload/v1765834967/m1hadwxa4bjk1xjitssn.png';
+
+const mockStorageProvider: IStorageProvider = {
+  uploadFile: jest.fn().mockResolvedValue(AVATAR_URL),
+  deleteFile: jest.fn().mockResolvedValue(null),
+};
+
+let unlinkSyncSpy: jest.SpyInstance;
+let fileExistsSpy: jest.SpyInstance;
 
 let mockUsersRepo: IUserRepository;
 let injector: ReflectiveInjector;
@@ -74,7 +92,7 @@ describe('UserService', () => {
     userProfile = await client.profile.create({
       data: {
         userId: user.id,
-        avatarURL: 'URL',
+        avatarURL: 'some-fancy-url/image.png',
         bio: '',
         firstName: 'Bang',
         lastName: 'Dong',
@@ -87,12 +105,21 @@ describe('UserService', () => {
         provide: USER_REPOSITORY_TOKEN,
         useValue: mockUsersRepo,
       },
+      {
+        provide: STORAGE_PROVIDER_TOKEN,
+        useValue: mockStorageProvider,
+      },
     ]);
     userService = injector.get(UserService) as UserService;
 
     jest.spyOn(mockUsersRepo, 'create');
     jest.spyOn(mockUsersRepo, 'delete');
     jest.spyOn(mockUsersRepo, 'update');
+
+    jest.spyOn(mockStorageProvider, 'deleteFile');
+
+    unlinkSyncSpy = jest.spyOn(fs, 'unlink').mockImplementation();
+    fileExistsSpy = jest.spyOn(fs, 'existsSync').mockImplementation();
   });
 
   describe('getById()', () => {
@@ -217,6 +244,48 @@ describe('UserService', () => {
       expect(updatedAuthor.profile.firstName).toBe('');
       expect(updatedAuthor.profile.lastName).toBe('');
       expect(updatedAuthor.profile.bio).toBe('');
+      expect(updatedAuthor.profile.avatarURL).toBe('');
+    });
+
+    it('should set profile avatar url if valid avatar file is set', async () => {
+      fileExistsSpy.mockReturnValueOnce(true);
+      unlinkSyncSpy.mockReturnValueOnce(null);
+
+      const res = await userService.update({
+        userId: author.id,
+        avatar: {
+          path: 'some/file.png',
+          extension: '.png',
+          size: 10000,
+        },
+      });
+
+      expect(mockStorageProvider.uploadFile).toHaveBeenCalledTimes(1);
+
+      const updatedAuthor = res.user as UserDetail;
+      if (!updatedAuthor.profile) throw new Error('Missing profile');
+
+      expect(updatedAuthor.profile.avatarURL).toBe(AVATAR_URL);
+    });
+
+    it(`should call for deletion of previous avatar if one already set`, async () => {
+      fileExistsSpy.mockReturnValueOnce(true);
+      unlinkSyncSpy.mockReturnValueOnce(null);
+
+      const userWithProfile = user; // Already has a profile with avatar
+      const userWithoutProfile = author;
+
+      for (const selectedUser of [userWithProfile, userWithoutProfile])
+        await userService.update({
+          userId: selectedUser.id,
+          avatar: {
+            path: 'some/file.png',
+            extension: '.png',
+            size: 10000,
+          },
+        });
+
+      expect(mockStorageProvider.deleteFile).toHaveBeenCalledTimes(1);
     });
 
     test.each([
@@ -313,6 +382,61 @@ describe('UserService', () => {
           expect(error.message).toMatch(/failed.*validation/i);
         });
     });
+
+    const VALID_AVATAR_DATA = {
+      path: 'root/image.png',
+      extension: randomSelect([
+        ...USER_CONSTRAINTS.AVATAR_IMAGE_ALLOWED_EXTENSIONS,
+      ]),
+      size: USER_CONSTRAINTS.MAX_SIZE_AVATAR_IMAGE - 1,
+    } as AvatarImageDto;
+
+    test.each([
+      [
+        'has empty path',
+        {
+          ...VALID_AVATAR_DATA,
+          path: '',
+        },
+      ],
+      ...[
+        'jif',
+        '.rec.',
+        '.docx',
+        '.som',
+        '.pdf',
+        '.exe',
+        '',
+        null,
+        undefined,
+      ].map((ext) => [
+        `has invalid extension ${ext}`,
+        {
+          ...VALID_AVATAR_DATA,
+          extension: ext,
+        },
+      ]),
+      [
+        'is too big',
+        {
+          ...VALID_AVATAR_DATA,
+          size: USER_CONSTRAINTS.MAX_SIZE_AVATAR_IMAGE + 1,
+        },
+      ],
+    ])(
+      'should return validation error when avatar file %s',
+      async (_, avatar) => {
+        expect.assertions(1);
+        userService
+          .update({
+            userId: user.id,
+            avatar: avatar as AvatarImageDto,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      }
+    );
 
     it('should throw when user with that id does not exist', async () => {
       expect.assertions(1);
