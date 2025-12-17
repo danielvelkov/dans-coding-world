@@ -29,7 +29,7 @@ export default postsRouter;
  * /posts/{postId}:
  *   get:
  *     tags: [Posts]
- *     summary: Get a single post by Id.
+ *     summary: Get a single post by Id
  *     description: |
  *       Get a specific post by its Id.
  *
@@ -98,7 +98,7 @@ export default postsRouter;
  * /posts:
  *   get:
  *     tags: [Posts]
- *     summary: Get posts with pagination metadata.
+ *     summary: Get posts with pagination metadata
  *     description: |
  *       Get posts with pagination, sorting, filtering, and search capabilities.
  *
@@ -228,7 +228,7 @@ export default postsRouter;
  * /posts:
  *   post:
  *     tags: [Posts]
- *     summary: Create a post.
+ *     summary: Create a post
  *     description: |
  *       Roles required: ADMIN or AUTHOR
  *
@@ -289,11 +289,11 @@ export default postsRouter;
  * /posts/{postId}:
  *   patch:
  *     tags: [Posts]
- *     summary: Update a post by Id.
+ *     summary: Update a post by Id
  *     description: |
  *       Roles required: ADMIN or AUTHOR
  *
- *       Update a post's field by its Id.
+ *       Update a post's fields by its Id.
  *
  *       Returns 403 FORBIDDEN error If post is either DRAFT or ARCHIVED and the user requesting it
  *       is not the author (**does not apply to admins**).
@@ -370,11 +370,11 @@ export default postsRouter;
  * /posts/{postId}:
  *   delete:
  *     tags: [Posts]
- *     summary: Delete a post by Id.
+ *     summary: Delete a post by Id
  *     description: |
  *       Roles required: ADMIN or AUTHOR
  *
- *       Delete a blog post by its Id.
+ *       Delete a post by its Id.
  *
  *       Returns 403 FORBIDDEN error if the user requesting it
  *       is not the author (**does not apply to admins**).
@@ -437,7 +437,7 @@ export default postsRouter;
  * /posts/metadata:
  *   get:
  *     tags: [Posts]
- *     summary: Get posts metadata.
+ *     summary: Get posts metadata
  *     description: |
  *       Get posts metadata like all the unique years PUBLISHED posts were published at.
  *     responses:
@@ -470,6 +470,14 @@ export default postsRouter;
  *           type: number
  *           description: The User Id
  *           example: 1
+ *         title:
+ *           type: string
+ *           description: The post's title
+ *           example: How i made an API
+ *         content:
+ *           type: string
+ *           description: The post's content
+ *           example: Today i will talk about...
  *         status:
  *           type: string
  *           description: The post status. Could be DRAFT, PUBLISHED or ARCHIVED

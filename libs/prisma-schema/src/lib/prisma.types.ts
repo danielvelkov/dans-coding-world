@@ -12,6 +12,7 @@ export type {
   Report,
   ReportHistory,
   ReportStatus,
+  Profile,
 } from '../generated/prisma/client.js';
 
 export type UserWhereInput = Prisma.UserWhereInput;

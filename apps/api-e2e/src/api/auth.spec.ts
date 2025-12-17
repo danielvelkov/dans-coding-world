@@ -20,7 +20,7 @@ import {
   createErrorCodeResponse,
   createValidationErrorResponse,
 } from '../helper/error-response.helper.js';
-import { User } from '@dans-coding-world/prisma-schema';
+import { User, client as prisma } from '@dans-coding-world/prisma-schema';
 import {
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
@@ -279,10 +279,13 @@ describe('/api/v1/auth', () => {
     });
 
     it('should return an error when trying to register an existing user with the same username or email', async () => {
-      await seedUsers([{ ...VALID_USER_DATA, id: 1, role: 'USER' }], {
-        clearExisting: true,
-        useDefaults: false,
-      });
+      await seedUsers(
+        [{ ...VALID_USER_DATA, id: 1, role: 'USER', isBanned: false }],
+        {
+          clearExisting: true,
+          useDefaults: false,
+        }
+      );
 
       // Same username
       await expect(
@@ -416,6 +419,7 @@ describe('/api/v1/auth', () => {
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
       );
     });
+
     it('should return 403 forbidden when trying to access as a user', async () => {
       const user = users.find((u) => u.role === 'USER');
       if (!user) throw new Error('Missing test user');
@@ -425,11 +429,15 @@ describe('/api/v1/auth', () => {
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
       );
     });
+
     it('should mark token as "revoked" in the db', async () => {
       expect((await getTokenById(getJti(userRefreshToken))).revoked).toBe(
         false
       );
+      const admin = users.find((u) => u.role === 'ADMIN');
+      if (!admin) throw new Error('Missing test user');
 
+      await login(admin.email, admin.password);
       const res = await revokeToken(userRefreshToken);
 
       const { data: revokeData } = res.data as BaseResponse;
@@ -441,6 +449,34 @@ describe('/api/v1/auth', () => {
       );
       const updatedToken = await getTokenById(getJti(userRefreshToken));
       expect(updatedToken.revoked).toBe(true);
+    });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      const mod = users.find((u) => u.role === 'MOD');
+      const user = users.find((u) => u.role === 'USER');
+      if (!mod || !user) throw new Error('Missing test user');
+
+      await prisma.user.update({
+        where: {
+          id: mod.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      await login(mod.email, mod.password);
+      await expect(revokeToken(userRefreshToken)).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+      );
+      await prisma.user.update({
+        where: {
+          id: mod.id,
+        },
+        data: {
+          isBanned: false,
+        },
+      });
     });
 
     it('should throw when token does not exist', async () => {

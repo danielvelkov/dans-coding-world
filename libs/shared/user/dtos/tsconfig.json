@@ -1,0 +1,22 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../../api/data-access/user"
+    },
+    {
+      "path": "../../../prisma-schema"
+    },
+    {
+      "path": "../../util/validation"
+    },
+    {
+      "path": "../../util/shared-constants"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    }
+  ]
+}

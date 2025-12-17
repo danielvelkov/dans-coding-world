@@ -15,6 +15,8 @@ export const ERROR_CODES = {
     INVALID_TOKEN: 'AUTH003',
     TOKEN_NOT_FOUND: 'AUTH004',
     UNAUTHORIZED: 'AUTH005',
+    SAME_PASSWORD: 'AUTH006',
+    BANNED: 'AUTH007',
   },
   SERVER: {
     INTERNAL_ERROR: 'SER001',
@@ -30,6 +32,12 @@ export const ERROR_CODES = {
     MAX_REPLY_DEPTH_REACHED: 'VAL006',
     REPORT_EXISTS: 'VAL007',
   },
+  SECURITY: {
+    ADMIN_PRIVILEGE_VIOLATION: 'SEC001',
+    MODERATION_CONFLICT: 'SEC002',
+    SELF_ACTION_FORBIDDEN: 'SEC003',
+    FORBIDDEN_PROMOTION: 'SEC004',
+  },
 } as const;
 
 export type ErrorCode = ValueOf<ValueOf<typeof ERROR_CODES>>;
@@ -43,6 +51,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AUTH003: 'Invalid or expired token',
   AUTH004: 'Token no longer exists',
   AUTH005: 'You must be logged in to perform this action',
+  AUTH006: 'New password cannot be the same as your current password',
+  AUTH007: 'Your account has been banned; access to this resource is denied',
 
   SER001: 'Something went wrong',
   SER002: 'Resource not found',
@@ -56,6 +66,12 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   VAL006:
     'Replies are limited to 3 levels deep to keep discussions easy to follow',
   VAL007: 'You have already reported this comment',
+
+  SEC001: 'The target user is an administrator; operation denied',
+  SEC002:
+    'The target user has elevated status and cannot be managed by your current role',
+  SEC003: 'You cannot perform this action on your own account',
+  SEC004: 'You cannot promote user to administrator',
 };
 
 /**
@@ -67,6 +83,8 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   AUTH003: StatusCodes.UNAUTHORIZED,
   AUTH004: StatusCodes.NOT_FOUND,
   AUTH005: StatusCodes.UNAUTHORIZED,
+  AUTH006: StatusCodes.BAD_REQUEST,
+  AUTH007: StatusCodes.FORBIDDEN,
 
   SER001: StatusCodes.INTERNAL_SERVER_ERROR,
   SER002: StatusCodes.NOT_FOUND,
@@ -79,4 +97,9 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   VAL005: StatusCodes.CONFLICT,
   VAL006: StatusCodes.BAD_REQUEST,
   VAL007: StatusCodes.FORBIDDEN,
+
+  SEC001: StatusCodes.FORBIDDEN,
+  SEC002: StatusCodes.FORBIDDEN,
+  SEC003: StatusCodes.FORBIDDEN,
+  SEC004: StatusCodes.FORBIDDEN,
 };

@@ -9,6 +9,15 @@ export const SUCCESS_MESSAGES = {
     token: 'New access and refresh token issued',
     revoke: 'User token/tokens revoked',
   },
+  USERS: {
+    get: 'User details retrieved successfully',
+    update: 'Profile updated successfully',
+    delete: 'Account deleted successfully',
+    password: 'Password changed successfully',
+    roleChange: 'User role changed successfully',
+    banned: 'User banned successfully',
+    unbanned: 'User unbanned successfully',
+  },
   POSTS: {
     create: 'Post created successfully',
     delete: 'Post deleted successfully',

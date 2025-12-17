@@ -1,5 +1,12 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Post, PostStatus, Tag, User } from '@dans-coding-world/prisma-schema';
+import {
+  Post,
+  PostStatus,
+  Tag,
+  User,
+  client as prisma,
+} from '@dans-coding-world/prisma-schema';
 import {
   seedUsers,
   seedPosts,
@@ -15,50 +22,30 @@ import {
   TAG_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { createAuthRouteHelper } from '../helper/auth-request.helper';
-import { createAxiosClient } from '../helper/test-client.helper';
+import { setupClient } from '../helper/test-client.helper';
 import { createPostsRouteHelper } from '../helper/posts-request.helper';
 import {
-  CreatePostDto,
   GetPostsMetadataResponse,
   GetPostsResponseDto,
   GetTagsResponse,
-  UpdatePostDto,
 } from '@dans-coding-world/shared-post-dto';
-import { AxiosInstance, AxiosResponse } from 'axios';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
 import { StatusCodes } from 'http-status-codes';
+import { testInvalidIds } from '../helper/validation.helper';
+import { getData, getMessage } from '../helper/common.helper';
 
 describe('/api/v1/posts', () => {
-  let client: AxiosInstance;
-  let login: (
-    email: string,
-    password: string
-  ) => Promise<AxiosResponse<BaseResponse>>;
-  let getTags: () => Promise<AxiosResponse<unknown>>;
-  let getPosts: (params?: any) => Promise<AxiosResponse<unknown>>;
-  let getPost: (id: any) => Promise<AxiosResponse<unknown>>;
-  let createPost: (
-    data: Omit<CreatePostDto, 'authorId'>
-  ) => Promise<AxiosResponse<unknown>>;
-  let updatePost: (
-    id: string,
-    data: Omit<UpdatePostDto, 'userId' | 'postId'>
-  ) => Promise<AxiosResponse<unknown>>;
-  let deletePost: (id: string) => Promise<AxiosResponse<unknown>>;
-  let getPostsMetadata: () => Promise<AxiosResponse<unknown>>;
-
   let users: User[] = [];
   let posts: Post[] = [];
   let tags: Tag[] = [];
 
   let admin: User;
   let author: User;
+  let mod: User;
   let user: User;
 
   let PUBLISHED_PUBLIC_POSTS_NUM: number;
-  let DRAFT_POSTS_NUM: number;
   let PUBLISHED_MEMBERS_ONLY_POSTS_NUM: number;
 
   const testData = {
@@ -69,6 +56,14 @@ describe('/api/v1/posts', () => {
     privateAdminTags_AlsoUsedOnPublic: [] as Tag[], // Used in both public and private posts
   };
 
+  type PostHelpers = ReturnType<typeof createPostsRouteHelper>;
+
+  let adminHelpers: PostHelpers;
+  let userHelpers: PostHelpers;
+  let authorHelpers: PostHelpers;
+  let modHelpers: PostHelpers;
+  let anonHelpers: PostHelpers; // For unauthenticated requests
+
   beforeAll(async () => {
     users = await seedUsers();
     posts = await seedPosts();
@@ -77,16 +72,11 @@ describe('/api/v1/posts', () => {
     PUBLISHED_PUBLIC_POSTS_NUM = posts.filter(
       (p) => p.visibility === 'PUBLIC' && p.status === 'PUBLISHED'
     ).length;
-    DRAFT_POSTS_NUM = posts.filter((p) => p.status === 'DRAFT').length;
     PUBLISHED_MEMBERS_ONLY_POSTS_NUM = posts.filter(
       (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
     ).length;
 
-    if (
-      !PUBLISHED_PUBLIC_POSTS_NUM ||
-      !DRAFT_POSTS_NUM ||
-      !PUBLISHED_MEMBERS_ONLY_POSTS_NUM
-    )
+    if (!PUBLISHED_PUBLIC_POSTS_NUM || !PUBLISHED_MEMBERS_ONLY_POSTS_NUM)
       throw new Error('Missing posts');
 
     if (tags.length < 30) throw new Error('Not enough test tags');
@@ -123,6 +113,7 @@ describe('/api/v1/posts', () => {
     admin = users.find((u) => u.role === 'ADMIN') as User;
     author = users.find((u) => u.role === 'AUTHOR') as User;
     user = users.find((u) => u.role === 'USER') as User;
+    mod = users.find((u) => u.role === 'MOD') as User;
 
     if (!admin || !author || !user) throw new Error('Missing users');
 
@@ -169,20 +160,15 @@ describe('/api/v1/posts', () => {
       testData.privateAuthorTags,
       testData.privateAuthorTags_AlsoUsedOnPublic,
     ]);
-  });
 
-  beforeEach(() => {
-    client = createAxiosClient();
-    ({ login } = createAuthRouteHelper(client));
-    ({
-      getPosts,
-      getPost,
-      createPost,
-      updatePost,
-      deletePost,
-      getTags,
-      getPostsMetadata,
-    } = createPostsRouteHelper(client));
+    [adminHelpers, userHelpers, authorHelpers, modHelpers, anonHelpers] =
+      await Promise.all([
+        setupClient(createPostsRouteHelper, admin),
+        setupClient(createPostsRouteHelper, user),
+        setupClient(createPostsRouteHelper, author),
+        setupClient(createPostsRouteHelper, mod),
+        setupClient(createPostsRouteHelper, undefined),
+      ]);
   });
 
   describe('GET /api/v1/posts/:id', () => {
@@ -192,12 +178,12 @@ describe('/api/v1/posts', () => {
       );
       if (!publishedPost) throw new Error('Missing published test post');
 
-      const res = await getPost(publishedPost.id.toString());
-      const { data } = res.data as BaseResponse;
+      const res = await anonHelpers.getPost(publishedPost.id.toString());
 
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.get);
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.POSTS.get);
 
-      const postData = (data as any).post as Post;
+      const postData = getData<Post>(res, 'post');
+
       expect(postData.id).toBe(publishedPost.id);
       expect(postData.title).toBe(publishedPost.title);
       expect(postData.content).toBe(publishedPost.content);
@@ -215,14 +201,13 @@ describe('/api/v1/posts', () => {
       );
       if (!publicPost) throw new Error('Missing test post');
 
-      const res = await getPost(publicPost.id.toString());
-      const { data } = res.data as BaseResponse;
+      const res = await anonHelpers.getPost(publicPost.id.toString());
 
-      const postData = (data as any).post as Post;
-      expect((postData as any).tags.length).toBe(expectedTags.length);
+      const postData = getData<Post & { tags: string[] }>(res, 'post');
+      expect(postData.tags.length).toBe(expectedTags.length);
 
       for (const tag of expectedTags)
-        expect((postData as any).tags.includes(tag.name)).toBe(true);
+        expect(postData.tags.includes(tag.name)).toBe(true);
     });
 
     test.each([
@@ -236,14 +221,14 @@ describe('/api/v1/posts', () => {
         );
         if (!membersOnlyPost) throw new Error('Missing published test post');
 
-        if (isLoggedIn) await login(users[0].email, users[0].password);
+        const res = await (isLoggedIn
+          ? userHelpers.getPost(membersOnlyPost.id.toString())
+          : anonHelpers.getPost(membersOnlyPost.id.toString()));
 
-        const res = await getPost(membersOnlyPost.id);
-        const { data } = res.data as BaseResponse;
+        expect(getMessage(res)).toBe(SUCCESS_MESSAGES.POSTS.get);
 
-        expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.get);
+        const postData = getData<Post>(res, 'post');
 
-        const postData = (data as any).post as Post;
         expect(postData.id).toBe(membersOnlyPost.id);
         expect(postData.title).toBe(membersOnlyPost.title);
         expect(postData.content).toBe(
@@ -254,23 +239,10 @@ describe('/api/v1/posts', () => {
       }
     );
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when id %s', async (_, id) => {
-      await expect(getPost(id as any)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
-    });
+    testInvalidIds((id) => anonHelpers.getPost(id), 'post id');
 
     it('should return 404 NOT FOUND for unknown post id', async () => {
-      return await expect(getPost(999)).rejects.toMatchObject(
+      return await expect(anonHelpers.getPost('9999')).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
@@ -290,18 +262,18 @@ describe('/api/v1/posts', () => {
         archivedPostOfAnotherUser.id,
         draftPostOfAnotherUser.id,
       ])
-        await expect(getPost(id)).rejects.toMatchObject(
+        await expect(anonHelpers.getPost(id.toString())).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
         );
-
-      await login(author.email, author.password);
 
       // Logged in as another user
       for (const id of [
         archivedPostOfAnotherUser.id,
         draftPostOfAnotherUser.id,
       ])
-        await expect(getPost(id)).rejects.toMatchObject(
+        await expect(
+          authorHelpers.getPost(id.toString())
+        ).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
         );
     });
@@ -318,21 +290,17 @@ describe('/api/v1/posts', () => {
         if (!archivedPostOfAnotherUser || !draftPostOfAnotherUser)
           throw new Error('Missing test posts');
 
-        const user = users.find((u) => u.role === role);
-        if (!user) throw new Error('Missing test user');
-
-        await login(user.email, user.password);
+        const helper = role === 'ADMIN' ? adminHelpers : modHelpers;
 
         for (const id of [
           archivedPostOfAnotherUser.id,
           draftPostOfAnotherUser.id,
         ]) {
-          const res = await getPost(id);
-          const { data } = res.data as BaseResponse;
+          const res = await helper.getPost(id.toString());
 
-          expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.get);
+          expect(getMessage(res)).toBe(SUCCESS_MESSAGES.POSTS.get);
 
-          const postData = (data as any).post as Post;
+          const postData = getData<Post>(res, 'post');
           expect(postData.id).toBe(id);
         }
       }
@@ -343,12 +311,11 @@ describe('/api/v1/posts', () => {
     describe('Guest User (Not Authenticated)', () => {
       it(`should retrieve only PUBLIC-PUBLISHED and 
     MEMBERS_ONLY-PUBLISHED posts by default`, async () => {
-        const res = await getPosts();
-        const { data } = res.data as BaseResponse;
+        const res = await anonHelpers.getPosts();
 
-        expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.getAll);
+        expect(getMessage(res)).toBe(SUCCESS_MESSAGES.POSTS.getAll);
 
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
         expect(postsData).toBeDefined();
 
         const expectedTotal =
@@ -369,14 +336,13 @@ describe('/api/v1/posts', () => {
       });
 
       it('should return empty results when filtering by DRAFT or ARCHIVED status', async () => {
-        const res = await getPosts({
+        const res = await anonHelpers.getPosts({
           filterBy: {
             status: ['DRAFT', 'ARCHIVED'],
           },
         });
 
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
 
         expect(postsData.count).toBe(0);
         expect(postsData.items).toHaveLength(0);
@@ -390,7 +356,7 @@ describe('/api/v1/posts', () => {
       });
 
       it('should return MEMBERS_ONLY posts with content masked', async () => {
-        const res = await getPosts({
+        const res = await anonHelpers.getPosts({
           filterBy: {
             visibility: ['MEMBERS_ONLY'],
           },
@@ -409,24 +375,22 @@ describe('/api/v1/posts', () => {
       });
 
       it('should return posts with their associated tags included', async () => {
-        const res = await getPosts();
+        const res = await anonHelpers.getPosts();
 
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
 
         for (const post of postsData.items)
           expect((post as any).tags.length).toBeGreaterThan(0);
       });
 
       it('should allow filtering by tag name', async () => {
-        const res = await getPosts({
+        const res = await anonHelpers.getPosts({
           filterBy: {
             tags: [...testData.publicOnlyTags.map((t) => t.name)],
           },
         });
 
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
 
         expect(postsData.pagination.total).toBe(
           PUBLISHED_PUBLIC_POSTS_NUM + PUBLISHED_MEMBERS_ONLY_POSTS_NUM
@@ -451,14 +415,13 @@ describe('/api/v1/posts', () => {
           throw new Error('Need more test posts for different published years');
 
         for (const year of uniqueYears) {
-          const res = await getPosts({
+          const res = await anonHelpers.getPosts({
             filterBy: {
               year,
             },
           });
 
-          const { data } = res.data as BaseResponse;
-          const postsData = data as GetPostsResponseDto;
+          const postsData = getData<GetPostsResponseDto>(res);
 
           for (const post of postsData.items)
             if (post.publishedAt) {
@@ -469,18 +432,17 @@ describe('/api/v1/posts', () => {
       });
 
       it(`should not show other users' private posts that contain those tags`, async () => {
-        const res = await getPosts({
+        const res = await anonHelpers.getPosts({
           filterBy: {
             tags: [...testData.privateAuthorTags.map((t) => t.name)],
           },
         });
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
 
         expect(postsData.count).toBe(0);
       });
 
-      test.each([
+      test.concurrent.each([
         [
           'is too short',
           generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH - 1, {
@@ -505,7 +467,7 @@ describe('/api/v1/posts', () => {
         'should return validation error when filterBy tag % ',
         async (_, tag) => {
           await expect(
-            getPosts({
+            anonHelpers.getPosts({
               filterBy: {
                 tags: [tag],
               },
@@ -518,7 +480,7 @@ describe('/api/v1/posts', () => {
     });
 
     describe('?sortBy[x]=y', () => {
-      test.each([
+      test.concurrent.each([
         ['option does not exist', 'modifiedAt', 'asc'],
         ['option exists, but wrong value', 'createdAt', 'descending'],
         ['option exists, but value is empty', 'createdAt', ''],
@@ -527,7 +489,7 @@ describe('/api/v1/posts', () => {
         'should return validation error when sortBy %s',
         async (_, key, value) => {
           return await expect(
-            getPosts({
+            anonHelpers.getPosts({
               sortBy: {
                 [key]: value,
               },
@@ -538,7 +500,7 @@ describe('/api/v1/posts', () => {
         }
       );
 
-      test.each([
+      test.concurrent.each([
         ['published date (ASC)', 'publishedAt', false],
         ['published date (DESC)', 'publishedAt', true],
         ['created date (ASC)', 'createdAt', false],
@@ -548,14 +510,13 @@ describe('/api/v1/posts', () => {
       ])(
         'should sort items provided that sorting by %s is applied',
         async (_, propName, isDescending: boolean) => {
-          const res = await getPosts({
+          const res = await anonHelpers.getPosts({
             sortBy: {
               [propName]: isDescending ? 'desc' : 'asc',
             },
           });
 
-          const { data } = res.data as BaseResponse;
-          const postsData = data as GetPostsResponseDto;
+          const postsData = getData<GetPostsResponseDto>(res);
 
           const sortedItems = [...postsData.items].sort((prev, next) => {
             if (!prev[propName] || !next[propName]) return 0;
@@ -596,11 +557,10 @@ describe('/api/v1/posts', () => {
       it(`should return the default items per page (${defaultPageSize})
        when pageSize is not defined`, async () => {
         const offset = 10;
-        const res = await getPosts({
+        const res = await anonHelpers.getPosts({
           pageOffset: offset,
         });
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
 
         expect(postsData.count).toBe(defaultPageSize);
         expect(postsData.items.length).toBe(defaultPageSize);
@@ -608,12 +568,11 @@ describe('/api/v1/posts', () => {
       });
 
       it('should return 0 items when offset is beyond total number of posts', async () => {
-        const res = await getPosts({
+        const res = await anonHelpers.getPosts({
           pageOffset: totalNumberOfPosts,
           pageSize: pageSizeOptions[2],
         });
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
 
         expect(postsData.pagination.page).toBe(
           Math.ceil(totalNumberOfPosts / pageSizeOptions[2]) + 1
@@ -622,7 +581,7 @@ describe('/api/v1/posts', () => {
         expect(postsData.items.length).toBe(0);
       });
 
-      test.each([
+      test.concurrent.each([
         [1, 0, pageSizeOptions[0]],
         [2, pageSizeOptions[0], pageSizeOptions[0]],
         [3, pageSizeOptions[0] * 2, pageSizeOptions[0]],
@@ -636,19 +595,18 @@ describe('/api/v1/posts', () => {
       ])(
         'should return page #%s when [ offset: %s ; pageLimit %s ]',
         async (expectedPageNum, pageOffset, pageSize) => {
-          const res = await getPosts({
+          const res = await anonHelpers.getPosts({
             pageOffset,
             pageSize,
           });
-          const { data } = res.data as BaseResponse;
-          const postsData = data as GetPostsResponseDto;
+          const postsData = getData<GetPostsResponseDto>(res);
 
           expect(postsData.pagination.page).toBe(expectedPageNum);
           expect(postsData.pagination.total).toBe(totalNumberOfPosts);
         }
       );
 
-      test.each([
+      test.concurrent.each([
         [
           'selected page size is not in the allowed options',
           {
@@ -704,14 +662,14 @@ describe('/api/v1/posts', () => {
           },
         ],
       ])('should return validation error when %s', async (_, params) => {
-        await expect(getPosts(params)).rejects.toMatchObject(
+        await expect(anonHelpers.getPosts(params)).rejects.toMatchObject(
           createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
         );
       });
     });
 
     describe('Authenticated Author', () => {
-      test.each([
+      test.concurrent.each([
         ['DRAFT and ARCHIVED posts', ['ARCHIVED', 'DRAFT'] as PostStatus[]],
         ['DRAFT posts', ['DRAFT'] as PostStatus[]],
         ['ARCHIVED posts', ['ARCHIVED'] as PostStatus[]],
@@ -723,16 +681,13 @@ describe('/api/v1/posts', () => {
               allowedPostStatus.includes(p.status) && p.authorId === author.id
           );
 
-          await login(author.email, author.password);
-
-          const res = await getPosts({
+          const res = await authorHelpers.getPosts({
             filterBy: {
               status: allowedPostStatus,
             },
           });
 
-          const { data } = res.data as BaseResponse;
-          const postsData = data as GetPostsResponseDto;
+          const postsData = getData<GetPostsResponseDto>(res);
 
           expect(postsData.count).toBe(filteredPosts.length);
           expect(postsData.items).toHaveLength(filteredPosts.length);
@@ -746,16 +701,14 @@ describe('/api/v1/posts', () => {
       );
 
       it(`should retrieve own private posts when author is logged in and filtering by tags`, async () => {
-        await login(author.email, author.password);
-        const res = await getPosts({
+        const res = await authorHelpers.getPosts({
           filterBy: {
             tags: [
               ...testData.privateAuthorTags_AlsoUsedOnPublic.map((t) => t.name),
             ],
           },
         });
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
 
         for (const post of postsData.items) {
           if (post.status !== 'PUBLISHED')
@@ -775,15 +728,12 @@ describe('/api/v1/posts', () => {
           .find((p) => p.authorId === author.id && p.publishedAt)
           ?.publishedAt?.getFullYear();
 
-        await login(author.email, author.password);
-
-        const res = await getPosts({
+        const res = await adminHelpers.getPosts({
           filterBy: {
             year: expectedYear,
           },
         });
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
 
         for (const post of postsData.items) {
           if (post.publishedAt) {
@@ -797,17 +747,14 @@ describe('/api/v1/posts', () => {
       });
 
       it(`should retrieve all private user posts when logged in as ADMIN`, async () => {
-        await login(admin.email, admin.password);
-
-        const res = await getPosts({
+        const res = await adminHelpers.getPosts({
           pageSize: PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS[2],
           filterBy: {
             status: ['DRAFT', 'ARCHIVED'],
           },
         });
 
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+        const postsData = getData<GetPostsResponseDto>(res);
 
         expect(
           postsData.items.some(
@@ -816,7 +763,7 @@ describe('/api/v1/posts', () => {
         ).toBe(true);
       });
 
-      test.each([
+      test.concurrent.each([
         { visibility: ['PUBLIC'] },
         { status: ['PUBLISHED'], visibility: ['PUBLIC'] },
         { status: ['DRAFT'], visibility: ['PUBLIC'] },
@@ -837,62 +784,63 @@ describe('/api/v1/posts', () => {
           );
           if (!expectedPost) throw new Error('Missing private post');
 
-          const res = await getPosts({
+          const res = await anonHelpers.getPosts({
             viewerId: author.id,
             filterBy: filters,
             searchQuery: expectedPost.title.substring(5),
           });
 
-          const { data } = res.data as BaseResponse;
-          const postsData = data as GetPostsResponseDto;
+          const postsData = getData<GetPostsResponseDto>(res);
 
           expect(postsData.count).toBe(1);
           expect(postsData.items[0].id).toBe(expectedPost.id);
         }
       );
 
-      it(`should not retrieve other users drafts and 
-      archived posts when overlapping tags are present`, async () => {
-        await login(author.email, author.password);
-        const res = await getPosts({
-          filterBy: {
-            tags: [
-              ...testData.privateAdminTags.map((t) => t.name),
-              ...testData.privateAuthorTags.map((t) => t.name),
-            ],
-          },
-        });
-        const { data } = res.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
+      it.concurrent(
+        `should not retrieve other users drafts and 
+      archived posts when overlapping tags are present`,
+        async () => {
+          const res = await authorHelpers.getPosts({
+            filterBy: {
+              tags: [
+                ...testData.privateAdminTags.map((t) => t.name),
+                ...testData.privateAuthorTags.map((t) => t.name),
+              ],
+            },
+          });
+          const postsData = getData<GetPostsResponseDto>(res);
 
-        for (const post of postsData.items) {
-          if (post.status !== 'PUBLISHED')
-            expect(post.authorId).toBe(author.id);
+          for (const post of postsData.items) {
+            if (post.status !== 'PUBLISHED')
+              expect(post.authorId).toBe(author.id);
 
-          for (const tag of (post as any).tags)
-            expect(
-              testData.privateAuthorTags_AlsoUsedOnPublic
-                .map((t) => t.name)
-                .includes(tag)
-            ).toBe(true);
+            for (const tag of (post as any).tags)
+              expect(
+                testData.privateAuthorTags_AlsoUsedOnPublic
+                  .map((t) => t.name)
+                  .includes(tag)
+              ).toBe(true);
+          }
         }
-      });
+      );
     });
 
     describe('GET /api/v1/posts - Authenticated Non-Author', () => {
-      test.each([[['DRAFT']], [['ARCHIVED']], [['DRAFT', 'ARCHIVED']]])(
+      test.concurrent.each([
+        [['DRAFT']],
+        [['ARCHIVED']],
+        [['DRAFT', 'ARCHIVED']],
+      ])(
         'should not retrieve other users %j posts',
         async (allowedPostStatus) => {
-          await login(user.email, user.password);
-
-          const res = await getPosts({
+          const res = await userHelpers.getPosts({
             filterBy: {
               status: allowedPostStatus,
             },
           });
 
-          const { data } = res.data as BaseResponse;
-          const postsData = data as GetPostsResponseDto;
+          const postsData = getData<GetPostsResponseDto>(res);
 
           // Should only see their own drafts, if any
           postsData.items.forEach((post) => {
@@ -901,26 +849,26 @@ describe('/api/v1/posts', () => {
         }
       );
 
-      it(`should not retrieve other users drafts and 
-      archived posts when search query is present`, async () => {
-        const privatePostFromAnotherAuthor = posts.find(
-          (p) =>
-            (p.status === 'DRAFT' || p.status === 'ARCHIVED') &&
-            p.authorId !== user.id
-        );
-        if (!privatePostFromAnotherAuthor)
-          throw new Error('Missing post by other user');
+      it.concurrent(
+        `should not retrieve other users drafts and 
+      archived posts when search query is present`,
+        async () => {
+          const privatePostFromAnotherAuthor = posts.find(
+            (p) =>
+              (p.status === 'DRAFT' || p.status === 'ARCHIVED') &&
+              p.authorId !== user.id
+          );
+          if (!privatePostFromAnotherAuthor)
+            throw new Error('Missing post by other user');
 
-        await login(user.email, user.password);
+          const resWithFilters = await userHelpers.getPosts({
+            searchQuery: privatePostFromAnotherAuthor.title,
+          });
 
-        const resWithFilters = await getPosts({
-          searchQuery: privatePostFromAnotherAuthor.title,
-        });
-
-        const { data } = resWithFilters.data as BaseResponse;
-        const postsData = data as GetPostsResponseDto;
-        expect(postsData.count).toBe(0);
-      });
+          const postsData = getData<GetPostsResponseDto>(resWithFilters);
+          expect(postsData.count).toBe(0);
+        }
+      );
     });
   });
 
@@ -939,41 +887,41 @@ describe('/api/v1/posts', () => {
     test.each([
       {
         ...VALID_POST_DATA,
-        title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
       },
       {
         ...VALID_POST_DATA,
-        title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
         isDraft: false,
       },
       {
         ...VALID_POST_DATA,
-        title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
         isMembersOnly: true,
       },
     ])(
       'should create a post if post data is valid and logged in user is either ADMIN or AUTHOR',
       async (postData) => {
-        const user = [admin, author][Math.floor(Math.random() * 2)];
+        for (const role of ['ADMIN', 'AUTHOR']) {
+          const helper = role === 'ADMIN' ? adminHelpers : authorHelpers;
 
-        await login(user.email, user.password);
+          postData.title = generateRandomString(
+            POST_CONSTRAINTS.MAX_TITLE_LENGTH - 1
+          );
 
-        const res = await createPost(postData);
-        const { data } = res.data as BaseResponse;
+          const res = await helper.createPost(postData);
 
-        expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.create);
-        const post = (data as any).post as Post;
+          expect(getMessage(res)).toBe(SUCCESS_MESSAGES.POSTS.create);
+          const post = getData<Post>(res, 'post');
 
-        expect(post).toBeDefined();
-        expect(post.title).toBe(postData.title);
-        expect(post.authorId).toBe(user.id);
-        expect(post.status).toBe(postData.isDraft ? 'DRAFT' : 'PUBLISHED');
-        expect(post.visibility).toBe(
-          postData.isMembersOnly ? 'MEMBERS_ONLY' : 'PUBLIC'
-        );
-        // Should set published date when post is PUBLISHED
-        if (postData.isDraft) expect(post.publishedAt).toBe(null);
-        else expect(post.publishedAt).toBeTruthy();
+          expect(post).toBeDefined();
+          expect(post.title).toBe(postData.title);
+
+          expect(post.status).toBe(postData.isDraft ? 'DRAFT' : 'PUBLISHED');
+          expect(post.visibility).toBe(
+            postData.isMembersOnly ? 'MEMBERS_ONLY' : 'PUBLIC'
+          );
+          // Should set published date when post is PUBLISHED
+          if (postData.isDraft) expect(post.publishedAt).toBe(null);
+          else expect(post.publishedAt).toBeTruthy();
+        }
       }
     );
 
@@ -985,44 +933,36 @@ describe('/api/v1/posts', () => {
         })
       );
 
-      await login(author.email, author.password);
-
-      const res = await createPost({
+      const res = await authorHelpers.createPost({
         ...VALID_POST_DATA,
         title: generateRandomString(POST_CONSTRAINTS.MAX_TITLE_LENGTH - 1),
         tags: [...uniqueTags],
       });
-      const { data } = res.data as BaseResponse;
-      const post = (data as any).post as Post;
+      const post = getData<Post>(res, 'post');
 
       for (const tag of uniqueTags)
         expect((post as any).tags.includes(tag)).toBe(true);
 
-      const res_tags = await getTags();
+      const res_tags = await authorHelpers.getTags();
 
-      const { data: tags_data } = res_tags.data as BaseResponse;
-
-      const { items } = tags_data as GetTagsResponse;
+      const { items } = getData<GetTagsResponse>(res_tags);
       for (const tag of uniqueTags)
         expect(items.map((t) => t.name).includes(tag)).toBe(true);
     });
 
     it('should assign tags if existing tags are specified', async () => {
-      await login(author.email, author.password);
-
-      const res = await createPost({
+      const res = await authorHelpers.createPost({
         ...VALID_POST_DATA,
         title: generateRandomString(POST_CONSTRAINTS.MAX_TITLE_LENGTH - 1),
         tags: [...testData.publicOnlyTags.map((t) => t.name)],
       });
-      const { data } = res.data as BaseResponse;
-      const post = (data as any).post as Post;
+      const post = getData<Post>(res, 'post');
 
       for (const tag of testData.publicOnlyTags.map((t) => t.name))
         expect((post as any).tags.includes(tag)).toBe(true);
     });
 
-    test.each([
+    test.concurrent.each([
       [
         'title is too long',
         {
@@ -1126,38 +1066,69 @@ describe('/api/v1/posts', () => {
         },
       ],
     ])('should return validation error when %s', async (_, postData) => {
-      await login(admin.email, admin.password);
-      return await expect(createPost(postData as any)).rejects.toMatchObject(
+      return await expect(
+        adminHelpers.createPost(postData as any)
+      ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
       );
     });
 
-    it(`should return 403 FORBIDDEN, when user creating the post is not ADMIN or AUTHOR`, async () => {
-      await login(user.email, user.password);
-
-      return await expect(
-        createPost({
-          ...VALID_POST_DATA,
-          title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
-        })
-      ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
-      );
-    });
+    it.concurrent(
+      `should return 403 FORBIDDEN, when user creating the post is not ADMIN or AUTHOR`,
+      async () => {
+        return await expect(
+          userHelpers.createPost({
+            ...VALID_POST_DATA,
+            title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        );
+      }
+    );
 
     it('should return validation error when creating a post with the same title', async () => {
-      await login(author.email, author.password);
-
       const existingPostTitle = posts[0].title;
 
       return await expect(
-        createPost({
+        authorHelpers.createPost({
           ...VALID_POST_DATA,
           title: existingPostTitle,
         })
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS)
       );
+    });
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+
+      try {
+        await expect(
+          authorHelpers.createPost({
+            ...VALID_POST_DATA,
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+        );
+      } finally {
+        await prisma.user.update({
+          where: {
+            id: author.id,
+          },
+          data: {
+            isBanned: false,
+          },
+        });
+      }
     });
   });
 
@@ -1176,15 +1147,15 @@ describe('/api/v1/posts', () => {
         const postForUpdate = posts.find((p) => p.authorId === author.id);
         if (!postForUpdate) throw new Error('Missing test post');
 
-        await login(author.email, author.password);
+        const res = await authorHelpers.updatePost(
+          postForUpdate.id.toString(),
+          {
+            [propName]: value,
+          } as any
+        );
 
-        const res = await updatePost(postForUpdate.id.toString(), {
-          [propName]: value,
-        } as any);
-        const { data } = res.data as BaseResponse;
-
-        expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.update);
-        const post = (data as any).post as Post;
+        expect(getMessage(res)).toBe(SUCCESS_MESSAGES.POSTS.update);
+        const post = getData<Post>(res, 'post');
 
         expect(post).toBeDefined();
         expect(post.id).toBe(postForUpdate.id);
@@ -1210,14 +1181,11 @@ describe('/api/v1/posts', () => {
         const postForUpdate = posts.find((p) => p.authorId === author.id);
         if (!postForUpdate) throw new Error('Missing test post');
 
-        await login(admin.email, admin.password);
-
-        const res = await updatePost(postForUpdate.id.toString(), {
+        const res = await adminHelpers.updatePost(postForUpdate.id.toString(), {
           [propName]: value,
         } as any);
-        const { data } = res.data as BaseResponse;
 
-        const post = (data as any).post as Post;
+        const post = getData<Post>(res, 'post');
 
         expect(post).toBeDefined();
         expect(post.id).toBe(postForUpdate.id);
@@ -1236,19 +1204,16 @@ describe('/api/v1/posts', () => {
       if (!postForUpdate) throw new Error('Missing test post');
       expect(postForUpdate.publishedAt).toBeFalsy();
 
-      await login(author.email, author.password);
-
-      const res = await updatePost(postForUpdate.id.toString(), {
+      const res = await authorHelpers.updatePost(postForUpdate.id.toString(), {
         status: 'PUBLISHED',
       } as any);
 
-      const { data } = res.data as BaseResponse;
-      const post = (data as any).post as Post;
+      const post = getData<Post>(res, 'post');
 
       expect(post.publishedAt).toBeTruthy();
     });
 
-    test.each([
+    test.concurrent.each([
       [
         'title is too long',
         {
@@ -1332,44 +1297,47 @@ describe('/api/v1/posts', () => {
       const postForUpdate = posts.find((p) => p.authorId === author.id);
       if (!postForUpdate) throw new Error('Missing test post');
 
-      await login(author.email, author.password);
       return await expect(
-        updatePost(postForUpdate.id.toString(), postData as any)
+        authorHelpers.updatePost(postForUpdate.id.toString(), postData as any)
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
       );
     });
 
-    it('should return 404 NOT FOUND when post for update does not exist', async () => {
-      await login(author.email, author.password);
-      return await expect(
-        updatePost('999', {
-          content: 'NEW post content',
-        } as any)
-      ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
-      );
-    });
-
-    it(`should return 403 FORBIDDEN when the user is not ADMIN or AUTHOR`, async () => {
-      const nonAdminOrAuthorUsers = users.filter(
-        (u) => !(u.role === 'ADMIN' || u.role === 'AUTHOR')
-      );
-
-      for (const u of nonAdminOrAuthorUsers) {
-        await login(u.email, u.password);
-
-        await expect(
-          updatePost('1', {
-            content: generateRandomString(
-              POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
-            ),
-          })
+    it.concurrent(
+      'should return 404 NOT FOUND when post for update does not exist',
+      async () => {
+        return await expect(
+          authorHelpers.updatePost('9999', {
+            content: 'NEW post content',
+          } as any)
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
         );
       }
-    });
+    );
+
+    it.concurrent(
+      `should return 403 FORBIDDEN when the user is not ADMIN or AUTHOR`,
+      async () => {
+        const usersAndMods = users.filter(
+          (u) => !(u.role === 'ADMIN' || u.role === 'AUTHOR')
+        );
+
+        for (const u of usersAndMods) {
+          const helper = u.role === 'USER' ? userHelpers : modHelpers;
+          await expect(
+            helper.updatePost('1', {
+              content: generateRandomString(
+                POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
+              ),
+            })
+          ).rejects.toMatchObject(
+            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          );
+        }
+      }
+    );
 
     it(`should return 403 FORBIDDEN for authors, 
       when trying to update another author's post`, async () => {
@@ -1378,10 +1346,8 @@ describe('/api/v1/posts', () => {
       );
       if (!postForUpdateFromAnotherUser) throw new Error('Missing test post');
 
-      await login(author.email, author.password);
-
       await expect(
-        updatePost(postForUpdateFromAnotherUser.id.toString(), {
+        authorHelpers.updatePost(postForUpdateFromAnotherUser.id.toString(), {
           content: generateRandomString(
             POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
           ),
@@ -1401,22 +1367,17 @@ describe('/api/v1/posts', () => {
         })
       );
 
-      await login(author.email, author.password);
-
-      const res = await updatePost(postForUpdate.id.toString(), {
+      const res = await authorHelpers.updatePost(postForUpdate.id.toString(), {
         tags: [...uniqueTags],
       });
-      const { data } = res.data as BaseResponse;
-      const post = (data as any).post as Post;
+      const post = getData<Post>(res, 'post');
 
       for (const tag of uniqueTags)
         expect((post as any).tags.includes(tag)).toBe(true);
 
-      const res_tags = await getTags();
+      const res_tags = await authorHelpers.getTags();
 
-      const { data: tags_data } = res_tags.data as BaseResponse;
-
-      const { items } = tags_data as GetTagsResponse;
+      const { items } = getData<GetTagsResponse>(res_tags);
       for (const tag of uniqueTags)
         expect(items.map((t) => t.name).includes(tag)).toBe(true);
     });
@@ -1425,16 +1386,13 @@ describe('/api/v1/posts', () => {
       const postForUpdate = posts.find((p) => p.authorId === author.id);
       if (!postForUpdate) throw new Error('Missing test post');
 
-      await login(author.email, author.password);
-
-      const res = await updatePost(postForUpdate.id.toString(), {
+      const res = await authorHelpers.updatePost(postForUpdate.id.toString(), {
         tags: [...testData.publicOnlyTags.map((t) => t.name)],
       });
-      const { data } = res.data as BaseResponse;
-      const post = (data as any).post as Post;
+      const post = getData<Post & { tags: string[] }>(res, 'post');
 
       for (const tag of testData.publicOnlyTags.map((t) => t.name))
-        expect((post as any).tags.includes(tag)).toBe(true);
+        expect(post.tags.includes(tag)).toBe(true);
     });
 
     it(`should return validation error when updating a
@@ -1442,15 +1400,13 @@ describe('/api/v1/posts', () => {
       const postForUpdate = posts.find((p) => p.authorId === admin.id);
       if (!postForUpdate) throw new Error('Missing test post');
 
-      await login(admin.email, admin.password);
-
       const anotherPost = posts.find((p) => p.id !== postForUpdate.id);
       if (!anotherPost) throw new Error('Missing test post');
 
       const existingPostTitle = anotherPost.title;
 
       return await expect(
-        updatePost(postForUpdate.id.toString(), {
+        adminHelpers.updatePost(postForUpdate.id.toString(), {
           title: existingPostTitle,
         })
       ).rejects.toMatchObject(
@@ -1458,20 +1414,40 @@ describe('/api/v1/posts', () => {
       );
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when id %s', async (_, id) => {
-      await login(admin.email, admin.password);
-      await expect(updatePost(id as any, {})).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
+    testInvalidIds(
+      async (id) => adminHelpers.updatePost(id, { content: 'NEW CONTENT' }),
+      'post id'
+    );
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+
+      try {
+        await expect(
+          authorHelpers.updatePost(posts[0].id.toString(), {
+            content: 'new content',
+          })
+        ).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+        );
+      } finally {
+        await prisma.user.update({
+          where: {
+            id: author.id,
+          },
+          data: {
+            isBanned: false,
+          },
+        });
+      }
     });
   });
 
@@ -1488,26 +1464,24 @@ describe('/api/v1/posts', () => {
       );
       if (!postForDeletion) throw new Error('Missing test post');
 
-      await login(author.email, author.password);
-
-      const deleteRes = await deletePost(postForDeletion.id.toString());
+      const deleteRes = await authorHelpers.deletePost(
+        postForDeletion.id.toString()
+      );
       expect(deleteRes.status).toBe(StatusCodes.OK);
-      const { data } = deleteRes.data as BaseResponse;
 
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.delete);
+      expect(getMessage(deleteRes)).toBe(SUCCESS_MESSAGES.POSTS.delete);
 
       deletedIds.push(postForDeletion.id);
 
       await expect(
-        deletePost(postForDeletion.id.toString())
+        authorHelpers.deletePost(postForDeletion.id.toString())
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
 
     it(`should return 404 NOT FOUND when trying to delete post that does not exist`, async () => {
-      await login(admin.email, admin.password);
-      await expect(deletePost('999')).rejects.toMatchObject(
+      await expect(adminHelpers.deletePost('9999')).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
       );
     });
@@ -1518,9 +1492,8 @@ describe('/api/v1/posts', () => {
       );
       if (!postForDeletionFromAnotherUser) throw new Error('Missing test post');
 
-      await login(author.email, author.password);
       await expect(
-        deletePost(postForDeletionFromAnotherUser.id.toString())
+        authorHelpers.deletePost(postForDeletionFromAnotherUser.id.toString())
       ).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
       );
@@ -1532,26 +1505,22 @@ describe('/api/v1/posts', () => {
       );
       if (!postForDeletionFromAnotherUser) throw new Error('Missing test post');
 
-      await login(admin.email, admin.password);
-      const deleteRes = await deletePost(
+      const deleteRes = await adminHelpers.deletePost(
         postForDeletionFromAnotherUser.id.toString()
       );
 
       expect(deleteRes.status).toBe(StatusCodes.OK);
 
-      const { data } = deleteRes.data as BaseResponse;
-      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.POSTS.delete);
+      expect(getMessage(deleteRes)).toBe(SUCCESS_MESSAGES.POSTS.delete);
     });
 
     it('deleting the last post referencing created tags should delete them also', async () => {
-      await login(author.email, author.password);
-
       const persistentTags = [
         'tag-that-wont-be-deleted-1',
         'tag-that-wont-be-deleted-2',
       ];
 
-      const res = await createPost({
+      const res = await authorHelpers.createPost({
         content: generateRandomString(10),
         title: generateRandomString(10),
         tags: persistentTags,
@@ -1559,36 +1528,36 @@ describe('/api/v1/posts', () => {
         isMembersOnly: false,
       });
 
-      const { data } = res.data as BaseResponse;
-      const postWithTagsForDeletion = (data as any).post as Post;
+      const postWithTagsForDeletion = getData<Post>(res, 'post');
 
       for (const tag of persistentTags)
         expect((postWithTagsForDeletion as any).tags.includes(tag)).toBe(true);
 
-      await deletePost(postWithTagsForDeletion.id.toString());
+      await authorHelpers.deletePost(postWithTagsForDeletion.id.toString());
 
-      const res_tags = await getTags();
+      const res_tags = await authorHelpers.getTags();
 
-      const { data: tags_data } = res_tags.data as BaseResponse;
-
-      const { count } = tags_data as GetTagsResponse;
+      const { count } = getData<GetTagsResponse>(res_tags);
       expect(count).toBe(0);
     });
 
-    test.each([
-      ['is letter', 'a'],
-      ['is special character', '@'],
-      ['is decimal number', '12.34'],
-      ['is negative number', '-5'],
-      ['is boolean true', 'true'],
-      ['is boolean false', 'false'],
-      ['is null string', 'null'],
-      ['is undefined string', 'undefined'],
-    ])('should return validation error when id %s', async (_, id) => {
-      await login(admin.email, admin.password);
-      return await expect(deletePost(id as any)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
+    testInvalidIds(async (id) => {
+      return adminHelpers.deletePost(id);
+    }, 'post id');
+
+    it(`should return error when logged-in user is banned and trying to
+      access endpoint`, async () => {
+      await prisma.user.update({
+        where: {
+          id: author.id,
+        },
+        data: {
+          isBanned: true,
+        },
+      });
+      return await expect(
+        authorHelpers.deletePost(posts[0].id.toString())
+      ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
     });
   });
 
@@ -1601,13 +1570,10 @@ describe('/api/v1/posts', () => {
           (acc, prev) => (acc.includes(prev) ? acc : [prev, ...acc]),
           [] as number[]
         );
-      const res = await getPostsMetadata();
-      const { data } = res.data as BaseResponse;
-      expect(data).toHaveProperty(
-        'message',
-        SUCCESS_MESSAGES.POSTS.getMetadata
-      );
-      const { years } = data as GetPostsMetadataResponse;
+      const res = await anonHelpers.getPostsMetadata();
+      expect(getMessage(res)).toBe(SUCCESS_MESSAGES.POSTS.getMetadata);
+
+      const { years } = getData<GetPostsMetadataResponse>(res);
       expect(years).toEqual(expect.arrayContaining(expectedYears));
       expect(years).toHaveLength(expectedYears.length);
     });
@@ -1630,10 +1596,9 @@ describe('/api/v1/posts', () => {
         )
         .filter((year) => !expectedYears.includes(year));
 
-      const res = await getPostsMetadata();
-      const { data } = res.data as BaseResponse;
+      const res = await anonHelpers.getPostsMetadata();
 
-      const { years } = data as GetPostsMetadataResponse;
+      const { years } = getData<GetPostsMetadataResponse>(res);
       for (const year of notExpectedYears) {
         expect(years).not.toContain(year);
       }

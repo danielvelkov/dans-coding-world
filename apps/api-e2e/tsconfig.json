@@ -9,7 +9,16 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
+      "path": "../../libs/shared/user/dtos"
+    },
+    {
       "path": "../../libs/shared/util/exceptions"
+    },
+    {
+      "path": "../../libs/shared/storage"
+    },
+    {
+      "path": "../../libs/api/data-access/user"
     },
     {
       "path": "../../libs/shared/post/dtos"

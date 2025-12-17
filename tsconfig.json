@@ -68,6 +68,15 @@
     },
     {
       "path": "./libs/shared/util/helpers"
+    },
+    {
+      "path": "./libs/api/users"
+    },
+    {
+      "path": "./libs/shared/user/dtos"
+    },
+    {
+      "path": "./libs/shared/storage"
     }
   ]
 }

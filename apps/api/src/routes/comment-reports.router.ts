@@ -140,11 +140,11 @@ export default commentReportsRouter;
  * /reports/comments/{id}:
  *   get:
  *     tags: [Reports]
- *     summary: Get report by id.
+ *     summary: Get a report by id.
  *     description: |
  *       Roles required: ADMIN or MOD
  *
- *       Get a report by its Id along with moderation history, reported comment and user.
+ *       Get a report by Id. Response also contains report moderation history, reported comment and reporter.
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, returns 401 UNAUTHORIZED error
@@ -216,9 +216,10 @@ export default commentReportsRouter;
  *     tags: [Reports]
  *     summary: Create a report on a given comment.
  *     description: |
- *       Create a PENDING report on comment.<br /> Must be logged in, otherwise returns UNAUTHORIZED error.<br />
- *       Users cannot report the same comment twice. Users cannot report their own comments. <br />
- *       If post is not PUBLISHED and the user posting the report on the comment is not the author of the post, MOD or ADMIN - returns FORBIDDEN error. <br />
+ *       Create a PENDING report on comment.
+ *       - Users cannot report the same comment twice
+ *       - Users cannot report their own comments.
+ *       - Users cannot report comments from unpublished posts (except the post author, mod or admin)
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
@@ -295,8 +296,8 @@ export default commentReportsRouter;
  *       Roles required: ADMIN or MOD
  *
  *       Update a report's status and optionally leave a note about what action was taken.
- *       Users cannot update a report made about themselves.
- *       The new report status must be different from the current one.
+ *       - Users cannot update a report made about themselves.
+ *       - The new status must be different from the current one.
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
@@ -322,7 +323,7 @@ export default commentReportsRouter;
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/CreateCommentReportResponse'
+ *               $ref: '#/components/schemas/GetCommentReportResponse'
  *       400:
  *         description: Bad Request - Invalid query params | Invalid form body
  *         content:
@@ -380,8 +381,9 @@ export default commentReportsRouter;
  *
  *       Delete a report and its related report history by report Id.
  *
- *       Returns 403 FORBIDDEN error if the user requesting it
- *       is not ADMIN.
+ *       **Authentication:**
+ *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
+ *       - If access_token is valid and the user is ADMIN, he can delete the report.
  *     parameters:
  *       - in: path
  *         name: id

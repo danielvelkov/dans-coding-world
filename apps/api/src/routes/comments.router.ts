@@ -34,7 +34,7 @@ export default commentsRouter;
  * /posts/{postId}/comments:
  *   get:
  *     tags: [Comments]
- *     summary: Get post comments with pagination metadata.
+ *     summary: Get post comments with pagination metadata
  *     description: |
  *       Get a specific post's top-level comments by post id. Each comment comes with its replies. Provides pagination and sorting only on the top-level comments.
  *       <br/> Returns a 403 FORBIDDEN error, If post is private and the user requesting it
@@ -80,7 +80,7 @@ export default commentsRouter;
  *           type: string
  *           enum: [asc, desc]
  *         required: false
- *         description: Sort by last update date
+ *         description: Sort by modification date
  *       - in: query
  *         name: depth
  *         schema:
@@ -147,7 +147,7 @@ export default commentsRouter;
  * /posts/{postId}/comments/{id}:
  *   get:
  *     tags: [Comments]
- *     summary: Get comment and its replies.
+ *     summary: Get comment and its replies
  *     description: |
  *       Get a specific comment by its Id along with its direct replies if any.
  *       <br/>Returns 403 FORBIDDEN error, If the post this comment belongs to is private and the user requesting it
@@ -235,7 +235,7 @@ export default commentsRouter;
  * /posts/{postId}/comments:
  *   post:
  *     tags: [Comments]
- *     summary: Create a comment or reply.
+ *     summary: Create a comment or reply
  *     description: |
  *       Create a comment on a post or a reply to a comment.<br /> Must be logged in, otherwise returns UNAUTHORIZED error.<br />
  *       If post is not PUBLISHED and the user posting the comment is not the author - returns FORBIDDEN error. <br />
@@ -317,7 +317,7 @@ export default commentsRouter;
  * /posts/{postId}/comments/{id}:
  *   patch:
  *     tags: [Comments]
- *     summary: Update a comment content by Id.
+ *     summary: Update a comment content by Id
  *     description: |
  *       Update a comment's 'content' field. <br/>
  *       Returns FORBIDDEN error, If post is DRAFT or ARCHIVED and the user requesting it
@@ -405,7 +405,7 @@ export default commentsRouter;
  * /posts/{postId}/comments/{id}:
  *   delete:
  *     tags: [Comments]
- *     summary: Delete a comment by Id.
+ *     summary: Delete a comment by Id
  *     description: |
  *       Delete a comment on a post. Returns FORBIDDEN error, If the user requesting it
  *       is not the author (***does not apply to admins or moderators***).

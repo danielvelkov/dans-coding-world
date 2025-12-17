@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../util/validation"
+    },
+    {
       "path": "../../util/shared-constants"
     },
     {

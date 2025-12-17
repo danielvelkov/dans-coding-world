@@ -7,6 +7,7 @@ import {
   IRegistrationService,
   Authorized,
   RequiredRole,
+  BlockBanned,
 } from '@dans-coding-world/api-auth';
 import {
   LoginDto,
@@ -77,7 +78,9 @@ export class AuthController {
     try {
       const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE];
 
-      await this.tokenService.revokeRefreshToken(refreshToken);
+      await this.tokenService.revokeRefreshToken({
+        token: refreshToken,
+      });
 
       // Clear cookies
       res.clearCookie(ACCESS_TOKEN_COOKIE, {
@@ -98,7 +101,9 @@ export class AuthController {
   // Refresh route for generating new access/refresh token pair
   refresh = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const refreshDto: RefreshTokenDto = req.body;
+      const refreshDto: RefreshTokenDto = {
+        ...req.body,
+      };
 
       const result = await this.authService.refreshToken(refreshDto);
 
@@ -123,12 +128,16 @@ export class AuthController {
 
   // Revoke token route for individual invalidation of user refresh tokens
   @Authorized()
+  @BlockBanned()
   @RequiredRole('MOD', 'ADMIN')
   async revokeToken(req: Request, res: Response, next: NextFunction) {
     try {
-      const refreshDto: RefreshTokenDto = req.body;
+      const refreshTokenDto: RefreshTokenDto = {
+        ...req.body,
+      };
+
       const revokedToken = await this.tokenService.revokeRefreshToken(
-        refreshDto.token
+        refreshTokenDto
       );
 
       return res.status(StatusCodes.OK).json({

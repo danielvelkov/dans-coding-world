@@ -62,6 +62,7 @@ describe('TagsService', () => {
       password: 'RandomPass123',
       username: 'fakeAuthor123',
       role: 'AUTHOR',
+      isBanned: false,
     });
 
     admin = await mockUsersRepo.create({
@@ -69,6 +70,7 @@ describe('TagsService', () => {
       password: 'RandomPass123',
       username: 'fakeAdmin123',
       role: 'ADMIN',
+      isBanned: false,
     });
 
     injector = ReflectiveInjector.resolveAndCreate([

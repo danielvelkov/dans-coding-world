@@ -1,5 +1,9 @@
 import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 import { JwtPayload } from 'jsonwebtoken';
+import {
+  RefreshTokenDto,
+  RevokeUserTokensDto,
+} from '@dans-coding-world/shared-auth-dto';
 /**
  * Token generation and control service which provides:
  * - generation of user access and refresh tokens
@@ -74,31 +78,31 @@ export interface ITokenService {
 
   /**
    * Mark specific refresh token as revoked.
-   * @param token Refresh token
+   * @param dto Refresh token dto
    * @returns The revoked token
    * @throws {Error} An error when the token does not exist. (SER002)
    * @example
    * ```typescript
-   * const revokedToken = await tokenService.revokeRefreshToken(
+   * const revokedToken = await tokenService.revokeRefreshToken({
    *    token,
-   * );
+   * });
    * ```
    */
-  revokeRefreshToken(token: string): Promise<RefreshToken>;
+  revokeRefreshToken(dto: RefreshTokenDto): Promise<RefreshToken>;
 
   /**
    * Mark all user refresh token as revoked.
    * @description Admin or Moderator-only operation. Requires elevated privileges.
-   * @param userId User id.
+   * @param dto Revoke User tokens dto, containing User id.
    * @returns The number of revoked tokens, if any
    * @example
    * ```typescript
-   * const count = await tokenService.revokeAllUserRefreshTokens(
-   *    token,
-   * );
+   * const count = await tokenService.revokeAllUserRefreshTokens({
+   *    userId: 1
+   * });
    * ```
    */
-  revokeAllUserRefreshTokens(userId: string): Promise<number>;
+  revokeAllUserRefreshTokens(dto: RevokeUserTokensDto): Promise<number>;
 
   /**
    * Mark ALL refresh token as revoked.
@@ -106,9 +110,7 @@ export interface ITokenService {
    * @returns The number of revoked tokens, if any
    * @example
    * ```typescript
-   * const count = await tokenService.revokeAllRefreshTokens(
-   *    token,
-   * );
+   * const count = await tokenService.revokeAllRefreshTokens();
    * ```
    */
   revokeAllRefreshTokens(): Promise<number>;

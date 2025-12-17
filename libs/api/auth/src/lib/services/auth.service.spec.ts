@@ -31,6 +31,7 @@ const MOCK_USER: User = {
   username: 'fakeUser123',
   id: 1,
   role: 'USER',
+  isBanned: false,
 };
 
 describe('Auth service', () => {

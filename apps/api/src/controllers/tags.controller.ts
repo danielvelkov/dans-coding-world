@@ -11,6 +11,7 @@ import {
   Authorized,
   RequiredRole,
   AttachUser,
+  BlockBanned,
 } from '@dans-coding-world/api-auth';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 import { User } from '@dans-coding-world/prisma-schema';
@@ -61,6 +62,7 @@ export class TagsController {
   }
 
   @Authorized()
+  @BlockBanned()
   @RequiredRole('ADMIN', 'AUTHOR')
   async create(req: Request, res: Response, next: NextFunction) {
     try {
@@ -77,6 +79,7 @@ export class TagsController {
   }
 
   @Authorized()
+  @BlockBanned()
   @RequiredRole('ADMIN', 'AUTHOR')
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
@@ -95,6 +98,7 @@ export class TagsController {
   }
 
   @Authorized()
+  @BlockBanned()
   @RequiredRole('ADMIN', 'AUTHOR')
   async update(req: Request, res: Response, next: NextFunction) {
     try {

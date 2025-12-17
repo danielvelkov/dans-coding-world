@@ -52,7 +52,10 @@
         "libs/api/data-access/report/*",
         "libs/api/reports/*",
         "libs/shared/report/dtos/*",
-        "libs/shared/util/helpers/*"
+        "libs/shared/util/helpers/*",
+        "libs/api/users/*",
+        "libs/shared/user/dtos/*",
+        "libs/shared/storage/*"
       ]
     },
     {
@@ -134,7 +137,10 @@
         "libs/api/data-access/report/*",
         "libs/api/reports/*",
         "libs/shared/report/dtos/*",
-        "libs/shared/util/helpers/*"
+        "libs/shared/util/helpers/*",
+        "libs/api/users/*",
+        "libs/shared/user/dtos/*",
+        "libs/shared/storage/*"
       ],
       "options": {
         "typecheck": {

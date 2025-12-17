@@ -116,6 +116,7 @@ describe('CommentReportsService', () => {
           password: `fake${role.toLowerCase()}Pass`,
           username: `fake${role.toLowerCase()}123`,
           role,
+          isBanned: false,
         })
       )
     );

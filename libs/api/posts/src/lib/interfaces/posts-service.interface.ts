@@ -102,8 +102,9 @@ export interface IPostsService {
    * });
    * ```
    *
+   * @throws {Error} When post data validation fails (VAL001)
    * @throws {Error} Author not found (VAL003)
-   * @throws {Error} Post with this title already exists
+   * @throws {Error} Post with this title already exists (VAL005)
    */
   create(dto: CreatePostDto): Promise<Post>;
 
@@ -132,8 +133,9 @@ export interface IPostsService {
    * });
    * ```
    *
+   * @throws {Error} When new post data validation fails (VAL001)
    * @throws {Error} Post not found or author mismatch (SER002)
-   * @throws {Error} Post with this title already exists
+   * @throws {Error} Post with this title already exists (VAL005)
    */
   update(dto: UpdatePostDto): Promise<Post>;
 
