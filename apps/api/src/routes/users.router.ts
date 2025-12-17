@@ -585,18 +585,18 @@ export default usersRouter;
  *           description: User first name
  *           minLength: 2
  *           maxLength: 50
- *           example: ''
+ *           example: 'Jon'
  *         lastName:
  *           type: string
  *           description: User last name
  *           minLength: 2
  *           maxLength: 90
- *           example: ''
+ *           example: 'Doe'
  *         bio:
  *           type: string
  *           description: User's bio
  *           maxLength: 300
- *           example: ''
+ *           example: 'This is my bio'
  *         avatar:
  *           type: string
  *           format: binary

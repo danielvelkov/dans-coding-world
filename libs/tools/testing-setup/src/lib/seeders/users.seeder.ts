@@ -31,6 +31,7 @@ export const seedUsers = async (
     if (options.clearExisting) {
       await client.user.deleteMany();
       await client.$queryRaw`ALTER SEQUENCE "User_id_seq" RESTART WITH 1;`;
+      await client.$queryRaw`ALTER SEQUENCE "Profile_id_seq" RESTART WITH 1;`;
     }
 
     if (options.useDefaults) {

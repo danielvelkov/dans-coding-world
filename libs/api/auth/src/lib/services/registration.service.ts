@@ -15,13 +15,14 @@ import { hashPassword } from '../helper/password.helper.js';
 export class RegistrationService implements IRegistrationService {
   constructor(@Inject(USER_REPOSITORY_TOKEN) public users: IUserRepository) {}
   async register(dto: RegisterDto): Promise<RegistrationResponseDto> {
-    await transformAndValidateDto(dto, RegisterDto);
+    dto = await transformAndValidateDto(dto, RegisterDto);
 
     const userExists = await this.users.exists(dto.username, dto.email);
     if (userExists) throw new ApiException(ERROR_CODES.VALIDATION.USER_EXISTS);
 
     const user = await this.users.create({
-      ...dto,
+      email: dto.email,
+      username: dto.username,
       password: await hashPassword(dto.password),
       role: 'USER',
       isBanned: false,
