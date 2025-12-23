@@ -77,6 +77,9 @@
     },
     {
       "path": "./libs/shared/storage"
+    },
+    {
+      "path": "./libs/public-blog/features/blog-list"
     }
   ]
 }
