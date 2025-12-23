@@ -3,6 +3,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../../shared/post/dtos"
+    },
+    {
       "path": "../../../prisma-schema"
     },
     {
