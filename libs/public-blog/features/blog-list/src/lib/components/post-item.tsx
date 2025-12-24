@@ -9,7 +9,17 @@ const StyledListItem = styled.li`
   color: black;
 `;
 
-export function PostItem({ post }: { post: PostItemData }) {
+export function PostItem({
+  post,
+  onTagClick,
+  onAuthorClick,
+  isLocked,
+}: {
+  post: PostItemData;
+  onTagClick: (tagName: string) => void;
+  onAuthorClick: (id: number) => void;
+  isLocked: boolean;
+}) {
   const { author, ...postData } = post;
 
   const excerpt = getFirstParagraph(postData.content);
@@ -23,11 +33,27 @@ export function PostItem({ post }: { post: PostItemData }) {
       <article className="post">
         <h3 className="title">{postData.title}</h3>
         <div>
-          <span className="author-name">{`By ${authorName}`}</span>
+          <button
+            onClick={() => onAuthorClick(author.id)}
+            className="author-name"
+          >{`By ${authorName}`}</button>
           {' | '}
           <span className="published-date">{formattedPublishedDate}</span>
+          {' | '}
+          <div>
+            {postData.tags &&
+              postData.tags.map((tagName) => (
+                <button onClick={() => onTagClick(tagName)} className="tag">
+                  {tagName}
+                </button>
+              ))}
+          </div>
         </div>
-        <p className="excerpt">{excerpt}</p>
+        {isLocked ? (
+          <p className="login-message">Login to read members-only post</p>
+        ) : (
+          <p className="excerpt">{excerpt}</p>
+        )}
       </article>
     </StyledListItem>
   );
