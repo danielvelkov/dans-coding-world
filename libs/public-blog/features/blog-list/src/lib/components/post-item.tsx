@@ -43,7 +43,11 @@ export function PostItem({
           <div>
             {postData.tags &&
               postData.tags.map((tagName) => (
-                <button onClick={() => onTagClick(tagName)} className="tag">
+                <button
+                  key={`${post.id}-${tagName}`}
+                  onClick={() => onTagClick(tagName)}
+                  className="tag"
+                >
                   {tagName}
                 </button>
               ))}

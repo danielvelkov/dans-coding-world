@@ -1,28 +1,10 @@
 import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PostItem } from '../components/post-item';
-import { PostItemData } from '../types/post-item-data.types';
 import userEvent from '@testing-library/user-event';
+import { mockPosts } from './mocks/post-item-data.mock';
 
-const post: PostItemData = {
-  id: 1,
-  title: 'Random title ',
-  content: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Neque dolorem hic totam, ut quis fuga quaerat dolores quam modi, nemo ipsam fugiat reiciendis magnam! 
-    Dolore ducimus quis reiciendis minus enim.`,
-  publishedAt: new Date(2025, 0, 1),
-  tags: ['random', 'tag-1', 'tag-2'],
-  author: {
-    id: 1,
-    username: 'user123',
-    role: 'AUTHOR',
-    profile: {
-      avatarURL: 'URL',
-      firstName: 'John',
-      lastName: 'Doe',
-    },
-  },
-};
-
+const post = mockPosts[0];
 const onTagClick = vi.fn();
 const onAuthorClick = vi.fn();
 
