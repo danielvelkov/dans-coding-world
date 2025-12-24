@@ -8,14 +8,18 @@ const postData: PostItemData = {
   title: 'Random title ',
   content: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Neque dolorem hic totam, ut quis fuga quaerat dolores quam modi, nemo ipsam fugiat reiciendis magnam! 
     Dolore ducimus quis reiciendis minus enim.`,
-  publishedAt: new Date(),
+  publishedAt: new Date(2025, 0, 1),
   visibility: 'PUBLIC',
   tags: ['random'],
   author: {
-    avatarURL: 'URL',
-    firstName: 'John',
-    lastName: 'Doe',
-    userId: 1,
+    id: 1,
+    username: 'user123',
+    role: 'AUTHOR',
+    profile: {
+      avatarURL: 'URL',
+      firstName: 'John',
+      lastName: 'Doe',
+    },
   },
 };
 
@@ -46,5 +50,30 @@ describe('PostItem', () => {
       throw new Error('Missing test paragraph in post content');
 
     expect(screen.getByRole('paragraph').textContent).toBe(matches[0]);
+  });
+
+  it('renders author full name if he has profile setup', () => {
+    const fullName =
+      postData.author.profile?.firstName +
+      ' ' +
+      postData.author.profile?.lastName;
+    expect(screen.getByText(`By ${fullName}`)).toBeInTheDocument();
+  });
+
+  it('renders author username if user has no profile details setup', () => {
+    render(
+      <PostItem
+        post={{
+          ...postData,
+          author: { ...postData.author, profile: undefined },
+        }}
+      ></PostItem>
+    );
+    const fullName = postData.author.username;
+    expect(screen.getByText(`By ${fullName}`)).toBeInTheDocument();
+  });
+
+  it(`renders post's published date in format: DD MMM YYYY`, () => {
+    expect(screen.getByText(`01 Jan 2025`)).toBeInTheDocument();
   });
 });
