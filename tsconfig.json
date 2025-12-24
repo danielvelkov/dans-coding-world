@@ -80,6 +80,9 @@
     },
     {
       "path": "./libs/public-blog/features/blog-list"
+    },
+    {
+      "path": "./libs/public-blog/ui/common"
     }
   ]
 }

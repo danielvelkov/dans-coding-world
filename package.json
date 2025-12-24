@@ -137,6 +137,7 @@
     "libs/shared/report/*",
     "libs/shared/user/*",
     "libs/shared/*",
-    "libs/public-blog/features/*"
+    "libs/public-blog/features/*",
+    "libs/public-blog/ui/*"
   ]
 }
