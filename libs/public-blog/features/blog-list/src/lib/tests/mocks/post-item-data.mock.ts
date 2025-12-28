@@ -1,6 +1,6 @@
 import { PostItemData } from '../../types/post-item-data.types';
 
-export const mockPosts: readonly PostItemData[] = [
+export const mockPostItemData: readonly PostItemData[] = [
   {
     id: 1,
     title: 'Random title',

@@ -5,9 +5,7 @@ import {
   getFirstParagraph,
 } from '../helper/post-content.util';
 
-const StyledListItem = styled.li`
-  color: black;
-`;
+const StyledListItem = styled.li``;
 
 export function PostItem({
   post,
@@ -33,6 +31,16 @@ export function PostItem({
       <article className="post">
         <h3 className="title">{postData.title}</h3>
         <div>
+          <div className="image-container">
+            {author.profile && author.profile.avatarURL ? (
+              <img
+                src={author.profile.avatarURL}
+                alt={`${author.username}'s avatar`}
+              ></img>
+            ) : (
+              <i className="fa fa-regular fa-user"></i>
+            )}
+          </div>
           <button
             onClick={() => onAuthorClick(author.id)}
             className="author-name"

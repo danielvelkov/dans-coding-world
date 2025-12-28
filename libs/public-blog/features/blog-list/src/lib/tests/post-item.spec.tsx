@@ -2,13 +2,18 @@ import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PostItem } from '../components/post-item';
 import userEvent from '@testing-library/user-event';
-import { mockPosts } from './mocks/post-item-data.mock';
+import { mockPostItemData } from './mocks/post-item-data.mock';
 
-const post = mockPosts[0];
+const testPost = mockPostItemData[0];
 const onTagClick = vi.fn();
 const onAuthorClick = vi.fn();
 
-const postItemProps = { post, onTagClick, onAuthorClick, isLocked: false };
+const postItemProps = {
+  post: testPost,
+  onTagClick,
+  onAuthorClick,
+  isLocked: false,
+};
 
 describe('PostItem', () => {
   it('renders successfully', () => {
@@ -25,7 +30,7 @@ describe('PostItem', () => {
   it('renders post title as h3', () => {
     render(<PostItem {...postItemProps} />);
     expect(screen.getByRole('heading', { level: 3 }).textContent).toMatch(
-      post.title
+      testPost.title
     );
   });
 
@@ -33,7 +38,7 @@ describe('PostItem', () => {
     render(<PostItem {...postItemProps} />);
     const firstParagraphRegex = /^.*\n/;
 
-    const matches = post.content.match(firstParagraphRegex);
+    const matches = testPost.content.match(firstParagraphRegex);
     if (!matches || matches.length === 0)
       throw new Error('Missing test paragraph in post content');
 
@@ -48,8 +53,28 @@ describe('PostItem', () => {
   it('renders author full name if he has profile setup', () => {
     render(<PostItem {...postItemProps} />);
     const fullName =
-      post.author.profile?.firstName + ' ' + post.author.profile?.lastName;
+      testPost.author.profile?.firstName +
+      ' ' +
+      testPost.author.profile?.lastName;
     expect(screen.getByText(`By ${fullName}`)).toBeInTheDocument();
+  });
+
+  it('renders image when user has avatarUrl provided', () => {
+    render(<PostItem {...postItemProps} />);
+    const image = screen.getByRole('img');
+    expect(image).toHaveAttribute('src', testPost.author.profile?.avatarURL);
+  });
+
+  it('should not render image when no profile details setup', () => {
+    const postWithoutAuthorProfile = {
+      ...testPost,
+      author: {
+        ...testPost.author,
+        profile: undefined,
+      },
+    };
+    render(<PostItem {...postItemProps} post={postWithoutAuthorProfile} />);
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
   it('renders author username if user has no profile details setup', () => {
@@ -57,12 +82,12 @@ describe('PostItem', () => {
       <PostItem
         {...postItemProps}
         post={{
-          ...post,
-          author: { ...post.author, profile: undefined },
+          ...testPost,
+          author: { ...testPost.author, profile: undefined },
         }}
       ></PostItem>
     );
-    const fullName = post.author.username;
+    const fullName = testPost.author.username;
     expect(screen.getByText(`By ${fullName}`)).toBeInTheDocument();
   });
 
@@ -70,12 +95,14 @@ describe('PostItem', () => {
     render(<PostItem {...postItemProps} />);
     const user = userEvent.setup();
     const fullName =
-      post.author.profile?.firstName + ' ' + post.author.profile?.lastName;
+      testPost.author.profile?.firstName +
+      ' ' +
+      testPost.author.profile?.lastName;
     const authorButton = screen.getByText(`By ${fullName}`);
 
     await user.click(authorButton);
 
-    expect(onAuthorClick).toHaveBeenCalledWith(post.author.id);
+    expect(onAuthorClick).toHaveBeenCalledWith(testPost.author.id);
     expect(onAuthorClick).toHaveBeenCalledTimes(1);
   });
 
@@ -86,22 +113,22 @@ describe('PostItem', () => {
 
   it('renders post tags', () => {
     render(<PostItem {...postItemProps} />);
-    if (!post.tags) throw new Error('Missing tags in test data');
-    for (const tagName of post.tags)
+    if (!testPost.tags) throw new Error('Missing tags in test data');
+    for (const tagName of testPost.tags)
       expect(screen.getByRole('button', { name: tagName })).toBeInTheDocument();
   });
 
   it('clicking tags calls the onTagClick handler', async () => {
     render(<PostItem {...postItemProps} />);
     const user = userEvent.setup();
-    if (!post.tags) throw new Error('Missing tags in test data');
-    for (const tagName of post.tags) {
+    if (!testPost.tags) throw new Error('Missing tags in test data');
+    for (const tagName of testPost.tags) {
       const tagButton = screen.getByRole('button', { name: tagName });
 
       await user.click(tagButton);
 
       expect(onTagClick).toHaveBeenCalledWith(tagName);
     }
-    expect(onTagClick).toHaveBeenCalledTimes(post.tags.length);
+    expect(onTagClick).toHaveBeenCalledTimes(testPost.tags.length);
   });
 });
