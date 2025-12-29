@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 
-import ItemsPerPage from './items-per-page';
+import ItemsPerPage from '../components/items-per-page';
 
 describe('Items per page', () => {
   const onItemSelect = vi.fn();

@@ -1,2 +1,2 @@
-export * from './lib/pagination';
-export * from './lib/items-per-page';
+export * from './lib/components/pagination';
+export * from './lib/components/items-per-page';
