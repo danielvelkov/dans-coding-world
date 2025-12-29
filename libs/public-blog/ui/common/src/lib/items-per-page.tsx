@@ -4,14 +4,16 @@ import styled from 'styled-components';
 // attributes without this magic incantation
 const StyledSelect = styled.select<React.ComponentPropsWithoutRef<'select'>>``;
 
-export function ItemsPerPage({
+// By making this generic, when you pass your const array of values
+// it automatically  makes the other params take only values of that arr
+export function ItemsPerPage<T extends number | string>({
   values,
   currentValue,
   onItemSelect,
 }: {
-  values: number[];
-  currentValue: number;
-  onItemSelect: (quantity: number) => void;
+  values: readonly T[];
+  currentValue: T;
+  onItemSelect: (value: T) => void;
 }) {
   return (
     <StyledSelect defaultValue={currentValue}>

@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PostList, EMPTY_POSTS_MESSAGE } from '../components/post-list';
-import { mockPosts } from './mocks/post-item-data.mock';
+import { mockPostItemData } from './mocks/post-item-data.mock';
 import { PostItem } from '../components/post-item';
 
 const validProps = {
@@ -12,7 +12,7 @@ const validProps = {
 
 const validList = (
   <PostList>
-    {mockPosts.map((p) => (
+    {mockPostItemData.map((p) => (
       <PostItem key={p.id} {...validProps} post={p}></PostItem>
     ))}
   </PostList>
@@ -27,12 +27,14 @@ describe('PostList', () => {
   it('renders <ul> with the number of <li> equal to the passed post items', () => {
     render(validList);
     const ul = screen.getByRole('list');
-    expect(within(ul).getAllByRole('listitem').length).toBe(mockPosts.length);
+    expect(within(ul).getAllByRole('listitem').length).toBe(
+      mockPostItemData.length
+    );
   });
 
   it('renders PostItem components with correct props', () => {
     render(validList);
-    for (const post of mockPosts)
+    for (const post of mockPostItemData)
       expect(
         screen.getByRole('heading', { name: post.title })
       ).toBeInTheDocument();

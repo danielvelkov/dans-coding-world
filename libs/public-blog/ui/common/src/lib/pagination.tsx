@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-const StyledNav = styled.nav`
+const StyledNav = styled.nav<React.ComponentPropsWithoutRef<'nav'>>`
   display: flex;
   justify-content: center;
 
@@ -50,7 +50,7 @@ export function Pagination({
     return null;
   }
   return (
-    <StyledNav>
+    <StyledNav aria-label="pagination">
       <ul className="pagination">
         <li key={'prev'}>
           <button
