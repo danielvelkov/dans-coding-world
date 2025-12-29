@@ -6,6 +6,12 @@
       "path": "../../../prisma-schema"
     },
     {
+      "path": "../../../shared/post/dtos"
+    },
+    {
+      "path": "../../ui/common"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {
