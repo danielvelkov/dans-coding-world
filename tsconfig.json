@@ -83,6 +83,9 @@
     },
     {
       "path": "./libs/public-blog/ui/common"
+    },
+    {
+      "path": "./libs/shared/data-access/api"
     }
   ]
 }
