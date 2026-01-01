@@ -1,11 +1,12 @@
 import styled from 'styled-components';
-import { PostItemData } from '../types/post-item-data.types';
+import { BlogPostItem } from '../types/post-item-data.types';
 import {
   formatDateTo_DD_MMM_YYYY,
   getFirstParagraph,
 } from '../helper/post-content.util';
+import React from 'react';
 
-const StyledListItem = styled.li``;
+const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>``;
 
 export function PostItem({
   post,
@@ -13,7 +14,7 @@ export function PostItem({
   onAuthorClick,
   isLocked,
 }: {
-  post: PostItemData;
+  post: BlogPostItem;
   onTagClick: (tagName: string) => void;
   onAuthorClick: (id: number) => void;
   isLocked: boolean;

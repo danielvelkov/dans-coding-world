@@ -1,6 +1,6 @@
-import { PostItemData } from '../../types/post-item-data.types';
+import { BlogPostItem } from '../../types/post-item-data.types';
 
-export const mockPostItemData: readonly PostItemData[] = [
+export const mockPostItemData: readonly BlogPostItem[] = [
   {
     id: 1,
     title: 'Random title',

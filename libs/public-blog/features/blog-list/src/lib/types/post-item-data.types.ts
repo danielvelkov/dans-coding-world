@@ -4,7 +4,7 @@ export type AuthorPreview = Pick<User, 'id' | 'role' | 'username'> & {
   profile?: Omit<Profile, 'bio' | 'id' | 'userId'>;
 };
 
-export type PostItemData = Pick<Post, 'id' | 'title' | 'content'> & {
+export type BlogPostItem = Pick<Post, 'id' | 'title' | 'content'> & {
   publishedAt: Date;
   author: AuthorPreview;
   tags?: string[];
