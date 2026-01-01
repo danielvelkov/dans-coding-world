@@ -1,29 +1,29 @@
 import { CookieJar } from 'tough-cookie';
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { User } from '@dans-coding-world/prisma-schema';
 import { createAuthRouteHelper } from './auth-request.helper';
+import { ApiClient, BASE_URL } from '@dans-coding-world/shared-data-access-api';
 
 /**
- * Generates a new axios client for individual test use. It has no saved cookies.
- * @returns New axios client with no cookie history.
+ * Generates a new api client for individual test use. It has no saved cookies.
+ * @returns New api client with no cookie history.
  */
-export function createAxiosClient() {
-  const host = process.env.HOST ?? 'localhost';
-  const port = process.env.PORT ?? '3000';
-
+export function createApiClient() {
   const jar = new CookieJar();
 
-  // Create a new axios instance (not the global one)
-  const client = wrapper(
-    axios.create({
-      baseURL: `http://${host}:${port}`,
-      jar: jar,
-      withCredentials: true,
-    })
+  // Create a new api client instance (not the global one)
+  const api = new ApiClient(
+    wrapper(
+      axios.create({
+        baseURL: BASE_URL,
+        jar: jar,
+        withCredentials: true,
+      })
+    )
   );
 
-  return client;
+  return api;
 }
 /**
  * Creates a test client, performs authentication (if a user is provided),
@@ -34,10 +34,10 @@ export function createAxiosClient() {
  * @returns A promise resolving to the initialized route helper (e.g., `UserHelpers`, `AuthHelpers`).
  */
 export const setupClient = async (
-  routeHelperFactory: (client: AxiosInstance) => any,
+  routeHelperFactory: (client: ApiClient) => any,
   user?: User
 ): Promise<any> => {
-  const client = createAxiosClient();
+  const client = createApiClient();
 
   if (user) {
     const { login } = createAuthRouteHelper(client);

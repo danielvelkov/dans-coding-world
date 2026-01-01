@@ -1,7 +1,11 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
+import {
+  ApiClient,
+  API_ENDPOINTS,
+} from '@dans-coding-world/shared-data-access-api';
+import { AxiosResponse } from 'axios';
 import { decode, JwtPayload } from 'jsonwebtoken';
 
-export function createAuthRouteHelper(client: AxiosInstance) {
+export function createAuthRouteHelper(client: ApiClient) {
   return {
     async register(email: string, password: string, username: string) {
       const urlSearchParams = new URLSearchParams();
@@ -9,7 +13,7 @@ export function createAuthRouteHelper(client: AxiosInstance) {
       urlSearchParams.append('password', password);
       urlSearchParams.append('username', username);
 
-      return await client.post('/api/v1/auth/register', urlSearchParams, {
+      return await client.post(API_ENDPOINTS.AUTH.REGISTER, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -29,7 +33,7 @@ export function createAuthRouteHelper(client: AxiosInstance) {
       urlSearchParams.append('email', email);
       urlSearchParams.append('password', password);
 
-      return await client.post('/api/v1/auth/login', urlSearchParams, {
+      return await client.post(API_ENDPOINTS.AUTH.LOGIN, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -37,14 +41,14 @@ export function createAuthRouteHelper(client: AxiosInstance) {
     },
 
     async logout() {
-      return await client.post('/api/v1/auth/logout');
+      return await client.post(API_ENDPOINTS.AUTH.LOGOUT);
     },
 
     async renewAuthToken(token: string) {
       const urlSearchParams = new URLSearchParams();
       urlSearchParams.append('token', token);
 
-      return await client.post('/api/v1/auth/refresh', urlSearchParams, {
+      return await client.post(API_ENDPOINTS.AUTH.REFRESH, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -55,7 +59,7 @@ export function createAuthRouteHelper(client: AxiosInstance) {
       const urlSearchParams = new URLSearchParams();
       urlSearchParams.append('token', token);
 
-      return await client.post('/api/v1/auth/revoke-token', urlSearchParams, {
+      return await client.post(API_ENDPOINTS.AUTH.REVOKE, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -63,7 +67,7 @@ export function createAuthRouteHelper(client: AxiosInstance) {
     },
 
     async revokeAllTokens() {
-      return await client.post('/api/v1/auth/revoke-all');
+      return await client.post(API_ENDPOINTS.AUTH.REVOKE_ALL);
     },
   };
 }
