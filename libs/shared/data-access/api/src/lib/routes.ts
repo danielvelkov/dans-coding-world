@@ -11,6 +11,12 @@ export const API_ENDPOINTS = {
   },
   USERS: {
     BY_ID: (userId: number) => `${PREFIX}/users/${userId}`,
+    REVOKE_TOKENS: (userId: number) =>
+      `${PREFIX}/users/${userId}/revoke-tokens`,
+    UPDATE: `${PREFIX}/users`,
+    PASSWORD: `${PREFIX}/users/password`,
+    ROLE_CHANGE: (userId: number) => `${PREFIX}/users/${userId}/role`,
+    BAN: (userId: number) => `${PREFIX}/users/${userId}/ban`,
   },
   POSTS: {
     LIST: `${PREFIX}/posts`,
