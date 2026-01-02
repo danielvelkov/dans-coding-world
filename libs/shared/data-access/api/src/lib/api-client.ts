@@ -46,6 +46,15 @@ export class ApiClient {
       .data;
   }
 
+  async patch<T = BaseResponse>(
+    path: string,
+    data?: any,
+    options?: AxiosRequestConfig
+  ) {
+    return (await this.request<T>(path, { ...options, method: 'PATCH', data }))
+      .data;
+  }
+
   async delete<T = BaseResponse>(path: string, options?: AxiosRequestConfig) {
     return (await this.request<T>(path, { ...options, method: 'DELETE' })).data;
   }
