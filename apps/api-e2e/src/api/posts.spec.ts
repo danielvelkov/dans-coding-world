@@ -34,6 +34,7 @@ import { passwordGenerator as generateRandomString } from '@dans-coding-world/ap
 import { StatusCodes } from 'http-status-codes';
 import { testInvalidIds } from '../helper/validation.helper';
 import { getData, getMessage } from '../helper/common.helper';
+import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 
 describe('/api/v1/posts', () => {
   let users: User[] = [];
@@ -356,13 +357,12 @@ describe('/api/v1/posts', () => {
       });
 
       it('should return MEMBERS_ONLY posts with content masked', async () => {
-        const res = await anonHelpers.getPosts({
+        const { data } = await anonHelpers.getPosts({
           filterBy: {
             visibility: ['MEMBERS_ONLY'],
           },
         });
 
-        const { data } = res.data as BaseResponse;
         const postsData = data as GetPostsResponseDto;
 
         expect(postsData.count).toBe(PUBLISHED_MEMBERS_ONLY_POSTS_NUM);
@@ -1464,12 +1464,13 @@ describe('/api/v1/posts', () => {
       );
       if (!postForDeletion) throw new Error('Missing test post');
 
-      const deleteRes = await authorHelpers.deletePost(
-        postForDeletion.id.toString()
+      const deleteRes = await adminHelpers.client.request(
+        API_ENDPOINTS.POSTS.BY_ID(postForDeletion.id),
+        { method: 'DELETE' }
       );
       expect(deleteRes.status).toBe(StatusCodes.OK);
 
-      expect(getMessage(deleteRes)).toBe(SUCCESS_MESSAGES.POSTS.delete);
+      expect(getMessage(deleteRes.data)).toBe(SUCCESS_MESSAGES.POSTS.delete);
 
       deletedIds.push(postForDeletion.id);
 
@@ -1505,13 +1506,14 @@ describe('/api/v1/posts', () => {
       );
       if (!postForDeletionFromAnotherUser) throw new Error('Missing test post');
 
-      const deleteRes = await adminHelpers.deletePost(
-        postForDeletionFromAnotherUser.id.toString()
+      const deleteRes = await adminHelpers.client.request(
+        API_ENDPOINTS.POSTS.BY_ID(postForDeletionFromAnotherUser.id),
+        { method: 'DELETE' }
       );
 
       expect(deleteRes.status).toBe(StatusCodes.OK);
 
-      expect(getMessage(deleteRes)).toBe(SUCCESS_MESSAGES.POSTS.delete);
+      expect(getMessage(deleteRes.data)).toBe(SUCCESS_MESSAGES.POSTS.delete);
     });
 
     it('deleting the last post referencing created tags should delete them also', async () => {

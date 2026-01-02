@@ -8,7 +8,12 @@ export function toFormData(data: Record<string, any>) {
   return form;
 }
 
-export function toUrlEncoded(data: Record<string, any>) {
+/**
+ * Transform data to URLSearchParams object for axios
+ * @param data Form data
+ * @link https://axios-http.com/docs/urlencoded
+ */
+export function toURLSearchParams(data: Record<string, any>) {
   const params = new URLSearchParams();
 
   for (const [key, value] of Object.entries(data)) {

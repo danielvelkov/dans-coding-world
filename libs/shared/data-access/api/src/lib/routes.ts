@@ -21,5 +21,15 @@ export const API_ENDPOINTS = {
   POSTS: {
     LIST: `${PREFIX}/posts`,
     BY_ID: (postId: number) => `${PREFIX}/posts/${postId}`,
+    METADATA: `${PREFIX}/posts/metadata`,
+  },
+  COMMENTS: {
+    LIST: (postId: number) => `${PREFIX}/posts/${postId}/comments`,
+    BY_ID: (postId: number, commentId: number) =>
+      `${PREFIX}/posts/${postId}/comments/${commentId}`,
+  },
+  TAGS: {
+    LIST: `${PREFIX}/tags`,
+    BY_ID: (tagId: number) => `${PREFIX}/tags/${tagId}`,
   },
 };

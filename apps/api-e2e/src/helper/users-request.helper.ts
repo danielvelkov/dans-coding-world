@@ -10,7 +10,7 @@ import {
   ApiClient,
   API_ENDPOINTS,
   toFormData,
-  toUrlEncoded,
+  toURLSearchParams,
 } from '@dans-coding-world/shared-data-access-api';
 import { multipartHeaders, urlEncodedHeaders } from './common.helper';
 
@@ -41,14 +41,14 @@ export function createUsersRouteHelper(client: ApiClient) {
     },
 
     changePassword(data: Omit<ChangePasswordDto, 'userId'>) {
-      const body = toUrlEncoded(data);
+      const body = toURLSearchParams(data);
       return client.patch(API_ENDPOINTS.USERS.PASSWORD, body, {
         headers: urlEncodedHeaders,
       });
     },
 
     changeUserRole(id: string, data: Omit<ChangeRoleDto, 'userId'>) {
-      const body = toUrlEncoded(data);
+      const body = toURLSearchParams(data);
       return client.patch(API_ENDPOINTS.USERS.ROLE_CHANGE(+id), body, {
         headers: urlEncodedHeaders,
       });
@@ -58,7 +58,7 @@ export function createUsersRouteHelper(client: ApiClient) {
       id: string,
       data: Omit<ChangeBanStatusDto, 'userId' | 'userToChangeId'>
     ) {
-      const body = toUrlEncoded(data);
+      const body = toURLSearchParams(data);
       return client.patch(API_ENDPOINTS.USERS.BAN(+id), body, {
         headers: urlEncodedHeaders,
       });
