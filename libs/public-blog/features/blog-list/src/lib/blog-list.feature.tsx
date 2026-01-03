@@ -4,7 +4,10 @@ import {
   Pagination,
   ItemsPerPage,
 } from '@dans-coding-world/public-blog-ui-common';
-import { PAGINATION } from '@dans-coding-world/shared-constants';
+import {
+  PAGINATION,
+  calculatePageOffset,
+} from '@dans-coding-world/shared-constants';
 import { PostList } from './components/post-list';
 import { PostItem } from './components/post-item';
 import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
@@ -41,6 +44,16 @@ export function BlogList({
   return (
     <StyledBlogListFeature>
       <div>
+        <ItemsPerPage
+          values={PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS}
+          currentValue={
+            (pagination.limit as AllowedItemOptions) ??
+            PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+          }
+          onItemSelect={(itemsPerPage) =>
+            setParams({ ...params, pageSize: itemsPerPage })
+          }
+        ></ItemsPerPage>
       </div>
       <PostList>
         {posts.map((p) => (
@@ -61,6 +74,16 @@ export function BlogList({
           ></PostItem>
         ))}
       </PostList>
+      <Pagination
+        totalPages={pagination.totalPages}
+        currentPage={pagination.page}
+        onPageSelect={(page) =>
+          setParams({
+            ...params,
+            pageOffset: calculatePageOffset(page, params.pageOffset),
+          })
+        }
+      ></Pagination>
     </StyledBlogListFeature>
   );
 }
