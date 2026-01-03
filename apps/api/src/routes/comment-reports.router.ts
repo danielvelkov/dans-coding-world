@@ -52,7 +52,7 @@ export default commentReportsRouter;
  *           type: integer
  *           minimum: 0
  *         required: false
- *         description: Page offset for pagination (must be divisible by pageSize)
+ *         description: Page offset for pagination (**if pageSize specified - offset must be divisible by pageSize**)
  *       - in: query
  *         name: pageSize
  *         schema:
