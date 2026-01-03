@@ -7,13 +7,13 @@ import { decode, JwtPayload } from 'jsonwebtoken';
 
 export function createAuthRouteHelper(client: ApiClient) {
   return {
-    async register(email: string, password: string, username: string) {
+    register(email: string, password: string, username: string) {
       const urlSearchParams = new URLSearchParams();
       urlSearchParams.append('email', email);
       urlSearchParams.append('password', password);
       urlSearchParams.append('username', username);
 
-      return await client.post(API_ENDPOINTS.AUTH.REGISTER, urlSearchParams, {
+      return client.post(API_ENDPOINTS.AUTH.REGISTER, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -28,46 +28,46 @@ export function createAuthRouteHelper(client: ApiClient) {
      * @returns Login response
      * @throws {Error} When login fails
      */
-    async login(email: string, password: string) {
+    login(email: string, password: string) {
       const urlSearchParams = new URLSearchParams();
       urlSearchParams.append('email', email);
       urlSearchParams.append('password', password);
 
-      return await client.post(API_ENDPOINTS.AUTH.LOGIN, urlSearchParams, {
+      return client.post(API_ENDPOINTS.AUTH.LOGIN, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
     },
 
-    async logout() {
-      return await client.post(API_ENDPOINTS.AUTH.LOGOUT);
+    logout() {
+      return client.post(API_ENDPOINTS.AUTH.LOGOUT);
     },
 
-    async renewAuthToken(token: string) {
+    renewAuthToken(token: string) {
       const urlSearchParams = new URLSearchParams();
       urlSearchParams.append('token', token);
 
-      return await client.post(API_ENDPOINTS.AUTH.REFRESH, urlSearchParams, {
+      return client.post(API_ENDPOINTS.AUTH.REFRESH, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
     },
 
-    async revokeToken(token: string) {
+    revokeToken(token: string) {
       const urlSearchParams = new URLSearchParams();
       urlSearchParams.append('token', token);
 
-      return await client.post(API_ENDPOINTS.AUTH.REVOKE, urlSearchParams, {
+      return client.post(API_ENDPOINTS.AUTH.REVOKE, urlSearchParams, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
     },
 
-    async revokeAllTokens() {
-      return await client.post(API_ENDPOINTS.AUTH.REVOKE_ALL);
+    revokeAllTokens() {
+      return client.post(API_ENDPOINTS.AUTH.REVOKE_ALL);
     },
   };
 }

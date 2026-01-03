@@ -32,4 +32,10 @@ export const API_ENDPOINTS = {
     LIST: `${PREFIX}/tags`,
     BY_ID: (tagId: number) => `${PREFIX}/tags/${tagId}`,
   },
+  REPORTS: {
+    COMMENTS: {
+      LIST: `${PREFIX}/reports/comments`,
+      BY_ID: (reportId: number) => `${PREFIX}/reports/comments/${reportId}`,
+    },
+  },
 };

@@ -15,7 +15,6 @@ import {
   seedReports,
   seedReportHistories,
 } from '@dans-coding-world/testing-setup';
-import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   ERROR_CODES,
   PAGINATION,
@@ -664,12 +663,10 @@ describe('/api/v1/reports/comments', () => {
 
       if (!commentToReport) throw new Error('Missing test comment');
 
-      const res = await userHelpers.createReport({
+      const { data } = await userHelpers.createReport({
         commentId: commentToReport.id,
         reason: generateRandomString(10),
       });
-
-      const { data } = res.data as BaseResponse;
 
       const createdReport = (data as any).report as Report;
       testReports.push(createdReport);
@@ -780,12 +777,10 @@ describe('/api/v1/reports/comments', () => {
         if (!commentOnAPrivatePostWithoutReports)
           throw new Error('Missing test comment');
 
-        const res = await helper.createReport({
+        const { data } = await helper.createReport({
           commentId: commentOnAPrivatePostWithoutReports.id,
           reason: generateRandomString(10),
         });
-
-        const { data } = res.data as BaseResponse;
 
         const report = (data as any).report as Report;
         expect(report).toBeDefined();

@@ -13,7 +13,6 @@ import {
   seedTags,
   attachTagsToPost,
 } from '@dans-coding-world/testing-setup';
-import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   ERROR_CODES,
   PAGINATION,
