@@ -31,7 +31,7 @@ import {
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
 import { StatusCodes } from 'http-status-codes';
-import { testInvalidIds } from '../helper/validation.helper';
+import { testInvalidIds } from '../helper/test-cases.helper';
 import { getData, getMessage } from '../helper/common.helper';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 

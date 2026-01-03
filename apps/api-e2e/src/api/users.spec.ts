@@ -18,7 +18,7 @@ import {
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { setupClient } from '../helper/test-client.helper';
-import { testInvalidIds } from '../helper/validation.helper';
+import { testInvalidIds } from '../helper/test-cases.helper';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { UserDetail } from '@dans-coding-world/user-data-access';
 import { generateRandomString } from '@dans-coding-world/helpers';

@@ -28,7 +28,7 @@ import { GetReportsResponseDto } from '@dans-coding-world/shared-report-dto';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { generateRandomString, randomSelect } from '@dans-coding-world/helpers';
 import { ReportDetail } from '@dans-coding-world/report-data-access';
-import { testInvalidIds } from '../helper/validation.helper';
+import { testInvalidIds } from '../helper/test-cases.helper';
 import { getData, getMessage } from '../helper/common.helper';
 
 describe('/api/v1/reports/comments', () => {
