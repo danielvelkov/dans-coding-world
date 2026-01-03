@@ -6,7 +6,16 @@
       "path": "../../../prisma-schema"
     },
     {
+      "path": "../../../shared/util/api-types"
+    },
+    {
+      "path": "../../../shared/data-access/api"
+    },
+    {
       "path": "../../../shared/post/dtos"
+    },
+    {
+      "path": "../../../shared/util/shared-constants"
     },
     {
       "path": "../../ui/common"
