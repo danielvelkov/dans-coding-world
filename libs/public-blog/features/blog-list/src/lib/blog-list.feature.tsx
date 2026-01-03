@@ -1,40 +1,42 @@
-import { useQuery } from '@tanstack/react-query';
 import styled from 'styled-components';
+import { useState } from 'react';
 import {
   Pagination,
   ItemsPerPage,
 } from '@dans-coding-world/public-blog-ui-common';
-import {
-  GetPostsDto,
-  GetPostsResponseDto,
-} from '@dans-coding-world/shared-post-dto';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import { PostList } from './components/post-list';
-import { PostItemData } from './types/post-item-data.types';
 import { PostItem } from './components/post-item';
-
-type QueryParams = Omit<GetPostsDto, 'viewerId'>;
-
-export const POSTS_QUERY_KEY = 'posts';
+import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
 
 const StyledBlogListFeature = styled.div``;
 
-export function BlogListFeature({
-  fetchPostsFn,
-  params,
+type AllowedItemOptions =
+  (typeof PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS)[number];
+
+export function BlogList({
   onAuthorClick,
-  onParamsChange,
 }: {
-  fetchPostsFn: (params: QueryParams) => Promise<GetPostsResponseDto>;
-  params: QueryParams;
   onAuthorClick: (id: number) => void;
-  onParamsChange: (params: QueryParams) => void;
 }) {
-  const { data, error, isPending, isError } = useQuery({
-    queryKey: [POSTS_QUERY_KEY, params],
-    queryFn: () => fetchPostsFn(params),
-  });
-  const { pagination, posts } = extractPaginationAndPosts(data);
+  const [params, setParams] = useState<FetchPostsQueryParams>({});
+  const { data, isPending, isError, error } = useFetchPosts(params);
+
+  if (isError)
+    return (
+      <StyledBlogListFeature>
+        <span data-testid="error-message">{error.message}</span>
+      </StyledBlogListFeature>
+    );
+
+  if (isPending || !data)
+    return (
+      <StyledBlogListFeature>
+        <PostItemShimmerComponent></PostItemShimmerComponent>
+      </StyledBlogListFeature>
+    );
+
+  const { pagination, posts } = data;
 
   return (
     <StyledBlogListFeature>
@@ -48,7 +50,7 @@ export function BlogListFeature({
             isLocked={false}
             onAuthorClick={onAuthorClick}
             onTagClick={(tagName) =>
-              onParamsChange({
+              setParams({
                 ...params,
                 filterBy: {
                   ...params.filterBy,
@@ -64,23 +66,6 @@ export function BlogListFeature({
 }
 
 // TODO:
-const extractPaginationAndPosts = (responseDto: GetPostsResponseDto) => {
-  const postItemData: PostItemData[] = [];
-  for (const post of responseDto.items)
-    postItemData.push({
-      ...post,
-      publishedAt: post.publishedAt as Date,
-      author: {
-        id: post.authorId,
-        role: 'AUTHOR',
-        username: 'bababui',
-        profile: {
-          firstName: 'baba',
-          lastName: 'bui',
-          avatarURL: 'URL',
-        },
-      },
-    });
-  return { pagination: responseDto.pagination, posts: postItemData };
-};
-export default BlogListFeature;
+const PostItemShimmerComponent = () => <div></div>;
+
+export default BlogList;
