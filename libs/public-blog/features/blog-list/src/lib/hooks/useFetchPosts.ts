@@ -18,8 +18,7 @@ export const useFetchPosts = (params?: FetchPostsQueryParams) => {
       });
 
       if (!response) return Promise.reject('An unknown error occurred');
-
-      if (!response.success) {
+      else if (!response.success) {
         return Promise.reject(response.error);
       }
 
@@ -30,23 +29,15 @@ export const useFetchPosts = (params?: FetchPostsQueryParams) => {
   return query;
 };
 
-// TODO: include author details to GET /posts
 const extractPaginationAndPosts = (responseDto: GetPostsResponseDto) => {
   const postItemData: BlogPostItem[] = [];
+
   for (const post of responseDto.items)
     postItemData.push({
       ...post,
-      publishedAt: post.publishedAt as Date,
-      author: {
-        id: post.authorId,
-        role: 'AUTHOR',
-        username: 'bababui',
-        profile: {
-          firstName: 'baba',
-          lastName: 'bui',
-          avatarURL: 'URL',
-        },
-      },
+      publishedAt: new Date(post.publishedAt as Date),
+      updatedAt: new Date(post.updatedAt as Date),
     });
+
   return { pagination: responseDto.pagination, posts: postItemData };
 };
