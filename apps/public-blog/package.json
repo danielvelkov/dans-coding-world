@@ -1,5 +1,24 @@
 {
   "name": "@dans-coding-world/public-blog",
   "version": "0.0.1",
-  "private": true
+  "private": true,
+  "nx": {
+    "targets": {
+      "serve-all": {
+        "executor": "nx:run-commands",
+        "options": {
+          "parallel": true,
+          "commands": [
+            "nx run api:serve:e2e",
+            "nx run public-blog:dev"
+          ]
+        }
+      }
+    },
+    "tags": [
+      "scope:frontend",
+      "layer:public-blog",
+      "type:app"
+    ]
+  }
 }
