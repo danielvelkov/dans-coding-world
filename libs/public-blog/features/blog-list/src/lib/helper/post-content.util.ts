@@ -1,5 +1,5 @@
 export function getFirstParagraph(value: string) {
-  const firstParagraphRegex = /^.*\n/;
+  const firstParagraphRegex = /^.(?=\n|$)|.{0,300}/;
   const matches = value.match(firstParagraphRegex);
 
   return (matches ?? [''])[0];

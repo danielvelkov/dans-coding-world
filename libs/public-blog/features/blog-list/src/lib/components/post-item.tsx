@@ -26,13 +26,17 @@ export function PostItem({
     ? `${author.profile.firstName} ${author.profile.lastName}`
     : author.username;
   const formattedPublishedDate = formatDateTo_DD_MMM_YYYY(postData.publishedAt);
+  const formattedUpdatedDate = formatDateTo_DD_MMM_YYYY(postData.updatedAt);
 
   return (
     <StyledListItem>
       <article className="post">
-        <h3 className="title">{postData.title}</h3>
-        <div>
-          <div className="image-container">
+        <h2 className="title">{postData.title}</h2>
+        <div className="details">
+          <div
+            className="image-container"
+            onClick={() => onAuthorClick(author.id)}
+          >
             {author.profile && author.profile.avatarURL ? (
               <img
                 src={author.profile.avatarURL}
@@ -44,18 +48,27 @@ export function PostItem({
           </div>
           <button
             onClick={() => onAuthorClick(author.id)}
-            className="author-name"
+            className="author-name link-button"
           >{`By ${authorName}`}</button>
-          {' | '}
-          <span className="published-date">{formattedPublishedDate}</span>
-          {' | '}
-          <div>
+          {' • '}
+          <span className="published-date">{`Posted on ${formattedPublishedDate}`}</span>
+          {formattedPublishedDate !== formattedUpdatedDate ? (
+            <>
+              {' • '}
+              <span className="updated-date">
+                {`Edited on ${formattedUpdatedDate}`}
+              </span>
+            </>
+          ) : (
+            ''
+          )}
+          <div className="tag-list">
             {postData.tags &&
               postData.tags.map((tagName) => (
                 <button
                   key={`${post.id}-${tagName}`}
                   onClick={() => onTagClick(tagName)}
-                  className="tag"
+                  className="tag link-button"
                 >
                   {tagName}
                 </button>

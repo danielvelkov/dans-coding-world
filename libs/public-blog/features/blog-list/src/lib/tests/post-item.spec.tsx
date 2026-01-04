@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import { PostItem } from '../components/post-item';
 import userEvent from '@testing-library/user-event';
 import { mockPostItemData } from './mocks/post-item-data.mock';
+import { getFirstParagraph } from '../helper/post-content.util';
 
 const testPost = mockPostItemData[0];
 const onTagClick = vi.fn();
@@ -27,22 +28,19 @@ describe('PostItem', () => {
     expect(await within(li).findByRole('article')).toBeInTheDocument();
   });
 
-  it('renders post title as h3', () => {
+  it('renders post title as h2', () => {
     render(<PostItem {...postItemProps} />);
-    expect(screen.getByRole('heading', { level: 3 }).textContent).toMatch(
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toMatch(
       testPost.title
     );
   });
 
   it('renders the first paragraph of content as excerpt', () => {
     render(<PostItem {...postItemProps} />);
-    const firstParagraphRegex = /^.*\n/;
 
-    const matches = testPost.content.match(firstParagraphRegex);
-    if (!matches || matches.length === 0)
-      throw new Error('Missing test paragraph in post content');
+    const firstParagraph = getFirstParagraph(testPost.content);
 
-    expect(screen.getByRole('paragraph').textContent).toBe(matches[0]);
+    expect(screen.getByRole('paragraph').textContent).toBe(firstParagraph);
   });
 
   it('does not show content and displays login message when isLocked is true', () => {
@@ -108,7 +106,7 @@ describe('PostItem', () => {
 
   it(`renders post's published date in format: DD MMM YYYY`, () => {
     render(<PostItem {...postItemProps} />);
-    expect(screen.getByText(`01 Jan 2025`)).toBeInTheDocument();
+    expect(screen.getByText(`Posted on 01 Jan 2025`)).toBeInTheDocument();
   });
 
   it('renders post tags', () => {
