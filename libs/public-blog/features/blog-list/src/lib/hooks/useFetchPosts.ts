@@ -4,7 +4,8 @@ import {
   GetPostsDto,
 } from '@dans-coding-world/shared-post-dto';
 import { BlogPostItem } from '../types/post-item-data.types';
-import { API_ENDPOINTS, api } from '@dans-coding-world/shared-data-access-api';
+import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
+import { api } from '@dans-coding-world/public-blog-data-access-api';
 
 export type FetchPostsQueryParams = Omit<GetPostsDto, 'viewerId'>;
 

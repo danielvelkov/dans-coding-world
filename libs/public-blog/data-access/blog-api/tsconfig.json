@@ -1,0 +1,13 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../../shared/data-access/api"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    }
+  ]
+}

@@ -3,20 +3,19 @@ import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { User } from '@dans-coding-world/prisma-schema';
 import { createAuthRouteHelper } from './auth-request.helper';
-import { ApiClient, BASE_URL } from '@dans-coding-world/shared-data-access-api';
+import { ApiClient } from '@dans-coding-world/shared-data-access-api';
 
 /**
  * Generates a new api client for individual test use. It has no saved cookies.
+ * This way each test using the client can run separately.
  * @returns New api client with no cookie history.
  */
 export function createApiClient() {
   const jar = new CookieJar();
 
-  // Create a new api client instance (not the global one)
   const api = new ApiClient(
     wrapper(
       axios.create({
-        baseURL: BASE_URL,
         jar: jar,
         withCredentials: true,
       })

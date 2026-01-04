@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { ApiClient } from './api-client.js';
-import { BASE_URL } from './config.js';
+import { ApiClient } from '@dans-coding-world/shared-data-access-api';
+import { getApiBaseURL } from './config.js';
 
 const axiosInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: getApiBaseURL(),
   withCredentials: true, // For JWT cookies
 });
 

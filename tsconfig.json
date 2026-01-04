@@ -86,6 +86,9 @@
     },
     {
       "path": "./libs/shared/data-access/api"
+    },
+    {
+      "path": "./libs/public-blog/data-access/blog-api"
     }
   ]
 }

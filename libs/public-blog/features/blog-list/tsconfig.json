@@ -9,6 +9,9 @@
       "path": "../../../shared/util/api-types"
     },
     {
+      "path": "../../data-access/blog-api"
+    },
+    {
       "path": "../../../shared/data-access/api"
     },
     {
