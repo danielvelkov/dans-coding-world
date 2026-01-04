@@ -61,7 +61,8 @@ app.use(
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    // origin: 'http://localhost:3000', // allow only requests from that origin (*PORT is also part of origin)
+    origin: true, // allow requests from everywhere
     credentials: true,
     exposedHeaders: ['set-cookie'],
   })

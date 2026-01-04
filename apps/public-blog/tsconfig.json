@@ -3,6 +3,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../libs/public-blog/features/blog-list"
+    },
+    {
       "path": "./tsconfig.app.json"
     },
     {
