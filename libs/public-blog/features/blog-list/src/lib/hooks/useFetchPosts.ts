@@ -11,6 +11,7 @@ export type FetchPostsQueryParams = Omit<GetPostsDto, 'viewerId'>;
 
 export const useFetchPosts = (params?: FetchPostsQueryParams) => {
   const query = useQuery({
+    staleTime: 2 * 60 * 1000,
     queryKey: ['posts', params],
     queryFn: async () => {
       const response = await api.get(API_ENDPOINTS.POSTS.LIST, {

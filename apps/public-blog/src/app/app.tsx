@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { BlogList } from '@dans-coding-world/public-blog-features-blog-list';
 import { Route, Routes, Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const StyledApp = styled.div`
   // Your style here
@@ -15,6 +16,7 @@ const queryClient = new QueryClient();
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
       <StyledApp>
         <div role="navigation">
           <ul>
