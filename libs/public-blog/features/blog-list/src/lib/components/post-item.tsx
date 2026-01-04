@@ -6,7 +6,58 @@ import {
 } from '../helper/post-content.util';
 import React from 'react';
 
-const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>``;
+const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
+  padding: 0.5em 1em;
+  border: 2px solid #ddd;
+
+  .details,
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.99em;
+  }
+
+  .details {
+    gap: 0.8em;
+  }
+
+  .tag-list {
+    gap: 5px;
+  }
+
+  .link-button {
+    border: none;
+    padding: 5px;
+    text-decoration: underline;
+  }
+
+  .author-name {
+    font-family: inherit;
+    background: inherit;
+    padding: 0;
+    cursor: pointer;
+    font-size: 1em;
+  }
+
+  .author-name:hover {
+    color: #4c7cd5;
+  }
+
+  .image-container {
+    display: flex;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .image-container > img {
+    max-height: 4ch;
+  }
+
+  .excerpt {
+    color: #e8e6e3;
+  }
+`;
 
 export function PostItem({
   post,

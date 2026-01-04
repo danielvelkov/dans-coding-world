@@ -14,6 +14,48 @@ import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
 
 const StyledBlogListFeature = styled.div``;
 
+// TODO: does not look good
+const StyledShimmeringPost = styled.article`
+  position: relative;
+  box-sizing: border-box;
+  padding: 0.5em 1em;
+  border: 2px solid #ddd;
+
+  .line {
+    width: 100%;
+    height: 20px;
+    background: #bbb;
+    margin: 20px 0;
+    border-radius: 5px;
+  }
+
+  .shimmer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+
+    background: linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0) 20%,
+      rgba(255, 255, 255, 0.5) 50%,
+      rgba(255, 255, 255, 0) 80%
+    );
+
+    animation: shimmer 2s infinite linear;
+  }
+
+  @keyframes shimmer {
+    from {
+      transform: translateX(-200%);
+    }
+    to {
+      transform: translateX(200%);
+    }
+  }
+`;
+
 type AllowedItemOptions =
   (typeof PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS)[number];
 
@@ -89,6 +131,13 @@ export function BlogList({
 }
 
 // TODO:
-const PostItemShimmerComponent = () => <div></div>;
+const PostItemShimmerComponent = () => (
+  <StyledShimmeringPost>
+    <div className="line"></div>
+    <div className="line"></div>
+    <div className="line"></div>
+    <div className="shimmer"></div>
+  </StyledShimmeringPost>
+);
 
 export default BlogList;
