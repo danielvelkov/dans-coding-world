@@ -3,6 +3,7 @@
 import {
   Post,
   PostStatus,
+  PostWithAuthorProfile,
   Tag,
   User,
   client as prisma,
@@ -210,6 +211,20 @@ describe('/api/v1/posts', () => {
         expect(postData.tags.includes(tag.name)).toBe(true);
     });
 
+    it('should return posts with their author details included', async () => {
+      const publicPost = posts.find(
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+      );
+      if (!publicPost) throw new Error('Missing test post');
+
+      const res = await anonHelpers.getPost(publicPost.id.toString());
+
+      const post = getData<PostWithAuthorProfile>(res, 'post');
+
+      const expectedUser = users.find((u) => u.id === post.authorId);
+      expect(post.author.username).toBe(expectedUser?.username);
+    });
+
     test.each([
       ['masked when not logged in', false],
       ['shown when logged in', true],
@@ -380,6 +395,17 @@ describe('/api/v1/posts', () => {
 
         for (const post of postsData.items)
           expect((post as any).tags.length).toBeGreaterThan(0);
+      });
+
+      it('should return posts with their author details included', async () => {
+        const res = await anonHelpers.getPosts();
+
+        const postsData = getData<GetPostsResponseDto>(res);
+
+        for (const post of postsData.items) {
+          const expectedUser = users.find((u) => u.id === post.authorId);
+          expect(post.author.username).toBe(expectedUser?.username);
+        }
       });
 
       it('should allow filtering by tag name', async () => {
