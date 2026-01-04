@@ -7,6 +7,7 @@ export type {
   RefreshToken,
   RefreshTokenWhereInput,
   Post,
+  PostWithAuthorProfile,
   PostStatus,
   PostVisibility,
   PostWhereInput,

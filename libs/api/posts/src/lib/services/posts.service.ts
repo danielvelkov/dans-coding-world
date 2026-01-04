@@ -2,6 +2,7 @@ import {
   Post,
   PostOrderByInput,
   PostWhereInput,
+  PostWithAuthorProfile,
   Tag,
 } from '@dans-coding-world/prisma-schema';
 import {
@@ -93,7 +94,7 @@ export class PostsService implements IPostsService {
     const totalPages = Math.ceil(total / postsPerPage);
 
     // Hide Members-only content for guests
-    const items = posts.map((post) => {
+    const items = (posts as PostWithAuthorProfile[]).map((post) => {
       const tagNames = this.extractTagNames(post);
 
       if (this.isMembersOnly(post) && !dto?.viewerId) {
