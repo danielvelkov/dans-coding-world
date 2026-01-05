@@ -15,7 +15,6 @@ import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
 
 const StyledBlogListFeature = styled.div``;
 
-// TODO: does not look good
 const StyledShimmeringPost = styled.article<
   React.ComponentPropsWithoutRef<'article'>
 >`
