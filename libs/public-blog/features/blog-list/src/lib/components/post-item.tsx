@@ -9,6 +9,8 @@ import React from 'react';
 const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   padding: 0.5em 1em;
   border: 2px solid #ddd;
+  border-radius: 8px;
+  background: #f3f3f3;
 
   .details,
   .tag-list {

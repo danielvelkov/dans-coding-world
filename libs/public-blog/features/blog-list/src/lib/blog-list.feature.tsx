@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Pagination,
   ItemsPerPage,
@@ -16,43 +16,53 @@ import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
 const StyledBlogListFeature = styled.div``;
 
 // TODO: does not look good
-const StyledShimmeringPost = styled.article`
+const StyledShimmeringPost = styled.article<
+  React.ComponentPropsWithoutRef<'article'>
+>`
   position: relative;
-  box-sizing: border-box;
-  padding: 0.5em 1em;
-  border: 2px solid #ddd;
+  padding: 1em;
+  background: #f3f3f3;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1rem;
 
   .line {
-    width: 100%;
     height: 20px;
-    background: #bbb;
-    margin: 20px 0;
-    border-radius: 5px;
+    background: #e0e0e0;
+    margin: 15px 0;
+    border-radius: 4px;
+  }
+
+  .line:first-of-type {
+    width: 40%;
+  }
+
+  .line:nth-of-type(2) {
+    width: 70%;
+  }
+
+  .line:nth-of-type(3) {
+    width: 90%;
   }
 
   .shimmer {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-
+    inset: 0;
     background: linear-gradient(
-      100deg,
-      rgba(255, 255, 255, 0) 20%,
-      rgba(255, 255, 255, 0.5) 50%,
-      rgba(255, 255, 255, 0) 80%
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.6) 50%,
+      rgba(255, 255, 255, 0) 100%
     );
-
-    animation: shimmer 2s infinite linear;
+    animation: shimmer 1.5s infinite;
   }
 
   @keyframes shimmer {
-    from {
-      transform: translateX(-200%);
+    0% {
+      transform: translateX(-100%);
     }
-    to {
-      transform: translateX(200%);
+    100% {
+      transform: translateX(100%);
     }
   }
 `;
@@ -78,7 +88,9 @@ export function BlogList({
   if (isPending || !data)
     return (
       <StyledBlogListFeature>
-        <PostItemShimmerComponent></PostItemShimmerComponent>
+        <ShimmerList
+          count={PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE}
+        ></ShimmerList>
       </StyledBlogListFeature>
     );
 
@@ -103,7 +115,7 @@ export function BlogList({
           <PostItem
             key={p.id}
             post={p}
-            isLocked={false}
+            isLocked={p.content === VALIDATION_MESSAGES.posts.membersOnly}
             onAuthorClick={onAuthorClick}
             onTagClick={(tagName) =>
               setParams({
@@ -135,14 +147,17 @@ export function BlogList({
   );
 }
 
-// TODO:
-const PostItemShimmerComponent = () => (
-  <StyledShimmeringPost>
-    <div className="line"></div>
-    <div className="line"></div>
-    <div className="line"></div>
-    <div className="shimmer"></div>
-  </StyledShimmeringPost>
+const ShimmerList = ({ count }: { count: number }) => (
+  <div style={{ padding: '1em' }}>
+    {Array.from({ length: count }).map((_, i) => (
+      <StyledShimmeringPost key={i}>
+        <div className="line"></div>
+        <div className="line"></div>
+        <div className="line"></div>
+        <div className="shimmer"></div>
+      </StyledShimmeringPost>
+    ))}
+  </div>
 );
 
 export default BlogList;
