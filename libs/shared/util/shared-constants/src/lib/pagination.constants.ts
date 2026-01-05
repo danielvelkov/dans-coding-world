@@ -12,8 +12,3 @@ export const PAGINATION = {
     DEFAULT_ITEMS_PER_PAGE: 10,
   },
 } as const;
-
-export const calculatePageOffset = (
-  page: number,
-  pageLimit: number = PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
-) => (page - 1) * pageLimit;

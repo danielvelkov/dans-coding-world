@@ -6,8 +6,9 @@ import {
 } from '@dans-coding-world/public-blog-ui-common';
 import {
   PAGINATION,
-  calculatePageOffset,
+  VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
+import { calculatePageOffset } from '@dans-coding-world/helpers';
 import { PostList } from './components/post-list';
 import { PostItem } from './components/post-item';
 import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
@@ -119,12 +120,16 @@ export function BlogList({
       <Pagination
         totalPages={pagination.totalPages}
         currentPage={pagination.page}
-        onPageSelect={(page) =>
+        onPageSelect={(page) => {
+          const pageOffset = calculatePageOffset(
+            page,
+            params.pageOffset ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+          );
           setParams({
             ...params,
-            pageOffset: calculatePageOffset(page, params.pageOffset),
-          })
-        }
+            pageOffset: pageOffset === 0 ? undefined : pageOffset,
+          });
+        }}
       ></Pagination>
     </StyledBlogListFeature>
   );
