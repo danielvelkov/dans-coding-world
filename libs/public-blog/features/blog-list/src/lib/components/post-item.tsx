@@ -100,7 +100,10 @@ export function PostItem({
           <button
             onClick={() => onAuthorClick(author.id)}
             className="author-name link-button"
-          >{`By ${authorName}`}</button>
+          >
+            {`By `}
+            <em>{authorName}</em>
+          </button>
           {' • '}
           <span className="published-date">{`Posted on ${formattedPublishedDate}`}</span>
           {formattedPublishedDate !== formattedUpdatedDate ? (

@@ -2,9 +2,10 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFetchPosts } from '../hooks/useFetchPosts.js';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
-import { mockPostsResponse } from './mocks/posts-response.mock.js';
+import { generateMockPostsResponse } from './mocks/posts-response.mock.js';
 import { ResponseErrorDetails } from '@dans-coding-world/api-types';
 
+const mockPostResponse = generateMockPostsResponse({ length: 5, pageSize: 5 });
 vi.mock('@dans-coding-world/shared-data-access-api');
 
 describe('Custom hook - useFetchPosts', () => {
@@ -52,7 +53,7 @@ describe('Custom hook - useFetchPosts', () => {
 
   it('returns posts and pagination details on valid response from api', async () => {
     vi.mocked(api.get).mockResolvedValue({
-      data: mockPostsResponse,
+      data: mockPostResponse,
       success: true,
       error: null,
     });
@@ -70,11 +71,11 @@ describe('Custom hook - useFetchPosts', () => {
 
     if (!data) throw new Error('Testing of data fetch failed');
 
-    expect(data.pagination).toBe(mockPostsResponse.pagination);
-    expect(data.posts.length).toBe(mockPostsResponse.count);
+    expect(data.pagination).toBe(mockPostResponse.pagination);
+    expect(data.posts.length).toBe(mockPostResponse.count);
 
     for (const post of data.posts)
-      expect(mockPostsResponse.items.map((i) => i.id).includes(post.id)).toBe(
+      expect(mockPostResponse.items.map((i) => i.id).includes(post.id)).toBe(
         true
       );
   });

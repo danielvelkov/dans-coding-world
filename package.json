@@ -9,6 +9,7 @@
   "nx": {},
   "private": true,
   "dependencies": {
+    "@ngneat/falso": "^8.0.2",
     "@prisma/client": "^6.19.0",
     "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-query-devtools": "^5.91.2",

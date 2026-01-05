@@ -45,7 +45,9 @@ describe('PostItem', () => {
 
   it('does not show content and displays login message when isLocked is true', () => {
     render(<PostItem {...postItemProps} isLocked={true} />);
-    expect(screen.getByRole('paragraph').textContent).toMatch(/Login.*/gi);
+    expect(screen.getByRole('paragraph').textContent).toMatch(
+      /Login to read.*post.*/gi
+    );
   });
 
   it('renders author full name if he has profile setup', () => {
@@ -54,7 +56,7 @@ describe('PostItem', () => {
       testPost.author.profile?.firstName +
       ' ' +
       testPost.author.profile?.lastName;
-    expect(screen.getByText(`By ${fullName}`)).toBeInTheDocument();
+    expect(screen.getByText(`${fullName}`)).toBeInTheDocument();
   });
 
   it('renders image when user has avatarUrl provided', () => {
@@ -68,7 +70,7 @@ describe('PostItem', () => {
       ...testPost,
       author: {
         ...testPost.author,
-        profile: undefined,
+        profile: null,
       },
     };
     render(<PostItem {...postItemProps} post={postWithoutAuthorProfile} />);
@@ -81,12 +83,12 @@ describe('PostItem', () => {
         {...postItemProps}
         post={{
           ...testPost,
-          author: { ...testPost.author, profile: undefined },
+          author: { ...testPost.author, profile: null },
         }}
       ></PostItem>
     );
     const fullName = testPost.author.username;
-    expect(screen.getByText(`By ${fullName}`)).toBeInTheDocument();
+    expect(screen.getByText(`${fullName}`)).toBeInTheDocument();
   });
 
   it('clicking on author calls the onAuthorClick handler', async () => {
@@ -96,7 +98,7 @@ describe('PostItem', () => {
       testPost.author.profile?.firstName +
       ' ' +
       testPost.author.profile?.lastName;
-    const authorButton = screen.getByText(`By ${fullName}`);
+    const authorButton = screen.getByText(`${fullName}`);
 
     await user.click(authorButton);
 
