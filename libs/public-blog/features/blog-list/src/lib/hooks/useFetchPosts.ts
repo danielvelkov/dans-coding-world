@@ -7,11 +7,13 @@ import { BlogPostItem } from '../types/post-item-data.types';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 
+const TEN_MINUTES_IN_MS = 10 * 60 * 1000;
+
 export type FetchPostsQueryParams = Omit<GetPostsDto, 'viewerId'>;
 
 export const useFetchPosts = (params?: FetchPostsQueryParams) => {
   const query = useQuery({
-    staleTime: 2 * 60 * 1000,
+    staleTime: TEN_MINUTES_IN_MS,
     queryKey: ['posts', params],
     queryFn: async () => {
       const response = await api.get(API_ENDPOINTS.POSTS.LIST, {

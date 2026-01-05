@@ -107,8 +107,27 @@ describe('PostItem', () => {
   });
 
   it(`renders post's published date in format: DD MMM YYYY`, () => {
+    const publishedDate = '01 Mar 2025';
+    render(
+      <PostItem
+        {...postItemProps}
+        post={{ ...postItemProps.post, publishedAt: new Date(publishedDate) }}
+      />
+    );
     render(<PostItem {...postItemProps} />);
-    expect(screen.getByText(`Posted on 01 Jan 2025`)).toBeInTheDocument();
+    expect(screen.getByText(`Posted on ${publishedDate}`)).toBeInTheDocument();
+  });
+
+  it(`renders when post was last edited if published date does 
+    not equal last updatedDate`, () => {
+    const editedDate = '12 Mar 2025';
+    render(
+      <PostItem
+        {...postItemProps}
+        post={{ ...postItemProps.post, updatedAt: new Date(editedDate) }}
+      />
+    );
+    expect(screen.getByText(`Edited on ${editedDate}`)).toBeInTheDocument();
   });
 
   it('renders post tags', () => {

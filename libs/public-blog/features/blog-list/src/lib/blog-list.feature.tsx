@@ -13,11 +13,14 @@ import { PostList } from './components/post-list';
 import { PostItem } from './components/post-item';
 import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
 
-const StyledBlogListFeature = styled.div``;
+const StyledBlogListFeature = styled.div`
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+`;
 
-const StyledShimmeringPost = styled.article<
-  React.ComponentPropsWithoutRef<'article'>
->`
+const StyledShimmeringPost = styled.article<React.ComponentProps<'article'>>`
   position: relative;
   padding: 1em;
   background: #f3f3f3;
@@ -147,16 +150,20 @@ export function BlogList({
 }
 
 const ShimmerList = ({ count }: { count: number }) => (
-  <div style={{ padding: '1em' }}>
-    {Array.from({ length: count }).map((_, i) => (
-      <StyledShimmeringPost key={i}>
-        <div className="line"></div>
-        <div className="line"></div>
-        <div className="line"></div>
-        <div className="shimmer"></div>
-      </StyledShimmeringPost>
-    ))}
+  <div role="status" aria-live="polite" style={{ padding: '1em' }}>
+    <span style={{ position: 'absolute', left: '-9999px' }}>
+      Loading posts…
+    </span>
+    <div aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <StyledShimmeringPost key={i}>
+          <div className="line"></div>
+          <div className="line"></div>
+          <div className="line"></div>
+          <div className="shimmer"></div>
+        </StyledShimmeringPost>
+      ))}
+    </div>
   </div>
 );
-
 export default BlogList;

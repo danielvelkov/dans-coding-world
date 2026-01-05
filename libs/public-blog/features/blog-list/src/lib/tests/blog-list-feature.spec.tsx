@@ -65,4 +65,29 @@ describe('Public-Blog feature - BlogList', () => {
     const items = await within(postList).findAllByRole('listitem');
     expect(items.length).toBe(mockPostResponse.count);
   });
+
+  it(`renders loading message while loading`, async () => {
+    vi.mocked(api.get).mockImplementation(() => {
+      return new Promise((resolve) => setTimeout(() => resolve({}), 5000));
+    });
+
+    renderFeature();
+    expect(screen.getByText(/Loading posts/)).toBeTruthy();
+  });
+
+  it(`does not render pagination, filtering, sorting or 
+    other element while loading`, () => {
+    vi.mocked(api.get).mockImplementation(() => {
+      return new Promise((resolve) => setTimeout(() => resolve({}), 5000));
+    });
+
+    renderFeature();
+    expect(screen.queryByRole('searchbox')).toBeFalsy();
+    expect(screen.queryByRole('button')).toBeFalsy();
+    expect(screen.queryByRole('combobox')).toBeFalsy();
+  });
+
+  describe('Query handling', () => {
+    it('updates query params')
+  });
 });

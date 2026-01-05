@@ -11,12 +11,20 @@ const StyledUnorderedList = styled.ul<React.ComponentPropsWithoutRef<'ul'>>`
   padding: 0em 1em;
 `;
 
+const EmptyPostsMessage = styled.h2`
+  padding: 2em;
+  text-align: center;
+  color: #555;
+  font-weight: 500;
+`;
+
 export function PostList({
   children,
 }: {
   children: React.ReactElement<typeof PostItem>[];
 }) {
-  if (children.length === 0) return <p>{EMPTY_POSTS_MESSAGE}</p>;
+  if (children.length === 0)
+    return <EmptyPostsMessage>{EMPTY_POSTS_MESSAGE}</EmptyPostsMessage>;
   else
     return (
       <StyledUnorderedList aria-label="blog posts">
