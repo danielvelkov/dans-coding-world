@@ -7,7 +7,7 @@ import {
   GetPostsDto,
   GetPostsMetadataResponse,
 } from '@dans-coding-world/shared-post-dto';
-import { Post } from '@dans-coding-world/prisma-schema';
+import { PostFull } from '@dans-coding-world/post-data-access';
 
 /**
  * Service for managing blog posts.
@@ -48,7 +48,7 @@ export interface IPostsService {
    * @throws {Error} Post not found (SER002)
    * @throws {Error} Unauthorized access to unpublished post (SER003)
    */
-  getById(dto: GetPostDto): Promise<Post>;
+  getById(dto: GetPostDto): Promise<PostFull>;
 
   /**
    * Retrieves a paginated and filterable list of posts.
@@ -106,7 +106,7 @@ export interface IPostsService {
    * @throws {Error} Author not found (VAL003)
    * @throws {Error} Post with this title already exists (VAL005)
    */
-  create(dto: CreatePostDto): Promise<Post>;
+  create(dto: CreatePostDto): Promise<PostFull>;
 
   /**
    * Updates an existing post with new data.
@@ -137,7 +137,7 @@ export interface IPostsService {
    * @throws {Error} Post not found or author mismatch (SER002)
    * @throws {Error} Post with this title already exists (VAL005)
    */
-  update(dto: UpdatePostDto): Promise<Post>;
+  update(dto: UpdatePostDto): Promise<PostFull>;
 
   /**
    * Permanently deletes a post and all associated data. This action cannot be undone.
@@ -160,7 +160,7 @@ export interface IPostsService {
    * @throws {Error} Post not found (SER002)
    * @throws {Error} Unauthorized deletion attempt - author mismatch (VAL003)
    */
-  delete(dto: DeletePostDto): Promise<Post>;
+  delete(dto: DeletePostDto): Promise<PostFull>;
 
   /**
    * Gets posts metadata regarding published posts.

@@ -10,11 +10,12 @@ import { IPostRepository } from '@dans-coding-world/shared-data-access-interface
 export type PostDetail = Post & {
   tags?: string[];
 };
+export type PostFull = PostWithAuthorProfile & PostDetail;
 
 export class PrismaPostDataAccess
   implements IPostRepository<Post, PostWhereInput, PostOrderByInput>
 {
-  async getById(id: number): Promise<PostWithAuthorProfile | null> {
+  async getById(id: number): Promise<Post | null> {
     const post = await client.post.findFirst({
       where: { id },
       include: {
@@ -69,6 +70,17 @@ export class PrismaPostDataAccess
             tag: true,
           },
         },
+        author: {
+          omit: {
+            password: true,
+            role: true,
+            isBanned: true,
+            email: true,
+          },
+          include: {
+            profile: true,
+          },
+        },
       },
     });
   }
@@ -104,6 +116,17 @@ export class PrismaPostDataAccess
             tag: true,
           },
         },
+        author: {
+          omit: {
+            password: true,
+            role: true,
+            isBanned: true,
+            email: true,
+          },
+          include: {
+            profile: true,
+          },
+        },
       },
     });
   }
@@ -115,7 +138,7 @@ export class PrismaPostDataAccess
       skip?: number;
       take?: number;
     }
-  ): Promise<PostWithAuthorProfile[]> {
+  ): Promise<Post[]> {
     return await client.post.findMany({
       where,
       orderBy,
@@ -149,6 +172,17 @@ export class PrismaPostDataAccess
         tags: {
           include: {
             tag: true,
+          },
+        },
+        author: {
+          omit: {
+            password: true,
+            role: true,
+            isBanned: true,
+            email: true,
+          },
+          include: {
+            profile: true,
           },
         },
       },

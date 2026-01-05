@@ -1,4 +1,4 @@
-import { PostWithUser } from '@dans-coding-world/prisma-schema';
 import { Collection, Paginated } from '@dans-coding-world/api-types';
+import { PostFull } from '@dans-coding-world/post-data-access';
 
-export type GetPostsResponseDto = Collection<PostWithUser> & Paginated;
+export type GetPostsResponseDto = Collection<PostFull> & Paginated;
