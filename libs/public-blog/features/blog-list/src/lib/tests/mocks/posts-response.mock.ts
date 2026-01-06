@@ -5,6 +5,7 @@ import {
   randLastName,
   randNumber,
   randPastDate,
+  randProgrammingLanguage,
   randSentence,
   randUserName,
 } from '@ngneat/falso';
@@ -22,11 +23,11 @@ export function generateMockPostsResponse({
     items: generateRandomPosts(length).slice(0, pageSize),
     pagination: {
       page: 1,
-      totalPages: 1,
+      totalPages: Math.ceil(length / pageSize),
       hasNext: false,
       hasPrev: false,
       limit: pageSize,
-      total: 1,
+      total: length,
     },
     count: length > pageSize ? pageSize : length,
   };
@@ -54,8 +55,8 @@ export function generateRandomPosts(
     };
     const post = {
       id: randNumber({ min: 1, max: 1000 }),
-      title: randSentence(),
-      content: randSentence({ length: randNumber({ max: 3 }) }).join(' '),
+      title: randSentence({ maxCharCount: 15 }),
+      content: randSentence({ length: randNumber({ max: 20 }) }).join(' '),
       createdAt: randPastDate(),
       publishedAt: randPastDate(),
       updatedAt: randPastDate(),
@@ -63,6 +64,7 @@ export function generateRandomPosts(
       visibility: rand(['MEMBERS_ONLY', 'PUBLIC']) as PostVisibility,
       authorId: author.id,
       author: author,
+      tags: randProgrammingLanguage({ length: randNumber({ min: 1, max: 5 }) }),
     };
     posts.push(post);
     count--;

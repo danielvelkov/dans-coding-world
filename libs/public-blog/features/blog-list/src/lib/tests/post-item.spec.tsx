@@ -35,19 +35,24 @@ describe('PostItem', () => {
     );
   });
 
-  it('renders the first paragraph of content as excerpt', () => {
+  it('renders the first paragraph of content as excerpt and adds trailing dots', () => {
     render(<PostItem {...postItemProps} />);
 
     const firstParagraph = getFirstParagraph(testPost.content);
 
-    expect(screen.getByRole('paragraph').textContent).toBe(firstParagraph);
+    expect(screen.getByRole('paragraph').textContent).toMatch(
+      firstParagraph + '...'
+    );
   });
 
-  it('does not show content and displays login message when isLocked is true', () => {
+  it(`displays 'members only' message when isLocked is true`, () => {
     render(<PostItem {...postItemProps} isLocked={true} />);
-    expect(screen.getByRole('paragraph').textContent).toMatch(
-      /Login to read.*post.*/gi
-    );
+    expect(screen.getByText(/members only*/gi)).toBeTruthy();
+  });
+
+  it(`hides post content paragraph when isLocked is true`, () => {
+    render(<PostItem {...postItemProps} isLocked={true} />);
+    expect(screen.queryByRole('paragraph')).toBeFalsy();
   });
 
   it('renders author full name if he has profile setup', () => {

@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { randParagraph } from '@ngneat/falso';
 import { BlogPostItem } from '../types/post-item-data.types';
 import {
   formatDateTo_DD_MMM_YYYY,
@@ -59,6 +60,46 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   .excerpt {
     color: #e8e6e3;
   }
+
+  /* The New Locked Overlay */
+  .locked-container {
+    position: relative;
+    margin-top: 1rem;
+  }
+
+  .blurred-text {
+    user-select: none;
+    filter: blur(2px);
+  }
+
+  .lock-overlay {
+    position: absolute;
+    top: -1em;
+    left: -1em;
+    right: -1em;
+    bottom: -1.5em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to bottom, transparent, #ffffff 100%);
+    gap: 10px;
+    padding-top: 10px;
+  }
+
+  .lock-badge {
+    background: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    font-size: small;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+  }
 `;
 
 export function PostItem({
@@ -74,7 +115,7 @@ export function PostItem({
 }) {
   const { author, ...postData } = post;
 
-  const excerpt = getFirstParagraph(postData.content);
+  const excerpt = getFirstParagraph(postData.content) + '...';
   const authorName = author.profile
     ? `${author.profile.firstName} ${author.profile.lastName}`
     : author.username;
@@ -132,7 +173,17 @@ export function PostItem({
           </div>
         </div>
         {isLocked ? (
-          <p className="login-message">Login to read members-only post</p>
+          <div className="locked-container">
+            <p className="blurred-text" aria-hidden="true">
+              {randParagraph({ length: 3 })}
+            </p>
+            <div className="lock-overlay">
+              <span className="lock-badge">
+                <i className="fa fa-lock" />
+                Members Only
+              </span>
+            </div>
+          </div>
         ) : (
           <p className="excerpt">{excerpt}</p>
         )}

@@ -2,7 +2,7 @@ export function getFirstParagraph(value: string) {
   const firstParagraphRegex = /^.(?=\n|$)|.{0,300}/;
   const matches = value.match(firstParagraphRegex);
 
-  return (matches ?? [''])[0];
+  return (matches ?? [''])[0].trim();
 }
 
 export function formatDateTo_DD_MMM_YYYY(date: Date) {
