@@ -3,12 +3,14 @@ import { PostItem } from './post-item';
 
 export const EMPTY_POSTS_MESSAGE = 'No posts found.';
 
-const StyledUnorderedList = styled.ul<React.ComponentPropsWithoutRef<'ul'>>`
+export const StyledUnorderedList = styled.ul<
+  React.ComponentPropsWithoutRef<'ul'>
+>`
   list-style-type: none;
   display: flex;
   flex-direction: column;
   gap: 1em;
-  padding: 0em 1em;
+  padding: 0em;
 `;
 
 const EmptyPostsMessage = styled.h2`

@@ -75,19 +75,14 @@ describe('Public-Blog feature - BlogList', () => {
     expect(screen.getByText(/Loading posts/)).toBeTruthy();
   });
 
-  it(`does not render pagination, filtering, sorting or 
-    other element while loading`, () => {
+  it(`does not render pagination while loading`, () => {
     vi.mocked(api.get).mockImplementation(() => {
       return new Promise((resolve) => setTimeout(() => resolve({}), 5000));
     });
 
     renderFeature();
-    expect(screen.queryByRole('searchbox')).toBeFalsy();
-    expect(screen.queryByRole('button')).toBeFalsy();
-    expect(screen.queryByRole('combobox')).toBeFalsy();
-  });
-
-  describe('Query handling', () => {
-    it('updates query params')
+    expect(
+      screen.queryByRole('navigation', { name: 'pagination' })
+    ).toBeFalsy();
   });
 });

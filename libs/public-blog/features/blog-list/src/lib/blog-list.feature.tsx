@@ -3,21 +3,39 @@ import React, { useState } from 'react';
 import {
   Pagination,
   ItemsPerPage,
+  SearchBox,
 } from '@dans-coding-world/public-blog-ui-common';
 import {
   PAGINATION,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { calculatePageOffset } from '@dans-coding-world/helpers';
-import { PostList } from './components/post-list';
+import { PostList, StyledUnorderedList } from './components/post-list';
 import { PostItem } from './components/post-item';
 import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
+import useDebounce from './hooks/useDebounce';
+
+const StyledFilterBar = styled.div`
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1em;
+`;
 
 const StyledBlogListFeature = styled.div`
+  padding: 1em;
   min-height: 80vh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+
+  ${StyledFilterBar} {
+    flex-grow: 0;
+  }
+
+  ${StyledUnorderedList} {
+    flex-grow: 1;
+  }
 `;
 
 const StyledShimmeringPost = styled.article<React.ComponentProps<'article'>>`
@@ -80,77 +98,92 @@ export function BlogList({
   const [params, setParams] = useState<FetchPostsQueryParams>({});
   const { data, isPending, isError, error } = useFetchPosts(params);
 
-  if (isError)
-    return (
-      <StyledBlogListFeature>
-        <span data-testid="error-message">{error.message}</span>
-      </StyledBlogListFeature>
-    );
+  const { debounceCb: handleSearchDebounced, isPending: isLoading } =
+    useDebounce((value: string) => {
+      setParams({ ...params, searchQuery: value === '' ? undefined : value });
+    }, 500);
 
-  if (isPending || !data)
-    return (
-      <StyledBlogListFeature>
-        <ShimmerList
-          count={PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE}
-        ></ShimmerList>
-      </StyledBlogListFeature>
-    );
-
-  const { pagination, posts } = data;
+  const showLoading = isPending || isLoading || !data;
 
   return (
     <StyledBlogListFeature>
-      <div>
+      <StyledFilterBar>
+        <SearchBox
+          currentValue={params.searchQuery ?? ''}
+          onChange={(searchString) => handleSearchDebounced(searchString)}
+        />
         <ItemsPerPage
           values={PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS}
           currentValue={
-            (pagination.limit as AllowedItemOptions) ??
+            (data?.pagination.limit as AllowedItemOptions) ??
             PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
           }
           onItemSelect={(itemsPerPage) =>
-            setParams({ ...params, pageSize: itemsPerPage })
+            setParams({
+              ...params,
+              pageSize:
+                +itemsPerPage === PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+                  ? undefined
+                  : itemsPerPage,
+            })
           }
-        ></ItemsPerPage>
-      </div>
-      <PostList>
-        {posts.map((p) => (
-          <PostItem
-            key={p.id}
-            post={p}
-            isLocked={p.content === VALIDATION_MESSAGES.posts.membersOnly}
-            onAuthorClick={onAuthorClick}
-            onTagClick={(tagName) =>
+        />
+      </StyledFilterBar>
+
+      {/* Dynamic Content Area */}
+      {isError ? (
+        <span
+          data-testid="error-message"
+          style={{ padding: '1em', color: 'red' }}
+        >
+          {error.message}
+        </span>
+      ) : showLoading ? (
+        <ShimmerList count={PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE} />
+      ) : (
+        <>
+          <PostList>
+            {data.posts.map((p) => (
+              <PostItem
+                key={p.id}
+                post={p}
+                isLocked={p.content === VALIDATION_MESSAGES.posts.membersOnly}
+                onAuthorClick={onAuthorClick}
+                onTagClick={(tagName) =>
+                  setParams({
+                    ...params,
+                    filterBy: {
+                      ...params.filterBy,
+                      tags: [...(params.filterBy?.tags ?? []), tagName],
+                    },
+                  })
+                }
+              />
+            ))}
+          </PostList>
+
+          <Pagination
+            totalPages={data.pagination.totalPages}
+            currentPage={data.pagination.page}
+            onPageSelect={(page) => {
+              const pageOffset = calculatePageOffset(
+                page,
+                params.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+              );
               setParams({
                 ...params,
-                filterBy: {
-                  ...params.filterBy,
-                  tags: [...(params.filterBy?.tags ?? []), tagName],
-                },
-              })
-            }
-          ></PostItem>
-        ))}
-      </PostList>
-      <Pagination
-        totalPages={pagination.totalPages}
-        currentPage={pagination.page}
-        onPageSelect={(page) => {
-          const pageOffset = calculatePageOffset(
-            page,
-            params.pageOffset ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
-          );
-          setParams({
-            ...params,
-            pageOffset: pageOffset === 0 ? undefined : pageOffset,
-          });
-        }}
-      ></Pagination>
+                pageOffset: pageOffset === 0 ? undefined : pageOffset,
+              });
+            }}
+          />
+        </>
+      )}
     </StyledBlogListFeature>
   );
 }
 
 const ShimmerList = ({ count }: { count: number }) => (
-  <div role="status" aria-live="polite" style={{ padding: '1em' }}>
+  <StyledUnorderedList role="status" aria-live="polite">
     <span style={{ position: 'absolute', left: '-9999px' }}>
       Loading posts…
     </span>
@@ -164,6 +197,6 @@ const ShimmerList = ({ count }: { count: number }) => (
         </StyledShimmeringPost>
       ))}
     </div>
-  </div>
+  </StyledUnorderedList>
 );
 export default BlogList;
