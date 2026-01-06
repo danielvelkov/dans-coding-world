@@ -1,6 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import userEvent from '@testing-library/user-event';
 
 import ItemsPerPage from '../components/items-per-page';
 
@@ -32,14 +31,9 @@ describe('Items per page', () => {
 
   it('calls onItemSelect handler when item option is clicked', async () => {
     render(<ItemsPerPage {...validProps} />);
-    const user = userEvent.setup();
-
-    for (let i = 0; i < validProps.values.length; i++) {
-      const pageButton = screen.getByRole('option', {
-        name: validProps.values[i].toString(),
-      });
-      await user.click(pageButton);
-      expect(onItemSelect).toHaveBeenCalledWith(validProps.values[i]);
+    for (const value of validProps.values) {
+      fireEvent.change(screen.getByRole('combobox'), { target: { value } });
+      expect(onItemSelect).toHaveBeenCalledWith(value.toString());
     }
   });
 });
