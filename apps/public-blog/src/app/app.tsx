@@ -29,6 +29,9 @@ export function App() {
           </ul>
         </div>
         <BlogList
+          onPostClick={() => {
+            console.log('Post link clicked');
+          }}
           onAuthorClick={() => {
             console.log('Author link clicked');
           }}

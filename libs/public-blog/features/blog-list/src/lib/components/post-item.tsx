@@ -35,6 +35,11 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     text-decoration: underline;
   }
 
+  .title:hover {
+    color: #4c7cd5;
+    cursor: pointer;
+  }
+
   .author-name {
     font-family: inherit;
     background: inherit;
@@ -106,11 +111,13 @@ export function PostItem({
   post,
   onTagClick,
   onAuthorClick,
+  onClick,
   isLocked,
 }: {
   post: BlogPostItem;
   onTagClick: (tagName: string) => void;
   onAuthorClick: (id: number) => void;
+  onClick: (id: number) => void;
   isLocked: boolean;
 }) {
   const { author, ...postData } = post;
@@ -125,7 +132,9 @@ export function PostItem({
   return (
     <StyledListItem>
       <article className="post">
-        <h2 className="title">{postData.title}</h2>
+        <h2 onClick={() => onClick(post.id)} className="title">
+          {postData.title}
+        </h2>
         <div className="details">
           <div
             className="image-container"
@@ -177,7 +186,7 @@ export function PostItem({
             <p className="blurred-text" aria-hidden="true">
               {randParagraph({ length: 3 })}
             </p>
-            <div className="lock-overlay">
+            <div className="lock-overlay" title="Login to view">
               <span className="lock-badge">
                 <i className="fa fa-lock" />
                 Members Only

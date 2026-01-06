@@ -46,8 +46,10 @@ type AllowedItemOptions =
 
 export function BlogList({
   onAuthorClick,
+  onPostClick,
 }: {
   onAuthorClick: (id: number) => void;
+  onPostClick: (id: number) => void;
 }) {
   const [params, setParams] = useState<FetchPostsQueryParams>({
     filterBy: {
@@ -125,6 +127,7 @@ export function BlogList({
           <PostList>
             {data.posts.map((p) => (
               <PostItem
+                onClick={onPostClick}
                 key={p.id}
                 post={p}
                 isLocked={p.content === VALIDATION_MESSAGES.posts.membersOnly}

@@ -8,12 +8,14 @@ import { getFirstParagraph } from '../helper/post-content.util';
 const testPost = mockPostItemData[0];
 const onTagClick = vi.fn();
 const onAuthorClick = vi.fn();
+const onClick = vi.fn();
 
 const postItemProps = {
   post: testPost,
   onTagClick,
   onAuthorClick,
   isLocked: false,
+  onClick,
 };
 
 describe('PostItem', () => {
@@ -47,7 +49,7 @@ describe('PostItem', () => {
 
   it(`displays 'members only' message when isLocked is true`, () => {
     render(<PostItem {...postItemProps} isLocked={true} />);
-    expect(screen.getByText(/members only*/gi)).toBeTruthy();
+    expect(screen.getByText(/members only*/i)).toBeTruthy();
   });
 
   it(`hides post content paragraph when isLocked is true`, () => {
@@ -94,6 +96,15 @@ describe('PostItem', () => {
     );
     const fullName = testPost.author.username;
     expect(screen.getByText(`${fullName}`)).toBeInTheDocument();
+  });
+
+  it('clicking on title calls the onClick handler', async () => {
+    render(<PostItem {...postItemProps} />);
+    const user = userEvent.setup();
+    const title = screen.getByRole('heading', { level: 2 });
+
+    await user.click(title);
+    expect(onClick).toHaveBeenCalledWith(postItemProps.post.id);
   });
 
   it('clicking on author calls the onAuthorClick handler', async () => {
