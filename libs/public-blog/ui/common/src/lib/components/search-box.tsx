@@ -7,6 +7,7 @@ const StyledSearchBox = styled.div`
   max-width: min(50vw, 40ch);
 
   input {
+    box-sizing: border-box;
     width: 100%;
     padding: 1em 3em 1em 3em;
     font-size: 1em;

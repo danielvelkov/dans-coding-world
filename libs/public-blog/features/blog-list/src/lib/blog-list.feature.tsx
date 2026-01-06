@@ -14,10 +14,11 @@ import { PostList, StyledUnorderedList } from './components/post-list';
 import { PostItem } from './components/post-item';
 import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
 import useDebounce from './hooks/useDebounce';
+import { VisibilityFilter } from './components/visibility-filter';
 
 const StyledFilterBar = styled.div`
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1em;
@@ -111,6 +112,17 @@ export function BlogList({
         <SearchBox
           currentValue={params.searchQuery ?? ''}
           onChange={(searchString) => handleSearchDebounced(searchString)}
+        />
+        <VisibilityFilter
+          onChange={(values) =>
+            setParams({
+              ...params,
+              filterBy: {
+                ...params.filterBy,
+                visibility: values.length ? values : undefined,
+              },
+            })
+          }
         />
         <ItemsPerPage
           values={PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS}
