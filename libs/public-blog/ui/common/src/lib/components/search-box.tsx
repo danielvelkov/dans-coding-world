@@ -8,7 +8,7 @@ const StyledSearchBox = styled.div`
 
   input {
     width: 100%;
-    padding: 1em 1.5em 1em 3em;
+    padding: 1em 3em 1em 3em;
     font-size: 1em;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
@@ -31,7 +31,7 @@ const StyledSearchBox = styled.div`
     }
   }
 
-  i {
+  .fa-search {
     position: absolute;
     left: 1em;
     top: 50%;
@@ -39,6 +39,25 @@ const StyledSearchBox = styled.div`
     color: #666;
     pointer-events: none;
     transition: color 0.2s ease;
+  }
+
+  .clear {
+    position: absolute;
+    right: -6em;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 0.3em 0.5em;
+    border-radius: 100%;
+    outline: none;
+    background-color: inherit;
+    border: none;
+  }
+
+  .clear:hover {
+    background-color: #666;
   }
 
   input:focus ~ i {
@@ -74,6 +93,18 @@ export function SearchBox({
         value={value}
         onInput={handleInput}
       />
+      {value && (
+        <button
+          aria-label="Clear search"
+          className="clear"
+          onClick={() => {
+            setValue('');
+            onChange('');
+          }}
+        >
+          <i className="fa fa-close"></i>
+        </button>
+      )}
     </StyledSearchBox>
   );
 }

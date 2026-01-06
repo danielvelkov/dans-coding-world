@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 
@@ -30,5 +30,22 @@ describe('SearchBox', () => {
 
     await user.type(input, typedString);
     expect(validProps.onChange).toHaveBeenCalledWith(typedString);
+  });
+
+  it('clears text and calls onChange handler when clear button is clicked', async () => {
+    render(<SearchBox {...validProps} currentValue="" />);
+    const user = userEvent.setup();
+
+    const input = screen.getByRole('textbox');
+    const typedString = 'TEST';
+
+    await user.type(input, typedString);
+    expect(input).toHaveValue(typedString);
+
+    await waitFor(async () => {
+      const button = screen.getByRole('button', { name: /clear/i });
+      await user.click(button);
+      expect(input).toHaveValue('');
+    });
   });
 });
