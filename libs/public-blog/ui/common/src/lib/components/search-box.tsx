@@ -44,7 +44,7 @@ const StyledSearchBox = styled.div`
 
   .clear {
     position: absolute;
-    right: -6em;
+    right: 1em;
     top: 50%;
     transform: translateY(-50%);
     color: #666;

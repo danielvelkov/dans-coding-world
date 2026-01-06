@@ -15,6 +15,7 @@ import { PostItem } from './components/post-item';
 import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
 import useDebounce from './hooks/useDebounce';
 import { VisibilityFilter } from './components/visibility-filter';
+import { SortingDropdown } from './components/sorting-dropdown';
 
 const StyledFilterBar = styled.div`
   display: flex;
@@ -96,7 +97,14 @@ export function BlogList({
 }: {
   onAuthorClick: (id: number) => void;
 }) {
-  const [params, setParams] = useState<FetchPostsQueryParams>({});
+  const [params, setParams] = useState<FetchPostsQueryParams>({
+    filterBy: {
+      status: ['PUBLISHED'],
+    },
+    sortBy: {
+      publishedAt: 'desc',
+    },
+  });
   const { data, isPending, isError, error } = useFetchPosts(params);
 
   const { debounceCb: handleSearchDebounced, isPending: isLoading } =
@@ -124,6 +132,14 @@ export function BlogList({
             })
           }
         />
+        <SortingDropdown
+          onChange={(value) =>
+            setParams({
+              ...params,
+              sortBy: value ? { ...value } : undefined,
+            })
+          }
+        ></SortingDropdown>
         <ItemsPerPage
           values={PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS}
           currentValue={
