@@ -6,19 +6,18 @@ import { mockPostItemData } from './mocks/post-item-data.mock';
 import { getFirstParagraph } from '../helper/post-content.util';
 
 const testPost = mockPostItemData[0];
-const onTagClick = vi.fn();
-const onAuthorClick = vi.fn();
-const onClick = vi.fn();
-
-const postItemProps = {
-  post: testPost,
-  onTagClick,
-  onAuthorClick,
-  isLocked: false,
-  onClick,
-};
+let postItemProps: Parameters<typeof PostItem>[0];
 
 describe('PostItem', () => {
+  beforeEach(() => {
+    postItemProps = {
+      post: testPost,
+      onTagClick: vi.fn(),
+      onAuthorClick: vi.fn(),
+      isLocked: false,
+      onClick: vi.fn(),
+    };
+  });
   it('renders successfully', () => {
     const { baseElement } = render(<PostItem {...postItemProps} />);
     expect(baseElement).toBeTruthy();
@@ -98,13 +97,31 @@ describe('PostItem', () => {
     expect(screen.getByText(`${fullName}`)).toBeInTheDocument();
   });
 
-  it('clicking on title calls the onClick handler', async () => {
-    render(<PostItem {...postItemProps} />);
+  it('clicking on title calls the onClick handler when post is not locked', async () => {
+    render(
+      <PostItem
+        {...postItemProps}
+        post={{ ...postItemProps.post, id: 1 }}
+        isLocked={false}
+      />
+    );
     const user = userEvent.setup();
     const title = screen.getByRole('heading', { level: 2 });
 
     await user.click(title);
-    expect(onClick).toHaveBeenCalledWith(postItemProps.post.id);
+    expect(postItemProps.onClick).toHaveBeenCalledTimes(1);
+    expect(postItemProps.onClick).toHaveBeenCalledWith(postItemProps.post.id);
+  });
+
+  it('clicking on title does nothing when post IS locked', async () => {
+    render(<PostItem {...postItemProps} isLocked={true} />);
+    const user = userEvent.setup();
+    const title = screen.getByRole('heading', { level: 2 });
+
+    await user.click(title);
+
+    expect(postItemProps.onClick).toHaveBeenCalledTimes(0);
+    expect(postItemProps.onClick).not.toHaveBeenCalled();
   });
 
   it('clicking on author calls the onAuthorClick handler', async () => {
@@ -118,8 +135,10 @@ describe('PostItem', () => {
 
     await user.click(authorButton);
 
-    expect(onAuthorClick).toHaveBeenCalledWith(testPost.author.id);
-    expect(onAuthorClick).toHaveBeenCalledTimes(1);
+    expect(postItemProps.onAuthorClick).toHaveBeenCalledTimes(1);
+    expect(postItemProps.onAuthorClick).toHaveBeenCalledWith(
+      testPost.author.id
+    );
   });
 
   it(`renders post's published date in format: DD MMM YYYY`, () => {
@@ -157,13 +176,16 @@ describe('PostItem', () => {
     render(<PostItem {...postItemProps} />);
     const user = userEvent.setup();
     if (!testPost.tags) throw new Error('Missing tags in test data');
+
     for (const tagName of testPost.tags) {
       const tagButton = screen.getByRole('button', { name: tagName });
 
       await user.click(tagButton);
 
-      expect(onTagClick).toHaveBeenCalledWith(tagName);
+      expect(postItemProps.onTagClick).toHaveBeenCalledWith(tagName);
     }
-    expect(onTagClick).toHaveBeenCalledTimes(testPost.tags.length);
+    expect(postItemProps.onTagClick).toHaveBeenCalledTimes(
+      testPost.tags.length
+    );
   });
 });

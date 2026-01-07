@@ -132,7 +132,10 @@ export function PostItem({
   return (
     <StyledListItem>
       <article className="post">
-        <h2 onClick={() => onClick(post.id)} className="title">
+        <h2
+          onClick={!isLocked ? () => onClick(post.id) : undefined}
+          className={!isLocked ? 'title' : undefined}
+        >
           {postData.title}
         </h2>
         <div className="details">
