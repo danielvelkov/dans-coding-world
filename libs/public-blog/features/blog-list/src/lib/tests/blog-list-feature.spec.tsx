@@ -4,23 +4,22 @@ import { api } from '@dans-coding-world/public-blog-data-access-api';
 import BlogList from '../blog-list.feature';
 import { generateMockPostsResponse } from './mocks/posts-response.mock.js';
 import { BaseResponse } from '@dans-coding-world/api-types';
+import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 
 const mockPostResponse = generateMockPostsResponse({ length: 5, pageSize: 5 });
 
-const validProps = {
-  onAuthorClick: vi.fn(),
-};
-
 describe('Public-Blog feature - BlogList', () => {
   let queryClient: QueryClient;
 
-  const renderFeature = (props = validProps) => {
+  const renderFeature = () => {
     return render(
-      <QueryClientProvider client={queryClient}>
-        <BlogList {...props} />
-      </QueryClientProvider>
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <BlogList />
+        </QueryClientProvider>
+      </MemoryRouter>
     );
   };
 

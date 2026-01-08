@@ -6,6 +6,7 @@ import {
   getFirstParagraph,
 } from '../helper/post-content.util';
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   padding: 0.5em 1em;
@@ -14,15 +15,17 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   background: #f3f3f3;
 
   .details,
-  .tag-list {
+  .tag-list,
+  .author {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    font-size: 0.99em;
   }
 
-  .details {
+  .details,
+  .author {
     gap: 0.8em;
+    color: inherit;
   }
 
   .tag-list {
@@ -35,9 +38,9 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     text-decoration: underline;
   }
 
-  .title:hover {
-    color: #4c7cd5;
-    cursor: pointer;
+  a {
+    color: inherit;
+    text-decoration: none;
   }
 
   .author-name {
@@ -109,16 +112,12 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
 
 export function PostItem({
   post,
-  onTagClick,
-  onAuthorClick,
-  onClick,
   isLocked,
+  onTagClick,
 }: {
   post: BlogPostItem;
-  onTagClick: (tagName: string) => void;
-  onAuthorClick: (id: number) => void;
-  onClick: (id: number) => void;
   isLocked: boolean;
+  onTagClick: (tagName: string) => void;
 }) {
   const { author, ...postData } = post;
 
@@ -132,33 +131,30 @@ export function PostItem({
   return (
     <StyledListItem>
       <article className="post">
-        <h2
-          onClick={!isLocked ? () => onClick(post.id) : undefined}
-          className={!isLocked ? 'title' : undefined}
-        >
-          {postData.title}
+        <h2 className="title">
+          {isLocked ? (
+            post.title
+          ) : (
+            <Link to={`/blog/${post.id}`}>{post.title}</Link>
+          )}
         </h2>
         <div className="details">
-          <div
-            className="image-container"
-            onClick={() => onAuthorClick(author.id)}
-          >
-            {author.profile && author.profile.avatarURL ? (
-              <img
-                src={author.profile.avatarURL}
-                alt={`${author.username}'s avatar`}
-              ></img>
-            ) : (
-              <i className="fa fa-regular fa-user"></i>
-            )}
-          </div>
-          <button
-            onClick={() => onAuthorClick(author.id)}
-            className="author-name link-button"
-          >
-            {`By `}
-            <em>{authorName}</em>
-          </button>
+          <Link className="author" to={`/users/${post.author.id}`}>
+            <div className="image-container">
+              {author.profile && author.profile.avatarURL ? (
+                <img
+                  src={author.profile.avatarURL}
+                  alt={`${author.username}'s avatar`}
+                ></img>
+              ) : (
+                <i className="fa fa-regular fa-user"></i>
+              )}
+            </div>
+            <span className="author-name">
+              {`By `}
+              <em>{authorName}</em>
+            </span>
+          </Link>
           {' • '}
           <span className="published-date">{`Posted on ${formattedPublishedDate}`}</span>
           {formattedPublishedDate !== formattedUpdatedDate ? (
@@ -190,10 +186,12 @@ export function PostItem({
               {randParagraph({ length: 3 })}
             </p>
             <div className="lock-overlay" title="Login to view">
-              <span className="lock-badge">
-                <i className="fa fa-lock" />
-                Members Only
-              </span>
+              <Link to={`/login`}>
+                <span className="lock-badge">
+                  <i className="fa fa-lock" />
+                  Members Only
+                </span>
+              </Link>
             </div>
           </div>
         ) : (

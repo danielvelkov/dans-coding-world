@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import { PostList, EMPTY_POSTS_MESSAGE } from '../components/post-list';
 import { mockPostItemData } from './mocks/post-item-data.mock';
 import { PostItem } from '../components/post-item';
+import { MemoryRouter } from 'react-router-dom';
 
 const validProps = {
   onAuthorClick: vi.fn(),
@@ -11,11 +12,13 @@ const validProps = {
 };
 
 const validList = (
-  <PostList>
-    {mockPostItemData.map((p) => (
-      <PostItem key={p.id} {...validProps} post={p}></PostItem>
-    ))}
-  </PostList>
+  <MemoryRouter>
+    <PostList>
+      {mockPostItemData.map((p) => (
+        <PostItem key={p.id} {...validProps} post={p}></PostItem>
+      ))}
+    </PostList>
+  </MemoryRouter>
 );
 
 describe('PostList', () => {

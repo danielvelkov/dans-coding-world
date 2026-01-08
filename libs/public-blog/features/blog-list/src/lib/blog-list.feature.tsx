@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { useState } from 'react';
+import { noop } from '@tanstack/react-query';
 import {
   Pagination,
   ItemsPerPage,
@@ -45,20 +45,12 @@ type AllowedItemOptions =
   (typeof PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS)[number];
 
 export function BlogList({
-  onAuthorClick,
-  onPostClick,
+  params = {},
+  setParams = noop,
 }: {
-  onAuthorClick: (id: number) => void;
-  onPostClick: (id: number) => void;
+  params?: FetchPostsQueryParams;
+  setParams?: (value: FetchPostsQueryParams) => void;
 }) {
-  const [params, setParams] = useState<FetchPostsQueryParams>({
-    filterBy: {
-      status: ['PUBLISHED'],
-    },
-    sortBy: {
-      publishedAt: 'desc',
-    },
-  });
   const { data, isPending, isError, error } = useFetchPosts(params);
 
   const { debounceCb: handleSearchDebounced, isPending: isLoading } =
@@ -127,17 +119,17 @@ export function BlogList({
           <PostList>
             {data.posts.map((p) => (
               <PostItem
-                onClick={onPostClick}
                 key={p.id}
                 post={p}
                 isLocked={p.content === VALIDATION_MESSAGES.posts.membersOnly}
-                onAuthorClick={onAuthorClick}
                 onTagClick={(tagName) =>
                   setParams({
                     ...params,
                     filterBy: {
                       ...params.filterBy,
-                      tags: [...(params.filterBy?.tags ?? []), tagName],
+                      tags: [
+                        ...new Set([...(params.filterBy?.tags ?? []), tagName]),
+                      ],
                     },
                   })
                 }
