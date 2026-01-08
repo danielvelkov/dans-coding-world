@@ -84,7 +84,7 @@ export function BlogList({
           onChange={(value) =>
             setParams({
               ...params,
-              sortBy: value ? { ...value } : undefined,
+              sortBy: value,
             })
           }
         ></PostSortingDropdown>
@@ -124,20 +124,24 @@ export function BlogList({
           <PostList>
             {data.posts.map((p) => (
               <PostItem
+                activeTags={params.filterBy?.tags}
                 key={p.id}
                 post={p}
                 isLocked={p.content === VALIDATION_MESSAGES.posts.membersOnly}
-                onTagClick={(tagName) =>
+                onTagClick={(tagName) => {
+                  let tags = params.filterBy?.tags;
+                  if (!tags) tags = [tagName];
+                  else if (tags.includes(tagName))
+                    tags = tags.filter((name) => name !== tagName);
+                  else tags.push(tagName);
                   setParams({
                     ...params,
                     filterBy: {
                       ...params.filterBy,
-                      tags: [
-                        ...new Set([...(params.filterBy?.tags ?? []), tagName]),
-                      ],
+                      tags,
                     },
-                  })
-                }
+                  });
+                }}
               />
             ))}
           </PostList>

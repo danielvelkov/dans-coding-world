@@ -165,7 +165,9 @@ describe('PostItem', () => {
     render(<PostItem {...postItemProps} />);
     if (!testPost.tags) throw new Error('Missing tags in test data');
     for (const tagName of testPost.tags)
-      expect(screen.getByRole('button', { name: tagName })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: new RegExp(tagName) })
+      ).toBeInTheDocument();
   });
 
   it('clicking tags calls the onTagClick handler', async () => {
@@ -174,7 +176,9 @@ describe('PostItem', () => {
     if (!testPost.tags) throw new Error('Missing tags in test data');
 
     for (const tagName of testPost.tags) {
-      const tagButton = screen.getByRole('button', { name: tagName });
+      const tagButton = screen.getByRole('button', {
+        name: new RegExp(tagName),
+      });
 
       await user.click(tagButton);
 

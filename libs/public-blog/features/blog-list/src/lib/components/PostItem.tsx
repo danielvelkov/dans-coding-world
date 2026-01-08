@@ -32,6 +32,10 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     gap: 5px;
   }
 
+  .active-tag {
+    background-color: #a200df;
+  }
+
   .link-button {
     border: none;
     padding: 5px;
@@ -113,10 +117,12 @@ export function PostItem({
   post,
   isLocked,
   onTagClick,
+  activeTags = [],
 }: {
   post: BlogPostItem;
   isLocked: boolean;
   onTagClick: (tagName: string) => void;
+  activeTags?: string[];
 }) {
   const { author, ...postData } = post;
 
@@ -168,15 +174,24 @@ export function PostItem({
           )}
           <div className="tag-list">
             {postData.tags &&
-              postData.tags.map((tagName) => (
-                <button
-                  key={`${post.id}-${tagName}`}
-                  onClick={() => onTagClick(tagName)}
-                  className="tag link-button"
-                >
-                  {tagName}
-                </button>
-              ))}
+              postData.tags.map((tagName) => {
+                const isActive = activeTags.includes(tagName);
+                return (
+                  <button
+                    key={`${post.id}-${tagName}`}
+                    onClick={() => onTagClick(tagName)}
+                    className={`tag link-button ${
+                      isActive ? 'active-tag' : ''
+                    }`}
+                    aria-pressed={isActive}
+                    aria-label={`${
+                      isActive ? 'Remove' : 'Add'
+                    } ${tagName} filter`}
+                  >
+                    {tagName}
+                  </button>
+                );
+              })}
           </div>
         </div>
         {isLocked ? (
