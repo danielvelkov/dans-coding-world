@@ -1,3 +1,3 @@
-export * from './lib/components/pagination';
-export * from './lib/components/search-box';
-export * from './lib/components/items-per-page';
+export * from './lib/components/Pagination';
+export * from './lib/components/SearchBox';
+export * from './lib/components/Dropdown';

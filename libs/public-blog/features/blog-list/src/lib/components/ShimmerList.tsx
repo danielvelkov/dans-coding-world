@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { StyledUnorderedList } from './post-list';
+import { StyledUnorderedList } from './PostList';
 
 const StyledShimmeringPost = styled.article<React.ComponentProps<'article'>>`
   position: relative;

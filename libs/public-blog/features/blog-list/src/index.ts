@@ -1,1 +1,1 @@
-export * from './lib/blog-list.feature';
+export * from './lib/BlogList';

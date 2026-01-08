@@ -1,5 +1,5 @@
-import Select from 'react-select';
 import { GetPostsDto } from '@dans-coding-world/shared-post-dto';
+import { Dropdown } from '@dans-coding-world/public-blog-ui-common';
 type PostSorting = GetPostsDto['sortBy'];
 type SortOption = { value: PostSorting; label: string };
 
@@ -30,30 +30,22 @@ const SORT_OPTIONS: SortOption[] = [
   },
 ] as const;
 
-export function SortingDropdown({
+export function PostSortingDropdown({
+  currentValue,
   onChange,
 }: {
+  currentValue: PostSorting;
   onChange: (value?: PostSorting) => void;
 }) {
+  const selectedOption =
+    SORT_OPTIONS.find(
+      ({ value }) => JSON.stringify(value) === JSON.stringify(currentValue)
+    )?.value ?? SORT_OPTIONS[0].value;
   return (
-    <Select<SortOption>
-      onChange={(i) => onChange(i?.value)}
-      styles={{
-        control: (base, state) => ({
-          ...base,
-          padding: '0.5em',
-          fontSize: '1em',
-          backgroundColor: '#f5f5f5',
-          borderWidth: '2px',
-          borderColor: state.isFocused ? '#4a90e2' : '#ccc',
-          boxShadow: state.isFocused
-            ? '0 0 0 2px rgba(74,144,226,0.2)'
-            : 'none',
-          '&:hover': { borderColor: '#999' },
-        }),
-      }}
-      defaultValue={SORT_OPTIONS[0]}
-      options={SORT_OPTIONS}
-    ></Select>
+    <Dropdown<PostSorting>
+      values={SORT_OPTIONS}
+      currentValue={selectedOption}
+      onItemSelect={onChange}
+    ></Dropdown>
   );
 }

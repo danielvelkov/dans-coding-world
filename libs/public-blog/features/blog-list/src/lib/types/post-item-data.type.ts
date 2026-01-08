@@ -8,6 +8,7 @@ import {
 export type AuthorPreview = Pick<User, 'id' | 'username'> & {
   profile: Omit<Profile, 'bio' | 'id' | 'userId'> | null;
 };
+export type Visibility = typeof PostVisibilityEnum;
 
 export type BlogPostItem = Pick<Post, 'id' | 'title' | 'content'> & {
   publishedAt: Date;
@@ -15,5 +16,3 @@ export type BlogPostItem = Pick<Post, 'id' | 'title' | 'content'> & {
   author: AuthorPreview;
   tags?: string[];
 };
-
-export type Visibility = typeof PostVisibilityEnum;

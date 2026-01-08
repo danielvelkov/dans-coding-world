@@ -1,9 +1,9 @@
 import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { PostItem as PostItemComponent } from '../components/post-item';
+import { PostItem as PostItemComponent } from '../components/PostItem';
 import userEvent from '@testing-library/user-event';
 import { mockPostItemData } from './mocks/post-item-data.mock';
-import { getFirstParagraph } from '../helper/post-content.util';
+import { getFirstParagraph } from '../util/post-content.util';
 import { MemoryRouter } from 'react-router-dom';
 
 const testPost = mockPostItemData[0];

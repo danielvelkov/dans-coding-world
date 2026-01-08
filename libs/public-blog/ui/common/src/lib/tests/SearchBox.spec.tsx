@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 
-import SearchBox from '../components/search-box';
+import SearchBox from '../components/SearchBox';
 
 describe('SearchBox', () => {
   const validProps = {

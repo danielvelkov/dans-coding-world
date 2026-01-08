@@ -1,10 +1,10 @@
 import styled from 'styled-components';
 import { randParagraph } from '@ngneat/falso';
-import { BlogPostItem } from '../types/post-item-data.types';
+import { BlogPostItem } from '../types/post-item-data.type';
 import {
   formatDateTo_DD_MMM_YYYY,
   getFirstParagraph,
-} from '../helper/post-content.util';
+} from '../util/post-content.util';
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -69,7 +69,6 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     color: #e8e6e3;
   }
 
-  /* The New Locked Overlay */
   .locked-container {
     position: relative;
     margin-top: 1rem;

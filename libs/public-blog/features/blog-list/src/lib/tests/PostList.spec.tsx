@@ -1,8 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { PostList, EMPTY_POSTS_MESSAGE } from '../components/post-list';
+import { PostList, EMPTY_POSTS_MESSAGE } from '../components/PostList';
 import { mockPostItemData } from './mocks/post-item-data.mock';
-import { PostItem } from '../components/post-item';
+import { PostItem } from '../components/PostItem';
 import { MemoryRouter } from 'react-router-dom';
 
 const validProps = {

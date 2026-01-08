@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { noop } from '@tanstack/react-query';
 import {
   Pagination,
-  ItemsPerPage,
+  Dropdown,
   SearchBox,
 } from '@dans-coding-world/public-blog-ui-common';
 import {
@@ -10,13 +10,13 @@ import {
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { calculatePageOffset } from '@dans-coding-world/helpers';
-import { PostList, StyledUnorderedList } from './components/post-list';
-import { PostItem } from './components/post-item';
-import { ShimmerList } from './components/shimmer-list';
+import { PostList, StyledUnorderedList } from './components/PostList';
+import { PostItem } from './components/PostItem';
+import { ShimmerList } from './components/ShimmerList';
 import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
 import useDebounce from './hooks/useDebounce';
-import { VisibilityFilter } from './components/visibility-filter';
-import { SortingDropdown } from './components/sorting-dropdown';
+import { PostVisibilityFilter } from './components/PostVisibilityFilter';
+import { PostSortingDropdown } from './components/PostSortingDropdown';
 
 const StyledFilterBar = styled.div`
   display: flex;
@@ -67,7 +67,8 @@ export function BlogList({
           currentValue={params.searchQuery ?? ''}
           onChange={(searchString) => handleSearchDebounced(searchString)}
         />
-        <VisibilityFilter
+        <PostVisibilityFilter
+          currentValue={params.filterBy?.visibility ?? []}
           onChange={(values) =>
             setParams({
               ...params,
@@ -78,16 +79,20 @@ export function BlogList({
             })
           }
         />
-        <SortingDropdown
+        <PostSortingDropdown
+          currentValue={params.sortBy}
           onChange={(value) =>
             setParams({
               ...params,
               sortBy: value ? { ...value } : undefined,
             })
           }
-        ></SortingDropdown>
-        <ItemsPerPage
-          values={PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS}
+        ></PostSortingDropdown>
+        <Dropdown
+          values={PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS.map((value) => ({
+            value,
+            label: value.toString(),
+          }))}
           currentValue={
             (data?.pagination.limit as AllowedItemOptions) ??
             PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 
-import Pagination from '../components/pagination';
+import Pagination from '../components/Pagination';
 
 describe('Pagination', () => {
   const onPageSelect = vi.fn();
