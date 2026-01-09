@@ -1,0 +1,19 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../util/shared-constants"
+    },
+    {
+      "path": "../dtos"
+    },
+    {
+      "path": "../../../prisma-schema"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    }
+  ]
+}

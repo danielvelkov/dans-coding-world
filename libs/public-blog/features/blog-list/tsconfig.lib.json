@@ -47,6 +47,9 @@
       "path": "../../../shared/util/api-types/tsconfig.lib.json"
     },
     {
+      "path": "../../../shared/post/testing/tsconfig.lib.json"
+    },
+    {
       "path": "../../data-access/blog-api/tsconfig.lib.json"
     },
     {

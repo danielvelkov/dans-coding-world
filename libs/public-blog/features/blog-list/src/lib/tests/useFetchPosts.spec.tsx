@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFetchPosts } from '../hooks/useFetchPosts.js';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
-import { generateMockPostsResponse } from './mocks/posts-response.mock.js';
+import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
 import { ResponseErrorDetails } from '@dans-coding-world/api-types';
 
 const mockPostResponse = generateMockPostsResponse({ length: 5, pageSize: 5 });

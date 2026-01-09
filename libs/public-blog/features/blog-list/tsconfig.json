@@ -9,6 +9,9 @@
       "path": "../../../shared/util/api-types"
     },
     {
+      "path": "../../../shared/post/testing"
+    },
+    {
       "path": "../../data-access/blog-api"
     },
     {

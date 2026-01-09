@@ -14,7 +14,11 @@
     "./package.json": "./package.json"
   },
   "nx": {
-    "name": "public-blog-data-access-api"
+    "tags": [
+      "layer:public-blog",
+      "scope:frontend",
+      "type:lib"
+    ]
   },
   "dependencies": {}
 }

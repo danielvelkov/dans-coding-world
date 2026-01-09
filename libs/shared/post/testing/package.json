@@ -1,5 +1,5 @@
 {
-  "name": "@dans-coding-world/shared-data-access-api",
+  "name": "@dans-coding-world/shared-post-testing",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -15,8 +15,8 @@
   },
   "nx": {
     "tags": [
-      "layer:data-access",
-      "scope:shared",
+      "layer:api",
+      "scope:post",
       "type:lib"
     ]
   },
