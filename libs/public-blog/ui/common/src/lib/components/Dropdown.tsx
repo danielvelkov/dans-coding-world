@@ -6,6 +6,7 @@ interface Option<T> {
 }
 
 interface DropdownProps<T, isMultiSelect extends boolean = false> {
+  id?: string;
   values: Option<T>[];
   currentValue: isMultiSelect extends true ? T[] : T;
   onItemSelect: (option: isMultiSelect extends true ? T[] : T) => void;
@@ -13,6 +14,7 @@ interface DropdownProps<T, isMultiSelect extends boolean = false> {
 }
 
 export function Dropdown<T, IsMulti extends boolean = false>({
+  id,
   values,
   currentValue,
   onItemSelect,
@@ -36,6 +38,7 @@ export function Dropdown<T, IsMulti extends boolean = false>({
 
   return (
     <Select
+      inputId={id}
       isMulti={isMulti}
       value={selectedOption}
       options={values}
@@ -43,8 +46,7 @@ export function Dropdown<T, IsMulti extends boolean = false>({
       styles={{
         control: (base, state) => ({
           ...base,
-          padding: '0.5em',
-          fontSize: '1em',
+          padding: '0.2em',
           backgroundColor: '#f5f5f5',
           borderWidth: '2px',
           borderColor: state.isFocused ? '#4a90e2' : '#ccc',

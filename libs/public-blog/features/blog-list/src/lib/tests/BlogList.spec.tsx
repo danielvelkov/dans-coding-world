@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import BlogList from '../BlogList';
-import { generateMockPostsResponse } from './mocks/posts-response.mock.js';
+import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { MemoryRouter } from 'react-router-dom';
 

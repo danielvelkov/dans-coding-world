@@ -2,7 +2,6 @@ import styled from 'styled-components';
 import { noop } from '@tanstack/react-query';
 import {
   Pagination,
-  Dropdown,
   SearchBox,
 } from '@dans-coding-world/public-blog-ui-common';
 import {
@@ -17,20 +16,34 @@ import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
 import useDebounce from './hooks/useDebounce';
 import { PostVisibilityFilter } from './components/PostVisibilityFilter';
 import { PostSortingDropdown } from './components/PostSortingDropdown';
+import { PostItemsPerPage } from './components/PostItemsPerPage';
 
 const StyledFilterBar = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   flex-wrap: wrap;
   gap: 1em;
+  justify-content: space-between;
+  margin-bottom: 1em;
+
+  .filter-col {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    label {
+      font-size: small;
+      font-weight: 600;
+    }
+  }
+
+  .filter-col:nth-child(2) {
+    margin-right: auto;
+  }
 `;
 
 const StyledBlogListFeature = styled.div`
   padding: 1em;
   min-height: 80vh;
-  display: flex;
-  flex-direction: column;
 
   ${StyledFilterBar} {
     flex-grow: 0;
@@ -40,9 +53,6 @@ const StyledBlogListFeature = styled.div`
     flex-grow: 1;
   }
 `;
-
-type AllowedItemOptions =
-  (typeof PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS)[number];
 
 export function BlogList({
   params = {},
@@ -63,11 +73,18 @@ export function BlogList({
   return (
     <StyledBlogListFeature>
       <StyledFilterBar>
-        <SearchBox
-          currentValue={params.searchQuery ?? ''}
-          onChange={(searchString) => handleSearchDebounced(searchString)}
-        />
+        <PostSortingDropdown
+          className="filter-col"
+          currentValue={params.sortBy}
+          onChange={(value) =>
+            setParams({
+              ...params,
+              sortBy: value,
+            })
+          }
+        ></PostSortingDropdown>
         <PostVisibilityFilter
+          className="filter-col"
           currentValue={params.filterBy?.visibility ?? []}
           onChange={(values) =>
             setParams({
@@ -79,25 +96,10 @@ export function BlogList({
             })
           }
         />
-        <PostSortingDropdown
-          currentValue={params.sortBy}
-          onChange={(value) =>
-            setParams({
-              ...params,
-              sortBy: value,
-            })
-          }
-        ></PostSortingDropdown>
-        <Dropdown
-          values={PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS.map((value) => ({
-            value,
-            label: value.toString(),
-          }))}
-          currentValue={
-            (data?.pagination.limit as AllowedItemOptions) ??
-            PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
-          }
-          onItemSelect={(itemsPerPage) =>
+        <PostItemsPerPage
+          className="filter-col"
+          currentValue={data?.pagination.limit}
+          onChange={(itemsPerPage) =>
             setParams({
               ...params,
               pageSize:
@@ -106,8 +108,12 @@ export function BlogList({
                   : itemsPerPage,
             })
           }
-        />
+        ></PostItemsPerPage>
       </StyledFilterBar>
+      <SearchBox
+        currentValue={params.searchQuery ?? ''}
+        onChange={(searchString) => handleSearchDebounced(searchString)}
+      />
 
       {/* Dynamic Content Area */}
       {isError ? (

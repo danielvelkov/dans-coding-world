@@ -28,18 +28,19 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     color: inherit;
   }
 
+  .tag {
+    font-size: 0.75em;
+    padding: 0.3em 0.5em;
+    font-weight: 600;
+    border-radius: 2em;
+  }
+
   .tag-list {
     gap: 5px;
   }
 
   .active-tag {
-    background-color: #a200df;
-  }
-
-  .link-button {
-    border: none;
-    padding: 5px;
-    text-decoration: underline;
+    background-color: #bea0c9;
   }
 
   a {
@@ -135,7 +136,7 @@ export function PostItem({
 
   return (
     <StyledListItem>
-      <article className="post">
+      <article className="post" aria-label={`Blog post: ${post.title}`}>
         <h2 className="title">
           {isLocked ? (
             post.title
@@ -144,15 +145,22 @@ export function PostItem({
           )}
         </h2>
         <div className="details">
-          <Link className="author" to={`/users/${post.author.id}`}>
+          <Link
+            className="author"
+            to={`/users/${post.author.id}`}
+            aria-label={`View profile of ${authorName}`}
+          >
             <div className="image-container">
               {author.profile && author.profile.avatarURL ? (
                 <img
                   src={author.profile.avatarURL}
-                  alt={`${author.username}'s avatar`}
-                ></img>
+                  alt={`${authorName}'s avatar`}
+                />
               ) : (
-                <i className="fa fa-regular fa-user"></i>
+                <i
+                  className="fa fa-regular fa-user"
+                  aria-label="Default user avatar"
+                ></i>
               )}
             </div>
             <span className="author-name">
@@ -161,18 +169,20 @@ export function PostItem({
             </span>
           </Link>
           {' • '}
-          <span className="published-date">{`Posted on ${formattedPublishedDate}`}</span>
+          <time dateTime={new Date(postData.publishedAt).toISOString()}>
+            {`Posted on ${formattedPublishedDate}`}
+          </time>
           {formattedPublishedDate !== formattedUpdatedDate ? (
             <>
               {' • '}
-              <span className="updated-date">
+              <time dateTime={postData.updatedAt.toISOString()}>
                 {`Edited on ${formattedUpdatedDate}`}
-              </span>
+              </time>
             </>
           ) : (
             ''
           )}
-          <div className="tag-list">
+          <div className="tag-list" role="group" aria-label="Post tags">
             {postData.tags &&
               postData.tags.map((tagName) => {
                 const isActive = activeTags.includes(tagName);
@@ -188,7 +198,7 @@ export function PostItem({
                       isActive ? 'Remove' : 'Add'
                     } ${tagName} filter`}
                   >
-                    {tagName}
+                    {`#${tagName}`}
                   </button>
                 );
               })}
@@ -199,9 +209,16 @@ export function PostItem({
             <p className="blurred-text" aria-hidden="true">
               {randParagraph({ length: 3 })}
             </p>
-            <div className="lock-overlay" title="Login to view">
-              <Link to={`/login`}>
-                <span className="lock-badge">
+            <div
+              className="lock-overlay"
+              role="status"
+              aria-label="This post is members only"
+            >
+              <Link
+                to={`/login`}
+                aria-label="Login to view members only content"
+              >
+                <span className="lock-badge" aria-hidden="true">
                   <i className="fa fa-lock" />
                   Members Only
                 </span>
