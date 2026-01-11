@@ -11,6 +11,8 @@ interface DropdownProps<T, isMultiSelect extends boolean = false> {
   currentValue: isMultiSelect extends true ? T[] : T;
   onItemSelect: (option: isMultiSelect extends true ? T[] : T) => void;
   isMulti?: isMultiSelect;
+  isClearable?: boolean;
+  hideRemoveOption?: boolean;
 }
 
 export function Dropdown<T, IsMulti extends boolean = false>({
@@ -19,6 +21,8 @@ export function Dropdown<T, IsMulti extends boolean = false>({
   currentValue,
   onItemSelect,
   isMulti,
+  isClearable,
+  hideRemoveOption,
 }: DropdownProps<T, IsMulti>) {
   const selectedOption = isMulti
     ? values.filter((opt) => (currentValue as T[]).includes(opt.value))
@@ -43,6 +47,10 @@ export function Dropdown<T, IsMulti extends boolean = false>({
       value={selectedOption}
       options={values}
       onChange={handleChange}
+      isClearable={isClearable}
+      components={
+        hideRemoveOption ? { MultiValueRemove: () => null } : undefined
+      }
       styles={{
         control: (base, state) => ({
           ...base,

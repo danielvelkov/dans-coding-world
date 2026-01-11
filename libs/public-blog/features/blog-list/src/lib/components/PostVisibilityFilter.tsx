@@ -28,6 +28,8 @@ export function PostVisibilityFilter({
             label: 'Members-only',
           },
         ]}
+        isClearable={false}
+        hideRemoveOption={currentValue.length === 1}
       ></Dropdown>
     </div>
   );

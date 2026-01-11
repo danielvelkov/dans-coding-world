@@ -85,7 +85,7 @@ export function BlogList({
         ></PostSortingDropdown>
         <PostVisibilityFilter
           className="filter-col"
-          currentValue={params.filterBy?.visibility ?? []}
+          currentValue={params.filterBy?.visibility ?? ['PUBLIC']}
           onChange={(values) =>
             setParams({
               ...params,

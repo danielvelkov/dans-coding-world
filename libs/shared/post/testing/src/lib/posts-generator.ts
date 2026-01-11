@@ -42,7 +42,11 @@ export function generateRandomPosts(
       visibility: rand(['MEMBERS_ONLY', 'PUBLIC']) as PostVisibility,
       authorId: author.id,
       author: author,
-      tags: randProgrammingLanguage({ length: randNumber({ min: 1, max: 5 }) }),
+      tags: [
+        ...new Set(
+          randProgrammingLanguage({ length: randNumber({ min: 1, max: 5 }) })
+        ),
+      ],
     };
     posts.push(post);
     count--;

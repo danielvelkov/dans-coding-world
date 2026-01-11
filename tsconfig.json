@@ -89,6 +89,9 @@
     },
     {
       "path": "./libs/public-blog/data-access/blog-api"
+    },
+    {
+      "path": "./libs/shared/post/testing"
     }
   ]
 }

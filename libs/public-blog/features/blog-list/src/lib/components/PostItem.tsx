@@ -32,6 +32,7 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     font-size: 0.75em;
     padding: 0.3em 0.5em;
     font-weight: 600;
+    border: 2px solid white;
     border-radius: 2em;
   }
 

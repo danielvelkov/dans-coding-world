@@ -36,6 +36,21 @@
   "references": [
     {
       "path": "../../libs/public-blog/features/blog-list/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/util/shared-constants/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/util/api-types/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/data-access/api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/post/testing/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/data-access/blog-api/tsconfig.lib.json"
     }
   ]
 }
