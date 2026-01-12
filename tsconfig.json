@@ -92,6 +92,9 @@
     },
     {
       "path": "./libs/shared/post/testing"
+    },
+    {
+      "path": "./libs/public-blog/shared/hooks"
     }
   ]
 }

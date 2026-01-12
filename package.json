@@ -144,6 +144,7 @@
     "libs/shared/*",
     "libs/public-blog/features/*",
     "libs/public-blog/ui/*",
-    "libs/public-blog/data-access/*"
+    "libs/public-blog/data-access/*",
+    "libs/public-blog/shared/*"
   ]
 }

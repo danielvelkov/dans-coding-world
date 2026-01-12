@@ -58,7 +58,8 @@
         "libs/shared/storage/*",
         "libs/shared/data-access/api/*",
         "libs/public-blog/data-access/blog-api/*",
-        "libs/shared/post/testing/*"
+        "libs/shared/post/testing/*",
+        "libs/public-blog/shared/hooks/*"
       ]
     },
     {
@@ -146,7 +147,8 @@
         "libs/shared/storage/*",
         "libs/shared/data-access/api/*",
         "libs/public-blog/data-access/blog-api/*",
-        "libs/shared/post/testing/*"
+        "libs/shared/post/testing/*",
+        "libs/public-blog/shared/hooks/*"
       ],
       "options": {
         "typecheck": {

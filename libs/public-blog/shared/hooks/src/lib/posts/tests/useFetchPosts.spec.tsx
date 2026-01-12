@@ -1,9 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useFetchPosts } from '../hooks/useFetchPosts.js';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
 import { ResponseErrorDetails } from '@dans-coding-world/api-types';
+import { useFetchPosts } from '../useFetchPosts.js';
 
 const mockPostResponse = generateMockPostsResponse({ length: 5, pageSize: 5 });
 vi.mock('@dans-coding-world/shared-data-access-api');
@@ -65,20 +65,20 @@ describe('useFetchPosts', () => {
     if (!data) throw new Error('Testing of data fetch failed');
 
     expect(data.pagination).toBe(mockPostResponse.data?.pagination);
-    expect(data.posts.length).toBe(mockPostResponse.data?.count);
+    expect(data.items.length).toBe(mockPostResponse.data?.count);
 
-    for (const post of data.posts)
+    for (const post of data.items)
       expect(
         mockPostResponse.data?.items.map((i) => i.id).includes(post.id)
       ).toBe(true);
   });
 
   it('returns error details from API response', async () => {
-    const MOCK_API_ERROR = {
+    const MOCK_API_ERROR: ResponseErrorDetails = {
       message: 'Something went wrong',
       status: 500,
       errorCode: 'SER001',
-    } as ResponseErrorDetails;
+    };
 
     vi.mocked(api.get).mockResolvedValue({
       data: null,

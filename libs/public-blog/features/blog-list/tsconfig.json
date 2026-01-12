@@ -15,10 +15,10 @@
       "path": "../../data-access/blog-api"
     },
     {
-      "path": "../../../shared/data-access/api"
+      "path": "../../../shared/post/dtos"
     },
     {
-      "path": "../../../shared/post/dtos"
+      "path": "../../shared/hooks"
     },
     {
       "path": "../../../shared/util/helpers"

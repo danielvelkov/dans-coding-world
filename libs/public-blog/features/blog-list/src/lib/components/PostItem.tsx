@@ -132,8 +132,12 @@ export function PostItem({
   const authorName = author.profile
     ? `${author.profile.firstName} ${author.profile.lastName}`
     : author.username;
-  const formattedPublishedDate = formatDateTo_DD_MMM_YYYY(postData.publishedAt);
-  const formattedUpdatedDate = formatDateTo_DD_MMM_YYYY(postData.updatedAt);
+  const formattedPublishedDate = formatDateTo_DD_MMM_YYYY(
+    new Date(postData.publishedAt)
+  );
+  const formattedUpdatedDate = formatDateTo_DD_MMM_YYYY(
+    new Date(postData.updatedAt)
+  );
 
   return (
     <StyledListItem>
@@ -176,7 +180,7 @@ export function PostItem({
           {formattedPublishedDate !== formattedUpdatedDate ? (
             <>
               {' • '}
-              <time dateTime={postData.updatedAt.toISOString()}>
+              <time dateTime={new Date(postData.updatedAt).toISOString()}>
                 {`Edited on ${formattedUpdatedDate}`}
               </time>
             </>

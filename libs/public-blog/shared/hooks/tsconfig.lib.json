@@ -41,7 +41,10 @@
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
-      "path": "../../../prisma-schema/tsconfig.lib.json"
+      "path": "../../../shared/data-access/api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/post/dtos/tsconfig.lib.json"
     },
     {
       "path": "../../../shared/util/api-types/tsconfig.lib.json"
@@ -51,21 +54,6 @@
     },
     {
       "path": "../../data-access/blog-api/tsconfig.lib.json"
-    },
-    {
-      "path": "../../../shared/post/dtos/tsconfig.lib.json"
-    },
-    {
-      "path": "../../shared/hooks/tsconfig.lib.json"
-    },
-    {
-      "path": "../../../shared/util/helpers/tsconfig.lib.json"
-    },
-    {
-      "path": "../../../shared/util/shared-constants/tsconfig.lib.json"
-    },
-    {
-      "path": "../../ui/common/tsconfig.lib.json"
     }
   ]
 }

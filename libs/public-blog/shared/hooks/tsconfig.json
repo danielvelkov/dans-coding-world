@@ -1,0 +1,28 @@
+{
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../../shared/data-access/api"
+    },
+    {
+      "path": "../../../shared/post/dtos"
+    },
+    {
+      "path": "../../../shared/util/api-types"
+    },
+    {
+      "path": "../../../shared/post/testing"
+    },
+    {
+      "path": "../../data-access/blog-api"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ],
+  "extends": "../../../../tsconfig.base.json"
+}

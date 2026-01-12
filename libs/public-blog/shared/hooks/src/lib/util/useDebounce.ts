@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect, useState } from 'react';
 
-function useDebounce<T extends (...args: any[]) => void>(
+export function useDebounce<T extends (...args: any[]) => void>(
   callback: T,
   delay = 1000
 ) {
@@ -32,5 +32,3 @@ function useDebounce<T extends (...args: any[]) => void>(
 
   return { debounceCb: debouncedCallback, isPending };
 }
-
-export default useDebounce;

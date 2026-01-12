@@ -12,11 +12,15 @@ import { calculatePageOffset } from '@dans-coding-world/helpers';
 import { PostList, StyledUnorderedList } from './components/PostList';
 import { PostItem } from './components/PostItem';
 import { ShimmerList } from './components/ShimmerList';
-import { FetchPostsQueryParams, useFetchPosts } from './hooks/useFetchPosts';
-import useDebounce from './hooks/useDebounce';
+import {
+  FetchPostsQueryParams,
+  useFetchPosts,
+  useDebounce,
+} from '@dans-coding-world/public-blog-shared-hooks';
 import { PostVisibilityFilter } from './components/PostVisibilityFilter';
 import { PostSortingDropdown } from './components/PostSortingDropdown';
 import { PostItemsPerPage } from './components/PostItemsPerPage';
+import { BlogPostItem } from './types/post-item-data.type';
 
 const StyledFilterBar = styled.div`
   display: flex;
@@ -128,11 +132,11 @@ export function BlogList({
       ) : (
         <>
           <PostList>
-            {data.posts.map((p) => (
+            {data.items.map((p) => (
               <PostItem
                 activeTags={params.filterBy?.tags}
                 key={p.id}
-                post={p}
+                post={p as BlogPostItem}
                 isLocked={p.content === VALIDATION_MESSAGES.posts.membersOnly}
                 onTagClick={(tagName) => {
                   let tags = params.filterBy?.tags;
