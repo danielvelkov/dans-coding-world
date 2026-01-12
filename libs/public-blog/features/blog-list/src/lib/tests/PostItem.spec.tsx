@@ -7,15 +7,15 @@ import { getFirstParagraph } from '../util/post-content.util';
 import { MemoryRouter } from 'react-router-dom';
 
 const testPost = mockPostItemData[0];
-let postItemProps: Parameters<typeof PostItemComponent>[0];
+const postItemProps: Parameters<typeof PostItemComponent>[0] = {
+  post: testPost,
+  onTagClick: vi.fn(),
+  isLocked: false,
+};
 
 describe('PostItem', () => {
   beforeEach(() => {
-    postItemProps = {
-      post: testPost,
-      onTagClick: vi.fn(),
-      isLocked: false,
-    };
+    postItemProps.onTagClick = vi.fn();
   });
 
   const PostItem = (params: Parameters<typeof PostItemComponent>[0]) => (

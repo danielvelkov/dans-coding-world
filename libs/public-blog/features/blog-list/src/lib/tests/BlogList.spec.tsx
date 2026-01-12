@@ -5,12 +5,16 @@ import BlogList from '../BlogList';
 import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { MemoryRouter } from 'react-router-dom';
+import { PAGINATION } from '@dans-coding-world/shared-constants';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 
-const mockPostResponse = generateMockPostsResponse({ length: 5, pageSize: 5 });
+const mockPostResponse = generateMockPostsResponse({
+  length: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
+  pageSize: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
+});
 
-describe('Public-Blog feature - BlogList', () => {
+describe('BlogList', () => {
   let queryClient: QueryClient;
 
   const renderFeature = () => {
@@ -32,11 +36,7 @@ describe('Public-Blog feature - BlogList', () => {
       },
     });
     vi.clearAllMocks();
-    vi.mocked(api.get<BaseResponse>).mockResolvedValue({
-      data: mockPostResponse,
-      success: true,
-      error: null,
-    });
+    vi.mocked(api.get<BaseResponse>).mockResolvedValue(mockPostResponse);
   });
 
   it('should render successfully', () => {
@@ -44,7 +44,7 @@ describe('Public-Blog feature - BlogList', () => {
     expect(baseElement).toBeTruthy();
   });
 
-  it('renders error message when failed to fetch posts', async () => {
+  it('renders error message when api call fails to fetch posts', async () => {
     const error = new Error('Connection error');
     vi.mocked(api.get).mockRejectedValue(error);
     renderFeature();
@@ -62,7 +62,7 @@ describe('Public-Blog feature - BlogList', () => {
     renderFeature();
     const postList = await screen.findByLabelText('blog posts');
     const items = await within(postList).findAllByRole('listitem');
-    expect(items.length).toBe(mockPostResponse.count);
+    expect(items.length).toBe(mockPostResponse.data?.count);
   });
 
   it(`renders loading message while loading`, async () => {

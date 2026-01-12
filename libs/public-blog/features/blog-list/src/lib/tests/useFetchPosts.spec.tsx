@@ -8,7 +8,7 @@ import { ResponseErrorDetails } from '@dans-coding-world/api-types';
 const mockPostResponse = generateMockPostsResponse({ length: 5, pageSize: 5 });
 vi.mock('@dans-coding-world/shared-data-access-api');
 
-describe('Custom hook - useFetchPosts', () => {
+describe('useFetchPosts', () => {
   let queryClient: QueryClient;
 
   const renderUseFetchPostsHook = () =>
@@ -31,7 +31,7 @@ describe('Custom hook - useFetchPosts', () => {
     vi.clearAllMocks();
   });
 
-  it('handles connection errors', async () => {
+  it('handles general errors', async () => {
     const connectionError = new Error('Connection error occurred');
     vi.mocked(api.get).mockRejectedValue(connectionError);
 
@@ -52,32 +52,25 @@ describe('Custom hook - useFetchPosts', () => {
   });
 
   it('returns posts and pagination details on valid response from api', async () => {
-    vi.mocked(api.get).mockResolvedValue({
-      data: mockPostResponse,
-      success: true,
-      error: null,
-    });
+    vi.mocked(api.get).mockResolvedValue(mockPostResponse);
 
     const { result } = renderUseFetchPostsHook();
 
     // wait out data fetch
-    await waitFor(
-      () => {
-        expect(result.current.isPending).toBe(false);
-      },
-      { timeout: 3000 }
-    );
+    await waitFor(() => {
+      expect(result.current.isPending).toBe(false);
+    });
     const { data } = result.current;
 
     if (!data) throw new Error('Testing of data fetch failed');
 
-    expect(data.pagination).toBe(mockPostResponse.pagination);
-    expect(data.posts.length).toBe(mockPostResponse.count);
+    expect(data.pagination).toBe(mockPostResponse.data?.pagination);
+    expect(data.posts.length).toBe(mockPostResponse.data?.count);
 
     for (const post of data.posts)
-      expect(mockPostResponse.items.map((i) => i.id).includes(post.id)).toBe(
-        true
-      );
+      expect(
+        mockPostResponse.data?.items.map((i) => i.id).includes(post.id)
+      ).toBe(true);
   });
 
   it('returns error details from API response', async () => {
@@ -86,6 +79,7 @@ describe('Custom hook - useFetchPosts', () => {
       status: 500,
       errorCode: 'SER001',
     } as ResponseErrorDetails;
+
     vi.mocked(api.get).mockResolvedValue({
       data: null,
       success: false,
@@ -94,12 +88,9 @@ describe('Custom hook - useFetchPosts', () => {
 
     const { result } = renderUseFetchPostsHook();
 
-    await waitFor(
-      () => {
-        expect(result.current.isError).toBe(true);
-      },
-      { timeout: 3000 }
-    );
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
     const { data, error } = result.current;
 
     expect(data).toBeFalsy();

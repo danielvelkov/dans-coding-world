@@ -5,8 +5,7 @@ import { mockPostItemData } from './mocks/post-item-data.mock';
 import { PostItem } from '../components/PostItem';
 import { MemoryRouter } from 'react-router-dom';
 
-const validProps = {
-  onAuthorClick: vi.fn(),
+const validPostItemProps: Omit<Parameters<typeof PostItem>[0], 'post'> = {
   onTagClick: vi.fn(),
   isLocked: false,
 };
@@ -15,7 +14,7 @@ const validList = (
   <MemoryRouter>
     <PostList>
       {mockPostItemData.map((p) => (
-        <PostItem key={p.id} {...validProps} post={p}></PostItem>
+        <PostItem key={p.id} {...validPostItemProps} post={p}></PostItem>
       ))}
     </PostList>
   </MemoryRouter>
@@ -27,7 +26,7 @@ describe('PostList', () => {
     expect(baseElement).toBeTruthy();
   });
 
-  it('renders <ul> with the number of <li> equal to the passed post items', () => {
+  it('renders <ul> with multiple of <li> equal to the passed post items', () => {
     render(validList);
     const ul = screen.getByRole('list');
     expect(within(ul).getAllByRole('listitem').length).toBe(
@@ -35,7 +34,7 @@ describe('PostList', () => {
     );
   });
 
-  it('renders PostItem components with correct props', () => {
+  it('renders PostItem components details like title', () => {
     render(validList);
     for (const post of mockPostItemData)
       expect(
@@ -43,7 +42,7 @@ describe('PostList', () => {
       ).toBeInTheDocument();
   });
 
-  it('renders message instead of <ul> for empty posts array', () => {
+  it('renders "no posts found" message instead of <ul> when no posts are passed', () => {
     render(<PostList children={[]} />);
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
     expect(screen.getByText(EMPTY_POSTS_MESSAGE)).toBeInTheDocument();
