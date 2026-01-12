@@ -30,7 +30,7 @@ export class ApiClient {
 
   async post<T = BaseResponse>(
     path: string,
-    data?: any,
+    data?: object,
     options?: AxiosRequestConfig
   ) {
     return (await this.request<T>(path, { ...options, method: 'POST', data }))
@@ -39,7 +39,7 @@ export class ApiClient {
 
   async put<T = BaseResponse>(
     path: string,
-    data?: any,
+    data?: object,
     options?: AxiosRequestConfig
   ) {
     return (await this.request<T>(path, { ...options, method: 'PUT', data }))
@@ -48,7 +48,7 @@ export class ApiClient {
 
   async patch<T = BaseResponse>(
     path: string,
-    data?: any,
+    data?: object,
     options?: AxiosRequestConfig
   ) {
     return (await this.request<T>(path, { ...options, method: 'PATCH', data }))

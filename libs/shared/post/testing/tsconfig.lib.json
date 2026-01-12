@@ -17,6 +17,9 @@
       "path": "../../util/shared-constants/tsconfig.lib.json"
     },
     {
+      "path": "../../util/api-types/tsconfig.lib.json"
+    },
+    {
       "path": "../dtos/tsconfig.lib.json"
     },
     {
