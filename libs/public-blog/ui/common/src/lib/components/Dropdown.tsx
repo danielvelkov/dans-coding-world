@@ -49,7 +49,13 @@ export function Dropdown<T, IsMulti extends boolean = false>({
       onChange={handleChange}
       isClearable={isClearable}
       components={
-        hideRemoveOption ? { MultiValueRemove: () => null } : undefined
+        hideRemoveOption
+          ? {
+              MultiValueRemove: () => (
+                <div style={{ padding: '0em 3px' }}></div>
+              ),
+            }
+          : undefined
       }
       styles={{
         control: (base, state) => ({
