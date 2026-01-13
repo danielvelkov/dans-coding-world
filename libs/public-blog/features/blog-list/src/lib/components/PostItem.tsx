@@ -3,7 +3,7 @@ import { randParagraph } from '@ngneat/falso';
 import { BlogPostItem } from '../types/post-item-data.type';
 import {
   formatDateTo_DD_MMM_YYYY,
-  getFirstParagraph,
+  getExcerpt,
 } from '../util/post-content.util';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -113,6 +113,23 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     gap: 8px;
     color: #333;
   }
+
+  .more-link {
+    display: inline-block;
+    letter-spacing: 1px;
+    padding: 0.5em 2.5em;
+    background-color: #a72612;
+    width: fit-content;
+    line-height: 2em;
+    font-weight: 600;
+    margin: 0.5em 0em;
+    font-size: small;
+    text-transform: uppercase;
+  }
+
+  .more-link:hover {
+    background-color: #333;
+  }
 `;
 
 export function PostItem({
@@ -128,7 +145,7 @@ export function PostItem({
 }) {
   const { author, ...postData } = post;
 
-  const excerpt = getFirstParagraph(postData.content) + '...';
+  const excerpt = getExcerpt(postData.content) + '...';
   const authorName = author.profile
     ? `${author.profile.firstName} ${author.profile.lastName}`
     : author.username;
@@ -231,7 +248,12 @@ export function PostItem({
             </div>
           </div>
         ) : (
-          <p className="excerpt">{excerpt}</p>
+          <>
+            <p className="excerpt">{excerpt}</p>
+            <Link className="more-link" to={`/blog/${post.id}`}>
+              Continue reading
+            </Link>
+          </>
         )}
       </article>
     </StyledListItem>

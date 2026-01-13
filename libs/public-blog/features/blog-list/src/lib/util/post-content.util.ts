@@ -1,8 +1,8 @@
-export function getFirstParagraph(value: string) {
-  const firstParagraphRegex = /^.(?=\n|$)|.{0,300}/;
-  const matches = value.match(firstParagraphRegex);
+export function getExcerpt(value: string) {
+  const firstParagraphRegex = /.{0,300}/;
+  const matches = value.trim().match(firstParagraphRegex);
 
-  return (matches ?? [''])[0].trim();
+  return (matches ?? [''])[0];
 }
 
 export function formatDateTo_DD_MMM_YYYY(date: Date) {

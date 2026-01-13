@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import { PostItem as PostItemComponent } from '../components/PostItem';
 import userEvent from '@testing-library/user-event';
 import { mockPostItemData } from './mocks/post-item-data.mock';
-import { getFirstParagraph } from '../util/post-content.util';
+import { getExcerpt } from '../util/post-content.util';
 import { MemoryRouter } from 'react-router-dom';
 
 const testPost = mockPostItemData[0];
@@ -45,7 +45,7 @@ describe('PostItem', () => {
   it('renders the first paragraph of content as excerpt and adds trailing dots', () => {
     render(<PostItem {...postItemProps} />);
 
-    const firstParagraph = getFirstParagraph(testPost.content);
+    const firstParagraph = getExcerpt(testPost.content);
 
     expect(screen.getByRole('paragraph').textContent).toMatch(
       firstParagraph + '...'
@@ -103,7 +103,7 @@ describe('PostItem', () => {
     expect(screen.getByText(`${fullName}`)).toBeInTheDocument();
   });
 
-  it('title contains a link to post when PostItem is not locked', async () => {
+  it('title contains a link to post', async () => {
     render(
       <PostItem
         {...postItemProps}
@@ -117,7 +117,7 @@ describe('PostItem', () => {
     ).toHaveAttribute('href', `/blog/${postItemProps.post.id}`);
   });
 
-  it('title does not contain link when post IS locked', async () => {
+  it('title does not contain link to post if isLocked is true', async () => {
     render(<PostItem {...postItemProps} isLocked={true} />);
     const title = screen.getByRole('heading', { level: 2 });
 
@@ -135,6 +135,20 @@ describe('PostItem', () => {
     expect(
       screen.getByRole(`link`, { name: new RegExp(fullName) })
     ).toHaveAttribute('href', `/users/${postItemProps.post.author.id}`);
+  });
+
+  it('renders another link to post labelled as "Continue reading"', async () => {
+    render(<PostItem {...postItemProps} />);
+    expect(
+      screen.getByRole(`link`, { name: /continue reading/i })
+    ).toHaveAttribute('href', `/blog/${postItemProps.post.id}`);
+  });
+
+  it('does not render another link to post if isLocked is true', async () => {
+    render(<PostItem {...postItemProps} isLocked={true} />);
+    expect(
+      screen.queryByRole(`link`, { name: /continue reading/i })
+    ).toBeFalsy();
   });
 
   it(`renders post's published date in format: DD MMM YYYY`, () => {
