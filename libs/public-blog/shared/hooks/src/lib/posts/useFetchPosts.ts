@@ -6,6 +6,7 @@ import {
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse } from '@dans-coding-world/api-types';
+import { handleQueryResponse } from '../helper/handle-query-response';
 
 const TEN_MINUTES_IN_MS = 10 * 60 * 1000;
 
@@ -22,13 +23,7 @@ export const useFetchPosts = (params?: FetchPostsQueryParams) => {
           params,
         }
       );
-
-      if (!response) return Promise.reject('An unknown error occurred');
-      else if (!response.success) {
-        return Promise.reject(response.error);
-      }
-
-      return response.data;
+      return handleQueryResponse(response);
     },
   });
 
