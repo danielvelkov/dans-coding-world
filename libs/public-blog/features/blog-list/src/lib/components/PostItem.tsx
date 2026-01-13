@@ -7,6 +7,7 @@ import {
 } from '../util/post-content.util';
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Tag } from '@dans-coding-world/public-blog-ui-common';
 
 const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   padding: 0.5em 1em;
@@ -28,20 +29,8 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     color: inherit;
   }
 
-  .tag {
-    font-size: 0.75em;
-    padding: 0.3em 0.5em;
-    font-weight: 600;
-    border: 2px solid white;
-    border-radius: 2em;
-  }
-
   .tag-list {
     gap: 5px;
-  }
-
-  .active-tag {
-    background-color: #bea0c9;
   }
 
   a {
@@ -209,19 +198,12 @@ export function PostItem({
               postData.tags.map((tagName) => {
                 const isActive = activeTags.includes(tagName);
                 return (
-                  <button
+                  <Tag
                     key={`${post.id}-${tagName}`}
-                    onClick={() => onTagClick(tagName)}
-                    className={`tag link-button ${
-                      isActive ? 'active-tag' : ''
-                    }`}
-                    aria-pressed={isActive}
-                    aria-label={`${
-                      isActive ? 'Remove' : 'Add'
-                    } ${tagName} filter`}
-                  >
-                    {`#${tagName}`}
-                  </button>
+                    isActive={isActive}
+                    name={tagName}
+                    onClick={onTagClick}
+                  />
                 );
               })}
           </div>
