@@ -34,7 +34,11 @@ describe('PublishedYearSelectSection', () => {
     };
     vi.clearAllMocks();
   });
-  it('renders successfully');
+
+  it('renders successfully', () => {
+    const { baseElement } = renderFeature();
+    expect(baseElement).toBeTruthy();
+  });
 
   test.each([
     ['while fetching published years', { isLoading: true }],
