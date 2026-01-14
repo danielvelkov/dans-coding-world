@@ -8,7 +8,13 @@ const StyledTagButton = styled.button<
   font-weight: 600;
   border: 2px solid white;
   border-radius: 2em;
+  text-transform: lowercase;
+
   ${(props) => (props.$active ? 'background: #bea0c9' : '')};
+
+  ::before {
+    content: '#';
+  }
 `;
 
 export function Tag({
@@ -27,7 +33,7 @@ export function Tag({
       aria-pressed={isActive}
       aria-label={`${isActive ? 'Remove' : 'Add'} ${name} filter`}
     >
-      {`#${name}`}
+      {`${name}`}
     </StyledTagButton>
   );
 }
