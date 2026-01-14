@@ -6,22 +6,11 @@ import {
   within,
 } from '@testing-library/react';
 import { TagSelectSection } from '../components/TagSelectSection';
-import { UseQueryResult } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router';
 import { generateMockGetTagsResponse } from '@dans-coding-world/shared-post-testing';
 import { GetTagsResponse } from '@dans-coding-world/shared-post-dto';
-
-function createTagsQueryMock(
-  overrides?: Partial<UseQueryResult<GetTagsResponse>>
-): UseQueryResult<GetTagsResponse> {
-  return {
-    data: undefined,
-    error: null,
-    isLoading: false,
-    isError: false,
-    ...overrides,
-  } as UseQueryResult<GetTagsResponse>;
-}
+import createMockQueryResult from './util/createMockQueryResult';
+import { UseQueryResult } from '@tanstack/react-query';
 
 const { data } = generateMockGetTagsResponse({ length: 5 });
 if (!data) throw new Error('failed to generate mock response');
@@ -40,7 +29,7 @@ describe('TagsSelectList', () => {
   beforeEach(() => {
     validProps = {
       onTagToggle: vi.fn(),
-      tagsQuery: createTagsQueryMock({ data }),
+      tagsQuery: createMockQueryResult({ data }),
     };
     vi.clearAllMocks();
   });
@@ -58,7 +47,7 @@ describe('TagsSelectList', () => {
   ])(
     'renders nothing %s',
     (_: string, params: Partial<UseQueryResult<GetTagsResponse>>) => {
-      validProps.tagsQuery = createTagsQueryMock(params);
+      validProps.tagsQuery = createMockQueryResult({ ...params });
       const { container } = renderFeature();
       expect(container.firstChild).toBe(null);
     }
