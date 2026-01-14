@@ -1,22 +1,32 @@
 import { Tag } from '@dans-coding-world/public-blog-ui-common';
+import { UseQueryResult } from '@tanstack/react-query';
+import { GetTagsResponse } from '@dans-coding-world/shared-post-dto';
+
 export function TagSelectSection({
-  tags,
-  activeTags,
-  onTagSelect,
+  tagsQuery,
+  activeTags = [],
+  onTagToggle,
 }: {
-  tags: string[];
+  tagsQuery: UseQueryResult<GetTagsResponse>;
   activeTags?: string[];
-  onTagSelect: (tagName: string) => void;
+  onTagToggle: (tagName: string) => void;
 }) {
+  const { data, isLoading, isError } = tagsQuery;
+
+  if (isLoading || isError || !data || data.count === 0) {
+    return null;
+  }
+
   return (
-    <section>
-      <h3>Tags</h3>
-      {tags.map((tagName) => (
+    <section aria-labelledby="tag-filter-heading">
+      <h3 id="tag-filter-heading">Tags</h3>
+
+      {data.items.map(({ name }) => (
         <Tag
-          key={tagName}
-          isActive={activeTags?.includes(tagName) ?? false}
-          name={tagName}
-          onClick={onTagSelect}
+          key={name}
+          name={name}
+          isActive={activeTags.includes(name)}
+          onClick={onTagToggle}
         />
       ))}
     </section>
