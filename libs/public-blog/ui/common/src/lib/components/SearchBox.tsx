@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
-const StyledSearchBox = styled.div`
+const StyledSearch = styled('search')`
   position: relative;
   width: 100%;
   max-width: min(50vw, 40ch);
@@ -85,7 +85,7 @@ export function SearchBox({
   };
 
   return (
-    <StyledSearchBox>
+    <StyledSearch>
       <i className="fa fa-search"></i>
       <input
         aria-label="search"
@@ -106,7 +106,7 @@ export function SearchBox({
           <i className="fa fa-close"></i>
         </button>
       )}
-    </StyledSearchBox>
+    </StyledSearch>
   );
 }
 export default SearchBox;
