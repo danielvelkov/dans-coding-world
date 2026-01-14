@@ -3,7 +3,13 @@
   "include": [],
   "references": [
     {
-      "path": "../../data-access/blog-api"
+      "path": "../../../shared/post/testing"
+    },
+    {
+      "path": "../../ui/common"
+    },
+    {
+      "path": "../../../shared/post/dtos"
     },
     {
       "path": "./tsconfig.lib.json"
