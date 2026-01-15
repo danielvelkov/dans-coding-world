@@ -52,7 +52,7 @@ export function PostYearSelection({
 
       {[...data.years].sort().map((year) => (
         <StyledYearButton
-          key={year}
+          key={`filter by ${year}`}
           $selected={year === normalizedSelectedYear}
           aria-pressed={year === normalizedSelectedYear ? 'true' : undefined}
           onClick={() => onYearToggle(year)}

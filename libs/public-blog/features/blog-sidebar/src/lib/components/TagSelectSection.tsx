@@ -29,7 +29,7 @@ export function TagSelectSection({
 
       {data.items.map(({ name }) => (
         <StyledTag
-          key={name}
+          key={`filter by ${name}`}
           name={name}
           isActive={activeTags.includes(name)}
           onClick={onTagToggle}
