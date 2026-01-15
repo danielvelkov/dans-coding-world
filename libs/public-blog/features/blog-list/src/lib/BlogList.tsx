@@ -159,20 +159,22 @@ export function BlogList({
             ))}
           </PostList>
 
-          <Pagination
-            totalPages={data.pagination.totalPages}
-            currentPage={data.pagination.page}
-            onPageSelect={(page) => {
-              const pageOffset = calculatePageOffset(
-                page,
-                params.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
-              );
-              setParams({
-                ...params,
-                pageOffset: pageOffset === 0 ? undefined : pageOffset,
-              });
-            }}
-          />
+          {data.pagination.totalPages > 1 && (
+            <Pagination
+              totalPages={data.pagination.totalPages}
+              currentPage={data.pagination.page}
+              onPageSelect={(page) => {
+                const pageOffset = calculatePageOffset(
+                  page,
+                  params.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+                );
+                setParams({
+                  ...params,
+                  pageOffset: pageOffset === 0 ? undefined : pageOffset,
+                });
+              }}
+            />
+          )}
         </main>
       )}
     </StyledBlogListFeature>

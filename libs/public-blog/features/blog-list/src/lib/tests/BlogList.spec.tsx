@@ -6,6 +6,7 @@ import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testin
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { MemoryRouter } from 'react-router-dom';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
+import { GetPostsResponseDto } from '@dans-coding-world/shared-post-dto';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 
@@ -63,6 +64,44 @@ describe('BlogList', () => {
     const postList = await screen.findByLabelText('blog posts');
     const items = await within(postList).findAllByRole('listitem');
     expect(items.length).toBe(mockPostResponse.data?.count);
+  });
+
+  it('renders page nav if total pages in response are more than 1', async () => {
+    vi.mocked(api.get<BaseResponse>).mockResolvedValue({
+      ...mockPostResponse,
+      data: {
+        ...mockPostResponse.data,
+        pagination: {
+          ...mockPostResponse.data?.pagination,
+          totalPages: 2,
+        },
+      } as GetPostsResponseDto,
+    });
+    renderFeature();
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('navigation', { name: 'pagination' })
+      ).toBeTruthy();
+    });
+  });
+
+  it('does not render page nav if total pages is <= 1', async () => {
+    vi.mocked(api.get<BaseResponse>).mockResolvedValue({
+      ...mockPostResponse,
+      data: {
+        ...mockPostResponse.data,
+        pagination: {
+          ...mockPostResponse.data?.pagination,
+          totalPages: 1,
+        },
+      } as GetPostsResponseDto,
+    });
+    renderFeature();
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('navigation', { name: 'pagination' })
+      ).toBeFalsy();
+    });
   });
 
   it(`renders loading message while loading`, async () => {
