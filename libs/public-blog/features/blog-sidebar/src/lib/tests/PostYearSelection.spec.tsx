@@ -106,9 +106,7 @@ describe('PublishedYearSelectSection', () => {
         yearButton,
         new MouseEvent('click', { cancelable: true, bubbles: true })
       );
-      expect(validProps.onYearToggle).toHaveBeenCalledWith(
-        selectedYear.toString()
-      );
+      expect(validProps.onYearToggle).toHaveBeenCalledWith(selectedYear);
     });
   });
 });

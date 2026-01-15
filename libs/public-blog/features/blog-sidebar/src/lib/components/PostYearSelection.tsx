@@ -34,7 +34,7 @@ export function PostYearSelection({
 }: {
   yearsQuery: UseQueryResult<GetPostsMetadataResponse>;
   selectedYear?: number;
-  onYearToggle: (year: string) => void;
+  onYearToggle: (year: number) => void;
 }) {
   const { data, isLoading, isError } = yearsQuery;
 
@@ -42,16 +42,20 @@ export function PostYearSelection({
     return null;
   }
 
+  const normalizedSelectedYear = selectedYear
+    ? Number(selectedYear)
+    : undefined;
+
   return (
     <section aria-labelledby="year-filter-heading">
       <h3 id="year-filter-heading">Select Posts by year</h3>
 
-      {data.years.map((year) => (
+      {[...data.years].sort().map((year) => (
         <StyledYearButton
           key={year}
-          $selected={year === selectedYear}
-          aria-pressed={year === selectedYear ? 'true' : undefined}
-          onClick={() => onYearToggle(year.toString())}
+          $selected={year === normalizedSelectedYear}
+          aria-pressed={year === normalizedSelectedYear ? 'true' : undefined}
+          onClick={() => onYearToggle(year)}
         >
           {year}
         </StyledYearButton>
