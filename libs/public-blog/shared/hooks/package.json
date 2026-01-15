@@ -10,5 +10,12 @@
       "default": "./src/index.ts"
     },
     "./package.json": "./package.json"
+  },
+  "nx": {
+    "tags": [
+      "layer:data-access",
+      "scope:frontend",
+      "type:lib"
+    ]
   }
 }

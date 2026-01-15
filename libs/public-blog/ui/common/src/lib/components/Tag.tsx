@@ -21,13 +21,16 @@ export function Tag({
   isActive,
   name,
   onClick,
+  className,
 }: {
   isActive: boolean;
   name: string;
   onClick: (tagName: string) => void;
+  className?: string;
 }) {
   return (
     <StyledTagButton
+      className={className}
       $active={isActive}
       onClick={() => onClick(name)}
       aria-pressed={isActive}

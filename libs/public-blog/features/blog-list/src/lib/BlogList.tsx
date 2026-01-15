@@ -21,6 +21,7 @@ import { PostVisibilityFilter } from './components/PostVisibilityFilter';
 import { PostSortingDropdown } from './components/PostSortingDropdown';
 import { PostItemsPerPage } from './components/PostItemsPerPage';
 import { BlogPostItem } from './types/post-item-data.type';
+import React from 'react';
 
 const StyledFilterBar = styled.div`
   display: flex;
@@ -45,7 +46,7 @@ const StyledFilterBar = styled.div`
   }
 `;
 
-const StyledBlogListFeature = styled.div`
+const StyledBlogListFeature = styled.div<React.ComponentPropsWithoutRef<'div'>>`
   padding: 1em;
   min-height: 80vh;
 
@@ -61,9 +62,11 @@ const StyledBlogListFeature = styled.div`
 export function BlogList({
   params = {},
   setParams = noop,
+  className,
 }: {
   params?: FetchPostsQueryParams;
   setParams?: (value: FetchPostsQueryParams) => void;
+  className?: string;
 }) {
   const { data, isPending, isError, error } = useFetchPosts(params);
 
@@ -75,7 +78,7 @@ export function BlogList({
   const showLoading = isPending || isLoading || !data;
 
   return (
-    <StyledBlogListFeature>
+    <StyledBlogListFeature className={className}>
       <StyledFilterBar>
         <PostSortingDropdown
           className="filter-col"
@@ -130,7 +133,7 @@ export function BlogList({
       ) : showLoading ? (
         <ShimmerList count={PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE} />
       ) : (
-        <>
+        <main>
           <PostList>
             {data.items.map((p) => (
               <PostItem
@@ -170,7 +173,7 @@ export function BlogList({
               });
             }}
           />
-        </>
+        </main>
       )}
     </StyledBlogListFeature>
   );

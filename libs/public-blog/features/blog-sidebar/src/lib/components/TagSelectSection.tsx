@@ -1,6 +1,12 @@
 import { Tag } from '@dans-coding-world/public-blog-ui-common';
 import { UseQueryResult } from '@tanstack/react-query';
 import { GetTagsResponse } from '@dans-coding-world/shared-post-dto';
+import styled from 'styled-components';
+
+const StyledTag = styled(Tag)`
+  margin-right: 0.5em;
+  margin-top: 0.5em;
+`;
 
 export function TagSelectSection({
   tagsQuery,
@@ -22,7 +28,7 @@ export function TagSelectSection({
       <h3 id="tag-filter-heading">Tags</h3>
 
       {data.items.map(({ name }) => (
-        <Tag
+        <StyledTag
           key={name}
           name={name}
           isActive={activeTags.includes(name)}
