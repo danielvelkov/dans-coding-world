@@ -10,5 +10,12 @@
       "default": "./src/index.ts"
     },
     "./package.json": "./package.json"
+  },
+  "nx": {
+    "tags": [
+      "layer:public-blog",
+      "scope:frontend",
+      "type:lib"
+    ]
   }
 }

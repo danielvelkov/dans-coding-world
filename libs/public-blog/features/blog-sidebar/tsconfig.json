@@ -12,6 +12,9 @@
       "path": "../../../shared/post/dtos"
     },
     {
+      "path": "../../shared/hooks"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {
