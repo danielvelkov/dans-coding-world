@@ -19,7 +19,10 @@ import {
 } from '@dans-coding-world/public-blog-shared-hooks';
 import { PostVisibilityFilter } from './components/PostVisibilityFilter';
 import { PostSortingDropdown } from './components/PostSortingDropdown';
-import { PostItemsPerPage } from './components/PostItemsPerPage';
+import {
+  PostItemOption,
+  PostItemsPerPage,
+} from './components/PostItemsPerPage';
 import { BlogPostItem } from './types/post-item-data.type';
 import React from 'react';
 
@@ -75,6 +78,38 @@ export function BlogList({
       setParams({ ...params, searchQuery: value === '' ? undefined : value });
     }, 500);
 
+  const handleTagToggle = (tagName: string) => {
+    const currentTags = params.filterBy?.tags || [];
+    const nextTags = currentTags.includes(tagName)
+      ? currentTags.filter((t) => t !== tagName)
+      : [...currentTags, tagName];
+    setParams({
+      ...params,
+      filterBy: { ...params.filterBy, tags: nextTags },
+    });
+  };
+
+  const handlePageSelect = (page: number) => {
+    const pageOffset = calculatePageOffset(
+      page,
+      params.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+    );
+    setParams({
+      ...params,
+      pageOffset: pageOffset === 0 ? undefined : pageOffset,
+    });
+  };
+
+  const handleItemsPerPageSelect = (itemsPerPage: PostItemOption) => {
+    setParams({
+      ...params,
+      pageSize:
+        +itemsPerPage === PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+          ? undefined
+          : itemsPerPage,
+    });
+  };
+
   const showLoading = isPending || isLoading || !data;
 
   return (
@@ -106,20 +141,12 @@ export function BlogList({
         <PostItemsPerPage
           className="filter-col"
           currentValue={data?.pagination.limit}
-          onChange={(itemsPerPage) =>
-            setParams({
-              ...params,
-              pageSize:
-                +itemsPerPage === PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
-                  ? undefined
-                  : itemsPerPage,
-            })
-          }
+          onChange={handleItemsPerPageSelect}
         ></PostItemsPerPage>
       </StyledFilterBar>
       <SearchBox
         currentValue={params.searchQuery ?? ''}
-        onChange={(searchString) => handleSearchDebounced(searchString)}
+        onChange={handleSearchDebounced}
       />
 
       {/* Dynamic Content Area */}
@@ -141,20 +168,7 @@ export function BlogList({
                 key={p.id}
                 post={p as BlogPostItem}
                 isLocked={p.content === VALIDATION_MESSAGES.posts.membersOnly}
-                onTagClick={(tagName) => {
-                  let tags = params.filterBy?.tags;
-                  if (!tags) tags = [tagName];
-                  else if (tags.includes(tagName))
-                    tags = tags.filter((name) => name !== tagName);
-                  else tags.push(tagName);
-                  setParams({
-                    ...params,
-                    filterBy: {
-                      ...params.filterBy,
-                      tags,
-                    },
-                  });
-                }}
+                onTagClick={handleTagToggle}
               />
             ))}
           </PostList>
@@ -163,16 +177,7 @@ export function BlogList({
             <Pagination
               totalPages={data.pagination.totalPages}
               currentPage={data.pagination.page}
-              onPageSelect={(page) => {
-                const pageOffset = calculatePageOffset(
-                  page,
-                  params.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
-                );
-                setParams({
-                  ...params,
-                  pageOffset: pageOffset === 0 ? undefined : pageOffset,
-                });
-              }}
+              onPageSelect={handlePageSelect}
             />
           )}
         </main>

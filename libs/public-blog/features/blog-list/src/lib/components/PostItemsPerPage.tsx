@@ -1,7 +1,8 @@
 import { Dropdown } from '@dans-coding-world/public-blog-ui-common';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 
-type PostItemOption = (typeof PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS)[number];
+export type PostItemOption =
+  (typeof PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS)[number];
 
 export function PostItemsPerPage({
   currentValue,
