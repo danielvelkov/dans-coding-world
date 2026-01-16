@@ -13,7 +13,7 @@ import { GetPostsMetadataResponse } from '@dans-coding-world/shared-post-dto';
 import { PostYearSelection } from '../components/PostYearSelection';
 import createMockQueryResult from './util/createMockQueryResult';
 
-const { data } = generatePostMetadataResponse({ length: 3 });
+const { data } = generatePostMetadataResponse({ length: 5 });
 if (!data) throw new Error('failed go generate mock response');
 
 describe('PublishedYearSelectSection', () => {
@@ -77,6 +77,18 @@ describe('PublishedYearSelectSection', () => {
         expect(
           yearButtons.find((t) => t.textContent?.includes(year.toString()))
         ).toBeTruthy();
+    });
+  });
+
+  it('renders buttons for filtering by year in desc order', async () => {
+    renderFeature();
+
+    await waitFor(() => {
+      const yearsSection = screen.getByLabelText(/Posts by year/i);
+      const yearButtons = within(yearsSection).getAllByRole('button');
+      const sortedYears = [...data.years].sort((prev, next) => next - prev);
+      for (let i = 0; i < yearButtons.length; i++)
+        expect(yearButtons[i].textContent).toBe(sortedYears[i].toString());
     });
   });
 

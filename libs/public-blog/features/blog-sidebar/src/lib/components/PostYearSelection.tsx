@@ -50,16 +50,18 @@ export function PostYearSelection({
     <section aria-labelledby="year-filter-heading">
       <h3 id="year-filter-heading">Select Posts by year</h3>
 
-      {[...data.years].sort().map((year) => (
-        <StyledYearButton
-          key={`filter by ${year}`}
-          $selected={year === normalizedSelectedYear}
-          aria-pressed={year === normalizedSelectedYear ? 'true' : undefined}
-          onClick={() => onYearToggle(year)}
-        >
-          {year}
-        </StyledYearButton>
-      ))}
+      {[...data.years]
+        .sort((prev, next) => next - prev)
+        .map((year) => (
+          <StyledYearButton
+            key={`filter by ${year}`}
+            $selected={year === normalizedSelectedYear}
+            aria-pressed={year === normalizedSelectedYear ? 'true' : undefined}
+            onClick={() => onYearToggle(year)}
+          >
+            {year}
+          </StyledYearButton>
+        ))}
     </section>
   );
 }
