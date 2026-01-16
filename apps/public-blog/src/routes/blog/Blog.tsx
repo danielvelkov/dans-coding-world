@@ -10,7 +10,6 @@ import { stripDefaultPostQueryParams } from './utils/strip-default-post-query-pa
 const StyledBlogRootLayout = styled.div`
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
   gap: 1em;
 `;
 const StyledBlogList = styled(BlogList)`

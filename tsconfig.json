@@ -95,6 +95,9 @@
     },
     {
       "path": "./libs/public-blog/shared/hooks"
+    },
+    {
+      "path": "./libs/public-blog/features/blog-sidebar"
     }
   ]
 }
