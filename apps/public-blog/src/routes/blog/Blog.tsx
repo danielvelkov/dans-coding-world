@@ -1,53 +1,51 @@
 import { BlogList } from '@dans-coding-world/public-blog-features-blog-list';
+import { BlogSidebar } from '@dans-coding-world/public-blog-features-blog-sidebar';
 import { useSearchParams } from 'react-router-dom';
+import { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hooks';
 import qs from 'qs';
+import styled from 'styled-components';
+import { mergePostQueryDefaults } from './utils/merge-post-query-defaults';
+import { stripDefaultPostQueryParams } from './utils/strip-default-post-query-params';
 
-type BlogListParams = Parameters<typeof BlogList>[0]['params'];
+const StyledBlogRootLayout = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1em;
+`;
+const StyledBlogList = styled(BlogList)`
+  flex: 4 0 35vmax;
+  padding: 0;
+`;
+const StyledStickyBlogSidebar = styled(BlogSidebar)`
+  position: sticky;
+  top: 0;
+  flex: 1 0 200px;
+  align-self: flex-start;
+`;
 
 export function Blog() {
   const [searchParams, setSearchParams] = useSearchParams();
-  let queryParams: BlogListParams = qs.parse(searchParams.toString());
+  const parsedParams: FetchPostsQueryParams = qs.parse(searchParams.toString());
+  const queryParams = mergePostQueryDefaults(parsedParams || {});
 
-  if (!queryParams) queryParams = {};
-
-  // Default filters
-  queryParams = {
-    sortBy: { publishedAt: 'desc' },
-    ...queryParams,
-    filterBy: {
-      status: ['PUBLISHED'],
-      visibility: ['MEMBERS_ONLY', 'PUBLIC'],
-      ...queryParams.filterBy,
-    },
+  const handleParamsChange = (value: FetchPostsQueryParams) => {
+    const filteredValues = stripDefaultPostQueryParams(value);
+    setSearchParams(qs.stringify(filteredValues));
   };
 
   return (
-    <BlogList
-      params={queryParams}
-      setParams={(value) => {
-        const filteredValues = removeDefaultParamsFromURL(value);
-        setSearchParams(qs.stringify(filteredValues));
-      }}
-    />
+    <StyledBlogRootLayout>
+      <StyledBlogList
+        params={queryParams}
+        setParams={handleParamsChange}
+      ></StyledBlogList>
+      <StyledStickyBlogSidebar
+        params={queryParams}
+        setParams={handleParamsChange}
+      ></StyledStickyBlogSidebar>
+    </StyledBlogRootLayout>
   );
 }
-
-const removeDefaultParamsFromURL = (value: NonNullable<BlogListParams>) => {
-  const filteredValues = {
-    ...value,
-    sortBy: value.sortBy ? { ...value.sortBy } : undefined,
-    filterBy: value.filterBy ? { ...value.filterBy } : undefined,
-  };
-
-  if (filteredValues.sortBy?.publishedAt === 'desc')
-    delete filteredValues.sortBy.publishedAt;
-  if (filteredValues.filterBy?.status) delete filteredValues.filterBy.status;
-  if (
-    filteredValues.filterBy?.visibility?.includes('MEMBERS_ONLY') &&
-    filteredValues.filterBy?.visibility?.includes('PUBLIC')
-  )
-    delete filteredValues.filterBy.visibility;
-  return filteredValues;
-};
 
 export default Blog;
