@@ -3,11 +3,19 @@ import { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hoo
 export const mergePostQueryDefaults = (
   params: FetchPostsQueryParams
 ): FetchPostsQueryParams => ({
-  sortBy: { publishedAt: 'desc' },
+  ...defaultFilters,
   ...params,
   filterBy: {
-    visibility: ['MEMBERS_ONLY', 'PUBLIC'],
+    ...defaultFilters.filterBy,
     ...params.filterBy,
-    status: ['PUBLISHED'],
+    status: defaultFilters.filterBy?.status, // Always set
   },
 });
+
+export const defaultFilters: FetchPostsQueryParams = {
+  filterBy: {
+    status: ['PUBLISHED'],
+    visibility: ['MEMBERS_ONLY', 'PUBLIC'],
+  },
+  sortBy: { publishedAt: 'desc' },
+};

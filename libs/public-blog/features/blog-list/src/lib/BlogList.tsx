@@ -101,12 +101,13 @@ export function BlogList({
   };
 
   const handleItemsPerPageSelect = (itemsPerPage: PostItemOption) => {
+    const normalizedValue = itemsPerPage ? Number(itemsPerPage) : undefined;
     setParams({
       ...params,
       pageSize:
-        +itemsPerPage === PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+        normalizedValue === PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
           ? undefined
-          : itemsPerPage,
+          : (normalizedValue as PostItemOption),
     });
   };
 

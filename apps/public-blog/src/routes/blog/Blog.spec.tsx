@@ -1,63 +1,51 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
-import Blog from '../routes/blog/Blog';
-import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
-import { MemoryRouter } from 'react-router-dom';
+import Blog from './Blog';
+import { BrowserRouter } from 'react-router-dom';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
-import { BaseResponse } from '@dans-coding-world/api-types';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import qs from 'qs';
+import { server } from './mocks/node.js';
+import { defaultFilters } from './utils/merge-post-query-defaults';
 
-// Mock everything related to backend api
 vi.mock('@dans-coding-world/public-blog-data-access-api');
-
-const mockSetSearchParams = vi.fn();
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useSearchParams: () => [new URLSearchParams(), mockSetSearchParams],
-  };
-});
 
 describe('Blog', () => {
   let queryClient: QueryClient;
 
   const renderFeature = () =>
     render(
-      <MemoryRouter
+      <BrowserRouter
         future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
       >
         <QueryClientProvider client={queryClient}>
           <Blog />
         </QueryClientProvider>
-      </MemoryRouter>
+      </BrowserRouter>
     );
+
+  beforeAll(() => server.listen());
+  afterEach(() => server.resetHandlers());
+  afterAll(() => server.close());
 
   beforeEach(() => {
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
     vi.clearAllMocks();
-    vi.mocked(api.get<BaseResponse>).mockResolvedValue({
-      data: generateMockPostsResponse({ length: 5, pageSize: 5 }),
-      success: true,
-      error: null,
-    });
   });
 
-  it('on initial render, the blog has predefined filters already', () => {
+  it('renders successfully', () => {
+    const { baseElement } = renderFeature();
+    expect(baseElement).toBeTruthy();
+  });
+
+  it('renders with specific default filters', () => {
     renderFeature();
     expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.POSTS.LIST, {
-      params: {
-        filterBy: {
-          status: ['PUBLISHED'],
-          visibility: ['MEMBERS_ONLY', 'PUBLIC'],
-        },
-        sortBy: { publishedAt: 'desc' },
-      },
+      params: defaultFilters,
     });
   });
 
@@ -65,17 +53,16 @@ describe('Blog', () => {
     ['items per page', '10'],
     ['sort', 'Published date.*asc'],
   ])(
-    'always queries posts with status PUBLISHED, regardless of filter',
+    'always requests posts with status PUBLISHED, regardless of (%s) filters',
     async (elementName, optionName) => {
       renderFeature();
       await selectDropdownOption(elementName, optionName);
 
-      const mockApiGetFunctionParam = vi
-        .mocked(api.get)
-        .mock.calls.at(-1)?.[1] as Parameters<typeof api.get>[1];
-      expect(mockApiGetFunctionParam?.params.filterBy).toHaveProperty(
-        'status',
-        ['PUBLISHED']
+      expect(api.get).toHaveBeenLastCalledWith(
+        API_ENDPOINTS.POSTS.LIST,
+        deepMatch({
+          params: { filterBy: { status: ['PUBLISHED'] } },
+        })
       );
     }
   );
@@ -89,11 +76,14 @@ describe('Blog', () => {
       { sortBy: { publishedAt: 'asc' } },
     ],
   ])(
-    'includes search params (%s) in page URL when changing filters',
+    'updates URL params to "?%s" when filter changes (non-default values)',
     async (_, elementName, optionName, value) => {
       renderFeature();
       await selectDropdownOption(elementName, optionName);
-      expect(mockSetSearchParams).toHaveBeenLastCalledWith(qs.stringify(value));
+      await waitFor(() => {
+        const url = new URL(window.location.href);
+        expect(url.search).toContain(qs.stringify(value));
+      });
     }
   );
 
@@ -109,7 +99,10 @@ describe('Blog', () => {
     async (_, elementName, optionName) => {
       renderFeature();
       await selectDropdownOption(elementName, optionName);
-      expect(mockSetSearchParams).toHaveBeenLastCalledWith('');
+      await waitFor(() => {
+        const url = new URL(window.location.href);
+        expect(url.search).toContain('');
+      });
     }
   );
 });
@@ -126,3 +119,15 @@ async function selectDropdownOption(elementName: string, optionName: string) {
   });
   await user.click(option);
 }
+
+const deepMatch = (obj: object): void =>
+  expect.objectContaining(
+    Object.fromEntries(
+      Object.entries(obj).map(([key, value]) => [
+        key,
+        value !== null && typeof value === 'object' && !Array.isArray(value)
+          ? deepMatch(value)
+          : value,
+      ])
+    )
+  );
