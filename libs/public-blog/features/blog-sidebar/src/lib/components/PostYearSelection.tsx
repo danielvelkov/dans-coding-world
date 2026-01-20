@@ -9,8 +9,8 @@ const StyledYearButton = styled.button<
   background: none;
   border: none;
   padding: 0;
-  margin-right: 1rem;
   font: inherit;
+  margin: 0 2px;
   color: ${({ $selected }) => ($selected ? 'red' : 'inherit')};
   cursor: pointer;
 
@@ -52,15 +52,20 @@ export function PostYearSelection({
 
       {[...data.years]
         .sort((prev, next) => next - prev)
-        .map((year) => (
-          <StyledYearButton
-            key={`filter by ${year}`}
-            $selected={year === normalizedSelectedYear}
-            aria-pressed={year === normalizedSelectedYear ? 'true' : undefined}
-            onClick={() => onYearToggle(year)}
-          >
-            {year}
-          </StyledYearButton>
+        .map((year, index) => (
+          <>
+            <StyledYearButton
+              key={`filter by ${year}`}
+              $selected={year === normalizedSelectedYear}
+              aria-pressed={
+                year === normalizedSelectedYear ? 'true' : undefined
+              }
+              onClick={() => onYearToggle(year)}
+            >
+              {year}
+            </StyledYearButton>
+            {index < data.years.length - 1 && ' • '}
+          </>
         ))}
     </section>
   );
