@@ -16,6 +16,20 @@ describe('Dropdown', () => {
     expect(baseElement).toBeTruthy();
   });
 
+  it('renders values as options when expanded', async () => {
+    render(<Dropdown {...validProps} />);
+    const user = userEvent.setup();
+    const dropdown = screen.getByRole('combobox');
+
+    await user.click(dropdown);
+
+    const options = screen.getAllByRole('option');
+    expect(options.length).toBe(validProps.values.length);
+    let i = 0;
+    for (const option of options)
+      expect(option.textContent).toBe(validProps.values[i++].label);
+  });
+
   it('renders the current value as selected', async () => {
     render(<Dropdown {...validProps} />);
     expect(screen.getByText(validProps.currentValue)).toBeInTheDocument();

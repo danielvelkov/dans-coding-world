@@ -60,7 +60,7 @@ export function Dropdown<T, IsMulti extends boolean = false>({
       styles={{
         control: (base, state) => ({
           ...base,
-          padding: '0.2em',
+          padding: '0.1em',
           backgroundColor: '#f5f5f5',
           borderWidth: '2px',
           borderColor: state.isFocused ? '#4a90e2' : '#ccc',
