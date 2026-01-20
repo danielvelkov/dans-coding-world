@@ -53,7 +53,7 @@ describe('Blog', () => {
     ['items per page', '10'],
     ['sort', 'Published date.*asc'],
   ])(
-    'always requests posts with status PUBLISHED, regardless of (%s) filters',
+    'always requests posts with status PUBLISHED, regardless of (%s) filters specified',
     async (elementName, optionName) => {
       renderFeature();
       await selectDropdownOption(elementName, optionName);

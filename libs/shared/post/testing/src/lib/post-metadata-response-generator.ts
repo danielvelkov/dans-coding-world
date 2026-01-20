@@ -2,7 +2,7 @@ import { GetPostsMetadataResponse } from '@dans-coding-world/shared-post-dto';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { randPastDate } from '@ngneat/falso';
 
-export function generatePostMetadataResponse({
+export function generateMockPostMetadataResponse({
   length = 5,
   years,
 }: {

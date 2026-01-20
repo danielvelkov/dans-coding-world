@@ -8,12 +8,12 @@ import {
 import '@testing-library/jest-dom';
 import { UseQueryResult } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router';
-import { generatePostMetadataResponse } from '@dans-coding-world/shared-post-testing';
+import { generateMockPostMetadataResponse } from '@dans-coding-world/shared-post-testing';
 import { GetPostsMetadataResponse } from '@dans-coding-world/shared-post-dto';
 import { PostYearSelection } from '../components/PostYearSelection';
 import createMockQueryResult from './util/createMockQueryResult';
 
-const { data } = generatePostMetadataResponse({ length: 5 });
+const { data } = generateMockPostMetadataResponse({ length: 5 });
 if (!data) throw new Error('failed go generate mock response');
 
 describe('PublishedYearSelectSection', () => {

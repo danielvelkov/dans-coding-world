@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import {
   generateMockPostsResponse,
   generateMockGetTagsResponse,
-  generatePostMetadataResponse,
+  generateMockPostMetadataResponse,
 } from '@dans-coding-world/shared-post-testing';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import {
@@ -14,7 +14,7 @@ import {
 
 const mockPostResponse = generateMockPostsResponse({ length: 5, pageSize: 5 });
 const mockTagsResponse = generateMockGetTagsResponse({ length: 5 });
-const mockPostMetadataResponse = generatePostMetadataResponse({
+const mockPostMetadataResponse = generateMockPostMetadataResponse({
   length: 5,
 });
 

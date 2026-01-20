@@ -9,7 +9,7 @@ import '@testing-library/jest-dom';
 import BlogSidebar from '../BlogSidebar';
 import {
   generateMockGetTagsResponse,
-  generatePostMetadataResponse,
+  generateMockPostMetadataResponse,
 } from '@dans-coding-world/shared-post-testing';
 import { MemoryRouter } from 'react-router-dom';
 import {
@@ -28,7 +28,7 @@ vi.mock('@dans-coding-world/public-blog-shared-hooks');
 const mockTagsResponse = generateMockGetTagsResponse({
   length: 3,
 });
-const mockPostsMetadataResponse = generatePostMetadataResponse({
+const mockPostsMetadataResponse = generateMockPostMetadataResponse({
   length: 5,
 });
 

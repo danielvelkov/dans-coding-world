@@ -1,6 +1,6 @@
 import { waitFor } from '@testing-library/react';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
-import { generatePostMetadataResponse } from '@dans-coding-world/shared-post-testing';
+import { generateMockPostMetadataResponse } from '@dans-coding-world/shared-post-testing';
 import { ResponseErrorDetails } from '@dans-coding-world/api-types';
 import { useFetchPostsMetadata } from '../posts/useFetchPostsMetadata.js';
 import { renderReactQueryHook } from './helper/render-react-query-hook.js';
@@ -9,7 +9,9 @@ import {
   expectNetworkError,
 } from './helper/test-fetch-hook-errors.js';
 
-const mockPostMetadataResponse = generatePostMetadataResponse({ length: 5 });
+const mockPostMetadataResponse = generateMockPostMetadataResponse({
+  length: 5,
+});
 vi.mock('@dans-coding-world/shared-data-access-api');
 
 describe('useFetchPostsMetadata', () => {
