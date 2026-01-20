@@ -6,10 +6,32 @@ import {
 import { TagSelectSection } from './components/TagSelectSection';
 import { PostYearSelection } from './components/PostYearSelection';
 import { noop, UseQueryResult } from '@tanstack/react-query';
+import { ShimmerFilters } from './components/ShimmerFilters';
+import styled from 'styled-components';
+import React from 'react';
 import {
   GetPostsMetadataResponse,
   GetTagsResponse,
 } from '@dans-coding-world/shared-post-dto';
+
+const StyledAside = styled.aside<React.ComponentPropsWithoutRef<'aside'>>`
+  display: flex;
+  flex-direction: column;
+
+  > *:not(:last-child) {
+    padding-bottom: 1em;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .hint {
+    font-size: 0.9rem;
+    color: #9ca3af; /* gray-400 */
+    text-align: center;
+    padding: 0.75rem 0;
+    padding-bottom: 1em;
+    border-bottom: 1px solid #e5e7eb;
+  }
+`;
 
 export function BlogSidebar({
   params = {},
@@ -20,8 +42,8 @@ export function BlogSidebar({
   setParams?: (value: FetchPostsQueryParams) => void;
   className?: string;
 }) {
-  const tagsQueryRes = useFetchTags();
-  const postsMetadataQueryRes = useFetchPostsMetadata();
+  const tagsQuery = useFetchTags();
+  const yearsQuery = useFetchPostsMetadata();
 
   const handleTagToggle = (tagName: string) => {
     const currentTags = params.filterBy?.tags || [];
@@ -47,23 +69,35 @@ export function BlogSidebar({
     });
   };
 
-  return (
-    <aside className={className}>
-      <TagSelectSection
-        activeTags={params.filterBy?.tags}
-        onTagToggle={handleTagToggle}
-        tagsQuery={tagsQueryRes as UseQueryResult<GetTagsResponse>}
-      />
+  const isLoading = tagsQuery.isLoading || yearsQuery.isLoading;
+  const hasTags = Boolean(tagsQuery.data?.count);
+  const hasYears = Boolean(yearsQuery.data?.years.length);
+  const hasAnyFilters = hasTags || hasYears;
 
-      <PostYearSelection
-        selectedYear={params.filterBy?.year}
-        onYearToggle={handleYearToggle}
-        yearsQuery={
-          postsMetadataQueryRes as UseQueryResult<GetPostsMetadataResponse>
-        }
-      />
-      {tagsQueryRes.data || postsMetadataQueryRes.data ? <hr /> : undefined}
-    </aside>
+  return (
+    <StyledAside className={className} data-test="sidebar">
+      {isLoading && <ShimmerFilters />}
+
+      {!isLoading && (
+        <>
+          <TagSelectSection
+            activeTags={params.filterBy?.tags}
+            onTagToggle={handleTagToggle}
+            tagsQuery={tagsQuery as UseQueryResult<GetTagsResponse>}
+          />
+
+          <PostYearSelection
+            selectedYear={params.filterBy?.year}
+            onYearToggle={handleYearToggle}
+            yearsQuery={yearsQuery as UseQueryResult<GetPostsMetadataResponse>}
+          />
+
+          {!hasAnyFilters && (
+            <p className="hint">No filter options available</p>
+          )}
+        </>
+      )}
+    </StyledAside>
   );
 }
 
