@@ -1,7 +1,7 @@
 import { UseQueryResult } from '@tanstack/react-query';
 import { GetPostsMetadataResponse } from '@dans-coding-world/shared-post-dto';
 import styled from 'styled-components';
-import React from 'react';
+import React, { Fragment } from 'react';
 
 const StyledYearButton = styled.button<
   React.ComponentPropsWithoutRef<'button'> & { $selected: boolean }
@@ -53,9 +53,8 @@ export function PostYearSelection({
       {[...data.years]
         .sort((prev, next) => next - prev)
         .map((year, index) => (
-          <>
+          <Fragment key={`filter by ${year}`}>
             <StyledYearButton
-              key={`filter by ${year}`}
               $selected={year === normalizedSelectedYear}
               aria-pressed={
                 year === normalizedSelectedYear ? 'true' : undefined
@@ -65,7 +64,7 @@ export function PostYearSelection({
               {year}
             </StyledYearButton>
             {index < data.years.length - 1 && ' • '}
-          </>
+          </Fragment>
         ))}
     </section>
   );
