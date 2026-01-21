@@ -10,19 +10,21 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Cypress {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface Chainable<Subject> {
-      login(email: string, password: string): void;
-    }
+// eslint-disable-next-line @typescript-eslint/no-namespace
+declare namespace Cypress {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Chainable<Subject> {
+    login(email: string, password: string): void;
+    getByTestId(id: string): Chainable<Subject>;
   }
 }
 
 // -- This is a parent command --
 Cypress.Commands.add('login', (email, password) => {
   console.log('Custom command example: Login', email, password);
+});
+Cypress.Commands.add('getByTestId', (id) => {
+  return cy.get(`[data-test=${id}]`);
 });
 //
 // -- This is a child command --
