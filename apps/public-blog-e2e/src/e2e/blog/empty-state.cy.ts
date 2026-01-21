@@ -1,0 +1,63 @@
+import {
+  generateMockPostsResponse,
+  generateMockPostMetadataResponse,
+  generateMockGetTagsResponse,
+} from '@dans-coding-world/shared-post-testing';
+import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
+describe('Blog - empty state', () => {
+  beforeEach(() => {
+    cy.visit('/blog');
+  });
+
+  context('BlogPosts', () => {
+    it(`displays "empty" message if api returns 
+        0 posts in GET posts response`, () => {
+      cy.intercept(
+        `${API_ENDPOINTS.POSTS.LIST}*`,
+        generateMockPostsResponse({ length: 0, pageSize: 5 })
+      ).as('postsResponse');
+
+      cy.wait('@postsResponse');
+
+      cy.contains('No posts found');
+    });
+  });
+
+  context('Sidebar', () => {
+    it(`hides tags selection filter if api returns 
+        0 items in tags response`, () => {
+      cy.intercept(
+        `${API_ENDPOINTS.TAGS.LIST}*`,
+        generateMockGetTagsResponse({ length: 0 })
+      ).as('tagsResponse');
+
+      cy.getByTestId('sidebar').within(() => {
+        cy.get('[role="status"]')
+          .should('exist')
+          .contains(/loading filter/i);
+        cy.wait('@tagsResponse');
+
+        cy.get('[role="status"]').should('not.exist');
+        cy.root().should('not.contain', /tags/i);
+      });
+    });
+
+    it(`hides year selection filter if api returns
+        0 items in posts metadata response`, () => {
+      cy.intercept(
+        `${API_ENDPOINTS.POSTS.METADATA}*`,
+        generateMockPostMetadataResponse({ length: 0 })
+      ).as('postMetadataResponse');
+
+      cy.getByTestId('sidebar').within(() => {
+        cy.get('[role="status"]')
+          .should('exist')
+          .contains(/loading filter/i);
+        cy.wait('@postMetadataResponse');
+
+        cy.get('[role="status"]').should('not.exist');
+        cy.root().should('not.contain', /year/i);
+      });
+    });
+  });
+});
