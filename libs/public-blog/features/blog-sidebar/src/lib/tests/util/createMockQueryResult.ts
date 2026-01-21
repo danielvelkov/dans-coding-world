@@ -3,7 +3,7 @@ export function createMockQueryResult<T>(
   overrides?: Partial<UseQueryResult<T>>
 ): UseQueryResult<T> {
   return {
-    data: undefined,
+    data: undefined as T | undefined,
     error: null,
     isLoading: false,
     isError: false,

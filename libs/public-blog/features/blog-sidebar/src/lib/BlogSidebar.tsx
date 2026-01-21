@@ -24,8 +24,6 @@ const StyledAside = styled.aside<React.ComponentPropsWithoutRef<'aside'>>`
   }
 
   .hint {
-    font-size: 0.9rem;
-    color: #9ca3af; /* gray-400 */
     text-align: center;
     padding: 0.75rem 0;
     padding-bottom: 1em;
@@ -69,7 +67,7 @@ export function BlogSidebar({
     });
   };
 
-  const isLoading = tagsQuery.isLoading || yearsQuery.isLoading;
+  const isLoading = tagsQuery.isLoading && yearsQuery.isLoading;
   const hasTags = Boolean(tagsQuery.data?.count);
   const hasYears = Boolean(yearsQuery.data?.years.length);
   const hasAnyFilters = hasTags || hasYears;

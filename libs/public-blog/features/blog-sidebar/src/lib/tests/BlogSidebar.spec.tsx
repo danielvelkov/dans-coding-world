@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   fireEvent,
   render,
@@ -11,7 +12,6 @@ import {
   generateMockGetTagsResponse,
   generateMockPostMetadataResponse,
 } from '@dans-coding-world/shared-post-testing';
-import { MemoryRouter } from 'react-router-dom';
 import {
   useFetchPostsMetadata,
   useFetchTags,
@@ -41,27 +41,22 @@ describe('BlogSidebar', () => {
   const renderFeature = (
     params: Parameters<typeof BlogSidebar>[0] = validProps
   ) => {
-    return render(
-      <MemoryRouter>
-        <BlogSidebar {...params} />
-      </MemoryRouter>
-    );
+    return render(<BlogSidebar {...params} />);
   };
 
-  const mockTagData = (data: GetTagsResponse) => {
-    const mockFetchTagsRes = createMockQueryResult<GetTagsResponse>({
-      data,
-    });
-    vi.mocked(useFetchTags).mockReturnValue(mockFetchTagsRes);
-  };
-
-  const mockYearsData = (data: GetPostsMetadataResponse) => {
-    const mockFetchPostsMetadataRes =
-      createMockQueryResult<GetPostsMetadataResponse>({
+  const mockTagData = (data: GetTagsResponse) =>
+    vi.mocked(useFetchTags).mockReturnValue(
+      createMockQueryResult({
         data,
-      });
-    vi.mocked(useFetchPostsMetadata).mockReturnValue(mockFetchPostsMetadataRes);
-  };
+      })
+    );
+
+  const mockYearsData = (data: GetPostsMetadataResponse) =>
+    vi.mocked(useFetchPostsMetadata).mockReturnValue(
+      createMockQueryResult({
+        data,
+      })
+    );
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -80,6 +75,52 @@ describe('BlogSidebar', () => {
   it('renders as an <aside> element', () => {
     const { container } = renderFeature();
     expect((container.firstChild as HTMLElement).tagName).toBe('ASIDE');
+  });
+
+  describe('Loading state', () => {
+    it('renders "loading" message if all sections are loading', async () => {
+      const loadingQuery = createMockQueryResult({
+        isLoading: true,
+        data: undefined,
+        error: undefined,
+        isError: false,
+      });
+
+      vi.mocked(useFetchPostsMetadata).mockReturnValueOnce(loadingQuery as any);
+      vi.mocked(useFetchTags).mockReturnValueOnce(loadingQuery as any);
+
+      const { rerender } = renderFeature();
+
+      expect(screen.getByText(/loading filters/i)).toBeInTheDocument();
+
+      rerender(<BlogSidebar />);
+
+      expect(screen.queryByText(/loading filters/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Empty state', () => {
+    it('renders "empty" message when none of the filter sections return any data', () => {
+      mockTagData({ count: 0, items: [] });
+      mockYearsData({ years: [] });
+
+      renderFeature();
+
+      expect(
+        screen.getByText(/no filter options available/i)
+      ).toBeInTheDocument();
+    });
+
+    it('renders "empty" message when all filter sections fail to load', () => {
+      const error = new Error('Server unresponsive');
+      vi.mocked(useFetchPostsMetadata).mockRejectedValueOnce(error);
+      vi.mocked(useFetchTags).mockRejectedValueOnce(error);
+      renderFeature();
+
+      expect(
+        screen.getByText(/no filter options available/i)
+      ).toBeInTheDocument();
+    });
   });
 
   describe('Tags filter', () => {
