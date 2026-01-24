@@ -8,7 +8,6 @@ import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import qs from 'qs';
 import { server } from './mocks/node.js';
-import { defaultFilters } from './utils/merge-post-query-defaults';
 
 vi.mock('@dans-coding-world/public-blog-data-access-api');
 
@@ -42,23 +41,31 @@ describe('Blog', () => {
     expect(baseElement).toBeTruthy();
   });
 
-  it('renders with specific default filters', () => {
+  it('on render requests posts from api with specified default filters', () => {
     renderFeature();
     expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.POSTS.LIST, {
-      params: defaultFilters,
+      params: {
+        filterBy: {
+          status: ['PUBLISHED'],
+          visibility: ['MEMBERS_ONLY', 'PUBLIC'],
+        },
+        sortBy: { publishedAt: 'desc' },
+      },
     });
   });
 
   test.each([
+    ['items per page', '5'],
     ['items per page', '10'],
     ['sort', 'Published date.*asc'],
+    ['sort', 'Published date.*desc'],
   ])(
-    'always requests posts with status PUBLISHED, regardless of (%s) filters specified',
+    'always requests posts with status PUBLISHED, regardless of the filters specified (%s)',
     async (elementName, optionName) => {
       renderFeature();
       await selectDropdownOption(elementName, optionName);
 
-      expect(api.get).toHaveBeenLastCalledWith(
+      expect(api.get).toHaveBeenCalledWith(
         API_ENDPOINTS.POSTS.LIST,
         deepMatch({
           params: { filterBy: { status: ['PUBLISHED'] } },
@@ -68,15 +75,22 @@ describe('Blog', () => {
   );
 
   test.each([
-    ['pageSize=10', 'items per page', '10', { pageSize: 10 }],
     [
       'sortBy[publishedAt]=asc',
       'sort',
       'Published date.*asc',
       { sortBy: { publishedAt: 'asc' } },
     ],
+    [
+      'sortBy[updatedAt]=asc',
+      'sort',
+      'Last modified date.*asc',
+      { sortBy: { updateAt: 'asc' } },
+    ],
+    [`pageSize=10`, 'items per page', '10', { pageSize: 10 }],
+    [`pageSize=25`, 'items per page', '25', { pageSize: 25 }],
   ])(
-    'updates URL params to "?%s" when filter changes (non-default values)',
+    'updates URL params to "?%s" when %s dropdown changes (non-default values)',
     async (_, elementName, optionName, value) => {
       renderFeature();
       await selectDropdownOption(elementName, optionName);
@@ -95,7 +109,7 @@ describe('Blog', () => {
     ],
     ['sortBy[publishedAt]=desc', 'sort', 'Published date.*desc'],
   ])(
-    'does not include params (%s) in page URL, as they are set by default',
+    'does not include the URL param "?%s" in page URL',
     async (_, elementName, optionName) => {
       renderFeature();
       await selectDropdownOption(elementName, optionName);

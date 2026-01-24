@@ -1,4 +1,4 @@
-import { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hooks';
+import { FetchPostsQueryParams } from '../../types/fetchPostsQueryParams';
 import { mergePostQueryDefaults } from './merge-post-query-defaults';
 describe('mergePostQueryDefaults()', () => {
   test.each([

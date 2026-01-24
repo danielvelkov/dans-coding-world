@@ -1,4 +1,4 @@
-import { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hooks';
+import { FetchPostsQueryParams } from '../../types/fetchPostsQueryParams';
 import { stripDefaultPostQueryParams } from './strip-default-post-query-params';
 import { PostVisibility } from '@dans-coding-world/prisma-schema';
 

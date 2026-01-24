@@ -1,4 +1,4 @@
-import { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hooks';
+import { FetchPostsQueryParams } from '../../types/fetchPostsQueryParams';
 
 export const stripDefaultPostQueryParams = (
   value: NonNullable<FetchPostsQueryParams>

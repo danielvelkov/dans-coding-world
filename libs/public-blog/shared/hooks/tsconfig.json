@@ -3,6 +3,21 @@
   "include": [],
   "references": [
     {
+      "path": "../../../shared/post/testing"
+    },
+    {
+      "path": "../../../shared/util/shared-constants"
+    },
+    {
+      "path": "../../../prisma-schema"
+    },
+    {
+      "path": "../../../shared/util/helpers"
+    },
+    {
+      "path": "../../data-access/blog-api"
+    },
+    {
       "path": "../../../shared/data-access/api"
     },
     {
@@ -10,12 +25,6 @@
     },
     {
       "path": "../../../shared/util/api-types"
-    },
-    {
-      "path": "../../../shared/post/testing"
-    },
-    {
-      "path": "../../data-access/blog-api"
     },
     {
       "path": "./tsconfig.lib.json"
