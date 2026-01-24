@@ -8,6 +8,7 @@ import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import qs from 'qs';
 import { server } from './mocks/node.js';
+import { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hooks';
 
 vi.mock('@dans-coding-world/public-blog-data-access-api');
 
@@ -85,11 +86,11 @@ describe('Blog', () => {
       'sortBy[updatedAt]=asc',
       'sort',
       'Last modified date.*asc',
-      { sortBy: { updateAt: 'asc' } },
+      { sortBy: { updatedAt: 'asc' } },
     ],
     [`pageSize=10`, 'items per page', '10', { pageSize: 10 }],
     [`pageSize=25`, 'items per page', '25', { pageSize: 25 }],
-  ])(
+  ] as [string, string, string, FetchPostsQueryParams][])(
     'updates URL params to "?%s" when %s dropdown changes (non-default values)',
     async (_, elementName, optionName, value) => {
       renderFeature();
