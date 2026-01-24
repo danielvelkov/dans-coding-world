@@ -6,6 +6,7 @@ import {
 } from '@dans-coding-world/public-blog-ui-common';
 import {
   PAGINATION,
+  POST_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { calculatePageOffset } from '@dans-coding-world/helpers';
@@ -148,6 +149,7 @@ export function BlogList({
       <SearchBox
         currentValue={params.searchQuery ?? ''}
         onChange={handleSearchDebounced}
+        maxLength={POST_CONSTRAINTS.MAX_TITLE_LENGTH}
       />
 
       {/* Dynamic Content Area */}

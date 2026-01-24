@@ -69,9 +69,11 @@ const StyledSearch = styled('search')`
 export function SearchBox({
   currentValue,
   onChange,
+  maxLength,
 }: {
   currentValue: string;
   onChange: (value: string) => void;
+  maxLength?: number;
 }) {
   const [value, setValue] = useState(currentValue);
   useEffect(() => {
@@ -93,6 +95,7 @@ export function SearchBox({
         placeholder="Search"
         value={value}
         onInput={handleInput}
+        maxLength={maxLength}
       />
       {value && (
         <button
