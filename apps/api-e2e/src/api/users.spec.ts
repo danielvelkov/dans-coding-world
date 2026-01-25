@@ -21,8 +21,11 @@ import { setupClient } from '../helper/test-client.helper';
 import { testInvalidIds } from '../helper/test-cases.helper';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { UserDetail } from '@dans-coding-world/user-data-access';
-import { generateRandomString } from '@dans-coding-world/helpers';
-import { passwordGenerator, validPassword } from '@dans-coding-world/api-auth';
+import {
+  generateRandomString,
+  passwordGenerator,
+  validPassword,
+} from '@dans-coding-world/helpers';
 import { getData, getMessage } from '../helper/common.helper';
 import { MOCK_RESULT } from '@dans-coding-world/api-file-storage';
 import path from 'path';

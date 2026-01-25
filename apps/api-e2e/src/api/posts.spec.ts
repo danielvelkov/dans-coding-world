@@ -30,7 +30,7 @@ import {
   GetTagsResponse,
 } from '@dans-coding-world/shared-post-dto';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
-import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
+import { passwordGenerator as generateRandomString } from '@dans-coding-world/helpers';
 import { StatusCodes } from 'http-status-codes';
 import { testInvalidIds } from '../helper/test-cases.helper';
 import { getData, getMessage } from '../helper/common.helper';

@@ -23,7 +23,7 @@ import {
   GetPostCommentsResponseDto,
 } from '@dans-coding-world/shared-post-dto';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
-import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
+import { passwordGenerator as generateRandomString } from '@dans-coding-world/helpers';
 import { testInvalidIds } from '../helper/test-cases.helper';
 import { getData, getMessage } from '../helper/common.helper';
 import { setupClient } from '../helper/test-client.helper';

@@ -15,7 +15,7 @@ import {
 } from '@dans-coding-world/shared-data-access-interfaces';
 import { PrismaUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
 import { PrismaRefreshTokenDataAccess as MockRefreshTokenRepository } from '@dans-coding-world/token-data-access';
-import { hashPassword } from '../helper/password.helper.js';
+import { hashPassword } from '@dans-coding-world/helpers';
 import { User, client } from '@dans-coding-world/prisma-schema';
 import { decode, JwtPayload } from 'jsonwebtoken';
 

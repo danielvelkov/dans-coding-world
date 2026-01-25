@@ -21,7 +21,7 @@ import { createPostsRouteHelper } from '../helper/posts-request.helper';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { testInvalidIds } from '../helper/test-cases.helper';
 import { GetTagsResponse } from '@dans-coding-world/shared-post-dto';
-import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
+import { passwordGenerator as generateRandomString } from '@dans-coding-world/helpers';
 import { getData, getMessage } from '../helper/common.helper';
 
 describe('/api/v1/tags', () => {

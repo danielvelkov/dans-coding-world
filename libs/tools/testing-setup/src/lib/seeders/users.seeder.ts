@@ -1,6 +1,6 @@
 import users from '../data/users.json' with {type: "json"};
 import { client, Role, User } from '@dans-coding-world/prisma-schema';
-import { hashPassword } from '@dans-coding-world/api-auth';
+import { hashPassword } from '@dans-coding-world/helpers';
 import { SeedOptions } from './types/seed-options.js';
 
 /**

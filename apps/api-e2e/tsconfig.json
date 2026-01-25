@@ -15,9 +15,6 @@
       "path": "../../libs/shared/util/exceptions"
     },
     {
-      "path": "../../libs/shared/data-access/api"
-    },
-    {
       "path": "../../libs/shared/storage"
     },
     {
@@ -30,13 +27,13 @@
       "path": "../../libs/api/data-access/report"
     },
     {
-      "path": "../../libs/shared/util/helpers"
-    },
-    {
       "path": "../../libs/shared/report/dtos"
     },
     {
-      "path": "../../libs/api/auth"
+      "path": "../../libs/shared/data-access/api"
+    },
+    {
+      "path": "../../libs/shared/util/helpers"
     },
     {
       "path": "../../libs/shared/util/shared-constants"

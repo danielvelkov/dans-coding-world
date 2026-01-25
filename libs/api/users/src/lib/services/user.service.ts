@@ -7,7 +7,12 @@ import {
   ERROR_CODES,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { filterObject, getKey } from '@dans-coding-world/helpers';
+import {
+  filterObject,
+  getKey,
+  validPassword,
+  hashPassword,
+} from '@dans-coding-world/helpers';
 import { IUserService } from '../interfaces/user-service.interface.js';
 import {
   GetUserDto,
@@ -19,7 +24,6 @@ import {
   GetUserResponseDto,
 } from '@dans-coding-world/shared-user-dto';
 import { UserDetail } from '@dans-coding-world/user-data-access';
-import { validPassword, hashPassword } from '@dans-coding-world/api-auth';
 import type { IStorageProvider } from '@dans-coding-world/api-file-storage';
 import { STORAGE_PROVIDER_TOKEN } from '@dans-coding-world/api-file-storage';
 import { unlink } from 'fs';

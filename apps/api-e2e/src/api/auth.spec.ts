@@ -29,7 +29,7 @@ import {
   REFRESH_TOKEN_COOKIE,
   ACCESS_TOKEN_COOKIE,
 } from '@dans-coding-world/shared-constants';
-import { passwordGenerator } from '@dans-coding-world/api-auth';
+import { passwordGenerator } from '@dans-coding-world/helpers';
 import { IS_EMAIL, MIN_LENGTH, MATCHES } from 'class-validator';
 import {
   ApiClient,

@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { randomSelect } from './randomness.helper.js';
 export async function validPassword(password: string, hashedPassword: string) {
   return await bcrypt.compare(password, hashedPassword);
 }
@@ -35,10 +36,10 @@ export function passwordGenerator(
 
   const pools: (() => string)[] = [];
 
-  if (includeLowercase) pools.push(() => randomItem(lowercaseLetters));
-  if (includeUppercase) pools.push(() => randomItem(uppercaseLetters));
-  if (includeSymbols) pools.push(() => randomItem(symbols));
-  if (includeNumbers) pools.push(() => randomItem(digits));
+  if (includeLowercase) pools.push(() => randomSelect(lowercaseLetters));
+  if (includeUppercase) pools.push(() => randomSelect(uppercaseLetters));
+  if (includeSymbols) pools.push(() => randomSelect(symbols));
+  if (includeNumbers) pools.push(() => randomSelect(digits));
 
   if (pools.length === 0) return ''; // No character types selected
 
@@ -51,8 +52,4 @@ export function passwordGenerator(
   }
 
   return password.join('');
-}
-
-function randomItem<T>(array: T[]): T {
-  return array[Math.floor(Math.random() * array.length)];
 }
