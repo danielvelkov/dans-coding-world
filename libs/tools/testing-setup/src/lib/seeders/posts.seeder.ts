@@ -1,4 +1,4 @@
-import { client, Post, PostVisibility, PostStatus } from '@dans-coding-world/prisma-schema';
+import { client, Post } from '@dans-coding-world/prisma-schema';
 import posts from '../data/posts.json' with {type: "json"};
 import { SeedOptions } from './types/seed-options.js';
 
@@ -53,15 +53,7 @@ export const seedPosts = async (
 
 const createAndReturnPostsWithId = async (posts: any[]) => {
   if (!posts.length) return [];
-  const postsWithRoles = await Promise.all(
-    posts.map(async (p) => ({
-      ...p,
-      visibility: p.visibility as PostVisibility,
-      status: p.status as PostStatus,
-    }))
+  return await client.$transaction(
+    posts.map((post) => client.post.create({ data: post }))
   );
-  const createdPosts = await client.$transaction(
-    postsWithRoles.map((post) => client.post.create({ data: post }))
-  );
-  return createdPosts.map((u) => ({ ...u }));
 };
