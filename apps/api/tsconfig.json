@@ -4,42 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../libs/shared/util/api-types"
-    },
-    {
-      "path": "../../libs/shared/util/exceptions"
-    },
-    {
-      "path": "../../libs/shared/user/dtos"
-    },
-    {
-      "path": "../../libs/api/users"
-    },
-    {
-      "path": "../../libs/api/reports"
-    },
-    {
-      "path": "../../libs/shared/report/dtos"
-    },
-    {
-      "path": "../../libs/prisma-schema"
-    },
-    {
-      "path": "../../libs/shared/post/dtos"
-    },
-    {
-      "path": "../../libs/api/posts"
-    },
-    {
-      "path": "../../libs/shared/util/shared-constants"
-    },
-    {
-      "path": "../../libs/shared/auth/dtos"
-    },
-    {
-      "path": "../../libs/api/auth"
-    },
-    {
       "path": "./tsconfig.app.json"
     },
     {

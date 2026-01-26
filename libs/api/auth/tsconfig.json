@@ -4,33 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../shared/util/validation"
-    },
-    {
-      "path": "../../shared/util/helpers"
-    },
-    {
-      "path": "../../shared/data-access/interfaces"
-    },
-    {
-      "path": "../../shared/auth/dtos"
-    },
-    {
-      "path": "../../shared/util/exceptions"
-    },
-    {
-      "path": "../../prisma-schema"
-    },
-    {
-      "path": "../../shared/util/shared-constants"
-    },
-    {
-      "path": "../data-access/token"
-    },
-    {
-      "path": "../data-access/user"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

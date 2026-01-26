@@ -3,33 +3,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../../prisma-schema"
-    },
-    {
-      "path": "../../../shared/util/api-types"
-    },
-    {
-      "path": "../../../shared/post/testing"
-    },
-    {
-      "path": "../../data-access/blog-api"
-    },
-    {
-      "path": "../../../shared/post/dtos"
-    },
-    {
-      "path": "../../shared/hooks"
-    },
-    {
-      "path": "../../../shared/util/helpers"
-    },
-    {
-      "path": "../../../shared/util/shared-constants"
-    },
-    {
-      "path": "../../ui/common"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

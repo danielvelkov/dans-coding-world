@@ -4,21 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../../api/data-access/post"
-    },
-    {
-      "path": "../../util/api-types"
-    },
-    {
-      "path": "../../../prisma-schema"
-    },
-    {
-      "path": "../../util/validation"
-    },
-    {
-      "path": "../../util/shared-constants"
-    },
-    {
       "path": "./tsconfig.lib.json"
     }
   ]

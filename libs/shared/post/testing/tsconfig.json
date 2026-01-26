@@ -4,18 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../util/shared-constants"
-    },
-    {
-      "path": "../../util/api-types"
-    },
-    {
-      "path": "../dtos"
-    },
-    {
-      "path": "../../../prisma-schema"
-    },
-    {
       "path": "./tsconfig.lib.json"
     }
   ]

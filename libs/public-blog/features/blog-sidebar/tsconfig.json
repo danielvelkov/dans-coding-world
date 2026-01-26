@@ -3,21 +3,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../../shared/util/helpers"
-    },
-    {
-      "path": "../../../shared/post/testing"
-    },
-    {
-      "path": "../../ui/common"
-    },
-    {
-      "path": "../../../shared/post/dtos"
-    },
-    {
-      "path": "../../shared/hooks"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {
