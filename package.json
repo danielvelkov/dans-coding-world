@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "create-db": "node tools/create-db.js",
-    "dev:api-e2e": "concurrently --names \"API,E2E\" --prefix-colors \"blue,green\" \"nx serve api\" \"nx watch --projects=api -- nx e2e api-e2e\""
+    "create-db": "node tools/create-db.js"
   },
   "nx": {},
   "private": true,
