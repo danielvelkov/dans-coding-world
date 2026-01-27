@@ -24,11 +24,13 @@ import rateLimit from 'express-rate-limit';
 import slowDown from 'express-slow-down';
 import tagsRouter from './routes/tags.router.js';
 import commentReportsRouter from './routes/comment-reports.router.js';
+import testDataRouter from './routes/test-data.router.js';
 
 const isTest =
   process.env.NODE_ENV === 'test' ||
   process.env.NODE_ENV === 'development' ||
-  process.env.NODE_ENV === 'test_e2e';
+  process.env.NODE_ENV === 'test_e2e' ||
+  process.env.NODE_ENV !== 'production';
 
 const app = express();
 
@@ -89,6 +91,10 @@ app.use('/api/v1/posts', postsRouter);
 app.use('/api/v1/tags', tagsRouter);
 app.use('/api/v1/posts/:postId/comments', commentsRouter);
 app.use('/api/v1/reports/comments', commentReportsRouter);
+
+if (isTest) {
+  app.use('/test', testDataRouter);
+}
 
 const swaggerDocOptions = {
   definition: {
