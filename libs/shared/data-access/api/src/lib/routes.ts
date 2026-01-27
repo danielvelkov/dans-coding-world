@@ -1,41 +1,50 @@
-export const PREFIX = '/api/v1';
+export const PROD_PREFIX = '/api/v1';
+export const TEST_DATA_PREFIX = '/test';
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: `${PREFIX}/auth/login`,
-    LOGOUT: `${PREFIX}/auth/logout`,
-    REGISTER: `${PREFIX}/auth/register`,
-    REFRESH: `${PREFIX}/auth/refresh`,
-    REVOKE: `${PREFIX}/auth/revoke-token`,
-    REVOKE_ALL: `${PREFIX}/auth/revoke-all`,
+    LOGIN: `${PROD_PREFIX}/auth/login`,
+    LOGOUT: `${PROD_PREFIX}/auth/logout`,
+    REGISTER: `${PROD_PREFIX}/auth/register`,
+    REFRESH: `${PROD_PREFIX}/auth/refresh`,
+    REVOKE: `${PROD_PREFIX}/auth/revoke-token`,
+    REVOKE_ALL: `${PROD_PREFIX}/auth/revoke-all`,
   },
   USERS: {
-    BY_ID: (userId: number) => `${PREFIX}/users/${userId}`,
+    BY_ID: (userId: number) => `${PROD_PREFIX}/users/${userId}`,
     REVOKE_TOKENS: (userId: number) =>
-      `${PREFIX}/users/${userId}/revoke-tokens`,
-    UPDATE: `${PREFIX}/users`,
-    PASSWORD: `${PREFIX}/users/password`,
-    ROLE_CHANGE: (userId: number) => `${PREFIX}/users/${userId}/role`,
-    BAN: (userId: number) => `${PREFIX}/users/${userId}/ban`,
+      `${PROD_PREFIX}/users/${userId}/revoke-tokens`,
+    UPDATE: `${PROD_PREFIX}/users`,
+    PASSWORD: `${PROD_PREFIX}/users/password`,
+    ROLE_CHANGE: (userId: number) => `${PROD_PREFIX}/users/${userId}/role`,
+    BAN: (userId: number) => `${PROD_PREFIX}/users/${userId}/ban`,
   },
   POSTS: {
-    LIST: `${PREFIX}/posts`,
-    BY_ID: (postId: number) => `${PREFIX}/posts/${postId}`,
-    METADATA: `${PREFIX}/posts/metadata`,
+    LIST: `${PROD_PREFIX}/posts`,
+    BY_ID: (postId: number) => `${PROD_PREFIX}/posts/${postId}`,
+    METADATA: `${PROD_PREFIX}/posts/metadata`,
   },
   COMMENTS: {
-    LIST: (postId: number) => `${PREFIX}/posts/${postId}/comments`,
+    LIST: (postId: number) => `${PROD_PREFIX}/posts/${postId}/comments`,
     BY_ID: (postId: number, commentId: number) =>
-      `${PREFIX}/posts/${postId}/comments/${commentId}`,
+      `${PROD_PREFIX}/posts/${postId}/comments/${commentId}`,
   },
   TAGS: {
-    LIST: `${PREFIX}/tags`,
-    BY_ID: (tagId: number) => `${PREFIX}/tags/${tagId}`,
+    LIST: `${PROD_PREFIX}/tags`,
+    BY_ID: (tagId: number) => `${PROD_PREFIX}/tags/${tagId}`,
   },
   REPORTS: {
     COMMENTS: {
-      LIST: `${PREFIX}/reports/comments`,
-      BY_ID: (reportId: number) => `${PREFIX}/reports/comments/${reportId}`,
+      LIST: `${PROD_PREFIX}/reports/comments`,
+      BY_ID: (reportId: number) =>
+        `${PROD_PREFIX}/reports/comments/${reportId}`,
     },
+  },
+  TEST_DATA: {
+    USERS: `${TEST_DATA_PREFIX}/users`,
+    POSTS: `${TEST_DATA_PREFIX}/posts`,
+    COMMENTS: `${TEST_DATA_PREFIX}/comments`,
+    TAGS: `${TEST_DATA_PREFIX}/tags`,
+    REPORTS: `${TEST_DATA_PREFIX}/reports`,
   },
 };
