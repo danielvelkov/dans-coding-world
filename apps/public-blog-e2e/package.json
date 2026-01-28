@@ -3,6 +3,18 @@
   "version": "0.0.1",
   "private": true,
   "nx": {
+    "targets": {
+      "cypress-clean": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "nx reset",
+            "nx open-cypress public-blog-e2e"
+          ],
+          "parallel": false
+        }
+      }
+    },
     "implicitDependencies": [
       "@dans-coding-world/public-blog"
     ]
