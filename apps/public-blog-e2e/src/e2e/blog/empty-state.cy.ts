@@ -5,10 +5,6 @@ import {
 } from '@dans-coding-world/shared-post-testing';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 describe('Blog - empty state', () => {
-  beforeEach(() => {
-    cy.visit('/blog');
-  });
-
   context('BlogPosts', () => {
     it(`displays "empty" message if api returns 
         0 posts in GET posts response`, () => {
@@ -16,6 +12,8 @@ describe('Blog - empty state', () => {
         `${API_ENDPOINTS.POSTS.LIST}*`,
         generateMockPostsResponse({ length: 0, pageSize: 5 })
       ).as('postsResponse');
+
+      cy.visit('/blog');
 
       cy.wait('@postsResponse');
 
@@ -30,6 +28,8 @@ describe('Blog - empty state', () => {
         `${API_ENDPOINTS.TAGS.LIST}*`,
         generateMockGetTagsResponse({ length: 0 })
       ).as('tagsResponse');
+
+      cy.visit('/blog');
 
       cy.getByTestId('sidebar').within(() => {
         cy.get('[role="status"]')
@@ -48,6 +48,8 @@ describe('Blog - empty state', () => {
         `${API_ENDPOINTS.POSTS.METADATA}*`,
         generateMockPostMetadataResponse({ length: 0 })
       ).as('postMetadataResponse');
+
+      cy.visit('/blog');
 
       cy.getByTestId('sidebar').within(() => {
         cy.get('[role="status"]')
