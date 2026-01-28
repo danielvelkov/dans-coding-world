@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Cypress guide",
+    "content": "A step-by-step guide on transitioning your monorepo from Lerna to NX with minimal disruption.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  },
+  {
+    "title": "Javascript tutorial",
+    "content": "How to get started with the javascript programming language.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  },
+  {
+    "title": "Javascript tutorial: Part 2",
+    "content": "Advanced techniques in javascript.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  },
+  {
+    "title": "Javascript tutorial: Part 3",
+    "content": "The magic of javascript.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "DRAFT",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  },
+  {
+    "title": "Asp.NET tutorial",
+    "content": "How to use the MVC framework.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "ARCHIVED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  }
+]
