@@ -14,12 +14,18 @@ const StyledApp = styled.div`
   max-width: 1000px;
 `;
 
+// dev tools do not work during e2e testing for some reason
+// also cant set node env in e2e cypress tests
+const showDevTools =
+  process.env.NODE_ENV !== 'development' &&
+  process.env.NODE_ENV !== 'production';
+
 const queryClient = new QueryClient();
 
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {showDevTools && <ReactQueryDevtools initialIsOpen={false} />}
       <StyledApp>
         <header>
           <nav>
