@@ -95,4 +95,28 @@ describe('Blog - search', () => {
       cy.contains('No posts found');
     }
   });
+  it('applies search when navigating to page through URL', () => {
+    const searchTerm = 'guide';
+
+    cy.visit('/blog', {
+      qs: {
+        searchQuery: searchTerm,
+      },
+    });
+
+    const expectedNumOfPosts = seededPosts.filter(
+      (p) =>
+        p.status === 'PUBLISHED' &&
+        (p.title.toLowerCase().includes(searchTerm) ||
+          p.content.toLowerCase().includes(searchTerm))
+    ).length;
+
+    cy.get('search').within(() =>
+      cy.get('input').should('have.value', searchTerm)
+    );
+
+    cy.get('[aria-label="blog posts"]').within(() => {
+      cy.get('article').its('length').should('eq', expectedNumOfPosts);
+    });
+  });
 });
