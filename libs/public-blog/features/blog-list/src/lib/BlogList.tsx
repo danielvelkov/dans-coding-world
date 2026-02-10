@@ -103,13 +103,28 @@ export function BlogList({
 
   const handleItemsPerPageSelect = (itemsPerPage: PostItemOption) => {
     const normalizedValue = itemsPerPage ? Number(itemsPerPage) : undefined;
-    setParams({
-      ...params,
-      pageSize:
-        normalizedValue === PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
-          ? undefined
-          : (normalizedValue as PostItemOption),
-    });
+    if (
+      !normalizedValue ||
+      normalizedValue === PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+    )
+      setParams({
+        ...params,
+        pageSize: undefined,
+      });
+    else {
+      // if page offset smaller than page size
+      // or not divisible
+      // round down to the closest smaller number
+      const pageOffset = roundDownToMakeItDivisible(
+        params.pageOffset,
+        normalizedValue
+      );
+      setParams({
+        ...params,
+        pageOffset: pageOffset === 0 ? undefined : pageOffset,
+        pageSize: normalizedValue as PostItemOption,
+      });
+    }
   };
 
   const showLoading = isPending || isLoading || !data;
@@ -190,3 +205,11 @@ export function BlogList({
 }
 
 export default BlogList;
+
+function roundDownToMakeItDivisible(
+  value: number | undefined,
+  divisor: number
+) {
+  if (!value || value < divisor) return 0;
+  else return value - (value % divisor);
+}
