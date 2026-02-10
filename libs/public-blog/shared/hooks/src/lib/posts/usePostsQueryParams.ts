@@ -18,7 +18,7 @@ export function usePostsQueryParams() {
   const { queryParams, isValid } = useMemo(() => {
     const rawParams = parseQueryString(searchParams.toString());
 
-    const { success, data } = PostQueryParams.safeParse(rawParams);
+    const { success, data, error } = PostQueryParams.safeParse(rawParams);
 
     if (success) {
       const merged = mergePostQueryDefaults(
@@ -29,6 +29,9 @@ export function usePostsQueryParams() {
         isValid: true,
       };
     }
+
+    // TODO: handle errors
+    if (error) console.error(error);
 
     return {
       queryParams: defaultFilters,
