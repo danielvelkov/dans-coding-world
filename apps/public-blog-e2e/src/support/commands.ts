@@ -16,6 +16,10 @@ declare namespace Cypress {
   interface Chainable<Subject> {
     login(email: string, password: string): void;
     getByTestId(id: string): Chainable<Subject>;
+    goToPage(pageNumber: number): void;
+    clickNextPage(): void;
+    clickPrevPage(): void;
+    selectItemsPerPage(value: number): void;
   }
 }
 
@@ -25,6 +29,29 @@ Cypress.Commands.add('login', (email, password) => {
 });
 Cypress.Commands.add('getByTestId', (id) => {
   return cy.get(`[data-test=${id}]`);
+});
+
+Cypress.Commands.add('goToPage', (pageNumber: number) => {
+  cy.get('[aria-label="pagination"]').within(() => {
+    cy.contains('button', `page ${pageNumber}`).click();
+  });
+});
+
+Cypress.Commands.add('clickNextPage', () => {
+  cy.get('[aria-label="next page"]').click();
+});
+
+Cypress.Commands.add('clickPrevPage', () => {
+  cy.get('[aria-label="prev page"]').click();
+});
+
+Cypress.Commands.add('selectItemsPerPage', (value) => {
+  cy.contains('label', /items per page/i)
+    .invoke('attr', 'for')
+    .then((id) => {
+      cy.get(`#${id}`).click();
+    });
+  cy.contains('[class*="option"]', value).click();
 });
 //
 // -- This is a child command --
