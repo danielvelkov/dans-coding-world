@@ -95,6 +95,7 @@ describe('Blog - search', () => {
       cy.contains('No posts found');
     }
   });
+
   it('applies search when navigating to page through URL', () => {
     const searchTerm = 'guide';
 
