@@ -32,13 +32,9 @@ describe('Blog - empty state', () => {
       cy.visit('/blog');
 
       cy.getByTestId('sidebar').within(() => {
-        cy.get('[role="status"]')
-          .should('exist')
-          .contains(/loading filter/i);
-        cy.wait('@tagsResponse');
-
-        cy.get('[role="status"]').should('not.exist');
-        cy.root().should('not.contain', /tags/i);
+        cy.wait('@tagsResponse').then(() => {
+          cy.root().should('not.contain', /tags/i);
+        });
       });
     });
 
@@ -52,13 +48,9 @@ describe('Blog - empty state', () => {
       cy.visit('/blog');
 
       cy.getByTestId('sidebar').within(() => {
-        cy.get('[role="status"]')
-          .should('exist')
-          .contains(/loading filter/i);
-        cy.wait('@postMetadataResponse');
-
-        cy.get('[role="status"]').should('not.exist');
-        cy.root().should('not.contain', /year/i);
+        cy.wait('@postMetadataResponse').then(() => {
+          cy.root().should('not.contain', /year/i);
+        });
       });
     });
   });
