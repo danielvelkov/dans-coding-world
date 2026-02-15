@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Cypress guide",
+    "content": "A step-by-step guide on transitioning your monorepo from Lerna to NX with minimal disruption.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  },
+  {
+    "title": "Tips and tricks (members-only)",
+    "content": "Advanced techniques.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "MEMBERS_ONLY",
+    "authorId": 1
+  }
+]

@@ -83,7 +83,7 @@ describe('Blog - search', () => {
     }
   });
 
-  it('does not find posts that are not with status PUBLISHED', () => {
+  it('does not find posts that are unpublished', () => {
     const unpublishedPosts = seededPosts.filter(
       (p) => p.status !== 'PUBLISHED'
     );
