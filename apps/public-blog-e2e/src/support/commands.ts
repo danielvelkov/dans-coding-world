@@ -20,6 +20,7 @@ declare namespace Cypress {
     clickNextPage(): void;
     clickPrevPage(): void;
     selectItemsPerPage(value: number): void;
+    selectPostPublicationYearFilter(year: number): void;
   }
 }
 
@@ -52,6 +53,16 @@ Cypress.Commands.add('selectItemsPerPage', (value) => {
       cy.get(`#${id}`).click();
     });
   cy.contains('[class*="option"]', value).click();
+});
+
+Cypress.Commands.add('selectPostPublicationYearFilter', (year) => {
+  cy.contains('h3', 'Select Posts by year')
+    .invoke('attr', 'id')
+    .then((id) => {
+      cy.get(`section[aria-labelledby="${id}"]`).within(() => {
+        cy.contains('button', year.toString()).click();
+      });
+    });
 });
 //
 // -- This is a child command --
