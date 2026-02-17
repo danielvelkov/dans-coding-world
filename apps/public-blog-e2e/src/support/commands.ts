@@ -21,6 +21,7 @@ declare namespace Cypress {
     clickPrevPage(): void;
     selectItemsPerPage(value: number): void;
     selectPostPublicationYearFilter(year: number): void;
+    selectPostTagFilter(tagName: string): void;
   }
 }
 
@@ -61,6 +62,16 @@ Cypress.Commands.add('selectPostPublicationYearFilter', (year) => {
     .then((id) => {
       cy.get(`section[aria-labelledby="${id}"]`).within(() => {
         cy.contains('button', year.toString()).click();
+      });
+    });
+});
+
+Cypress.Commands.add('selectPostTagFilter', (tagName) => {
+  cy.contains('h3', 'Tags')
+    .invoke('attr', 'id')
+    .then((id) => {
+      cy.get(`section[aria-labelledby="${id}"]`).within(() => {
+        cy.contains('button', tagName.toString()).click();
       });
     });
 });
