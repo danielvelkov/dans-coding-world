@@ -7,7 +7,8 @@
     "updatedAt": "2017-11-06T07:00:00.000Z",
     "status": "PUBLISHED",
     "visibility": "PUBLIC",
-    "authorId": 1
+    "authorId": 1,
+    "tags": ["cypress", "programming"]
   },
   {
     "title": "Tips and tricks (members-only)",
@@ -17,7 +18,8 @@
     "updatedAt": "2017-11-06T07:00:00.000Z",
     "status": "PUBLISHED",
     "visibility": "MEMBERS_ONLY",
-    "authorId": 1
+    "authorId": 1,
+    "tags": ["programming"]
   },
   {
     "title": "Old post from my early years",
@@ -27,7 +29,8 @@
     "updatedAt": "2013-11-06T07:00:00.000Z",
     "status": "PUBLISHED",
     "visibility": "MEMBERS_ONLY",
-    "authorId": 1
+    "authorId": 1,
+    "tags": ["programming"]
   },
   {
     "title": "Welcome to my blog",
@@ -37,7 +40,8 @@
     "updatedAt": "2007-11-06T07:00:00.000Z",
     "status": "PUBLISHED",
     "visibility": "PUBLIC",
-    "authorId": 1
+    "authorId": 1,
+    "tags": ["general"]
   },
   {
     "title": "Working title: Amongooose",
@@ -47,6 +51,7 @@
     "updatedAt": "2007-11-06T07:00:00.000Z",
     "status": "DRAFT",
     "visibility": "PUBLIC",
-    "authorId": 1
+    "authorId": 1,
+    "tags": ["amogus"]
   }
 ]
