@@ -52,6 +52,30 @@ export default defineConfig({
           });
           return data;
         },
+        async 'db:seed-tags'(args = {}) {
+          const { tags, options } = args;
+          const {
+            data: { data },
+          } = await axios.post(`${API_ENDPOINTS.TEST_DATA.TAGS}`, tags, {
+            params: options,
+          });
+          return data;
+        },
+        async 'db:attach-tags'(args = {}) {
+          const { data } = args;
+          const requests = [];
+          for (const { postId, tagIds } of data) {
+            if (tagIds && postId)
+              requests.push(
+                axios.patch(
+                  `${API_ENDPOINTS.TEST_DATA.POSTS}/${postId}/tags`,
+                  tagIds
+                )
+              );
+          }
+          const results = await Promise.all(requests);
+          return results.map((r) => r.data);
+        },
       });
 
       return config;
