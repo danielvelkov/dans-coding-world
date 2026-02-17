@@ -5,6 +5,7 @@ import {
   seedReports,
   seedTags,
   seedUsers,
+  attachTagsToPost,
 } from '@dans-coding-world/testing-setup';
 import { Router } from 'express';
 
@@ -18,6 +19,14 @@ testDataRouter.post('/posts', async (req: Request, res: Response) => {
   });
 
   res.status(200).json(posts);
+});
+
+testDataRouter.patch('/posts/:id/tags', async (req: Request, res: Response) => {
+  const postId = req.params.id;
+
+  const post = await attachTagsToPost(+postId, req.body);
+
+  res.status(200).json(post);
 });
 
 testDataRouter.post('/users', async (req: Request, res: Response) => {
