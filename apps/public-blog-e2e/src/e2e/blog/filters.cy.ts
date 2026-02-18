@@ -200,7 +200,7 @@ describe('Blog - filters', () => {
       });
     });
 
-    context.only('by tags', () => {
+    context('by tags', () => {
       it('filters posts by selected tag', () => {
         const randomTag = Cypress._.sample(
           seededPosts
@@ -281,7 +281,7 @@ describe('Blog - filters', () => {
           });
       });
 
-      it.only('does not show tags used in unpublished posts', () => {
+      it('does not show tags used in unpublished posts', () => {
         const tagsOnlyUsedInPrivatePosts = seededPosts
           .map((p) => p.tags)
           .flat()
