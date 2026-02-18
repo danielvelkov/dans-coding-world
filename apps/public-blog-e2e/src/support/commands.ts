@@ -22,6 +22,7 @@ declare namespace Cypress {
     selectItemsPerPage(value: number): void;
     selectPostPublicationYearFilter(year: number): void;
     selectPostTagFilter(tagName: string): void;
+    selectPostSorting(option: string): void;
   }
 }
 
@@ -74,6 +75,15 @@ Cypress.Commands.add('selectPostTagFilter', (tagName) => {
         cy.contains('button', tagName.toString()).click();
       });
     });
+});
+
+Cypress.Commands.add('selectPostSorting', (value) => {
+  cy.contains('label', /sort by/i)
+    .invoke('attr', 'for')
+    .then((id) => {
+      cy.get(`#${id}`).click();
+    });
+  cy.contains('[class*="option"]', value).click();
 });
 //
 // -- This is a child command --
