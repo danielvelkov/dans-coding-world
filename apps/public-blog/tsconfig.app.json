@@ -44,13 +44,13 @@
       "path": "../../libs/shared/post/testing/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/public-blog/shared/hooks/tsconfig.lib.json"
-    },
-    {
       "path": "../../libs/public-blog/features/blog-sidebar/tsconfig.lib.json"
     },
     {
       "path": "../../libs/public-blog/features/blog-list/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/shared/hooks/tsconfig.lib.json"
     },
     {
       "path": "../../libs/shared/util/shared-constants/tsconfig.lib.json"
@@ -60,6 +60,9 @@
     },
     {
       "path": "../../libs/public-blog/data-access/blog-api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/ui/theme/tsconfig.lib.json"
     }
   ]
 }

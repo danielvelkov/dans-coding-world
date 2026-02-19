@@ -1,9 +1,21 @@
 import { StrictMode } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
+import { createGlobalStyle } from 'styled-components';
 import App from './app/app';
 
 const root = createRoot(document.getElementById('root') as HTMLElement);
+
+export const GlobalStyle = createGlobalStyle`
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: ${({ theme }) => theme.background.base};
+    color: ${({ theme }) => theme.text.primary};
+  }
+`;
 
 root.render(
   <StrictMode>
