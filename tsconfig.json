@@ -98,6 +98,9 @@
     },
     {
       "path": "./libs/public-blog/features/blog-sidebar"
+    },
+    {
+      "path": "./libs/public-blog/ui/theme"
     }
   ]
 }
