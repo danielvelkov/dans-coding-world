@@ -9,9 +9,14 @@ const StyledFilters = styled.div<React.ComponentPropsWithoutRef<'div'>>`
   .title,
   .pill,
   .line {
-    background: linear-gradient(90deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%);
+    background: linear-gradient(
+      90deg,
+      ${({ theme }) => theme.background.surface} 0%,
+      ${({ theme }) => theme.background.inverse} 50%,
+      ${({ theme }) => theme.background.surface} 100%
+    );
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    animation: shimmer 2.5s infinite;
     border-radius: 4px;
   }
 
@@ -42,7 +47,7 @@ const StyledFilters = styled.div<React.ComponentPropsWithoutRef<'div'>>`
 
   .divider {
     height: 1px;
-    background: #e5e7eb;
+    background: ${({ theme }) => theme.background.elevated};
     margin: 1rem 0;
   }
 

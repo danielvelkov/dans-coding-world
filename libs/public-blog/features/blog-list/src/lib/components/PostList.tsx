@@ -16,7 +16,7 @@ export const StyledUnorderedList = styled.ul<
 const StyledEmptyPostsMessage = styled.h2`
   padding: 2em;
   text-align: center;
-  color: #555;
+  color: ${({ theme }) => theme.text.secondary};
   font-weight: 500;
 `;
 

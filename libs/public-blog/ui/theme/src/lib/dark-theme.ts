@@ -10,7 +10,7 @@ export const darkTheme: DefaultTheme = {
     base: '#0f0f14',
     surface: '#1a1820',
     elevated: '#242030',
-    inverse: '#f0eaea',
+    inverse: '#504a63b9',
   },
   border: {
     primary: 'rgba(255, 255, 255, 0.08)',
@@ -18,7 +18,7 @@ export const darkTheme: DefaultTheme = {
     hover: 'rgba(192, 57, 43, 0.4)',
   },
   accent: {
-    primary: '#993838ff',
+    primary: '#e05252',
     hover: '#eb6b6b',
     soft: 'rgba(224, 82, 82, 0.15)',
     muted: 'rgba(224, 82, 82, 0.08)',

@@ -11,24 +11,26 @@ const StyledSearch = styled('search')`
     width: 100%;
     padding: 1em 3em 1em 3em;
     font-size: 1em;
-    border: 2px solid #e0e0e0;
+    border: 2px solid ${({ theme }) => theme.border.primary};
+    color: ${({ theme }) => theme.text.secondary};
+
     border-radius: 8px;
     outline: none;
     transition: all 0.2s ease;
-    background-color: #f5f5f5;
+    background-color: ${({ theme }) => theme.background.surface};
 
     &::placeholder {
-      color: #999;
+      color: ${({ theme }) => theme.text.muted};
     }
 
     &:focus {
-      background-color: #fff;
-      border-color: #4a90e2;
+      background-color: ${({ theme }) => theme.background.elevated};
+      border-color: ${({ theme }) => theme.accent.primary};
       box-shadow: 0 2px 8px rgba(74, 144, 226, 0.15);
     }
 
     &:hover:not(:focus) {
-      border-color: #c0c0c0;
+      border-color: ${({ theme }) => theme.border.hover};
     }
   }
 
@@ -37,7 +39,7 @@ const StyledSearch = styled('search')`
     left: 1em;
     top: 50%;
     transform: translateY(-50%);
-    color: #666;
+    color: ${({ theme }) => theme.accent.primary};
     pointer-events: none;
     transition: color 0.2s ease;
   }
@@ -47,7 +49,7 @@ const StyledSearch = styled('search')`
     right: 1em;
     top: 50%;
     transform: translateY(-50%);
-    color: #666;
+    color: ${({ theme }) => theme.accent.primary};
     cursor: pointer;
     transition: color 0.2s ease;
     padding: 0.3em 0.5em;
@@ -62,7 +64,7 @@ const StyledSearch = styled('search')`
   }
 
   input:focus ~ i {
-    color: #4a90e2;
+    color: ${({ theme }) => theme.accent.primary};
   }
 `;
 

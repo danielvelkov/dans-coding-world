@@ -20,14 +20,14 @@ const StyledAside = styled.aside<React.ComponentPropsWithoutRef<'aside'>>`
 
   > *:not(:last-child) {
     padding-bottom: 1em;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 2px solid ${({ theme }) => theme.border.primary};
   }
 
   .hint {
     text-align: center;
     padding: 0.75rem 0;
     padding-bottom: 1em;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 2px solid ${({ theme }) => theme.border.primary};
   }
 `;
 

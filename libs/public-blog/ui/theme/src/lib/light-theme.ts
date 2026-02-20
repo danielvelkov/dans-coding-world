@@ -10,7 +10,7 @@ export const lightTheme: DefaultTheme = {
     base: '#f9f7f7',
     surface: '#ffffff',
     elevated: '#f0eaea',
-    inverse: 'rgba(139, 135, 135, 0.88)',
+    inverse: '#fcddddc7',
   },
   border: {
     primary: 'rgba(210, 200, 200, 0.8)',

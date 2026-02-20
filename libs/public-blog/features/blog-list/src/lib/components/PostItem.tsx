@@ -11,9 +11,9 @@ import { Tag } from '@dans-coding-world/public-blog-ui-common';
 
 const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   padding: 0.5em 1em;
-  border: 2px solid #ddd;
+  border: 2px solid ${({ theme }) => theme.border.primary};
   border-radius: 8px;
-  background: #f3f3f3;
+  background: ${({ theme }) => theme.background.surface};
 
   .details,
   .tag-list,
@@ -26,7 +26,8 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   .details,
   .author {
     gap: 0.8em;
-    color: inherit;
+    color: ${({ theme }) => theme.text.secondary};
+    font-size: small;
   }
 
   .tag-list {
@@ -34,7 +35,7 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   }
 
   a {
-    color: inherit;
+    color: ${({ theme }) => theme.text.primary};
     text-decoration: none;
   }
 
@@ -43,11 +44,10 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     background: inherit;
     padding: 0;
     cursor: pointer;
-    font-size: 1em;
   }
 
   .author-name:hover {
-    color: #4c7cd5;
+    color: ${({ theme }) => theme.accent.hover};
   }
 
   .image-container {
@@ -58,10 +58,6 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
 
   .image-container > img {
     max-height: 4ch;
-  }
-
-  .excerpt {
-    color: #e8e6e3;
   }
 
   .locked-container {
@@ -84,30 +80,34 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(to bottom, transparent, #ffffff 100%);
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      ${({ theme }) => theme.background.surface} 100%
+    );
     gap: 10px;
     padding-top: 10px;
   }
 
   .lock-badge {
-    background: #fff;
+    background: ${({ theme }) => theme.background.elevated};
     padding: 8px 16px;
     border-radius: 20px;
-    border: 1px solid #ddd;
+    border: 1px solid ${({ theme }) => theme.background.inverse};
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     font-weight: bold;
     font-size: small;
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #333;
+    color: ${({ theme }) => theme.accent.primary};
   }
 
   .more-link {
     display: inline-block;
     letter-spacing: 1px;
     padding: 0.5em 2.5em;
-    background-color: #a72612;
+    background-color: ${({ theme }) => theme.accent.primary};
     width: fit-content;
     line-height: 2em;
     font-weight: 600;
@@ -117,7 +117,7 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   }
 
   .more-link:hover {
-    background-color: #333;
+    background-color: ${({ theme }) => theme.accent.hover};
   }
 `;
 

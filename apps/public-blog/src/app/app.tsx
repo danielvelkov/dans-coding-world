@@ -10,8 +10,6 @@ import { darkTheme, lightTheme } from '@dans-coding-world/public-blog-ui-theme';
 import { GlobalStyle } from '../main';
 
 const StyledApp = styled.div`
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
   padding: 0 clamp(5vmin, 5vw, 15vmax);
   margin: 0 auto;
   max-width: 1000px;

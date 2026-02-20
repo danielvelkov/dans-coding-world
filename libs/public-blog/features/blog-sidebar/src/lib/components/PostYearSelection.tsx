@@ -11,7 +11,8 @@ const StyledYearButton = styled.button<
   padding: 0;
   font: inherit;
   margin: 0 2px;
-  color: ${({ $selected }) => ($selected ? 'red' : 'inherit')};
+  color: ${({ $selected, theme }) =>
+    $selected ? theme.accent.primary : theme.text.primary};
   cursor: pointer;
 
   text-decoration: ${({ $selected }) => ($selected ? 'underline' : 'none')};
@@ -22,7 +23,7 @@ const StyledYearButton = styled.button<
   }
 
   &:focus-visible {
-    outline: 2px solid red;
+    outline: 2px solid ${({ theme }) => theme.accent.primary};
     outline-offset: 2px;
   }
 `;

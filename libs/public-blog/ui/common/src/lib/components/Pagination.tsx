@@ -10,17 +10,20 @@ const StyledNav = styled.nav<React.ComponentPropsWithoutRef<'nav'>>`
     padding: 0;
     display: flex;
     gap: 0.2em;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .pagination button {
     display: block;
     padding: 0.5em 1em;
-    border: 1px solid #999;
+    border: 1px solid ${({ theme }) => theme.border.primary};
+    background-color: ${({ theme }) => theme.background.elevated};
+    color: ${({ theme }) => theme.text.secondary};
   }
 
   .pagination button[aria-current='page'] {
-    background-color: #333;
-    color: #fff;
+    background-color: ${({ theme }) => theme.background.surface};
   }
 
   .visually-hidden {

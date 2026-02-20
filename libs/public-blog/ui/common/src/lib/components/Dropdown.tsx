@@ -1,4 +1,6 @@
 import Select, { MultiValue, SingleValue } from 'react-select';
+import { useTheme } from 'styled-components';
+import { Theme } from '@dans-coding-world/public-blog-ui-theme';
 
 interface Option<T> {
   value: T;
@@ -24,6 +26,8 @@ export function Dropdown<T, IsMulti extends boolean = false>({
   isClearable,
   hideRemoveOption,
 }: DropdownProps<T, IsMulti>) {
+  const theme: Theme = useTheme();
+
   const selectedOption = isMulti
     ? values.filter((opt) => (currentValue as T[]).includes(opt.value))
     : values.find((opt) => opt.value === currentValue) ?? null;
@@ -61,13 +65,73 @@ export function Dropdown<T, IsMulti extends boolean = false>({
         control: (base, state) => ({
           ...base,
           padding: '0.1em',
-          backgroundColor: '#f5f5f5',
+          backgroundColor: theme.background.surface,
           borderWidth: '2px',
-          borderColor: state.isFocused ? '#4a90e2' : '#ccc',
+          borderColor: state.isFocused
+            ? theme.accent.primary
+            : theme.border.primary,
           boxShadow: state.isFocused
-            ? '0 0 0 2px rgba(74,144,226,0.2)'
+            ? `0 0 0 2px ${theme.accent.muted}`
             : 'none',
-          '&:hover': { borderColor: '#999' },
+          '&:hover': { borderColor: theme.border.hover },
+        }),
+        menu: (base) => ({
+          ...base,
+          backgroundColor: theme.background.elevated,
+          border: `1px solid ${theme.border.primary}`,
+          boxShadow: `0 4px 12px rgba(0,0,0,0.15)`,
+        }),
+        option: (base, state) => ({
+          ...base,
+          backgroundColor: state.isSelected
+            ? theme.accent.primary
+            : state.isFocused
+            ? theme.accent.soft
+            : 'transparent',
+          color: state.isSelected ? '#fff' : theme.text.primary,
+          '&:active': { backgroundColor: theme.accent.hover },
+        }),
+        singleValue: (base) => ({
+          ...base,
+          color: theme.text.primary,
+        }),
+        multiValue: (base) => ({
+          ...base,
+          backgroundColor: theme.accent.soft,
+        }),
+        multiValueLabel: (base) => ({
+          ...base,
+          color: theme.text.primary,
+        }),
+        multiValueRemove: (base) => ({
+          ...base,
+          color: theme.accent.primary,
+          '&:hover': {
+            backgroundColor: theme.accent.primary,
+            color: '#fff',
+          },
+        }),
+        placeholder: (base) => ({
+          ...base,
+          color: theme.text.muted,
+        }),
+        input: (base) => ({
+          ...base,
+          color: theme.text.primary,
+        }),
+        indicatorSeparator: (base) => ({
+          ...base,
+          backgroundColor: theme.border.primary,
+        }),
+        dropdownIndicator: (base, state) => ({
+          ...base,
+          color: state.isFocused ? theme.accent.primary : theme.text.muted,
+          '&:hover': { color: theme.accent.primary },
+        }),
+        clearIndicator: (base) => ({
+          ...base,
+          color: theme.text.muted,
+          '&:hover': { color: theme.accent.primary },
         }),
       }}
     />

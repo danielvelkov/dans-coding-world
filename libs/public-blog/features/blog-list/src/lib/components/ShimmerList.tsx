@@ -4,14 +4,21 @@ import { StyledUnorderedList } from './PostList';
 const StyledShimmeringPost = styled.article<React.ComponentProps<'article'>>`
   position: relative;
   padding: 1em;
-  background: #f3f3f3;
+  background: ${({ theme }) => theme.background.surface};
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 1rem;
 
   .line {
     height: 20px;
-    background: #e0e0e0;
+    background: linear-gradient(
+      90deg,
+      ${({ theme }) => theme.background.surface} 0%,
+      ${({ theme }) => theme.background.inverse} 50%,
+      ${({ theme }) => theme.background.surface} 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.5s infinite;
     margin: 15px 0;
     border-radius: 4px;
   }
@@ -28,24 +35,12 @@ const StyledShimmeringPost = styled.article<React.ComponentProps<'article'>>`
     width: 90%;
   }
 
-  .shimmer {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.6) 50%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    animation: shimmer 1.5s infinite;
-  }
-
   @keyframes shimmer {
     0% {
-      transform: translateX(-100%);
+      background-position: 200% 0;
     }
     100% {
-      transform: translateX(100%);
+      background-position: -200% 0;
     }
   }
 `;
@@ -61,7 +56,6 @@ export const ShimmerList = ({ count }: { count: number }) => (
           <div className="line"></div>
           <div className="line"></div>
           <div className="line"></div>
-          <div className="shimmer"></div>
         </StyledShimmeringPost>
       ))}
     </div>

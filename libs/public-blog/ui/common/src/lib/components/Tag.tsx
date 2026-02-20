@@ -6,14 +6,23 @@ const StyledTagButton = styled.button<
   font-size: 0.75em;
   padding: 0.3em 0.5em;
   font-weight: 600;
-  border: 2px solid white;
+  border: 2px solid ${({ theme }) => theme.border.primary};
   border-radius: 2em;
   text-transform: lowercase;
+  color: ${({ theme, $active }) =>
+    $active ? theme.text.primary : theme.text.secondary};
 
-  ${(props) => (props.$active ? 'background: #bea0c9' : '')};
+  ${({ theme, $active }) =>
+    $active
+      ? `background:${theme.accent.primary}`
+      : `background:${theme.background.surface}`};
 
   ::before {
     content: '#';
+  }
+  &:hover {
+  background-color: ${({ theme }) => theme.accent.hover};
+  color: ${({ theme }) => theme.text.primary};
   }
 `;
 
