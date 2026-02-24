@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@dans-coding-world/public-blog-tools';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 

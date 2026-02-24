@@ -5,7 +5,7 @@ import {
   screen,
   waitFor,
   within,
-} from '@testing-library/react';
+} from '@dans-coding-world/public-blog-tools';
 import '@testing-library/jest-dom';
 import BlogSidebar from '../BlogSidebar';
 import {

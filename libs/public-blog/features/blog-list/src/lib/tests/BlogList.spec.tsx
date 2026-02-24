@@ -1,5 +1,9 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@dans-coding-world/public-blog-tools';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import BlogList from '../BlogList';
 import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
@@ -16,26 +20,15 @@ const mockPostResponse = generateMockPostsResponse({
 });
 
 describe('BlogList', () => {
-  let queryClient: QueryClient;
-
   const renderFeature = () => {
     return render(
       <MemoryRouter>
-        <QueryClientProvider client={queryClient}>
-          <BlogList />
-        </QueryClientProvider>
+        <BlogList />
       </MemoryRouter>
     );
   };
 
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false, // IMPORTANT: Disable retries for tests
-        },
-      },
-    });
     vi.clearAllMocks();
     vi.mocked(api.get<BaseResponse>).mockResolvedValue(mockPostResponse);
   });

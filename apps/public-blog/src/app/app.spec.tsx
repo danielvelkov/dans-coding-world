@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render } from '@dans-coding-world/public-blog-tools';
 import { BrowserRouter } from 'react-router-dom';
 
 import App from './app';

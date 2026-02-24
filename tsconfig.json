@@ -22,9 +22,6 @@
       "path": "./libs/shared/data-access/interfaces"
     },
     {
-      "path": "./libs/tools/testing-setup"
-    },
-    {
       "path": "./libs/shared/util/shared-constants"
     },
     {
@@ -101,6 +98,9 @@
     },
     {
       "path": "./libs/public-blog/ui/theme"
+    },
+    {
+      "path": "./libs/tools/public-blog"
     },
     {
       "path": "./libs/tools/api"

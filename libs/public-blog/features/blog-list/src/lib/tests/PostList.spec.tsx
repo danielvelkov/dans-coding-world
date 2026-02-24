@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@dans-coding-world/public-blog-tools';
 import '@testing-library/jest-dom';
 import { PostList, EMPTY_POSTS_MESSAGE } from '../components/PostList';
 import { mockPostItemData } from './mocks/post-item-data.mock';

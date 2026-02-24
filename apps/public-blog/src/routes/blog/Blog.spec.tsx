@@ -1,6 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@dans-coding-world/public-blog-tools';
 import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import Blog from './Blog';
 import { BrowserRouter } from 'react-router-dom';
@@ -13,16 +12,12 @@ import { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hoo
 vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('Blog', () => {
-  let queryClient: QueryClient;
-
   const renderFeature = () =>
     render(
       <BrowserRouter
         future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
       >
-        <QueryClientProvider client={queryClient}>
-          <Blog />
-        </QueryClientProvider>
+        <Blog />
       </BrowserRouter>
     );
 
@@ -31,9 +26,6 @@ describe('Blog', () => {
   afterAll(() => server.close());
 
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
     vi.clearAllMocks();
   });
 

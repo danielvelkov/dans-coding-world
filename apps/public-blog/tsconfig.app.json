@@ -63,6 +63,9 @@
     },
     {
       "path": "../../libs/public-blog/ui/theme/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/tools/public-blog/tsconfig.lib.json"
     }
   ]
 }

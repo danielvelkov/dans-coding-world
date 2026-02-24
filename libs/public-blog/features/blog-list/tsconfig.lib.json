@@ -53,6 +53,9 @@
       "path": "../../data-access/blog-api/tsconfig.lib.json"
     },
     {
+      "path": "../../../tools/public-blog/tsconfig.lib.json"
+    },
+    {
       "path": "../../../shared/post/dtos/tsconfig.lib.json"
     },
     {
