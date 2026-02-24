@@ -6,7 +6,7 @@ import {
   seedTags,
   seedUsers,
   attachTagsToPost,
-} from '@dans-coding-world/testing-setup';
+} from '@dans-coding-world/api-tools';
 import { Router } from 'express';
 
 const testDataRouter = Router();

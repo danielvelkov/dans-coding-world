@@ -5,9 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import Blog from '../routes/blog/Blog';
 import Post from '../routes/blog/Post';
-import {  useState } from 'react';
+import { useState } from 'react';
 import { darkTheme, lightTheme } from '@dans-coding-world/public-blog-ui-theme';
-import { GlobalStyle } from '../main';
+import { GlobalStyle } from '../styles/global.style.js';
 
 const StyledApp = styled.div`
   padding: 0 clamp(5vmin, 5vw, 15vmax);
