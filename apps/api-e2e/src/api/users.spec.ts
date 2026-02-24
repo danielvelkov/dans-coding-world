@@ -9,7 +9,7 @@ import {
   seedRefreshTokens,
   seedUsers,
   getTokenById,
-} from '@dans-coding-world/testing-setup';
+} from '@dans-coding-world/api-tools';
 import { createUsersRouteHelper } from '../helper/users-request.helper';
 import {
   ERROR_CODES,

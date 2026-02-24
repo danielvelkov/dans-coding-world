@@ -3,7 +3,7 @@ import {
   seedRefreshTokens,
   seedUsers,
   updateRefreshToken,
-} from '@dans-coding-world/testing-setup';
+} from '@dans-coding-world/api-tools';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   LoginResponseDto,

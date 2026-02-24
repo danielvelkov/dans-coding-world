@@ -14,7 +14,7 @@ import {
   seedComments,
   seedReports,
   seedReportHistories,
-} from '@dans-coding-world/testing-setup';
+} from '@dans-coding-world/api-tools';
 import {
   ERROR_CODES,
   PAGINATION,

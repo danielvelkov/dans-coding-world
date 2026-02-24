@@ -101,6 +101,9 @@
     },
     {
       "path": "./libs/public-blog/ui/theme"
+    },
+    {
+      "path": "./libs/tools/api"
     }
   ]
 }
