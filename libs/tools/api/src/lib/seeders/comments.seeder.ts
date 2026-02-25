@@ -33,12 +33,12 @@ export const seedComments = async (
     }
 
     if (options.useDefaults) {
-      const defaultComments = await client.comment.createManyAndReturn({data:comments});
+      const defaultComments = await createAndReturnCommentsWithId(comments);
       seeded.push(...defaultComments);
     }
 
     if (customComments) {
-      const newComments = await client.comment.createManyAndReturn({data:customComments});
+      const newComments = await createAndReturnCommentsWithId(customComments);
       seeded.push(...newComments);
     }
     return seeded;
@@ -48,4 +48,11 @@ export const seedComments = async (
   } finally {
     await client.$disconnect();
   }
+};
+
+const createAndReturnCommentsWithId = async (comments: any[]) => {
+  if (!comments.length) return [];
+  return await client.$transaction(
+    comments.map((comment) => client.comment.create({ data: comment }))
+  );
 };

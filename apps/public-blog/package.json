@@ -3,6 +3,19 @@
   "version": "0.0.1",
   "private": true,
   "nx": {
+    "targets": {
+      "serve-all": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "nx run @dans-coding-world/public-blog:serve",
+            "nx run @dans-coding-world/api:serve:e2e"
+          ],
+          "parallel": true,
+          "readyWhen": "Listening at http://localhost:3000/api"
+        }
+      }
+    },
     "tags": [
       "scope:frontend",
       "layer:public-blog",
