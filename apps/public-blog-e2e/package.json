@@ -15,12 +15,12 @@
         "options": {
           "parallel": true,
           "commands": [
-            "nx serve:e2e api",
             "nx open-cypress public-blog-e2e"
           ]
         },
         "dependsOn": [
-          "reset-only"
+          "reset-only",
+          "@dans-coding-world/api:serve:e2e"
         ]
       },
       "e2e": {

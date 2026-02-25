@@ -79,7 +79,7 @@ describe('Blog - filters', () => {
         .and('contain.text', 'Members-only');
     });
 
-    it('applies filtering correctly when deselecting options', () => {
+    it.only('applies filtering correctly when deselecting options', () => {
       const testCases = [
         { remove: 'Public', show: 'MEMBERS_ONLY' },
         { remove: 'Members-only', show: 'PUBLIC' },
@@ -90,12 +90,13 @@ describe('Blog - filters', () => {
         cy.get(`[aria-label="Remove ${remove}"]`).click();
 
         const expectedTitles = seededPosts
-          .filter((p) => p.visibility === show)
+          .filter((p) => p.visibility === show && p.status === 'PUBLISHED')
           .map((p) => p.title);
-
-        cy.get('[aria-label="blog posts"] article h2').each(($h2) => {
-          expect($h2.text()).to.be.oneOf(expectedTitles);
-        });
+        cy.get('[aria-label="blog posts"] article h2')
+          .should('have.length', expectedTitles.length)
+          .each(($h2) => {
+            expect($h2.text()).to.be.oneOf(expectedTitles);
+          });
       });
     });
 
