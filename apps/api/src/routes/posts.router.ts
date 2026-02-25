@@ -118,7 +118,7 @@ export default postsRouter;
  *           type: integer
  *           minimum: 0
  *         required: false
- *         description: Page offset for pagination (must be divisible by pageSize)
+ *         description: Page offset for pagination (**if pageSize specified - offset must be divisible by pageSize**)
  *       - in: query
  *         name: pageSize
  *         schema:
@@ -502,6 +502,22 @@ export default postsRouter;
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/PostTag'
+ *         author:
+ *           $ref: '#/components/schemas/AuthorPreview'
+ *
+ *     AuthorPreview:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: number
+ *           description: Author Id.
+ *           example: 1
+ *         username:
+ *           type: number
+ *           description: Author username
+ *           example: johnDoe13
+ *         profile:
+ *           $ref: '#/components/schemas/Profile'
  *
  *     CreatePostDto:
  *       type: object

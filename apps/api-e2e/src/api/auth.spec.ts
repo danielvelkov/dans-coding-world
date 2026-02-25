@@ -3,7 +3,7 @@ import {
   seedRefreshTokens,
   seedUsers,
   updateRefreshToken,
-} from '@dans-coding-world/testing-setup';
+} from '@dans-coding-world/api-tools';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import {
   LoginResponseDto,
@@ -15,7 +15,7 @@ import {
   getJti,
   getJwtToken,
 } from '../helper/auth-request.helper.js';
-import { createAxiosClient } from '../helper/test-client.helper.js';
+import { createApiClient } from '../helper/test-client.helper.js';
 import {
   createErrorCodeResponse,
   createValidationErrorResponse,
@@ -29,30 +29,30 @@ import {
   REFRESH_TOKEN_COOKIE,
   ACCESS_TOKEN_COOKIE,
 } from '@dans-coding-world/shared-constants';
-import { passwordGenerator } from '@dans-coding-world/api-auth';
+import { passwordGenerator } from '@dans-coding-world/helpers';
 import { IS_EMAIL, MIN_LENGTH, MATCHES } from 'class-validator';
-import { AxiosInstance, AxiosResponse } from 'axios';
+import {
+  ApiClient,
+  API_ENDPOINTS,
+} from '@dans-coding-world/shared-data-access-api';
 
 let users: User[];
 
 describe('/api/v1/auth', () => {
-  let client: AxiosInstance;
-  let login: (
-    email: string,
-    password: string
-  ) => Promise<AxiosResponse<BaseResponse>>;
-  let logout: () => Promise<AxiosResponse<BaseResponse>>;
-  let renewAuthToken: (token: string) => Promise<AxiosResponse<BaseResponse>>;
+  let client: ApiClient;
+  let login: (email: string, password: string) => Promise<BaseResponse>;
+  let logout: () => Promise<BaseResponse>;
+  let renewAuthToken: (token: string) => Promise<BaseResponse>;
   let register: (
     email: string,
     password: string,
     username: string
-  ) => Promise<AxiosResponse<BaseResponse>>;
-  let revokeToken: (token: string) => Promise<AxiosResponse<BaseResponse>>;
-  let revokeAllTokens: () => Promise<AxiosResponse<BaseResponse>>;
+  ) => Promise<BaseResponse>;
+  let revokeToken: (token: string) => Promise<BaseResponse>;
+  let revokeAllTokens: () => Promise<BaseResponse>;
 
   beforeEach(() => {
-    client = createAxiosClient();
+    client = createApiClient();
     ({ login, logout, renewAuthToken, register, revokeToken, revokeAllTokens } =
       createAuthRouteHelper(client));
   });
@@ -69,7 +69,13 @@ describe('/api/v1/auth', () => {
 
     it(`should return user data and set access and refresh tokens
        in 'Set-Cookie' header on valid credentials`, async () => {
-      const res = await login(users[0].email, users[0].password);
+      const res = await client.request(API_ENDPOINTS.AUTH.LOGIN, {
+        data: { email: users[0].email, password: users[0].password },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        method: 'POST',
+      });
 
       expect(res.status).toBe(200);
       const { data } = res.data as BaseResponse;
@@ -122,9 +128,17 @@ describe('/api/v1/auth', () => {
     });
 
     it('should remove token data from set-cookie when logout successful', async () => {
-      await login(users[0].email, users[0].password);
+      await client.request(API_ENDPOINTS.AUTH.LOGIN, {
+        data: { email: users[0].email, password: users[0].password },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        method: 'POST',
+      });
 
-      const logoutRes = await logout();
+      const logoutRes = await client.request(API_ENDPOINTS.AUTH.LOGOUT, {
+        method: 'POST',
+      });
 
       const { data } = logoutRes.data as BaseResponse;
       expect(logoutRes.status).toBe(200);
@@ -139,9 +153,17 @@ describe('/api/v1/auth', () => {
     });
 
     it('should revoke user refresh token when logout successful', async () => {
-      const res = await login(users[0].email, users[0].password);
+      const res = await client.request(API_ENDPOINTS.AUTH.LOGIN, {
+        data: { email: users[0].email, password: users[0].password },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        method: 'POST',
+      });
 
-      await logout();
+      await client.request(API_ENDPOINTS.AUTH.LOGOUT, {
+        method: 'POST',
+      });
 
       const jti = getJti(getJwtToken(findSetCookie(res, REFRESH_TOKEN_COOKIE)));
 
@@ -165,7 +187,13 @@ describe('/api/v1/auth', () => {
     beforeEach(async () => {
       if (!users[0]) throw new Error('Missing test user');
 
-      const res = await login(users[0].email, users[0].password);
+      const res = await client.request(API_ENDPOINTS.AUTH.LOGIN, {
+        data: { email: users[0].email, password: users[0].password },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        method: 'POST',
+      });
 
       const refreshTokenCookie = findSetCookie(res, REFRESH_TOKEN_COOKIE);
 
@@ -173,7 +201,13 @@ describe('/api/v1/auth', () => {
     });
 
     it('should set new access and refresh token in set-cookie header on valid refresh token', async () => {
-      const refreshRes = await renewAuthToken(jwt);
+      const refreshRes = await client.request(API_ENDPOINTS.AUTH.REFRESH, {
+        data: { token: jwt },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        method: 'POST',
+      });
 
       const newRefreshTokenCookie = findSetCookie(
         refreshRes,
@@ -255,26 +289,22 @@ describe('/api/v1/auth', () => {
     });
 
     it('should return created user data on valid registration data', async () => {
-      const registerRes = await register(
+      const { data } = await register(
         VALID_USER_DATA.email,
         VALID_USER_DATA.password,
         VALID_USER_DATA.username
       );
 
-      expect(registerRes.status).toBe(201); // 201 CREATED
-      const { data } = registerRes.data as BaseResponse;
       expect((data as RegistrationResponseDto).user).not.toHaveProperty(
         'password'
       );
       expect(data).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.register);
 
-      const loginRes = await login(
+      const { data: loginData } = await login(
         VALID_USER_DATA.email,
         VALID_USER_DATA.password
       );
 
-      expect(loginRes.status).toBe(200);
-      const { data: loginData } = loginRes.data as BaseResponse;
       expect(loginData).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.login);
     });
 
@@ -405,7 +435,13 @@ describe('/api/v1/auth', () => {
     beforeEach(async () => {
       if (!users[0]) throw new Error('Missing test user');
 
-      const res = await login(users[0].email, users[0].password);
+      const res = await client.request(API_ENDPOINTS.AUTH.LOGIN, {
+        data: { email: users[0].email, password: users[0].password },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        method: 'POST',
+      });
 
       const refreshTokenCookie = findSetCookie(res, REFRESH_TOKEN_COOKIE);
 
@@ -438,15 +474,9 @@ describe('/api/v1/auth', () => {
       if (!admin) throw new Error('Missing test user');
 
       await login(admin.email, admin.password);
-      const res = await revokeToken(userRefreshToken);
+      const { data } = await revokeToken(userRefreshToken);
 
-      const { data: revokeData } = res.data as BaseResponse;
-      if (!revokeData) throw new Error('Missing data');
-
-      expect(revokeData).toHaveProperty(
-        'message',
-        SUCCESS_MESSAGES.AUTH.revoke
-      );
+      expect(data).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.revoke);
       const updatedToken = await getTokenById(getJti(userRefreshToken));
       expect(updatedToken.revoked).toBe(true);
     });
@@ -497,7 +527,13 @@ describe('/api/v1/auth', () => {
       tokens = [];
 
       for (const u of users) {
-        const res = await login(u.email, u.password);
+        const res = await client.request(API_ENDPOINTS.AUTH.LOGIN, {
+          data: { email: u.email, password: u.password },
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          method: 'POST',
+        });
 
         const refreshTokenCookie = findSetCookie(res, REFRESH_TOKEN_COOKIE);
 
@@ -548,7 +584,7 @@ describe('/api/v1/auth', () => {
       await login(admin.email, admin.password);
       const res = await revokeAllTokens();
 
-      const { data: revokeData } = res.data as BaseResponse;
+      const { data: revokeData } = res;
       if (!revokeData) throw new Error('Missing data');
 
       expect(revokeData).toHaveProperty(

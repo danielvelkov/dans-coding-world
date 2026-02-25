@@ -10,7 +10,7 @@ import {
   seedPosts,
   seedTags,
   attachTagsToPost,
-} from '@dans-coding-world/testing-setup';
+} from '@dans-coding-world/api-tools';
 import {
   ERROR_CODES,
   SUCCESS_MESSAGES,
@@ -19,9 +19,9 @@ import {
 import { setupClient } from '../helper/test-client.helper';
 import { createPostsRouteHelper } from '../helper/posts-request.helper';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
-import { testInvalidIds } from '../helper/validation.helper';
+import { testInvalidIds } from '../helper/test-cases.helper';
 import { GetTagsResponse } from '@dans-coding-world/shared-post-dto';
-import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
+import { passwordGenerator as generateRandomString } from '@dans-coding-world/helpers';
 import { getData, getMessage } from '../helper/common.helper';
 
 describe('/api/v1/tags', () => {

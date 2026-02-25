@@ -1,156 +1,102 @@
 import {
+  API_ENDPOINTS,
+  ApiClient,
+  toURLSearchParams,
+} from '@dans-coding-world/shared-data-access-api';
+import {
   CreateCommentDto,
   CreatePostDto,
   CreateTagDto,
   UpdatePostDto,
 } from '@dans-coding-world/shared-post-dto';
-import { AxiosInstance } from 'axios';
+import { urlEncodedHeaders } from './common.helper';
 
-// Axios uses URLSearchParams under the hood
-// Nested objects (like sortBy) are serialized using bracket notation: sortBy[key]=value.
-// Arrays become repeated keys: { tags: ['a', 'b'] } → tags=a&tags=b
-export function createPostsRouteHelper(client: AxiosInstance) {
+export function createPostsRouteHelper(client: ApiClient) {
   return {
-    async getPosts(params?: object) {
-      return await client.get('/api/v1/posts', { params });
+    client,
+    getPosts(params?: object) {
+      return client.get(API_ENDPOINTS.POSTS.LIST, { params });
     },
 
-    async getPost(id: string) {
-      return await client.get(`/api/v1/posts/${id}`);
+    getPost(id: string) {
+      return client.get(API_ENDPOINTS.POSTS.BY_ID(+id));
     },
 
-    async createPost(postData: Omit<CreatePostDto, 'authorId'>) {
-      const urlSearchParams = new URLSearchParams();
-
-      for (const [key, value] of Object.entries(postData)) {
-        if (value === undefined) {
-          urlSearchParams.append(key, 'undefined');
-        } else if (Array.isArray(value)) {
-          // Encode arrays as repeated keys
-          for (const v of value) {
-            urlSearchParams.append(key, v);
-          }
-        } else {
-          urlSearchParams.append(key, value.toString());
-        }
-      }
-
-      return await client.post('/api/v1/posts', urlSearchParams, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+    createPost(postData: Omit<CreatePostDto, 'authorId'>) {
+      const urlSearchParams = toURLSearchParams(postData);
+      return client.post(API_ENDPOINTS.POSTS.LIST, urlSearchParams, {
+        headers: urlEncodedHeaders,
       });
     },
 
-    async updatePost(
-      id: string,
-      postData: Omit<UpdatePostDto, 'userId' | 'postId'>
-    ) {
-      const urlSearchParams = new URLSearchParams();
+    updatePost(id: string, postData: Omit<UpdatePostDto, 'userId' | 'postId'>) {
+      const urlSearchParams = toURLSearchParams(postData);
 
-      for (const [key, value] of Object.entries(postData)) {
-        if (value === undefined) {
-          urlSearchParams.append(key, 'undefined');
-        } else if (Array.isArray(value)) {
-          // Encode arrays as repeated keys
-          for (const v of value) {
-            urlSearchParams.append(key, v);
-          }
-        } else {
-          urlSearchParams.append(key, value.toString());
-        }
-      }
-      return await client.patch(`/api/v1/posts/${id}`, urlSearchParams, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+      return client.patch(API_ENDPOINTS.POSTS.BY_ID(+id), urlSearchParams, {
+        headers: urlEncodedHeaders,
       });
     },
 
-    async deletePost(id: string) {
-      return await client.delete(`/api/v1/posts/${id}`);
+    deletePost(id: string) {
+      return client.delete(API_ENDPOINTS.POSTS.BY_ID(+id));
     },
 
-    async getPostsMetadata() {
-      return await client.get(`/api/v1/posts/metadata`);
+    getPostsMetadata() {
+      return client.get(API_ENDPOINTS.POSTS.METADATA);
     },
 
-    async getPostComments(id: string, params?: object) {
-      return await client.get(`/api/v1/posts/${id}/comments`, { params });
+    getPostComments(id: string, params?: object) {
+      return client.get(API_ENDPOINTS.COMMENTS.LIST(+id), { params });
     },
 
-    async getComment(postId: string, commentId: string, params?: object) {
-      return await client.get(`/api/v1/posts/${postId}/comments/${commentId}`, {
+    getComment(postId: string, commentId: string, params?: object) {
+      return client.get(API_ENDPOINTS.COMMENTS.BY_ID(+postId, +commentId), {
         params,
       });
     },
 
-    async deleteComment(postId: string, commentId: string) {
-      return await client.delete(
-        `/api/v1/posts/${postId}/comments/${commentId}`
-      );
+    deleteComment(postId: string, commentId: string) {
+      return client.delete(API_ENDPOINTS.COMMENTS.BY_ID(+postId, +commentId));
     },
 
-    async updateComment(postId: string, commentId: string, content: string) {
-      return await client.patch(
-        `/api/v1/posts/${postId}/comments/${commentId}`,
-        { content }
-      );
+    updateComment(postId: string, commentId: string, content: string) {
+      return client.patch(API_ENDPOINTS.COMMENTS.BY_ID(+postId, +commentId), {
+        content,
+      });
     },
 
-    async createComment(
+    createComment(
       postId: string,
       postData: Omit<CreateCommentDto, 'userId' | 'postId'>
     ) {
-      const formData = Object.fromEntries(
-        Object.entries(postData).map(([key, value]) => [
-          key,
-          value === undefined ? 'undefined' : value.toString(),
-        ])
-      );
-
-      const urlSearchParams = new URLSearchParams(formData);
-      return await client.post(
-        `/api/v1/posts/${postId}/comments`,
+      const urlSearchParams = toURLSearchParams(postData);
+      return client.post(
+        API_ENDPOINTS.COMMENTS.LIST(+postId),
         urlSearchParams,
         {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
+          headers: urlEncodedHeaders,
         }
       );
     },
 
-    async getTags() {
-      return await client.get(`/api/v1/tags`);
+    getTags() {
+      return client.get(API_ENDPOINTS.TAGS.LIST);
     },
 
-    async getTagById(tagId: string) {
-      return await client.get(`/api/v1/tags/${tagId}`);
+    getTagById(tagId: string) {
+      return client.get(API_ENDPOINTS.TAGS.BY_ID(+tagId));
     },
 
-    async deleteTag(tagId: string) {
-      return await client.delete(`/api/v1/tags/${tagId}`);
+    deleteTag(tagId: string) {
+      return client.delete(API_ENDPOINTS.TAGS.BY_ID(+tagId));
     },
 
-    async updateTag(tagId: string, name: string) {
-      return await client.patch(`/api/v1/tags/${tagId}`, { name });
+    updateTag(tagId: string, name: string) {
+      return client.patch(API_ENDPOINTS.TAGS.BY_ID(+tagId), { name });
     },
 
-    async createTag(tagData: CreateTagDto) {
-      const formData = Object.fromEntries(
-        Object.entries(tagData).map(([key, value]) => [
-          key,
-          value === undefined ? 'undefined' : value.toString(),
-        ])
-      );
-
-      const urlSearchParams = new URLSearchParams(formData);
-      return await client.post(`/api/v1/tags`, urlSearchParams, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
+    createTag(tagData: CreateTagDto) {
+      return client.post(API_ENDPOINTS.TAGS.LIST, tagData);
     },
   };
 }

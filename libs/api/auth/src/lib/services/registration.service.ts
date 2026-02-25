@@ -9,7 +9,7 @@ import type { IUserRepository } from '@dans-coding-world/shared-data-access-inte
 import { transformAndValidateDto } from '@dans-coding-world/validation';
 import { ApiException } from '@dans-coding-world/exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
-import { hashPassword } from '../helper/password.helper.js';
+import { hashPassword } from '@dans-coding-world/helpers';
 
 @Injectable()
 export class RegistrationService implements IRegistrationService {

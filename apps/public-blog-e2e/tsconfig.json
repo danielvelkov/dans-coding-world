@@ -4,7 +4,8 @@
     "outDir": "out-tsc/cypress",
     "allowJs": true,
     "types": ["cypress", "node"],
-    "sourceMap": false
+    "sourceMap": false,
+    "lib": ["DOM"]
   },
   "include": [
     "**/*.ts",
@@ -22,5 +23,22 @@
     "eslint.config.js",
     "eslint.config.cjs",
     "eslint.config.mjs"
+  ],
+  "references": [
+    {
+      "path": "../../libs/shared/util/shared-constants"
+    },
+    {
+      "path": "../../libs/prisma-schema"
+    },
+    {
+      "path": "../../libs/shared/util/helpers"
+    },
+    {
+      "path": "../../libs/shared/post/testing"
+    },
+    {
+      "path": "../../libs/shared/data-access/api"
+    }
   ]
 }

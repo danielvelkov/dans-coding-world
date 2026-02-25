@@ -10,19 +10,80 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Cypress {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface Chainable<Subject> {
-      login(email: string, password: string): void;
-    }
+// eslint-disable-next-line @typescript-eslint/no-namespace
+declare namespace Cypress {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Chainable<Subject> {
+    login(email: string, password: string): void;
+    getByTestId(id: string): Chainable<Subject>;
+    goToPage(pageNumber: number): void;
+    clickNextPage(): void;
+    clickPrevPage(): void;
+    selectItemsPerPage(value: number): void;
+    selectPostPublicationYearFilter(year: number): void;
+    selectPostTagFilter(tagName: string): void;
+    selectPostSorting(option: string): void;
   }
 }
 
 // -- This is a parent command --
 Cypress.Commands.add('login', (email, password) => {
   console.log('Custom command example: Login', email, password);
+});
+Cypress.Commands.add('getByTestId', (id) => {
+  return cy.get(`[data-test=${id}]`);
+});
+
+Cypress.Commands.add('goToPage', (pageNumber: number) => {
+  cy.get('[aria-label="pagination"]').within(() => {
+    cy.contains('button', `page ${pageNumber}`).click();
+  });
+});
+
+Cypress.Commands.add('clickNextPage', () => {
+  cy.get('[aria-label="next page"]').click();
+});
+
+Cypress.Commands.add('clickPrevPage', () => {
+  cy.get('[aria-label="prev page"]').click();
+});
+
+Cypress.Commands.add('selectItemsPerPage', (value) => {
+  cy.contains('label', /items per page/i)
+    .invoke('attr', 'for')
+    .then((id) => {
+      cy.get(`#${id}`).click();
+    });
+  cy.contains('[class*="option"]', value).click();
+});
+
+Cypress.Commands.add('selectPostPublicationYearFilter', (year) => {
+  cy.contains('h3', 'Select Posts by year')
+    .invoke('attr', 'id')
+    .then((id) => {
+      cy.get(`section[aria-labelledby="${id}"]`).within(() => {
+        cy.contains('button', year.toString()).click();
+      });
+    });
+});
+
+Cypress.Commands.add('selectPostTagFilter', (tagName) => {
+  cy.contains('h3', 'Tags')
+    .invoke('attr', 'id')
+    .then((id) => {
+      cy.get(`section[aria-labelledby="${id}"]`).within(() => {
+        cy.contains('button', tagName.toString()).click();
+      });
+    });
+});
+
+Cypress.Commands.add('selectPostSorting', (value) => {
+  cy.contains('label', /sort by/i)
+    .invoke('attr', 'for')
+    .then((id) => {
+      cy.get(`#${id}`).click();
+    });
+  cy.contains('[class*="option"]', value).click();
 });
 //
 // -- This is a child command --

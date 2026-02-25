@@ -3,6 +3,7 @@
 import {
   Post,
   PostStatus,
+  PostWithAuthorProfile,
   Tag,
   User,
   client as prisma,
@@ -12,8 +13,7 @@ import {
   seedPosts,
   seedTags,
   attachTagsToPost,
-} from '@dans-coding-world/testing-setup';
-import { BaseResponse } from '@dans-coding-world/api-types';
+} from '@dans-coding-world/api-tools';
 import {
   ERROR_CODES,
   PAGINATION,
@@ -30,10 +30,11 @@ import {
   GetTagsResponse,
 } from '@dans-coding-world/shared-post-dto';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
-import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
+import { passwordGenerator as generateRandomString } from '@dans-coding-world/helpers';
 import { StatusCodes } from 'http-status-codes';
-import { testInvalidIds } from '../helper/validation.helper';
+import { testInvalidIds } from '../helper/test-cases.helper';
 import { getData, getMessage } from '../helper/common.helper';
+import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 
 describe('/api/v1/posts', () => {
   let users: User[] = [];
@@ -210,6 +211,20 @@ describe('/api/v1/posts', () => {
         expect(postData.tags.includes(tag.name)).toBe(true);
     });
 
+    it('should return posts with their author details included', async () => {
+      const publicPost = posts.find(
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+      );
+      if (!publicPost) throw new Error('Missing test post');
+
+      const res = await anonHelpers.getPost(publicPost.id.toString());
+
+      const post = getData<PostWithAuthorProfile>(res, 'post');
+
+      const expectedUser = users.find((u) => u.id === post.authorId);
+      expect(post.author.username).toBe(expectedUser?.username);
+    });
+
     test.each([
       ['masked when not logged in', false],
       ['shown when logged in', true],
@@ -356,13 +371,12 @@ describe('/api/v1/posts', () => {
       });
 
       it('should return MEMBERS_ONLY posts with content masked', async () => {
-        const res = await anonHelpers.getPosts({
+        const { data } = await anonHelpers.getPosts({
           filterBy: {
             visibility: ['MEMBERS_ONLY'],
           },
         });
 
-        const { data } = res.data as BaseResponse;
         const postsData = data as GetPostsResponseDto;
 
         expect(postsData.count).toBe(PUBLISHED_MEMBERS_ONLY_POSTS_NUM);
@@ -381,6 +395,17 @@ describe('/api/v1/posts', () => {
 
         for (const post of postsData.items)
           expect((post as any).tags.length).toBeGreaterThan(0);
+      });
+
+      it('should return posts with their author details included', async () => {
+        const res = await anonHelpers.getPosts();
+
+        const postsData = getData<GetPostsResponseDto>(res);
+
+        for (const post of postsData.items) {
+          const expectedUser = users.find((u) => u.id === post.authorId);
+          expect(post.author.username).toBe(expectedUser?.username);
+        }
       });
 
       it('should allow filtering by tag name', async () => {
@@ -1464,12 +1489,13 @@ describe('/api/v1/posts', () => {
       );
       if (!postForDeletion) throw new Error('Missing test post');
 
-      const deleteRes = await authorHelpers.deletePost(
-        postForDeletion.id.toString()
+      const deleteRes = await adminHelpers.client.request(
+        API_ENDPOINTS.POSTS.BY_ID(postForDeletion.id),
+        { method: 'DELETE' }
       );
       expect(deleteRes.status).toBe(StatusCodes.OK);
 
-      expect(getMessage(deleteRes)).toBe(SUCCESS_MESSAGES.POSTS.delete);
+      expect(getMessage(deleteRes.data)).toBe(SUCCESS_MESSAGES.POSTS.delete);
 
       deletedIds.push(postForDeletion.id);
 
@@ -1505,13 +1531,14 @@ describe('/api/v1/posts', () => {
       );
       if (!postForDeletionFromAnotherUser) throw new Error('Missing test post');
 
-      const deleteRes = await adminHelpers.deletePost(
-        postForDeletionFromAnotherUser.id.toString()
+      const deleteRes = await adminHelpers.client.request(
+        API_ENDPOINTS.POSTS.BY_ID(postForDeletionFromAnotherUser.id),
+        { method: 'DELETE' }
       );
 
       expect(deleteRes.status).toBe(StatusCodes.OK);
 
-      expect(getMessage(deleteRes)).toBe(SUCCESS_MESSAGES.POSTS.delete);
+      expect(getMessage(deleteRes.data)).toBe(SUCCESS_MESSAGES.POSTS.delete);
     });
 
     it('deleting the last post referencing created tags should delete them also', async () => {

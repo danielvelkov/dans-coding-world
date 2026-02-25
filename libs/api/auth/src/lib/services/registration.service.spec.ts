@@ -7,7 +7,7 @@ import { IUserRepository } from '@dans-coding-world/shared-data-access-interface
 import { PrismaUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
 import { User, client } from '@dans-coding-world/prisma-schema';
 import { USER_CONSTRAINTS } from '@dans-coding-world/shared-constants';
-import { passwordGenerator } from '../helper/password.helper.js';
+import { passwordGenerator } from '@dans-coding-world/helpers';
 
 let mockUserRepo: IUserRepository;
 

@@ -2,6 +2,7 @@ import {
   Post,
   PostOrderByInput,
   PostWhereInput,
+  PostWithAuthorProfile,
   Tag,
 } from '@dans-coding-world/prisma-schema';
 import {
@@ -28,7 +29,7 @@ import {
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { filterObject } from '@dans-coding-world/helpers';
-import { PostDetail } from '@dans-coding-world/post-data-access';
+import { PostDetail, PostFull } from '@dans-coding-world/post-data-access';
 
 export const POST_REPOSITORY_TOKEN = 'IPostRepository';
 export const USER_REPOSITORY_TOKEN = 'IUserRepository';
@@ -39,15 +40,19 @@ type DirectPrismaFilters = Pick<FilterPostsByDto, 'status' | 'visibility'>;
 export class PostsService implements IPostsService {
   constructor(
     @Inject(POST_REPOSITORY_TOKEN)
-    public posts: IPostRepository<PostDetail, PostWhereInput, PostOrderByInput>,
+    public posts: IPostRepository<
+      Post | PostDetail,
+      PostWhereInput,
+      PostOrderByInput
+    >,
     @Inject(USER_REPOSITORY_TOKEN)
     public users: IUserRepository
   ) {}
 
-  async getById(dto: GetPostDto): Promise<PostDetail> {
+  async getById(dto: GetPostDto): Promise<PostFull> {
     dto = await transformAndValidateDto(dto, GetPostDto);
 
-    const post = (await this.posts.getById(dto.postId)) as Post;
+    const post = (await this.posts.getById(dto.postId)) as PostFull;
 
     // Authorization check
     await this.validatePostReadAccess(post, dto.viewerId);
@@ -93,7 +98,7 @@ export class PostsService implements IPostsService {
     const totalPages = Math.ceil(total / postsPerPage);
 
     // Hide Members-only content for guests
-    const items = posts.map((post) => {
+    const items = (posts as PostWithAuthorProfile[]).map((post) => {
       const tagNames = this.extractTagNames(post);
 
       if (this.isMembersOnly(post) && !dto?.viewerId) {
@@ -123,7 +128,7 @@ export class PostsService implements IPostsService {
     };
   }
 
-  async create(dto: CreatePostDto): Promise<PostDetail> {
+  async create(dto: CreatePostDto): Promise<PostFull> {
     dto = await transformAndValidateDto(dto, CreatePostDto);
 
     const author = await this.users.getById(dto.authorId.toString());
@@ -135,7 +140,7 @@ export class PostsService implements IPostsService {
     if (postAlreadyExists)
       throw new ApiException(ERROR_CODES.VALIDATION.POST_EXISTS);
 
-    const inputData: Parameters<typeof this.posts.create>[0] = {
+    const inputData: Omit<PostDetail, 'id'> = {
       title: dto.title,
       content: dto.content,
       visibility: dto.isMembersOnly ? 'MEMBERS_ONLY' : 'PUBLIC',
@@ -147,12 +152,12 @@ export class PostsService implements IPostsService {
       tags: this.extractUniqueStrings(dto.tags),
     };
 
-    const post = await this.posts.create(inputData);
+    const post = (await this.posts.create(inputData)) as PostFull;
 
     return { ...post, tags: this.extractTagNames(post) };
   }
 
-  async update(dto: UpdatePostDto): Promise<PostDetail> {
+  async update(dto: UpdatePostDto): Promise<PostFull> {
     dto = await transformAndValidateDto(dto, UpdatePostDto);
 
     const postForUpdate = (await this.posts.getById(dto.postId)) as Post;
@@ -170,25 +175,25 @@ export class PostsService implements IPostsService {
 
     const filtered = filterObject(dto, Object.keys(postForUpdate));
 
-    const post = await this.posts.update(dto.postId, {
+    const post = (await this.posts.update(dto.postId, {
       ...filtered,
       tags: this.extractUniqueStrings(filtered.tags),
       updatedAt: new Date(),
       ...(!postForUpdate.publishedAt &&
         dto.status === 'PUBLISHED' && { publishedAt: new Date() }),
-    });
+    })) as PostFull;
 
     return { ...post, tags: this.extractTagNames(post) };
   }
 
-  async delete(dto: DeletePostDto): Promise<PostDetail> {
+  async delete(dto: DeletePostDto): Promise<PostFull> {
     dto = await transformAndValidateDto(dto, DeletePostDto);
 
     const post = await this.posts.getById(dto.postId);
 
     await this.validatePostWriteAccess(post, dto.authorId);
 
-    return await this.posts.delete(dto.postId);
+    return (await this.posts.delete(dto.postId)) as PostFull;
   }
   /**
    * Checks if post exists and that the user is allowed READ access to it.

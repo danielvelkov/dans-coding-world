@@ -33,3 +33,12 @@ export type CommentWithReplies = Comment & {
   replies: CommentWithReplies[];
   replyCount: number;
 };
+
+export type PostWithAuthorProfile = Prisma.PostGetPayload<{
+  include: {
+    author: {
+      include: { profile: true };
+      omit: { password: true; email: true; isBanned: true; role: true };
+    };
+  };
+}>;

@@ -3,10 +3,14 @@ import {
   PostWhereInput,
   PostOrderByInput,
   client,
+  PostWithAuthorProfile,
 } from '@dans-coding-world/prisma-schema';
 import { IPostRepository } from '@dans-coding-world/shared-data-access-interfaces';
 
-export type PostDetail = Post & { tags?: string[] };
+export type PostDetail = Post & {
+  tags?: string[];
+};
+export type PostFull = PostWithAuthorProfile & PostDetail;
 
 export class PrismaPostDataAccess
   implements IPostRepository<Post, PostWhereInput, PostOrderByInput>
@@ -18,6 +22,17 @@ export class PrismaPostDataAccess
         tags: {
           include: {
             tag: true,
+          },
+        },
+        author: {
+          omit: {
+            password: true,
+            role: true,
+            isBanned: true,
+            email: true,
+          },
+          include: {
+            profile: true,
           },
         },
       },
@@ -55,6 +70,17 @@ export class PrismaPostDataAccess
             tag: true,
           },
         },
+        author: {
+          omit: {
+            password: true,
+            role: true,
+            isBanned: true,
+            email: true,
+          },
+          include: {
+            profile: true,
+          },
+        },
       },
     });
   }
@@ -90,6 +116,17 @@ export class PrismaPostDataAccess
             tag: true,
           },
         },
+        author: {
+          omit: {
+            password: true,
+            role: true,
+            isBanned: true,
+            email: true,
+          },
+          include: {
+            profile: true,
+          },
+        },
       },
     });
   }
@@ -113,6 +150,17 @@ export class PrismaPostDataAccess
             tag: true,
           },
         },
+        author: {
+          omit: {
+            password: true,
+            role: true,
+            isBanned: true,
+            email: true,
+          },
+          include: {
+            profile: true,
+          },
+        },
       },
     });
   }
@@ -124,6 +172,17 @@ export class PrismaPostDataAccess
         tags: {
           include: {
             tag: true,
+          },
+        },
+        author: {
+          omit: {
+            password: true,
+            role: true,
+            isBanned: true,
+            email: true,
+          },
+          include: {
+            profile: true,
           },
         },
       },

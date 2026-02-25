@@ -27,13 +27,13 @@
       "path": "../../libs/api/data-access/report"
     },
     {
-      "path": "../../libs/shared/util/helpers"
-    },
-    {
       "path": "../../libs/shared/report/dtos"
     },
     {
-      "path": "../../libs/api/auth"
+      "path": "../../libs/shared/data-access/api"
+    },
+    {
+      "path": "../../libs/shared/util/helpers"
     },
     {
       "path": "../../libs/shared/util/shared-constants"
@@ -48,7 +48,7 @@
       "path": "../../libs/shared/util/api-types"
     },
     {
-      "path": "../../libs/tools/testing-setup"
+      "path": "../../libs/tools/api"
     }
   ]
 }

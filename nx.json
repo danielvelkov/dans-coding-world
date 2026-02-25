@@ -55,7 +55,11 @@
         "libs/shared/util/helpers/*",
         "libs/api/users/*",
         "libs/shared/user/dtos/*",
-        "libs/shared/storage/*"
+        "libs/shared/storage/*",
+        "libs/shared/data-access/api/*",
+        "libs/public-blog/data-access/blog-api/*",
+        "libs/shared/post/testing/*",
+        "libs/public-blog/shared/hooks/*"
       ]
     },
     {
@@ -79,7 +83,6 @@
       "plugin": "@nx/vite/plugin",
       "options": {
         "buildTargetName": "build",
-        "testTargetName": "test",
         "serveTargetName": "serve",
         "devTargetName": "dev",
         "previewTargetName": "preview",
@@ -140,12 +143,22 @@
         "libs/shared/util/helpers/*",
         "libs/api/users/*",
         "libs/shared/user/dtos/*",
-        "libs/shared/storage/*"
+        "libs/shared/storage/*",
+        "libs/shared/data-access/api/*",
+        "libs/public-blog/data-access/blog-api/*",
+        "libs/shared/post/testing/*",
+        "libs/public-blog/shared/hooks/*"
       ],
       "options": {
         "typecheck": {
           "targetName": "typecheck"
         }
+      }
+    },
+    {
+      "plugin": "@nx/vitest",
+      "options": {
+        "testTargetName": "test"
       }
     }
   ],
@@ -172,7 +185,8 @@
       },
       "library": {
         "style": "styled-components",
-        "linter": "eslint"
+        "linter": "eslint",
+        "unitTestRunner": "vitest"
       }
     }
   }

@@ -1,6 +1,14 @@
 {
   "nxConsole.nxWorkspacePath": "",
-  "cSpell.words": ["autoincrement", "dans", "jwtid", "Prismock", "swcrc"],
+  "cSpell.words": [
+    "autoincrement",
+    "dans",
+    "falso",
+    "jwtid",
+    "ngneat",
+    "Prismock",
+    "swcrc"
+  ],
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,

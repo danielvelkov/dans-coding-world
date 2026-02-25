@@ -27,6 +27,9 @@
   ],
   "references": [
     {
+      "path": "../../libs/tools/api/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/shared/util/api-types/tsconfig.lib.json"
     },
     {

@@ -38,10 +38,10 @@ export default commentsRouter;
  *     description: |
  *       Get a specific post's top-level comments by post id. Each comment comes with its replies. Provides pagination and sorting only on the top-level comments.
  *       <br/> Returns a 403 FORBIDDEN error, If post is private and the user requesting it
- *       is not the author (***does not apply to admins or moderators***).
+ *       is not the author of the post (***access restrictions do not apply to admins or moderators***).
  *
  *       **Authentication:**
- *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts return 401 UNAUTHORIZED error
+ *       - If access_token is not valid in Set-Cookie header, MEMBERS_ONLY posts return 401 UNAUTHORIZED error, otherwise comments are publicly accessible
  *       - If access_token is valid, user's private posts' comments can be queried
  *     parameters:
  *       - in: path
@@ -56,7 +56,7 @@ export default commentsRouter;
  *           type: integer
  *           minimum: 0
  *         required: false
- *         description: Page offset for pagination (must be divisible by pageSize)
+ *         description: Page offset for pagination (**if pageSize specified - offset must be divisible by pageSize**)
  *       - in: query
  *         name: pageSize
  *         schema:
@@ -150,11 +150,11 @@ export default commentsRouter;
  *     summary: Get comment and its replies
  *     description: |
  *       Get a specific comment by its Id along with its direct replies if any.
- *       <br/>Returns 403 FORBIDDEN error, If the post this comment belongs to is private and the user requesting it
- *       is not the author (***does not apply to admins or moderators***).
+ *       <br/>Returns 403 FORBIDDEN error, If the post that this comment belongs to is private and the user requesting it
+ *       is not the author of the post (***access restrictions do not apply to admins or moderators***).
  *
  *       **Authentication:**
- *       - If access_token is not valid in Set-Cookie header, comments on MEMBERS_ONLY posts return 403 FORBIDDEN error
+ *       - If access_token is not valid in Set-Cookie header, comments on MEMBERS_ONLY posts return 403 FORBIDDEN error, otherwise comments are publicly accessible
  *       - If access_token is valid, user's private posts' comments can be queried
  *     parameters:
  *       - in: path
@@ -238,11 +238,11 @@ export default commentsRouter;
  *     summary: Create a comment or reply
  *     description: |
  *       Create a comment on a post or a reply to a comment.<br /> Must be logged in, otherwise returns UNAUTHORIZED error.<br />
- *       If post is not PUBLISHED and the user posting the comment is not the author - returns FORBIDDEN error. <br />
+ *       If the post is not PUBLISHED and the user posting the comment is not the author of the said post - returns FORBIDDEN error. <br />
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error
- *       - If access_token is valid, user can comment on PUBLISHED posts
+ *       - If access_token is valid, user can comment only on PUBLISHED posts
  *     parameters:
  *       - in: path
  *         name: postId
@@ -321,7 +321,7 @@ export default commentsRouter;
  *     description: |
  *       Update a comment's 'content' field. <br/>
  *       Returns FORBIDDEN error, If post is DRAFT or ARCHIVED and the user requesting it
- *       is not the author (***does not apply to admins or moderators***).
+ *       is not the author of the said post (***access restrictions do not apply to admins or moderators***).
  *
  *       **Authentication:**
  *       - If access_token is not valid in Set-Cookie header, return 401 UNAUTHORIZED error

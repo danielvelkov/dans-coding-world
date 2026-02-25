@@ -9,7 +9,7 @@ import {
   seedRefreshTokens,
   seedUsers,
   getTokenById,
-} from '@dans-coding-world/testing-setup';
+} from '@dans-coding-world/api-tools';
 import { createUsersRouteHelper } from '../helper/users-request.helper';
 import {
   ERROR_CODES,
@@ -17,13 +17,15 @@ import {
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { createAuthRouteHelper } from '../helper/auth-request.helper';
-import { createAxiosClient, setupClient } from '../helper/test-client.helper';
-import { testInvalidIds } from '../helper/validation.helper';
+import { setupClient } from '../helper/test-client.helper';
+import { testInvalidIds } from '../helper/test-cases.helper';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
 import { UserDetail } from '@dans-coding-world/user-data-access';
-import { generateRandomString } from '@dans-coding-world/helpers';
-import { passwordGenerator, validPassword } from '@dans-coding-world/api-auth';
+import {
+  generateRandomString,
+  passwordGenerator,
+  validPassword,
+} from '@dans-coding-world/helpers';
 import { getData, getMessage } from '../helper/common.helper';
 import { MOCK_RESULT } from '@dans-coding-world/api-file-storage';
 import path from 'path';
@@ -455,10 +457,10 @@ describe('/api/v1/users', () => {
   describe('PATCH /api/v1/users/password', () => {
     it(`should change logged-in user password`, async () => {
       // We need a specific client for this user since they aren't the main 'user'
-      const client = createAxiosClient();
-      const { login } = createAuthRouteHelper(client);
-      await login(userToChangePassword.email, userToChangePassword.password);
-      const { changePassword } = createUsersRouteHelper(client);
+      const { changePassword } = await setupClient(
+        createUsersRouteHelper,
+        userToChangePassword
+      );
 
       const NEW_PASS = passwordGenerator(
         USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
@@ -807,11 +809,11 @@ describe('/api/v1/users', () => {
 
   describe('DELETE /api/v1/users/:id', () => {
     it(`should delete account if logged-in user matches the one to delete`, async () => {
-      // Create a fresh client/login just for this disposable user
-      const client = createAxiosClient();
-      const { login } = createAuthRouteHelper(client);
-      await login(userToDelete.email, userToDelete.password);
-      const { deleteUser } = createUsersRouteHelper(client);
+      // Create a fresh client just for this disposable user
+      const { deleteUser } = await setupClient(
+        createUsersRouteHelper,
+        userToDelete
+      );
 
       const res = await deleteUser(userToDelete.id.toString());
       expect(getMessage(res)).toBe(SUCCESS_MESSAGES.USERS.delete);
@@ -843,10 +845,10 @@ describe('/api/v1/users', () => {
     });
 
     it(`should return 403 FORBIDDEN when trying to delete another user as USER`, async () => {
-      const client = createAxiosClient();
-      const { login } = createAuthRouteHelper(client);
-      await login(anotherUser.email, anotherUser.password);
-      const { deleteUser } = createUsersRouteHelper(client);
+      const { deleteUser } = await setupClient(
+        createUsersRouteHelper,
+        anotherUser
+      );
 
       return await expect(
         deleteUser(author.id.toString())

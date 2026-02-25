@@ -17,6 +17,7 @@ import {
   PostVisibility,
   PostVisibilityEnum,
   PostWhereInput,
+  PostWithAuthorProfile,
   Role,
   User,
   client,
@@ -141,6 +142,28 @@ describe('PostsService', () => {
 
       for (const tag of expectedTags)
         expect(postWithTags.tags?.includes(tag)).toBe(true);
+    });
+
+    it(`should return post with author field and author profile
+       if the author of the post has it`, async () => {
+      const createdPost = await mockPostsRepo.create({
+        ...validPostContent,
+        authorId: admin.id,
+        status: 'PUBLISHED',
+        visibility: 'PUBLIC',
+      });
+
+      const post = await postsService.getById({
+        postId: createdPost.id,
+      });
+
+      const postWithAuthor = post as PostWithAuthorProfile;
+      expect(postWithAuthor.author.username).toBe(admin.username);
+      // Hide somewhat private fields. TODO: Does not work with prismock. Guess 'omit' in prisma can't be mocked
+      // expect(postWithAuthor.author).not.toHaveProperty('password');
+      // expect(postWithAuthor.author).not.toHaveProperty('email');
+      // expect(postWithAuthor.author).not.toHaveProperty('role');
+      // expect(postWithAuthor.author).not.toHaveProperty('isBanned');
     });
 
     it(`should return post with its content hidden, if it is members-only
@@ -384,6 +407,23 @@ describe('PostsService', () => {
 
         for (const tag of post.tags)
           expect(expectedPost?.tags?.includes(tag)).toBe(true);
+      }
+    });
+
+    it('should return author details alongside post data', async () => {
+      const expectedPostsWithAuthorDetails = posts.filter(
+        (p) => p.status === 'PUBLISHED'
+      );
+      const resDto = await postsService.getAll();
+
+      for (const post of resDto.items as PostWithAuthorProfile[]) {
+        const expectedPost = expectedPostsWithAuthorDetails.find(
+          (p) => p.id === post.id
+        );
+        const expectedUser = [user, admin, mod, author].find(
+          (u) => u.id === expectedPost?.authorId
+        );
+        expect(post.author.username).toBe(expectedUser?.username);
       }
     });
 

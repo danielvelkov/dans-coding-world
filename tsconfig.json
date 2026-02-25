@@ -22,9 +22,6 @@
       "path": "./libs/shared/data-access/interfaces"
     },
     {
-      "path": "./libs/tools/testing-setup"
-    },
-    {
       "path": "./libs/shared/util/shared-constants"
     },
     {
@@ -77,6 +74,36 @@
     },
     {
       "path": "./libs/shared/storage"
+    },
+    {
+      "path": "./libs/public-blog/features/blog-list"
+    },
+    {
+      "path": "./libs/public-blog/ui/common"
+    },
+    {
+      "path": "./libs/shared/data-access/api"
+    },
+    {
+      "path": "./libs/public-blog/data-access/blog-api"
+    },
+    {
+      "path": "./libs/shared/post/testing"
+    },
+    {
+      "path": "./libs/public-blog/shared/hooks"
+    },
+    {
+      "path": "./libs/public-blog/features/blog-sidebar"
+    },
+    {
+      "path": "./libs/public-blog/ui/theme"
+    },
+    {
+      "path": "./libs/tools/public-blog"
+    },
+    {
+      "path": "./libs/tools/api"
     }
   ]
 }

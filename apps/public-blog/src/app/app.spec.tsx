@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render } from '@dans-coding-world/public-blog-tools';
 import { BrowserRouter } from 'react-router-dom';
 
 import App from './app';
@@ -6,22 +6,15 @@ import App from './app';
 describe('App', () => {
   it('should render successfully', () => {
     const { baseElement } = render(
-      <BrowserRouter>
+      <BrowserRouter
+        future={{
+          v7_relativeSplatPath: true,
+          v7_startTransition: true,
+        }}
+      >
         <App />
       </BrowserRouter>
     );
     expect(baseElement).toBeTruthy();
-  });
-
-  it('should have a greeting as the title', () => {
-    const { getAllByText } = render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-    expect(
-      getAllByText(new RegExp('Welcome @dans-coding-world/public-blog', 'gi'))
-        .length > 0
-    ).toBeTruthy();
   });
 });

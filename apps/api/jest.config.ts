@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: '@dans-coding-world/api',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',

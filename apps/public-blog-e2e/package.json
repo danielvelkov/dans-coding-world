@@ -3,6 +3,33 @@
   "version": "0.0.1",
   "private": true,
   "nx": {
+    "targets": {
+      "reset-only": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "nx reset"
+        }
+      },
+      "cypress-clean": {
+        "executor": "nx:run-commands",
+        "options": {
+          "parallel": true,
+          "commands": [
+            "nx open-cypress public-blog-e2e"
+          ]
+        },
+        "dependsOn": [
+          "reset-only",
+          "@dans-coding-world/api:serve:e2e"
+        ]
+      },
+      "e2e": {
+        "dependsOn": [
+          "@dans-coding-world/api:build",
+          "@dans-coding-world/api:serve:e2e"
+        ]
+      }
+    },
     "implicitDependencies": [
       "@dans-coding-world/public-blog"
     ]

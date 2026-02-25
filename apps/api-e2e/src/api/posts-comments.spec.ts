@@ -10,7 +10,7 @@ import {
   seedUsers,
   seedPosts,
   seedComments,
-} from '@dans-coding-world/testing-setup';
+} from '@dans-coding-world/api-tools';
 import {
   COMMENT_CONSTRAINTS,
   ERROR_CODES,
@@ -23,8 +23,8 @@ import {
   GetPostCommentsResponseDto,
 } from '@dans-coding-world/shared-post-dto';
 import { createErrorCodeResponse } from '../helper/error-response.helper';
-import { passwordGenerator as generateRandomString } from '@dans-coding-world/api-auth';
-import { testInvalidIds } from '../helper/validation.helper';
+import { passwordGenerator as generateRandomString } from '@dans-coding-world/helpers';
+import { testInvalidIds } from '../helper/test-cases.helper';
 import { getData, getMessage } from '../helper/common.helper';
 import { setupClient } from '../helper/test-client.helper';
 

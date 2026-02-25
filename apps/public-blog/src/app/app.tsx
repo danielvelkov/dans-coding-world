@@ -1,54 +1,64 @@
-import styled from 'styled-components';
-import NxWelcome from './nx-welcome';
+import styled, { ThemeProvider } from 'styled-components';
 
 import { Route, Routes, Link } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import Blog from '../routes/blog/Blog';
+import Post from '../routes/blog/Post';
+import { useState } from 'react';
+import { darkTheme, lightTheme } from '@dans-coding-world/public-blog-ui-theme';
+import { GlobalStyle } from '../styles/global.style.js';
 
 const StyledApp = styled.div`
-  // Your style here
+  padding: 0 clamp(5vmin, 5vw, 15vmax);
+  margin: 0 auto;
+  max-width: 1000px;
 `;
 
-export function App() {
-  return (
-    <StyledApp>
-      <NxWelcome title="@dans-coding-world/public-blog" />
+// dev tools do not work during e2e testing for some reason
+// also cant set node env in e2e cypress tests
+const showDevTools =
+  process.env.NODE_ENV !== 'development' &&
+  process.env.NODE_ENV !== 'production';
 
-      {/* START: routes */}
-      {/* These routes and navigation have been generated for you */}
-      {/* Feel free to move and update them to fit your needs */}
-      <br />
-      <hr />
-      <br />
-      <div role="navigation">
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/page-2">Page 2</Link>
-          </li>
-        </ul>
-      </div>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div>
-              This is the generated root route.{' '}
-              <Link to="/page-2">Click here for page 2.</Link>
-            </div>
-          }
-        />
-        <Route
-          path="/page-2"
-          element={
-            <div>
-              <Link to="/">Click here to go back to root page.</Link>
-            </div>
-          }
-        />
-      </Routes>
-      {/* END: routes */}
-    </StyledApp>
+const queryClient = new QueryClient();
+
+export function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {showDevTools && <ReactQueryDevtools initialIsOpen={false} />}
+      <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+        <GlobalStyle></GlobalStyle>
+        <StyledApp>
+          <header>
+            <nav>
+              <ul>
+                <li>
+                  <Link to="/blog">Blog</Link>
+                </li>
+                <li>
+                  <button onClick={() => setIsDarkMode(!isDarkMode)}>
+                    {isDarkMode ? (
+                      <i className="fas fa-sun"></i>
+                    ) : (
+                      <i className=" fas fa-moon"></i>
+                    )}
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </header>
+          <Routes>
+            <Route path="blog">
+              <Route index element={<Blog />} />
+              <Route path=":postId" element={<Post />} />
+            </Route>
+          </Routes>
+        </StyledApp>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

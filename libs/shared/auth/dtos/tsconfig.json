@@ -4,15 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../util/validation"
-    },
-    {
-      "path": "../../util/shared-constants"
-    },
-    {
-      "path": "../../../prisma-schema"
-    },
-    {
       "path": "./tsconfig.lib.json"
     }
   ]

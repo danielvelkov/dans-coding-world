@@ -15,6 +15,53 @@ Frontend 1 - Public Blog: Web app built with React
 Frontend 2 - Blog Editor: Web app built with React
 Database: PostgreSQL
 
+## Data-model
+
+- User - can have one of these roles:
+
+  - `ADMIN` can:
+    - create/edit/delete all posts
+    - create/delete all comments
+    - delete users (except other admins)
+    - get/edit/delete reports on comments
+    - revoke all refresh tokens
+    - ban users except other admins
+    - change user role
+    - create/edit/delete all tags
+  - `MOD` can:
+    - create/delete all comments
+    - get/edit reports on comments
+    - revoke user refresh tokens
+    - ban users except other mods/admins
+  - `AUTHOR` - can:
+    - create/edit/delete own posts
+    - create/edit/delete all tags
+  - `USER` and all other roles - can:
+    - edit own profile and change password
+    - create/edit/delete own comments
+    - issue reports on comments
+
+- Profile - each user has 1 profile. Profile is not required user to register
+
+- RefreshToken - used in JWT authentication
+
+- Post - depending on visibility can be:
+
+  - `PUBLIC`: available for everyone, even guest users
+  - `MEMBERS_ONLY`: available only for registered users
+
+  Depending on status can be:
+
+  - `DRAFT`: can be accessed only by the author (_\*and admins_)
+  - `PUBLISHED`: can be accessed by everyone (\*_depends on visibility_)
+  - `ARCHIVED`: can be access only by the author (_\*and admins_)
+
+- Tag - post can have 0 or many tags
+
+- Comment: any user can comment on a given post. Cannot comment on non-published posts when not the author of the post
+
+- Report: represents the reports made for a comment. Users cannot report their own comments. Cannot be made on non-published posts when not the author of the post
+
 ## Project Setup
 
 ### Prerequisites

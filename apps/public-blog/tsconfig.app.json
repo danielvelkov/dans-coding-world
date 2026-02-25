@@ -32,5 +32,40 @@
     "eslint.config.cjs",
     "eslint.config.mjs"
   ],
-  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
+  "references": [
+    {
+      "path": "../../libs/shared/post/dtos/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/util/api-types/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/post/testing/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/features/blog-sidebar/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/features/blog-list/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/shared/hooks/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/util/shared-constants/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/data-access/api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/data-access/blog-api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/ui/theme/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/tools/public-blog/tsconfig.lib.json"
+    }
+  ]
 }

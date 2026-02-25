@@ -1,7 +1,7 @@
 import { ResponseErrorDetails } from './response-error-details.js';
 
-export interface BaseResponse {
+export interface BaseResponse<payload = object> {
   success: boolean;
-  data: object | null;
+  data: payload | null;
   error: ResponseErrorDetails | null;
 }
