@@ -2,6 +2,7 @@ import { GetPostsResponseDto } from '@dans-coding-world/shared-post-dto';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import { generateRandomPosts } from './posts-generator.js';
+import { PostFull } from '@dans-coding-world/post-data-access';
 
 export function generateMockPostsResponse({
   length = 5,
@@ -24,6 +25,20 @@ export function generateMockPostsResponse({
         total: length,
       },
       count: length > pageSize ? pageSize : length,
+    },
+  };
+}
+
+export function generateMockPostResponse({
+  post = generateRandomPosts(1)[0],
+}: {
+  post?: PostFull;
+}): BaseResponse<{ post: PostFull }> {
+  return {
+    error: null,
+    success: true,
+    data: {
+      post,
     },
   };
 }
