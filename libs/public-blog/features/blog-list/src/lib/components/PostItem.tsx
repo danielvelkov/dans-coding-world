@@ -5,7 +5,7 @@ import { getExcerpt } from '../util/post-content.util';
 import { formatDateTo_DD_MMM_YYYY } from '@dans-coding-world/helpers';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Tag } from '@dans-coding-world/public-blog-ui-common';
+import { Tag, UserAvatar } from '@dans-coding-world/public-blog-ui-common';
 
 const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   padding: 0.5em 1em;
@@ -159,19 +159,10 @@ export function PostItem({
             to={`/users/${post.author.id}`}
             aria-label={`View profile of ${authorName}`}
           >
-            <div className="image-container">
-              {author.profile && author.profile.avatarURL ? (
-                <img
-                  src={author.profile.avatarURL}
-                  alt={`${authorName}'s avatar`}
-                />
-              ) : (
-                <i
-                  className="fa fa-regular fa-user"
-                  aria-label="Default user avatar"
-                ></i>
-              )}
-            </div>
+            <UserAvatar
+              avatarURL={post.author.profile?.avatarURL}
+              name={authorName}
+            />
             <span className="author-name">
               {`By `}
               <em>{authorName}</em>
