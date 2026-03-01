@@ -1,10 +1,8 @@
 import styled from 'styled-components';
 import { randParagraph } from '@ngneat/falso';
 import { BlogPostItem } from '../types/post-item-data.type';
-import {
-  formatDateTo_DD_MMM_YYYY,
-  getExcerpt,
-} from '../util/post-content.util';
+import { getExcerpt } from '../util/post-content.util';
+import { formatDateTo_DD_MMM_YYYY } from '@dans-coding-world/helpers';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Tag } from '@dans-coding-world/public-blog-ui-common';
