@@ -163,13 +163,18 @@ describe('PostItem', () => {
     expect(screen.getByText(`Posted on ${publishedDate}`)).toBeInTheDocument();
   });
 
-  it(`renders when post was last edited if published date does 
-    not equal last updatedDate`, () => {
+  it(`renders "last edited" date if published date is earlier
+    then last updatedDate`, () => {
+    const publishedDate = '01 Mar 2025';
     const editedDate = '12 Mar 2025';
     render(
       <PostItem
         {...postItemProps}
-        post={{ ...postItemProps.post, updatedAt: new Date(editedDate) }}
+        post={{
+          ...postItemProps.post,
+          updatedAt: new Date(editedDate),
+          publishedAt: new Date(publishedDate),
+        }}
       />
     );
     expect(screen.getByText(`Edited on ${editedDate}`)).toBeInTheDocument();

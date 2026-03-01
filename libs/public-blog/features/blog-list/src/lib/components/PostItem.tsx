@@ -143,6 +143,9 @@ export function PostItem({
     new Date(postData.updatedAt)
   );
 
+  const showUpdatedDate =
+    new Date(postData.publishedAt) < new Date(postData.updatedAt);
+
   return (
     <StyledListItem>
       <article className="post" aria-label={`Blog post: ${post.title}`}>
@@ -172,7 +175,7 @@ export function PostItem({
           <time dateTime={new Date(postData.publishedAt).toISOString()}>
             {`Posted on ${formattedPublishedDate}`}
           </time>
-          {formattedPublishedDate !== formattedUpdatedDate ? (
+          {showUpdatedDate ? (
             <>
               {' • '}
               <time dateTime={new Date(postData.updatedAt).toISOString()}>
