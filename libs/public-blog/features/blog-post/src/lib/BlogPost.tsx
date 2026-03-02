@@ -11,13 +11,20 @@ import type { FetchPostsQueryParams } from '@dans-coding-world/public-blog-share
 import { getReadingTime } from './util/post-ux.util';
 import { ShimmerPost } from './components/ShimmerPost';
 
+const StyledPost = styled.article`
+  .tags {
+    display: flex;
+    gap: 1em;
+  }
+`;
+
 const StyledTitle = styled.h1`
   text-align: center;
 `;
 
 const StyledContent = styled.div<React.ComponentPropsWithoutRef<'div'>>`
   border-top: 1px solid ${({ theme }) => theme.text.muted};
-  padding: 2em 0;
+  padding: 1.5em 0;
   word-wrap: break-word;
 `;
 
@@ -84,83 +91,83 @@ export function BlogPost({ postId }: { postId: number }) {
     new Date(post.publishedAt as Date) < new Date(post.updatedAt as Date);
 
   return (
-    <main>
-      <article>
-        <StyledHeader>
-          <StyledTitle>{data.post.title}</StyledTitle>
-          <div className="post-details">
-            <Link
-              to={`/users/${post.author.id}`}
-              aria-label={`View profile of ${authorName}`}
-              className="detail"
-            >
-              <UserAvatar
-                avatarURL={post.author.profile?.avatarURL}
-                name={authorName}
-                size="LG"
-              />
-              <span className="author-name">
-                {`By `}
-                <em>{authorName}</em>
-              </span>
-            </Link>
+    <StyledPost>
+      <StyledHeader>
+        <StyledTitle>{data.post.title}</StyledTitle>
 
+        <div className="post-details">
+          <Link
+            to={`/users/${post.author.id}`}
+            aria-label={`View profile of ${authorName}`}
+            className="detail"
+          >
+            <UserAvatar
+              avatarURL={post.author.profile?.avatarURL}
+              name={authorName}
+              size="LG"
+            />
+            <span className="author-name">
+              {`By `}
+              <em>{authorName}</em>
+            </span>
+          </Link>
+
+          <span
+            aria-label={`Posted on ${publishedDate.toDateString()}`}
+            className="detail"
+          >
+            <i className="fa fas fa-calendar"></i>
+
+            <time dateTime={publishedDate.toISOString()}>
+              {formatDateTo_Month_DD_YYYY(publishedDate)}
+            </time>
+          </span>
+
+          {showUpdatedDate && (
             <span
-              aria-label={`Posted on ${publishedDate.toDateString()}`}
+              aria-label={`Last edited on ${modifiedDate.toDateString()}`}
               className="detail"
             >
-              <i className="fa fas fa-calendar"></i>
-
-              <time dateTime={publishedDate.toISOString()}>
-                {formatDateTo_Month_DD_YYYY(publishedDate)}
+              <i className="fa fa-edit"></i>
+              <time dateTime={modifiedDate.toISOString()}>
+                {formatDateTo_Month_DD_YYYY(modifiedDate)}
               </time>
             </span>
+          )}
 
-            {showUpdatedDate && (
-              <span
-                aria-label={`Last edited on ${modifiedDate.toDateString()}`}
-                className="detail"
-              >
-                <i className="fa fa-edit"></i>
-                <time dateTime={modifiedDate.toISOString()}>
-                  {formatDateTo_Month_DD_YYYY(modifiedDate)}
-                </time>
-              </span>
-            )}
+          <span className="detail" aria-label="Reading time (in minutes)">
+            <i className="fa fa-clock"></i>
+            {`${getReadingTime(data.post.content)} read`}
+          </span>
+        </div>
+      </StyledHeader>
 
-            <span className="detail" aria-label="Reading time (in minutes)">
-              <i className="fa fa-clock"></i>
-              {`${getReadingTime(data.post.content)} read`}
-            </span>
+      <StyledContent
+        data-testid="post-content"
+        dangerouslySetInnerHTML={{
+          __html: DOMPurify.sanitize(data.post.content),
+        }}
+      ></StyledContent>
 
-            <div className="detail tags">
-              {post.tags &&
-                post.tags.map((element) => (
-                  <Tag
-                    isActive={false}
-                    name={element}
-                    onClick={(tagName) =>
-                      navigate(
-                        `/blog?${stringifyToQueryString({
-                          filterBy: {
-                            tags: [tagName],
-                          },
-                        } as FetchPostsQueryParams)}`
-                      )
-                    }
-                  ></Tag>
-                ))}
-            </div>
-          </div>
-        </StyledHeader>
-        <StyledContent
-          data-testid="post-content"
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(data.post.content),
-          }}
-        ></StyledContent>
-      </article>
-    </main>
+      <div className="tags">
+        {post.tags &&
+          post.tags.map((element) => (
+            <Tag
+              isActive={false}
+              name={element}
+              onClick={(tagName) =>
+                navigate(
+                  `/blog?${stringifyToQueryString({
+                    filterBy: {
+                      tags: [tagName],
+                    },
+                  } as FetchPostsQueryParams)}`
+                )
+              }
+            ></Tag>
+          ))}
+      </div>
+    </StyledPost>
   );
 }
 
