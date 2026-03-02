@@ -23,4 +23,5 @@ export const lightTheme: DefaultTheme = {
     soft: '#f5e6e5',
     muted: 'rgba(192, 57, 43, 0.15)',
   },
+  shimmer: { base: '#e6e6e6', highlight: '#eeaa9dff' },
 };
