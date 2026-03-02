@@ -13,3 +13,11 @@ export function formatDateTo_DD_MM_YY(date: Date) {
     year: '2-digit',
   }).format(date);
 }
+
+export function formatDateTo_Month_DD_YYYY(date: Date) {
+  return new Intl.DateTimeFormat('en-GB', {
+    year: 'numeric',
+    month: 'long',
+    day: '2-digit',
+  }).format(date);
+}
