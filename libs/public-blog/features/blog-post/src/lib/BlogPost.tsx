@@ -8,6 +8,8 @@ import {
   formatDateTo_Month_DD_YYYY,
 } from '@dans-coding-world/helpers';
 import type { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hooks';
+import { getReadingTime } from './util/post-ux.util';
+import { ShimmerPost } from './components/ShimmerPost';
 
 const StyledTitle = styled.h1`
   text-align: center;
@@ -16,6 +18,7 @@ const StyledTitle = styled.h1`
 const StyledContent = styled.div<React.ComponentPropsWithoutRef<'div'>>`
   border-top: 1px solid ${({ theme }) => theme.text.muted};
   padding: 2em 0;
+  word-wrap: break-word;
 `;
 
 const StyledHeader = styled.header`
@@ -64,7 +67,7 @@ export function BlogPost({ postId }: { postId: number }) {
             {error.message}
           </span>
         ) : (
-          showLoading && <div>Loading</div>
+          showLoading && <ShimmerPost />
         )}
       </main>
     );
@@ -124,6 +127,11 @@ export function BlogPost({ postId }: { postId: number }) {
                 </time>
               </span>
             )}
+
+            <span className="detail" aria-label="Reading time (in minutes)">
+              <i className="fa fa-clock"></i>
+              {`${getReadingTime(data.post.content)} read`}
+            </span>
 
             <div className="detail tags">
               {post.tags &&
