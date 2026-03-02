@@ -11,6 +11,7 @@ import { BaseResponse } from '@dans-coding-world/api-types';
 import { MemoryRouter } from 'react-router-dom';
 import { PostFull } from '@dans-coding-world/post-data-access';
 import '@testing-library/jest-dom';
+import { formatDateTo_Month_DD_YYYY } from '@dans-coding-world/helpers';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 
@@ -42,6 +43,70 @@ describe('BlogPost', () => {
       const article = screen.getByRole('article');
       const heading = within(article).getByRole('heading');
       expect(heading.textContent).toBe(testPost.title);
+    });
+  });
+
+  it('should display author name (or username if no profile setup)', async () => {
+    let authorName;
+    if (testPost.author.profile)
+      authorName =
+        testPost.author.profile?.firstName +
+        ' ' +
+        testPost.author.profile?.lastName;
+    else authorName = testPost.author.username;
+
+    renderFeature();
+    await waitFor(() => {
+      const article = screen.getByRole('article');
+      within(article).getByText(authorName);
+    });
+  });
+
+  it('should display published date in "MONTH DD, YYYY" format', async () => {
+    renderFeature();
+    await waitFor(() => {
+      const article = screen.getByRole('article');
+      const publishedDate = within(article).getByLabelText(/posted on/i);
+      expect(publishedDate.textContent).toBe(
+        formatDateTo_Month_DD_YYYY(new Date(testPost.publishedAt as Date))
+      );
+    });
+  });
+
+  it(`should display "last edited" date if published date
+    is before updated date`, async () => {
+    const publishedDate = '01 Mar 2025';
+    const editedDate = '12 Mar 2025';
+
+    const postWithFixedDates = {
+      ...testPost,
+      publishedAt: new Date(publishedDate),
+      updatedAt: new Date(editedDate),
+    };
+
+    vi.mocked(api.get<BaseResponse>).mockResolvedValue({
+      ...mockPostResponse,
+      data: { post: postWithFixedDates },
+    });
+
+    renderFeature(postWithFixedDates);
+    await waitFor(() => {
+      const article = screen.getByRole('article');
+      const modifiedDate = within(article).getByLabelText(/last edited on/i);
+      expect(modifiedDate.textContent).toContain(
+        formatDateTo_Month_DD_YYYY(new Date(editedDate))
+      );
+    });
+  });
+
+  it('should display post tags', async () => {
+    renderFeature();
+    await waitFor(() => {
+      const article = screen.getByRole('article');
+      for (const tag of testPost.tags as string[])
+        expect(
+          within(article).getByRole('button', { name: new RegExp(tag) })
+        ).toBeInTheDocument();
     });
   });
 
@@ -78,9 +143,9 @@ describe('BlogPost', () => {
 
     renderFeature(postWithMaliciousContent);
     await waitFor(() => {
-      const article = screen.getByRole('article');
-      const img = within(article).getByRole('img');
-      expect(img).not.toHaveAttribute('onerror');
+      const content = screen.getByTestId('post-content');
+      const imgs = within(content).getAllByRole('img');
+      for (const img of imgs) expect(img).not.toHaveAttribute('onerror');
     });
   });
 

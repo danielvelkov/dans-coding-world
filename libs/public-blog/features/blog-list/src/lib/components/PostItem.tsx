@@ -156,6 +156,7 @@ export function PostItem({
             <Link to={`/blog/${post.id}`}>{post.title}</Link>
           )}
         </h2>
+
         <div className="details">
           <Link
             className="author"
@@ -171,10 +172,13 @@ export function PostItem({
               <em>{authorName}</em>
             </span>
           </Link>
+
           {' • '}
+
           <time dateTime={new Date(postData.publishedAt).toISOString()}>
             {`Posted on ${formattedPublishedDate}`}
           </time>
+
           {showUpdatedDate ? (
             <>
               {' • '}
@@ -185,6 +189,7 @@ export function PostItem({
           ) : (
             ''
           )}
+
           <div className="tag-list" role="group" aria-label="Post tags">
             {postData.tags &&
               postData.tags.map((tagName) => {
@@ -200,6 +205,7 @@ export function PostItem({
               })}
           </div>
         </div>
+
         {isLocked ? (
           <div className="locked-container">
             <p className="blurred-text" aria-hidden="true">
