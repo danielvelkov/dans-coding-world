@@ -92,12 +92,34 @@ export class PrismaPostCommentsDataAccess
       return {
         include: {
           replies: true,
+          user: {
+            omit: {
+              password: true,
+              email: true,
+              isBanned: true,
+              role: true,
+            },
+            include: {
+              profile: true,
+            },
+          },
         },
       };
     else
       return {
         include: {
           replies: this.buildPrismaCommentIncludeQuery(depth - 1),
+          user: {
+            omit: {
+              password: true,
+              email: true,
+              isBanned: true,
+              role: true,
+            },
+            include: {
+              profile: true,
+            },
+          },
         },
       };
   }

@@ -537,6 +537,8 @@ export default commentsRouter;
  *             $ref: '#/components/schemas/Comment'
  *           description: Comment replies (if any).
  *           example: []
+ *         user:
+ *           $ref: '#/components/schemas/AuthorPreview'
  *
  *     CreateCommentDto:
  *       type: object
