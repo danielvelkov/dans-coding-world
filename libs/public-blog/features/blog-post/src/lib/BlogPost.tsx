@@ -12,9 +12,16 @@ import { getReadingTime } from './util/post-ux.util';
 import { ShimmerPost } from './components/ShimmerPost';
 
 const StyledPost = styled.article`
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+
   .tags {
     display: flex;
-    gap: 1em;
+    gap: 0.5em;
+    flex-wrap: wrap;
+    align-items: baseline;
+    color: ${({ theme }) => theme.text.secondary};
   }
 `;
 
@@ -150,9 +157,12 @@ export function BlogPost({ postId }: { postId: number }) {
       ></StyledContent>
 
       <div className="tags">
+        <i className="fa fa-tag"></i>
+        <b>Tagged</b>
         {post.tags &&
           post.tags.map((element) => (
             <Tag
+              key={element}
               isActive={false}
               name={element}
               onClick={(tagName) =>
