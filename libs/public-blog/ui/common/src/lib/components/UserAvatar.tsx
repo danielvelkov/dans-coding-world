@@ -23,7 +23,8 @@ const StyledAvatar = styled.div<
   justify-content: center;
   cursor: pointer;
 
-  img {
+  &:only-child {
+    font-size: ${(props) => AVATAR_SIZES[props.$imgSize]}px;
     height: ${(props) => AVATAR_SIZES[props.$imgSize]}px;
     border-radius: ${(props) =>
       props.$shape === AVATAR_SHAPES[0] ? '50%' : 'none'};
