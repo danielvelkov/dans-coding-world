@@ -51,3 +51,10 @@ export type PostWithAuthorProfile = Prisma.PostGetPayload<{
     };
   };
 }>;
+
+export type UserPreview = Prisma.UserGetPayload<{
+  include: {
+    profile: true;
+  };
+  omit: { password: true; email: true; isBanned: true; role: true };
+}>;

@@ -3,6 +3,7 @@ export type {
   User,
   UserWhereInput,
   Profile,
+  UserPreview,
   Role,
   RefreshToken,
   RefreshTokenWhereInput,
