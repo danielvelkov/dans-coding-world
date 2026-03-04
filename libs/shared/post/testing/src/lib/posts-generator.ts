@@ -1,36 +1,20 @@
 import {
   rand,
-  randFirstName,
-  randLastName,
   randNumber,
   randPastDate,
   randProgrammingLanguage,
   randSentence,
-  randUserName,
 } from '@ngneat/falso';
 import { PostStatus, PostVisibility } from '@dans-coding-world/prisma-schema';
 import { GetPostsResponseDto } from '@dans-coding-world/shared-post-dto';
+import { generateRandomUserPreview } from './user-generator.js';
 
 export function generateRandomPosts(
   count: number
 ): GetPostsResponseDto['items'] {
   const posts = [];
   while (count > 0) {
-    const authorId = randNumber({ min: 1, max: 1000 });
-    const author = {
-      id: authorId,
-      username: randUserName(),
-      role: 'AUTHOR',
-      isBanned: false,
-      profile: {
-        id: randNumber({ min: 1, max: 1000 }),
-        avatarURL: 'URL',
-        firstName: randFirstName(),
-        lastName: randLastName(),
-        bio: randSentence(),
-        userId: authorId,
-      },
-    };
+    const author = generateRandomUserPreview();
     const post = {
       id: randNumber({ min: 1, max: 1000 }),
       title: randSentence({ maxCharCount: 15 }),
