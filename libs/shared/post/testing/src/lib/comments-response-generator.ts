@@ -7,18 +7,21 @@ export function generateMockPostCommentsResponse({
   postId = 1,
   length = 10,
   pageSize = PAGINATION.COMMENTS.DEFAULT_ITEMS_PER_PAGE,
-  depth = 0,
+  replyLevels = 0,
 }: {
   postId: number;
   length: number;
   pageSize: number;
-  depth: number;
+  replyLevels: number;
 }): BaseResponse<GetPostCommentsResponseDto> {
   return {
     error: null,
     success: true,
     data: {
-      items: generateCommentThreads(postId, length, depth).slice(0, pageSize),
+      items: generateCommentThreads(postId, length, replyLevels).slice(
+        0,
+        pageSize
+      ),
       pagination: {
         page: 1,
         totalPages: Math.ceil(length / pageSize),

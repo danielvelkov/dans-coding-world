@@ -1,6 +1,5 @@
 import { randNumber, randPastDate, randSentence } from '@ngneat/falso';
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
-import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import { generateRandomUserPreview } from './user-generator.js';
 
 export function generateRandomComments(
@@ -39,27 +38,32 @@ export function generateRandomComments(
 export function generateCommentThreads(
   postId: number,
   count: number,
-  depth: number,
-  threadParentId?: number
-) {
-  let comments = generateRandomComments(postId, count);
-  if (depth > 0) {
-    comments = comments.map((c) => {
-      const replies = generateCommentThreads(
+  replyLevels: number,
+  threadParentId?: number,
+  currentDepth = 0
+): CommentWithReplies[] {
+  const comments = generateRandomComments(postId, count);
+
+  return comments.map((c) => {
+    const parentId = threadParentId ?? null;
+    const depth = currentDepth;
+    let replies: CommentWithReplies[] = [];
+
+    if (replyLevels > 0) {
+      replies = generateCommentThreads(
         postId,
         randNumber({ min: 1, max: count }),
-        depth - 1,
-        threadParentId ?? c.id
+        replyLevels - 1,
+        c.id,
+        currentDepth + 1
       );
-
-      return {
-        ...c,
-        threadParentId: threadParentId ?? c.id,
-        depth: COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH - depth,
-        replies,
-        replyCount: replies.length,
-      };
-    });
-  }
-  return comments;
+    }
+    return {
+      ...c,
+      threadParentId: parentId,
+      depth,
+      replies,
+      replyCount: replies.length,
+    };
+  });
 }
