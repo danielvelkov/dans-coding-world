@@ -5,8 +5,8 @@ import { generateCommentThreads } from './comments-generator.js';
 
 export function generateMockPostCommentsResponse({
   postId = 1,
-  length = 5,
-  pageSize = PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
+  length = 10,
+  pageSize = PAGINATION.COMMENTS.DEFAULT_ITEMS_PER_PAGE,
   depth = 0,
 }: {
   postId: number;
