@@ -105,7 +105,9 @@ describe('BlogPost', () => {
       const article = screen.getByRole('article');
       for (const tag of testPost.tags as string[])
         expect(
-          within(article).getByRole('button', { name: new RegExp(tag) })
+          within(article).getByRole('button', {
+            name: new RegExp(tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+          })
         ).toBeInTheDocument();
     });
   });
