@@ -2,33 +2,35 @@ import { waitFor } from '@testing-library/react';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { generateMockPostCommentsResponse } from '@dans-coding-world/shared-post-testing';
 import { ResponseErrorDetails } from '@dans-coding-world/api-types';
-import { useFetchPostComments } from '../posts/useFetchPostComments.js';
+import { useFetchPostCommentsInfinite } from '../posts/useFetchPostCommentsInfinite.js';
 import { renderReactQueryHook } from './helper/render-react-query-hook.js';
 import {
   expectApiError,
   expectNetworkError,
 } from './helper/test-fetch-hook-errors.js';
+import { GetPostCommentsResponseDto } from '@dans-coding-world/shared-post-dto';
 
 const mockPostCommentsResponse = generateMockPostCommentsResponse({
   postId: 1,
   length: 2,
   pageSize: 5,
-  depth: 0,
+  replyLevels: 0,
 });
 vi.mock('@dans-coding-world/shared-data-access-api');
 
-describe('useFetchPostsComments', () => {
+describe('useFetchPostsCommentsInfinite', () => {
   const renderUseFetchPostCommentsHook = () =>
     renderReactQueryHook(() => {
       if (!mockPostCommentsResponse.data) throw new Error('Missing data');
-      return useFetchPostComments(1);
+      return useFetchPostCommentsInfinite({ postId: 1, depth: 0 });
     });
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it(`returns post's comments and pagination details on valid response from api`, async () => {
+  it(`returns first page of post's comments and pagination
+     details on valid response from api`, async () => {
     vi.mocked(api.get).mockResolvedValue(mockPostCommentsResponse);
 
     const { result } = renderUseFetchPostCommentsHook();
@@ -41,12 +43,22 @@ describe('useFetchPostsComments', () => {
 
     if (!data) throw new Error('Testing of data fetch failed');
 
-    expect(data.pagination).toBe(mockPostCommentsResponse.data?.pagination);
-    expect(data.items.length).toBe(mockPostCommentsResponse.data?.count);
+    expect(data.pages.length).toBe(1);
 
-    for (const comment of data.items)
+    const firstPageResult = data.pages[0] as GetPostCommentsResponseDto;
+
+    expect(firstPageResult.pagination).toBe(
+      mockPostCommentsResponse.data?.pagination
+    );
+    expect(firstPageResult.items.length).toBe(
+      mockPostCommentsResponse.data?.count
+    );
+
+    for (const comment of firstPageResult.items)
       expect(
-        mockPostCommentsResponse.data?.items.map((i) => i.id).includes(comment.id)
+        mockPostCommentsResponse.data?.items
+          .map((i) => i.id)
+          .includes(comment.id)
       ).toBe(true);
   });
 

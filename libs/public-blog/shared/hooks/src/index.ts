@@ -1,6 +1,6 @@
 export * from './lib/posts/useFetchPosts';
 export * from './lib/posts/useFetchPost';
-export * from './lib/posts/useFetchPostComments';
+export * from './lib/posts/useFetchPostCommentsInfinite';
 export * from './lib/posts/useFetchTags';
 export * from './lib/posts/useFetchPostsMetadata';
 export * from './lib/util/useDebounce';
