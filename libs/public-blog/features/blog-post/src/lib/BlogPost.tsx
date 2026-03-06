@@ -62,6 +62,7 @@ const StyledHeader = styled.header`
 
   .author-name:hover {
     color: ${({ theme }) => theme.accent.hover};
+    text-decoration: underline;
   }
 `;
 

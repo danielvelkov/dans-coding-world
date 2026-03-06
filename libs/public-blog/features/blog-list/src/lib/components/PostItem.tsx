@@ -46,6 +46,7 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
 
   .author-name:hover {
     color: ${({ theme }) => theme.accent.hover};
+    text-decoration: underline;
   }
 
   .image-container {
