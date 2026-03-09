@@ -79,7 +79,10 @@ export function Comment({
             <b>{authorName}</b>
           </StyledLink>
 
-          <time dateTime={new Date(comment.createdAt).toISOString()}>
+          <time
+            dateTime={new Date(comment.createdAt).toISOString()}
+            title={new Date(comment.createdAt).toDateString()}
+          >
             {formatToRelativeTimeFromNow(new Date(comment.createdAt))}
           </time>
         </div>

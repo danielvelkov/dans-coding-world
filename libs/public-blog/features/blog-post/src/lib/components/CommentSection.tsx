@@ -1,17 +1,41 @@
 import { useFetchPostCommentsInfinite } from '@dans-coding-world/public-blog-shared-hooks';
 import styled from 'styled-components';
-import { PAGINATION } from '@dans-coding-world/shared-constants';
+import {
+  COMMENT_CONSTRAINTS,
+  PAGINATION,
+} from '@dans-coding-world/shared-constants';
 import CommentTree from './CommentTree';
 import { ShimmerComments } from './ShimmerComments';
+import { Dropdown } from '@dans-coding-world/public-blog-ui-common';
+import { useState } from 'react';
 
 type AllowedPageSizes =
   (typeof PAGINATION.COMMENTS.ITEMS_PER_PAGE_OPTIONS)[number];
+
+type SortOrder = 'desc' | 'asc';
 
 const LOADED_COMMENTS_PER_INCREMENT: AllowedPageSizes = 10;
 
 const StyledCommentSection = styled.section`
   border-top: 2px solid ${({ theme }) => theme.text.muted};
   padding-bottom: 3em;
+`;
+
+const StyledSectionMeta = styled.div`
+  padding-top: 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+
+  h3 {
+    margin: 0;
+  }
+
+  .comment-section-options {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
 `;
 
 const StyledButton = styled.button<React.ComponentPropsWithoutRef<'button'>>`
@@ -33,12 +57,18 @@ const StyledButton = styled.button<React.ComponentPropsWithoutRef<'button'>>`
 `;
 
 export function CommentSection({ postId }: { postId: number }) {
+  const [commentSortOrder, setCommentSortOrder] = useState<SortOrder>('desc');
+
   const { data, isPending, isError, error, isFetchingNextPage, fetchNextPage } =
     useFetchPostCommentsInfinite({
+      sortBy: {
+        createdAt: commentSortOrder,
+      },
       postId,
       pageSize: LOADED_COMMENTS_PER_INCREMENT,
-      depth: 3,
+      depth: COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH,
     });
+
   const showLoading = isPending || !data;
 
   if (showLoading || isError)
@@ -66,7 +96,30 @@ export function CommentSection({ postId }: { postId: number }) {
 
   return (
     <StyledCommentSection>
-      <h3>Comments ({lastPaginationDetails?.total ?? 0}):</h3>
+      <StyledSectionMeta>
+        <h3>Comments ({lastPaginationDetails?.total ?? 0}):</h3>
+        <div className="comment-section-options">
+          <label htmlFor="sort">
+            <i className="fas fa-sort" aria-hidden="true"></i>
+            <span className="sr-only">Sort comments</span>
+          </label>
+          <Dropdown
+            id="sort"
+            values={[
+              {
+                label: 'Most recent',
+                value: 'desc',
+              },
+              {
+                label: 'Oldest first',
+                value: 'asc',
+              },
+            ]}
+            currentValue={commentSortOrder}
+            onItemSelect={(val) => setCommentSortOrder(val as SortOrder)}
+          ></Dropdown>
+        </div>
+      </StyledSectionMeta>
 
       <CommentTree comments={comments}></CommentTree>
 
