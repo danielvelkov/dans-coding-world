@@ -2,6 +2,7 @@ import { useFetchPostCommentsInfinite } from '@dans-coding-world/public-blog-sha
 import styled from 'styled-components';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import CommentTree from './CommentTree';
+import { ShimmerComments } from './ShimmerComments';
 
 type AllowedPageSizes =
   (typeof PAGINATION.COMMENTS.ITEMS_PER_PAGE_OPTIONS)[number];
@@ -51,7 +52,7 @@ export function CommentSection({ postId }: { postId: number }) {
             {error.message}
           </span>
         ) : (
-          <span>Loading</span>
+          <ShimmerComments count={3} />
         )}
       </div>
     );
