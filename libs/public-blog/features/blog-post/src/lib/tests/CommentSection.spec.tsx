@@ -134,6 +134,15 @@ describe('CommentSection', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  it(`renders loading message while fetching comments`, async () => {
+    vi.mocked(api.get).mockImplementation(() => {
+      return new Promise((resolve) => setTimeout(() => resolve({}), 5000));
+    });
+
+    renderFeature();
+    expect(screen.getByText(/Loading comments/)).toBeTruthy();
+  });
 });
 
 async function checkRepliesForComment(
