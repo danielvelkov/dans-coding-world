@@ -2,4 +2,5 @@ export * from './lib/components/Pagination';
 export * from './lib/components/SearchBox';
 export * from './lib/components/Dropdown';
 export * from './lib/components/Tag';
-export * from './lib/components/UserAvatar.jsx';
+export * from './lib/components/Button';
+export * from './lib/components/UserAvatar';
