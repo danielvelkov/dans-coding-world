@@ -64,14 +64,14 @@ const StyledViewRepliesButton = styled.button<
   }
 `;
 
-export function CommentTree({
+export function CommentThread({
   comments,
   parentComment,
 }: {
   comments: CommentWithReplies[];
   parentComment?: CommentWithReplies;
 }) {
-  const [expandedCommentTrees, setExpandedCommentTrees] = useState(
+  const [expandedCommentThreads, setExpandedCommentThreads] = useState(
     [] as number[]
   );
 
@@ -93,27 +93,27 @@ export function CommentTree({
           {comment.replies && comment.replies.length > 0 && (
             <>
               <StyledViewRepliesButton
-                $isOpen={expandedCommentTrees.includes(comment.id)}
+                $isOpen={expandedCommentThreads.includes(comment.id)}
                 onClick={() =>
-                  setExpandedCommentTrees((prev) => {
+                  setExpandedCommentThreads((prev) => {
                     if (prev.includes(comment.id))
                       return prev.filter((id) => id !== comment.id);
                     else return [...prev, comment.id];
                   })
                 }
-                aria-expanded={expandedCommentTrees.includes(comment.id)}
+                aria-expanded={expandedCommentThreads.includes(comment.id)}
                 aria-label={`${
-                  expandedCommentTrees.includes(comment.id) ? 'Hide' : 'View'
+                  expandedCommentThreads.includes(comment.id) ? 'Hide' : 'View'
                 } replies`}
               >
                 <i className="fa fa-caret-down"></i>
-                {expandedCommentTrees.includes(comment.id)
+                {expandedCommentThreads.includes(comment.id)
                   ? 'Hide Replies'
                   : `View Replies (${comment.replyCount})`}
               </StyledViewRepliesButton>
 
-              {expandedCommentTrees.includes(comment.id) && (
-                <CommentTree
+              {expandedCommentThreads.includes(comment.id) && (
+                <CommentThread
                   comments={comment.replies}
                   parentComment={comment}
                 />
@@ -126,4 +126,4 @@ export function CommentTree({
   );
 }
 
-export default CommentTree;
+export default CommentThread;

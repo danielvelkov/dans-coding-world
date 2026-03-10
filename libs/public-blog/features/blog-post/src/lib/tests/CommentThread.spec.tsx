@@ -1,5 +1,5 @@
 import { render, screen } from '@dans-coding-world/public-blog-tools';
-import CommentTree from '../components/CommentTree';
+import CommentThread from '../components/CommentThread';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
@@ -13,11 +13,11 @@ const testComments: CommentWithReplies[] = [
   ...commentsWithNoReplies,
 ];
 
-describe('CommentTree', () => {
+describe('CommentThread', () => {
   const renderFeature = (comments: CommentWithReplies[] = testComments) => {
     return render(
       <MemoryRouter>
-        <CommentTree comments={comments} />
+        <CommentThread comments={comments} />
       </MemoryRouter>
     );
   };
