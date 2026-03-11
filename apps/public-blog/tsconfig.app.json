@@ -44,6 +44,9 @@
       "path": "../../libs/shared/post/testing/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/public-blog/features/blog-post/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/public-blog/features/blog-sidebar/tsconfig.lib.json"
     },
     {

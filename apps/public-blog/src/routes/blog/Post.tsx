@@ -1,9 +1,18 @@
 import { useParams } from 'react-router-dom';
+import { BlogPost } from '@dans-coding-world/public-blog-features-blog-post';
+import styled from 'styled-components';
 
-// TODO:
+const StyledBlogPost = styled(BlogPost)``;
+
 export function Post() {
   const { postId } = useParams<{ postId: string }>();
-  return <h1>POST ID: {postId}</h1>;
+  if (!postId) throw new Error('Missing post id');
+
+  return (
+    <main>
+      <StyledBlogPost postId={+postId}></StyledBlogPost>
+    </main>
+  );
 }
 
 export default Post;

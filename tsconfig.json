@@ -104,6 +104,9 @@
     },
     {
       "path": "./libs/tools/api"
+    },
+    {
+      "path": "./libs/public-blog/features/blog-post"
     }
   ]
 }
