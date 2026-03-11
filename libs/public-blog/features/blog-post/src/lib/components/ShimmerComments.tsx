@@ -67,7 +67,7 @@ export const ShimmerComments = ({ count }: { count: number }) => (
     <span style={{ position: 'absolute', left: '-9999px' }}>
       Loading comments…
     </span>
-    <div aria-hidden="true" style={{ marginTop: '2em;' }}>
+    <div aria-hidden="true" style={{ marginTop: '2em' }}>
       {Array.from({ length: count }).map((_, i) => (
         <StyledShimmeringComment key={i}>
           <span className="avatar"></span>
