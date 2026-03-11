@@ -4,9 +4,9 @@ import {
   COMMENT_CONSTRAINTS,
   PAGINATION,
 } from '@dans-coding-world/shared-constants';
-import CommentTree from './CommentTree';
+import CommentThread from './CommentThread';
 import { ShimmerComments } from './ShimmerComments';
-import { Dropdown } from '@dans-coding-world/public-blog-ui-common';
+import { Dropdown, Button } from '@dans-coding-world/public-blog-ui-common';
 import { useState } from 'react';
 
 type AllowedPageSizes =
@@ -15,6 +15,16 @@ type AllowedPageSizes =
 type SortOrder = 'desc' | 'asc';
 
 const LOADED_COMMENTS_PER_INCREMENT: AllowedPageSizes = 10;
+
+const StyledLoadMoreButton = styled(Button)`
+  font-weight: bold;
+  display: block;
+  width: 100%;
+  max-width: 70%;
+  margin: 2em auto;
+  color: ${({ theme }) => theme.text.primary};
+  background-color: ${({ theme }) => theme.background.elevated};
+`;
 
 const StyledCommentSection = styled.section`
   border-top: 2px solid ${({ theme }) => theme.text.muted};
@@ -35,24 +45,6 @@ const StyledSectionMeta = styled.div`
     display: flex;
     gap: 5px;
     align-items: center;
-  }
-`;
-
-const StyledButton = styled.button<React.ComponentPropsWithoutRef<'button'>>`
-  font-weight: 500;
-  font-family: inherit;
-  display: block;
-  border-radius: 6px;
-  font-size: 1.1em;
-  padding: 0.5em 1.75em;
-  margin: 2em auto;
-  color: ${({ theme }) => theme.background.surface};
-  box-shadow: 1px 1px ${({ theme }) => theme.accent.soft};
-  border-color: ${({ theme }) => theme.border.primary};
-  background: ${({ theme }) => theme.accent.primary};
-
-  &:hover {
-    background-color: ${({ theme }) => theme.accent.hover};
   }
 `;
 
@@ -124,7 +116,9 @@ export function CommentSection({ postId }: { postId: number }) {
       <CommentTree comments={comments}></CommentTree>
 
       {!isFetchingNextPage && lastPaginationDetails?.hasNext && (
-        <StyledButton onClick={() => fetchNextPage()}>Load more</StyledButton>
+        <StyledLoadMoreButton onClick={() => fetchNextPage()}>
+          Load more
+        </StyledLoadMoreButton>
       )}
     </StyledCommentSection>
   );
