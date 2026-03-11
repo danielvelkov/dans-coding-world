@@ -4,3 +4,4 @@ export * from './lib/components/Dropdown';
 export * from './lib/components/Tag';
 export * from './lib/components/Button';
 export * from './lib/components/UserAvatar';
+export * from './lib/components/Modal';
