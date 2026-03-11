@@ -10,6 +10,7 @@ import {
 import type { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hooks';
 import { getReadingTime } from './util/post-ux.util';
 import { ShimmerPost } from './components/ShimmerPost';
+import CommentSection from './components/CommentSection';
 
 const StyledPost = styled.article`
   display: flex;
@@ -71,7 +72,7 @@ export function BlogPost({ postId }: { postId: number }) {
   const { data, isPending, isError, error } = useFetchPost(postId);
   const showLoading = isPending || !data;
 
-  if (showLoading)
+  if (showLoading || isError)
     return (
       <main>
         {isError ? (
@@ -178,6 +179,8 @@ export function BlogPost({ postId }: { postId: number }) {
             ></Tag>
           ))}
       </div>
+
+      <CommentSection postId={postId}></CommentSection>
     </StyledPost>
   );
 }
