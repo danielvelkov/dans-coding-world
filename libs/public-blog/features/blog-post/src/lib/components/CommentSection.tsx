@@ -8,6 +8,7 @@ import CommentThread from './CommentThread';
 import { ShimmerComments } from './ShimmerComments';
 import { Dropdown, Button } from '@dans-coding-world/public-blog-ui-common';
 import { useState } from 'react';
+import CommentForm from './CommentForm';
 
 type AllowedPageSizes =
   (typeof PAGINATION.COMMENTS.ITEMS_PER_PAGE_OPTIONS)[number];
@@ -112,8 +113,12 @@ export function CommentSection({ postId }: { postId: number }) {
           ></Dropdown>
         </div>
       </StyledSectionMeta>
-
-      <CommentTree comments={comments}></CommentTree>
+      {/* TODO: */}
+      <CommentForm
+        isLocked={false}
+        onSubmit={(val) => console.log(val)}
+      ></CommentForm>
+      <CommentThread comments={comments}></CommentThread>
 
       {!isFetchingNextPage && lastPaginationDetails?.hasNext && (
         <StyledLoadMoreButton onClick={() => fetchNextPage()}>
