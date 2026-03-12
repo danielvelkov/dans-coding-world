@@ -23,6 +23,7 @@ const StyledPost = styled.article`
     flex-wrap: wrap;
     align-items: baseline;
     color: ${({ theme }) => theme.text.secondary};
+    margin-bottom: 5em;
   }
 `;
 
@@ -113,7 +114,8 @@ export function BlogPost({ postId }: { postId: number }) {
             <UserAvatar
               avatarURL={post.author.profile?.avatarURL}
               name={authorName}
-              size="LG"
+              shape="circle"
+              size={post.author.profile?.avatarURL ? 'LG' : 'S'}
             />
             <span className="author-name">
               {`By `}

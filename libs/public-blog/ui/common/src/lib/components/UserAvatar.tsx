@@ -23,7 +23,7 @@ const StyledAvatar = styled.div<
   justify-content: center;
   cursor: pointer;
 
-  &:only-child {
+  .avatar {
     font-size: ${(props) => AVATAR_SIZES[props.$imgSize]}px;
     height: ${(props) => AVATAR_SIZES[props.$imgSize]}px;
     border-radius: ${(props) =>
@@ -45,10 +45,10 @@ export function UserAvatar({
   return (
     <StyledAvatar $imgSize={size} $shape={shape}>
       {avatarURL ? (
-        <img src={avatarURL} alt={`${name}'s avatar`} />
+        <img className="avatar" src={avatarURL} alt={`${name}'s avatar`} />
       ) : (
         <i
-          className="fa fa-regular fa-user"
+          className="avatar fa fa-regular fa-user"
           aria-label="Default user avatar"
         ></i>
       )}

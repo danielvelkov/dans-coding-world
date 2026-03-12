@@ -25,7 +25,7 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   .author {
     gap: 0.8em;
     color: ${({ theme }) => theme.text.secondary};
-    font-size: small;
+    font-size: 0.9em;
   }
 
   .tag-list {
@@ -167,6 +167,7 @@ export function PostItem({
             <UserAvatar
               avatarURL={post.author.profile?.avatarURL}
               name={authorName}
+              size="S"
             />
             <span className="author-name">
               {`By `}

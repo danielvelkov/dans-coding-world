@@ -28,7 +28,7 @@ const StyledLoadMoreButton = styled(Button)`
 `;
 
 const StyledCommentSection = styled.section`
-  border-top: 2px solid ${({ theme }) => theme.text.muted};
+  border-top: 1px solid ${({ theme }) => theme.text.muted};
   padding-bottom: 3em;
 `;
 
