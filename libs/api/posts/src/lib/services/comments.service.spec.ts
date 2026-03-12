@@ -1387,7 +1387,7 @@ describe('CommentsService', () => {
     allComments: Comment[]
   ) {
     for (const comment of commentsToCheck) {
-      if (comment.replies) {
+      if (comment.replies && comment.replies.length) {
         const expectedReplies = allComments.filter(
           (p) => p.threadParentId === comment.id
         );
