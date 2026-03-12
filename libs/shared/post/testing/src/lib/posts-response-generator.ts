@@ -30,15 +30,19 @@ export function generateMockPostsResponse({
 }
 
 export function generateMockPostResponse({
-  post = generateRandomPosts(1)[0],
+  post,
 }: {
-  post?: PostFull;
+  post?: Partial<PostFull>;
 }): BaseResponse<{ post: PostFull }> {
+  const mockPost = generateRandomPosts(1)[0];
   return {
     error: null,
     success: true,
     data: {
-      post,
+      post: {
+        ...mockPost,
+        ...post,
+      },
     },
   };
 }
