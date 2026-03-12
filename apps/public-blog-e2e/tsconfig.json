@@ -26,16 +26,19 @@
   ],
   "references": [
     {
-      "path": "../../libs/shared/util/shared-constants"
-    },
-    {
-      "path": "../../libs/prisma-schema"
+      "path": "../../libs/api/data-access/post"
     },
     {
       "path": "../../libs/shared/util/helpers"
     },
     {
+      "path": "../../libs/shared/util/shared-constants"
+    },
+    {
       "path": "../../libs/shared/post/testing"
+    },
+    {
+      "path": "../../libs/prisma-schema"
     },
     {
       "path": "../../libs/shared/data-access/api"
