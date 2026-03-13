@@ -5,7 +5,7 @@ describe('Blog - search', () => {
   let seededPosts: Post[];
   before(() => {
     cy.task('db:seed-users');
-    cy.fixture('posts-search-dataset.json').then((posts) =>
+    cy.fixture('blog/search-dataset.json').then((posts) =>
       cy
         .task('db:seed-posts', {
           posts,
