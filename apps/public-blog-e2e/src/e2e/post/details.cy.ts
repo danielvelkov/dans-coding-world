@@ -1,5 +1,6 @@
 import { stringifyToQueryString } from '@dans-coding-world/helpers';
 import { PostFull } from '@dans-coding-world/post-data-access';
+import { Post, Profile, User } from '@dans-coding-world/prisma-schema';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateMockPostResponse } from '@dans-coding-world/shared-post-testing';
 import { randNumber, randWord } from '@ngneat/falso';
@@ -7,19 +8,57 @@ import { randNumber, randWord } from '@ngneat/falso';
 describe('Post - details', () => {
   const testPostId = 1;
   let testPost: PostFull;
+  let testPosts: Post[];
+  const testUsers: PostFull['author'][] = [];
 
-  beforeEach(() => {
-    testPost = initBlogPost({});
+  before(() => {
+    cy.task('db:seed-users', {
+      options: { useDefaults: true, clearExisting: true },
+    }).then((seededUsers) => {
+      const users = seededUsers as User[];
+      if (!users || !users.length) throw new Error('Missing user fixtures');
+
+      cy.task('db:seed-profiles', {
+        options: { useDefaults: true, clearExisting: true },
+      }).then((seededProfiles) => {
+        const profiles = seededProfiles as Profile[];
+        if (!profiles || !profiles.length)
+          throw new Error('Missing user profile fixtures');
+
+        for (let i = 0; i < users.length; i++)
+          testUsers.push({
+            ...users[i],
+            profile: profiles[i],
+          });
+      });
+    });
+
+    cy.task('db:seed-posts', {
+      options: { useDefaults: true, clearExisting: true },
+    }).then((posts) => {
+      testPosts = (posts as Post[]).filter(
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+      );
+      if (!testPosts || !testPosts.length)
+        throw new Error('Missing post fixtures');
+    });
   });
 
   it('shows post title as <h1> element', () => {
-    cy.get('article h1').should('have.text', testPost.title);
+    const randomPost = Cypress._.sample(testPosts) as Post;
+    cy.visit(`/blog/${randomPost.id}`);
+    cy.get('article h1').should('have.text', randomPost.title);
   });
 
   it(`shows post's published date in "DD MONTH YYYY" format`, () => {
+    const testPost = Cypress._.sample(testPosts) as Post;
+
     const publishedDate = new Date(testPost.publishedAt as Date);
     const month = publishedDate.toLocaleString('default', { month: 'long' });
     const day = publishedDate.toLocaleString('default', { day: '2-digit' });
+
+    cy.visit(`/blog/${testPost.id}`);
+
     cy.get('[aria-label^="Posted on"]').should(
       'have.text',
       `${day} ${month} ${publishedDate.getFullYear()}`
@@ -27,15 +66,17 @@ describe('Post - details', () => {
   });
 
   it('shows modified date, if updated date is after published date', () => {
-    const publishedAt = new Date('01 Mar 2025');
-    const updatedAt = new Date('12 Mar 2025');
-    initBlogPost({
-      updatedAt,
-      publishedAt,
-    });
+    const testPost = testPosts.find(
+      (p) => new Date(p.publishedAt as Date) < new Date(p.updatedAt)
+    ) as Post;
+
+    const updatedAt = new Date(testPost.updatedAt);
 
     const month = updatedAt.toLocaleString('default', { month: 'long' });
     const day = updatedAt.toLocaleString('default', { day: '2-digit' });
+
+    cy.visit(`/blog/${testPost.id}`);
+
     cy.get('[aria-label^="Last edited on"]').should(
       'have.text',
       `${day} ${month} ${updatedAt.getFullYear()}`
@@ -43,34 +84,56 @@ describe('Post - details', () => {
   });
 
   it('shows author fullname (or username if profile is not setup)', () => {
+    const testPost = Cypress._.sample(testPosts) as Post;
+
+    const testUser = testUsers.find((u) => u.id === testPost.authorId);
+    if (!testUser) throw new Error('Missing test user');
+
     const fullName =
-      testPost.author.profile?.firstName +
-      ' ' +
-      testPost.author.profile?.lastName;
+      testUser.profile?.firstName + ' ' + testUser.profile?.lastName;
+
+    cy.visit(`/blog/${testPost.id}`);
+
     cy.contains(`By ${fullName}`);
 
-    const authorWithoutProfile = { ...testPost.author, profile: null };
-    initBlogPost({ author: authorWithoutProfile });
+    const authorWithoutProfile = {
+      ...testUser,
+      username: 'Blank',
+      profile: null,
+    };
+    initMockBlogPost({ author: authorWithoutProfile });
 
     cy.contains(`By ${authorWithoutProfile.username}`);
   });
 
   it('shows author avatar picture', () => {
-    cy.get(`img[src="${testPost.author.profile?.avatarURL}"]`);
+    const testPost = Cypress._.sample(testPosts) as Post;
+
+    const testUser = testUsers.find((u) => u.id === testPost.authorId);
+    if (!testUser) throw new Error('Missing test user');
+
+    cy.visit(`/blog/${testPost.id}`);
+
+    cy.get(`img[src="${testUser.profile?.avatarURL}"]`);
   });
 
   it('navigates to author page when selecting author name', () => {
+    const testPost = Cypress._.sample(testPosts) as Post;
+
+    const testUser = testUsers.find((u) => u.id === testPost.authorId);
+    if (!testUser) throw new Error('Missing test user');
+
+    cy.visit(`/blog/${testPost.id}`);
+
     const fullName =
-      testPost.author.profile?.firstName +
-      ' ' +
-      testPost.author.profile?.lastName;
+      testUser.profile?.firstName + ' ' + testUser.profile?.lastName;
     cy.contains('a', fullName).click();
 
-    cy.url().should('include', `/users/${testPost.author.id}`);
+    cy.url().should('include', `/users/${testUser.id}`);
   });
 
   it('displays reading time estimate depending on content length', () => {
-    testPost = initBlogPost({
+    testPost = initMockBlogPost({
       content: randWord({ length: randNumber({ min: 10, max: 10000 }) }).join(
         ' '
       ),
@@ -82,22 +145,23 @@ describe('Post - details', () => {
   });
 
   it('shows post tags', () => {
-    let tags = testPost.tags;
-    if (!tags) {
-      tags = randWord({ length: 3 });
-      testPost = initBlogPost({ tags });
-    }
-    for (const tagName of tags) cy.contains('button', tagName);
+    testPost = initMockBlogPost({
+      tags: ['javascript', 'c#'],
+    });
+    if (!testPost.tags) throw new Error('Missing tags');
+
+    for (const tagName of testPost.tags) cy.contains('button', tagName);
   });
 
   it(`clicking on any tag navigates to the blog list page 
     with filtering by selected tag applied`, () => {
-    let tags = testPost.tags;
-    if (!tags) {
-      tags = randWord({ length: 3 });
-      testPost = initBlogPost({ tags });
-    }
-    const randomTag = Cypress._.sample(tags) as string;
+    testPost = initMockBlogPost({
+      tags: ['javascript', 'c#'],
+    });
+
+    if (!testPost.tags) throw new Error('Missing tags');
+
+    const randomTag = Cypress._.sample(testPost.tags) as string;
     cy.contains('button', randomTag).click();
 
     cy.url().should(
@@ -123,7 +187,7 @@ describe('Post - details', () => {
       );
   }
 
-  function initBlogPost(post: Partial<PostFull>) {
+  function initMockBlogPost(post: Partial<PostFull>) {
     const avatarURL =
       'https://web.archive.org/web/19991008210347im_/http://sophie.net/images/sophie.jpg';
     const mockResponse = generateMockPostResponse({
