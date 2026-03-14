@@ -1,4 +1,5 @@
 export * from './lib/seeders/users.seeder.js';
+export * from './lib/seeders/profiles.seeder.js';
 export * from './lib/seeders/tokens.seeder.js';
 export * from './lib/seeders/posts.seeder.js';
 export * from './lib/seeders/comments.seeder.js';
