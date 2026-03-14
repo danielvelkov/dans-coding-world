@@ -42,6 +42,7 @@ export const API_ENDPOINTS = {
   },
   TEST_DATA: {
     USERS: `${TEST_DATA_PREFIX}/users`,
+    PROFILES: `${TEST_DATA_PREFIX}/profiles`,
     POSTS: `${TEST_DATA_PREFIX}/posts`,
     COMMENTS: `${TEST_DATA_PREFIX}/comments`,
     TAGS: `${TEST_DATA_PREFIX}/tags`,

@@ -6,6 +6,7 @@ import {
   seedTags,
   seedUsers,
   attachTagsToPost,
+  seedUserProfiles,
 } from '@dans-coding-world/api-tools';
 import { Router } from 'express';
 
@@ -37,6 +38,16 @@ testDataRouter.post('/users', async (req: Request, res: Response) => {
   });
 
   res.status(200).json(users);
+});
+
+testDataRouter.post('/profiles', async (req: Request, res: Response) => {
+  const { clearExisting, useDefaults } = req.query;
+  const profiles = await seedUserProfiles(req.body, {
+    clearExisting: getOptionParam(clearExisting as string),
+    useDefaults: getOptionParam(useDefaults as string),
+  });
+
+  res.status(200).json(profiles);
 });
 
 testDataRouter.post('/comments', async (req: Request, res: Response) => {
