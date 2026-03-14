@@ -52,7 +52,7 @@ export const seedComments = async (
 
 const createAndReturnCommentsWithId = async (comments: any[]) => {
   if (!comments.length) return [];
-  return await client.$transaction(
-    comments.map((comment) => client.comment.create({ data: comment }))
+  return await client.comment.createManyAndReturn(
+    { data: comments }
   );
 };
