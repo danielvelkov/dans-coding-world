@@ -31,7 +31,7 @@ Cypress.Commands.add('login', (email, password) => {
   console.log('Custom command example: Login', email, password);
 });
 Cypress.Commands.add('getByTestId', (id) => {
-  return cy.get(`[data-test=${id}]`);
+  return cy.get(`[data-testid=${id}]`);
 });
 
 Cypress.Commands.add('goToPage', (pageNumber: number) => {
