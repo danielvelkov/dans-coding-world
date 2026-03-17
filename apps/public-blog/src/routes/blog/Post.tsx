@@ -6,7 +6,7 @@ const StyledBlogPost = styled(BlogPost)``;
 
 export function Post() {
   const { postId } = useParams<{ postId: string }>();
-  if (!postId) throw new Error('Missing post id');
+  if (!postId || !Number.isInteger(+postId)) throw new Error('Invalid post id');
 
   return (
     <main>

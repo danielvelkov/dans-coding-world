@@ -30,7 +30,7 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       {showDevTools && <ReactQueryDevtools initialIsOpen={false} />}
       <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
-        <GlobalStyle></GlobalStyle>
+        <GlobalStyle />
         <StyledApp>
           <header>
             <nav>

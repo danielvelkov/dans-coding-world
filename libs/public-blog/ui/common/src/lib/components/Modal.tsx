@@ -73,7 +73,7 @@ type ModalProps = React.DialogHTMLAttributes<HTMLDialogElement> & {
 
 export function Modal({
   children,
-  title = 'Modal Window',
+  modalTitle = 'Modal Window',
   showCloseButton = true,
   onClose,
   ...rest
@@ -95,7 +95,7 @@ export function Modal({
 
       <ModalWrapper>
         <ModalContent onClick={(e) => e.stopPropagation()}>
-          <Title>{title}</Title>
+          <Title>{modalTitle}</Title>
 
           {showCloseButton && (
             <CloseButton onClick={closeModal} aria-label="Close dialog">

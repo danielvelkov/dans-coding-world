@@ -79,7 +79,7 @@ const StyledModalContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1em;
+  gap: 2em;
 `;
 
 const StyledContentLimitCounter = styled.span<
@@ -154,7 +154,11 @@ export function CommentForm({
       </StyledTextAreaWrapper>
 
       {openDialog && (
-        <Modal open title="Login required" onClose={() => setOpenDialog(false)}>
+        <Modal
+          open
+          modalTitle="Login required"
+          onClose={() => setOpenDialog(false)}
+        >
           <StyledModalContent>
             Login to join the conversation
             <StyledLink
