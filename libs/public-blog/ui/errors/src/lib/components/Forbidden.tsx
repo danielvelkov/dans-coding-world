@@ -14,9 +14,11 @@ export function Forbidden({ reason }: { reason?: string }) {
       errorTitle={StatusCodes.FORBIDDEN.toString()}
       subtitle={ReasonPhrases.FORBIDDEN}
     >
-      <p>{reason ?? `You tried to do something you shouldn't.`}</p>
+      <p style={{ padding: '1em', fontSize: 'large' }}>
+        {reason ?? `You tried to do something you shouldn't.`}
+      </p>
       <StyledLink forwardedAs={Link} to={'/blog'}>
-        Ok. Take me back
+        Ok, take me back
       </StyledLink>
     </GenericError>
   );
