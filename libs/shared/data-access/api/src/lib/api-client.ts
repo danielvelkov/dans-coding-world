@@ -20,6 +20,7 @@ export class ApiClient {
       params,
       data,
       headers,
+      validateStatus: (status) => status < 500, // makes axios not throw when receiving status codes like 4xx
       ...config,
     });
   }
