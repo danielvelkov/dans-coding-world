@@ -53,15 +53,20 @@ export function App() {
               </ul>
             </nav>
           </header>
-          <ErrorBoundary FallbackComponent={Fallback}>
-            <Routes>
-              <Route path="blog">
-                <Route index element={<Blog />} />
-                <Route path=":postId" element={<Post />} />
-              </Route>
-              <Route path="*" element={<NotFound />}></Route>
-            </Routes>
-          </ErrorBoundary>
+          <Routes>
+            <Route path="blog">
+              <Route index element={<Blog />} />
+              <Route
+                path=":postId"
+                element={
+                  <ErrorBoundary FallbackComponent={Fallback}>
+                    <Post />
+                  </ErrorBoundary>
+                }
+              />
+            </Route>
+            <Route path="*" element={<NotFound />}></Route>
+          </Routes>
         </StyledApp>
       </ThemeProvider>
     </QueryClientProvider>

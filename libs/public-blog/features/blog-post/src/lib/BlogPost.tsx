@@ -70,26 +70,17 @@ const StyledHeader = styled.header`
 
 export function BlogPost({ postId }: { postId: number }) {
   const navigate = useNavigate();
-  const { data, isPending, isError, error } = useFetchPost(postId);
+  const { data, isPending } = useFetchPost(postId);
   const showLoading = isPending || !data;
 
-  if (showLoading || isError)
-    return (
-      <main>
-        {isError ? (
-          <span
-            data-testid="error-message"
-            style={{ padding: '1em', color: 'red' }}
-          >
-            {error.message}
-          </span>
-        ) : (
-          showLoading && <ShimmerPost />
-        )}
-      </main>
-    );
+  const userLoggedIn = false; //TODO
+
+  if (showLoading || !data)
+    return <main>{showLoading && <ShimmerPost />}</main>;
 
   const { post } = data;
+
+  if (post.visibility === 'MEMBERS_ONLY' && !userLoggedIn) navigate('/login');
 
   const authorName = post.author.profile
     ? `${post.author.profile.firstName} ${post.author.profile.lastName}`
