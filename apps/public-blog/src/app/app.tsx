@@ -7,7 +7,10 @@ import Blog from '../routes/blog/Blog';
 import Post from '../routes/blog/Post';
 import { useState } from 'react';
 import { darkTheme, lightTheme } from '@dans-coding-world/public-blog-ui-theme';
+import { NotFound } from '@dans-coding-world/public-blog-ui-errors';
 import { GlobalStyle } from '../styles/global.style.js';
+import { ErrorBoundary } from 'react-error-boundary';
+import { Fallback } from './Fallback';
 
 const StyledApp = styled.div`
   padding: 0 clamp(5vmin, 5vw, 15vmax);
@@ -50,12 +53,15 @@ export function App() {
               </ul>
             </nav>
           </header>
-          <Routes>
-            <Route path="blog">
-              <Route index element={<Blog />} />
-              <Route path=":postId" element={<Post />} />
-            </Route>
-          </Routes>
+          <ErrorBoundary FallbackComponent={Fallback}>
+            <Routes>
+              <Route path="blog">
+                <Route index element={<Blog />} />
+                <Route path=":postId" element={<Post />} />
+              </Route>
+              <Route path="*" element={<NotFound />}></Route>
+            </Routes>
+          </ErrorBoundary>
         </StyledApp>
       </ThemeProvider>
     </QueryClientProvider>

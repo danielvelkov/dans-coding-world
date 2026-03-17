@@ -71,6 +71,9 @@
       "path": "../../libs/public-blog/ui/errors/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/public-blog/ui/common/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/shared/util/api-types/tsconfig.lib.json"
     }
   ]
