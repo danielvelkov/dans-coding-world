@@ -107,6 +107,9 @@
     },
     {
       "path": "./libs/public-blog/features/blog-post"
+    },
+    {
+      "path": "./libs/public-blog/ui/errors"
     }
   ]
 }
