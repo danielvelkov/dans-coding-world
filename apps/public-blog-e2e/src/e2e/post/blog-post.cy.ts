@@ -5,7 +5,7 @@ import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateMockPostResponse } from '@dans-coding-world/shared-post-testing';
 import { randNumber, randWord } from '@ngneat/falso';
 
-describe('Post - details', () => {
+describe('BlogPost', () => {
   const testPostId = 1;
   let testPost: PostFull;
   let testPosts: Post[];
