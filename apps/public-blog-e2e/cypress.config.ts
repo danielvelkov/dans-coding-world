@@ -65,6 +65,19 @@ export default defineConfig({
           });
           return data;
         },
+        async 'db:seed-comments'(args = {}) {
+          const { comments, options } = args;
+          const {
+            data: { data },
+          } = await axios.post(
+            `${API_ENDPOINTS.TEST_DATA.COMMENTS}`,
+            comments,
+            {
+              params: options,
+            }
+          );
+          return data;
+        },
         async 'db:seed-tags'(args = {}) {
           const { tags, options } = args;
           const {
