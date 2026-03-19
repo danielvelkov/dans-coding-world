@@ -13,6 +13,7 @@ export function generateRandomPosts(
   count: number
 ): GetPostsResponseDto['items'] {
   const posts = [];
+
   while (count > 0) {
     const author = generateRandomUserPreview();
     const post = {
@@ -23,7 +24,7 @@ export function generateRandomPosts(
       publishedAt: randPastDate(),
       updatedAt: randPastDate(),
       status: 'PUBLISHED' as PostStatus,
-      visibility: rand(['MEMBERS_ONLY', 'PUBLIC']) as PostVisibility,
+      visibility: 'PUBLIC' as PostVisibility,
       authorId: author.id,
       author: author,
       tags: [
