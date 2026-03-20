@@ -1,4 +1,5 @@
 import { Comment, Post } from '@dans-coding-world/prisma-schema';
+import { PAGINATION } from '@dans-coding-world/shared-constants';
 
 const SORT_LABELS = ['Most recent', 'Oldest first'] as const;
 
@@ -75,7 +76,8 @@ describe('Comments - sorting', () => {
   it(`should keep the number of loaded elements after
      selecting different sort order`, () => {
     const totalRootComments = testComments.filter((c) => !c.threadParentId);
-    let defaultLoadedComments = 10;
+    let defaultLoadedComments = PAGINATION.COMMENTS
+      .DEFAULT_ITEMS_PER_PAGE as number;
     if (totalRootComments.length < defaultLoadedComments)
       defaultLoadedComments = totalRootComments.length;
 

@@ -31,11 +31,7 @@ describe('Blog - sorting', () => {
   });
 
   it('sorts posts by "Published date (desc)" by default', () => {
-    cy.contains('label', /sort by/i)
-      .invoke('attr', 'for')
-      .then((id) => {
-        cy.get(`#${id}`).invoke('val', SORT_LABELS[0]);
-      });
+    cy.contains(SORT_LABELS[0]);
 
     checkIfSortedCorrectly(
       seededPosts.filter((p) => p.status === 'PUBLISHED'),
