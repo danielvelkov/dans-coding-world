@@ -1,9 +1,7 @@
 import { Comment, Post } from '@dans-coding-world/prisma-schema';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 
-const SORT_LABELS = ['Most recent', 'Oldest first'] as const;
-
-describe('Comments - sorting', () => {
+describe('Comments - pagination', () => {
   let testPost: Post;
   let testComments: Comment[];
 
@@ -43,38 +41,8 @@ describe('Comments - sorting', () => {
     cy.visit(`/blog/${testPost.id}`);
   });
 
-  it('should have comment sorting dropdown element', () => {
-    cy.contains('label', /sort comments/i)
-      .invoke('attr', 'for')
-      .then((id) => {
-        cy.get(`#${id}`).should('exist');
-      });
-  });
-
-  it('sorts comments by "Most Recent" by default', () => {
-    cy.contains(SORT_LABELS[0]);
-    checkIfCommentsSortedCorrectly(
-      testComments.filter((c) => !c.threadParentId),
-      'desc'
-    );
-  });
-
-  it('should sort comments accordingly when selecting option from dropdown', () => {
-    cy.selectCommentSorting(SORT_LABELS[1]);
-    checkIfCommentsSortedCorrectly(
-      testComments.filter((c) => !c.threadParentId),
-      'asc'
-    );
-
-    cy.selectCommentSorting(SORT_LABELS[0]);
-    checkIfCommentsSortedCorrectly(
-      testComments.filter((c) => !c.threadParentId),
-      'desc'
-    );
-  });
-
-  it(`should keep the number of loaded elements after
-     selecting different sort order`, () => {
+  it(`should show "Load more" button if post's total comments are more
+    than default limit`, () => {
     const totalRootComments = testComments.filter((c) => !c.threadParentId);
     let defaultLoadedComments = PAGINATION.COMMENTS
       .DEFAULT_ITEMS_PER_PAGE as number;
@@ -84,40 +52,67 @@ describe('Comments - sorting', () => {
     cy.get(`ul[aria-label="Post comments"]`).within(() => {
       cy.get('li').its('length').should('eq', defaultLoadedComments);
     });
-    cy.contains('button', 'Load more').click();
-    cy.selectCommentSorting(SORT_LABELS[1]);
+    cy.contains('button', 'Load more').should('exist');
+  });
+
+  it('should load next batch of comments on selecting "Load more"', () => {
+    const totalRootComments = testComments.filter((c) => !c.threadParentId);
+    let defaultLoadedComments = PAGINATION.COMMENTS
+      .DEFAULT_ITEMS_PER_PAGE as number;
+
+    if (totalRootComments.length < defaultLoadedComments)
+      defaultLoadedComments = totalRootComments.length;
 
     cy.get(`ul[aria-label="Post comments"]`).within(() => {
       cy.get('li').its('length').should('eq', defaultLoadedComments);
     });
 
-    cy.selectCommentSorting(SORT_LABELS[0]);
-
+    cy.contains('button', 'Load more').click();
     let totalCommentsAfterLoadingMore = defaultLoadedComments * 2;
 
     if (totalRootComments.length < defaultLoadedComments * 2)
       totalCommentsAfterLoadingMore = totalRootComments.length;
 
-    cy.get(`ul[aria-label="Post comments"]`).within(() => {
-      cy.get('li').its('length').should('eq', totalCommentsAfterLoadingMore);
+    const commentsOrderedByCreatedDateDesc = [...totalRootComments].sort(
+      (prev, next) => {
+        const prevDate = new Date(prev.createdAt as Date);
+        const nextDate = new Date(next.createdAt as Date);
+        return nextDate.getTime() - prevDate.getTime();
+      }
+    );
+
+    cy.get('[aria-label="Post comments"] > li')
+      .its('length')
+      .should('eq', totalCommentsAfterLoadingMore);
+
+    cy.get('[aria-label="Post comments"] > li p').each(($p, index) => {
+      expect($p.text()).to.equal(
+        commentsOrderedByCreatedDateDesc[index].content
+      );
     });
   });
-});
 
-export function checkIfCommentsSortedCorrectly(
-  comments: Comment[],
-  order: 'asc' | 'desc'
-) {
-  const commentsOrderedByCreatedDateDesc = [...comments].sort((prev, next) => {
-    const prevDate = new Date(prev.createdAt as Date);
-    const nextDate = new Date(next.createdAt as Date);
-    if (order === 'desc') return nextDate.getTime() - prevDate.getTime();
-    else return prevDate.getTime() - nextDate.getTime();
-  });
+  it('should show the button until all comments are loaded by user', () => {
+    const totalRootComments = testComments.filter((c) => !c.threadParentId);
+    const defaultLoadedComments = PAGINATION.COMMENTS
+      .DEFAULT_ITEMS_PER_PAGE as number;
 
-  cy.get('[aria-label="Post comments"] > li p').each(($p, index) => {
-    expect($p.text()).to.equal(
-      commentsOrderedByCreatedDateDesc[index].content
+    const totalPages = Math.ceil(
+      totalRootComments.length / defaultLoadedComments
     );
+    for (let i = 1; i < totalPages; i++) {
+      cy.contains('button', 'Load more').click();
+
+      const onLastPage = i + 1 === totalPages;
+      const totalComments = onLastPage
+        ? totalRootComments.length
+        : defaultLoadedComments * (i + 1);
+
+      cy.get(`ul[aria-label="Post comments"]`).within(() => {
+        cy.get('li').its('length').should('eq', totalComments);
+      });
+    }
+
+    cy.contains('button', 'Load more').should('not.exist');
   });
-}
+});
