@@ -157,7 +157,12 @@ async function checkRepliesForComment(
   await userEvent.click(viewReplies);
 
   const replyList = await screen.findByRole('list', {
-    name: new RegExp(`Replies to ${comment.user.username}`, 'i'),
+    name: new RegExp(
+      `Replies to ${comment.user.username.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        '\\$&'
+      )}`
+    ),
   });
 
   const replyItems = Array.from(replyList.querySelectorAll(':scope > li'));

@@ -103,12 +103,10 @@ describe('BlogPost', () => {
     renderFeature();
     await waitFor(() => {
       const article = screen.getByRole('article');
-      for (const tag of testPost.tags as string[])
-        expect(
-          within(article).getByRole('button', {
-            name: new RegExp(tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-          })
-        ).toBeInTheDocument();
+      const buttons = within(article).getAllByRole('button');
+      for (const tag of testPost.tags as string[]) {
+        expect(buttons.some((b) => b.textContent.includes(tag))).toBe(true);
+      }
     });
   });
 
