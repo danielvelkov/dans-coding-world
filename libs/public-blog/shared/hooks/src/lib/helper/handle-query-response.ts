@@ -1,11 +1,21 @@
-import { BaseResponse } from '@dans-coding-world/api-types';
+import {
+  BaseResponse,
+  ResponseErrorDetails,
+} from '@dans-coding-world/api-types';
+import { ApiError } from '../types/apiError';
 
 export function handleQueryResponse<ResponseDto>(
   response: BaseResponse<ResponseDto>
 ) {
-  if (!response) return Promise.reject('An unknown error occurred');
+  if (!response) throw new Error('An unknown error occurred');
   else if (!response.success) {
-    return Promise.reject(response.error);
+    const error = response.error as ResponseErrorDetails;
+    throw new ApiError(
+      error.status,
+      error.message ?? 'Something went wrong',
+      error.errorCode,
+      error.details
+    );
   }
 
   return response.data;

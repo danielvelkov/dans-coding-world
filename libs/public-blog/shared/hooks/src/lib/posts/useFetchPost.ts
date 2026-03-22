@@ -15,7 +15,6 @@ export const useFetchPost = (postId: number) => {
       );
       return handleQueryResponse(response);
     },
-    throwOnError: true,
     retry: 1,
   });
 

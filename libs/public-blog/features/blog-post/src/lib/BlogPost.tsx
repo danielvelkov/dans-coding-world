@@ -70,7 +70,10 @@ const StyledHeader = styled.header`
 
 export function BlogPost({ postId }: { postId: number }) {
   const navigate = useNavigate();
-  const { data, isPending } = useFetchPost(postId);
+  const { data, isPending, isError, error } = useFetchPost(postId);
+
+  if (isError) throw error;
+
   const showLoading = isPending || !data;
 
   const userLoggedIn = false; //TODO
