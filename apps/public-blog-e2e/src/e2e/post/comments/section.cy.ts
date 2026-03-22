@@ -1,5 +1,6 @@
 import { PostFull } from '@dans-coding-world/post-data-access';
 import { Comment, Post, Profile, User } from '@dans-coding-world/prisma-schema';
+import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
 describe('Comments - section', () => {
   let testPosts: Post[];
@@ -81,7 +82,7 @@ describe('Comments - section', () => {
     });
   });
 
-  it('shows total reply count (no matter how nested) in "view replies (n)" button', () => {
+  it('shows total reply count in "view replies (n)" button', () => {
     const randomCommentWithReplies = getRandomRootCommentWithReplies();
     const replyCount = getReplyCountRecursively(randomCommentWithReplies.id);
 
@@ -126,6 +127,35 @@ describe('Comments - section', () => {
     });
   });
 
+  it('should not show replies at max reply depth or deeper', () => {
+    const deeplyNestedComment = testComments.find(
+      (c) => c.depth >= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH
+    );
+
+    if (!deeplyNestedComment) throw new Error('Missing test comment');
+
+    const rootComment = getRootCommentFromReply(deeplyNestedComment);
+    cy.visit(`/blog/${rootComment.postId}`);
+    cy.get(`ul[aria-label="Post comments"]`).within(() => {
+      cy.contains('p', rootComment.content)
+        .closest('li')
+        .within(() => {
+          let count = 1;
+          while (count++ < COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH)
+            cy.contains('button', /View Replies/i).click({ multiple: true });
+        });
+    });
+    cy.contains(deeplyNestedComment.content).should('not.exist');
+  });
+
+  function getRootCommentFromReply(reply: Comment) {
+    const parentComment = testComments.find(
+      (c) => c.id === reply.threadParentId
+    );
+    if (!parentComment) return reply;
+    else return getRootCommentFromReply(parentComment);
+  }
+
   function getRandomPostWithComments() {
     return Cypress._.sample(
       testPosts.filter((p) => testComments.some((c) => c.postId === p.id))
@@ -161,6 +191,12 @@ describe('Comments - section', () => {
 
   function getReplyCountRecursively(commentId: number): number {
     const replies = testComments.filter((c) => c.threadParentId === commentId);
+
+    // Do not include deeply nested comments
+    if (
+      replies.some((c) => c.depth >= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH)
+    )
+      return 0;
 
     let sum = replies.length;
     for (const reply of replies) sum += getReplyCountRecursively(reply.id);

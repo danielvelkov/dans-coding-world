@@ -2,6 +2,7 @@ import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import styled from 'styled-components';
 import Comment from './Comment';
 import React, { useState } from 'react';
+import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
 const StyledCommentList = styled.ul<
   React.ComponentPropsWithoutRef<'ul'> & { $depth: number }
@@ -75,7 +76,15 @@ export function CommentThread({
     [] as number[]
   );
 
-  if (!comments || comments.length === 0) return null;
+  if (
+    !comments ||
+    comments.length === 0 ||
+    (comments &&
+      comments.some(
+        (c) => c.depth >= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH // do not show replies at that depth
+      ))
+  )
+    return null;
 
   return (
     <StyledCommentList
