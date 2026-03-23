@@ -1,0 +1,12 @@
+[
+  {
+    "title": "Post title",
+    "content": "Post content",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  }
+]

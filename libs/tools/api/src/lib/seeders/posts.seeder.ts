@@ -53,7 +53,7 @@ export const seedPosts = async (
 
 const createAndReturnPostsWithId = async (posts: any[]) => {
   if (!posts.length) return [];
-  return await client.$transaction(
-    posts.map((post) => client.post.create({ data: post }))
+  return await client.post.createManyAndReturn(
+    { data: posts }
   );
 };

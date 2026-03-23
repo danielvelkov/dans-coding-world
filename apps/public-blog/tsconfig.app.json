@@ -38,10 +38,10 @@
       "path": "../../libs/shared/post/dtos/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/shared/util/api-types/tsconfig.lib.json"
+      "path": "../../libs/shared/post/testing/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/shared/post/testing/tsconfig.lib.json"
+      "path": "../../libs/public-blog/features/blog-post/tsconfig.lib.json"
     },
     {
       "path": "../../libs/public-blog/features/blog-sidebar/tsconfig.lib.json"
@@ -66,6 +66,15 @@
     },
     {
       "path": "../../libs/tools/public-blog/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/ui/errors/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/ui/common/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/util/api-types/tsconfig.lib.json"
     }
   ]
 }

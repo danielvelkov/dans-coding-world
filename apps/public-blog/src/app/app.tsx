@@ -7,7 +7,10 @@ import Blog from '../routes/blog/Blog';
 import Post from '../routes/blog/Post';
 import { useState } from 'react';
 import { darkTheme, lightTheme } from '@dans-coding-world/public-blog-ui-theme';
+import { NotFound } from '@dans-coding-world/public-blog-ui-errors';
 import { GlobalStyle } from '../styles/global.style.js';
+import { ErrorBoundary } from 'react-error-boundary';
+import { Fallback } from './Fallback';
 
 const StyledApp = styled.div`
   padding: 0 clamp(5vmin, 5vw, 15vmax);
@@ -30,7 +33,7 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       {showDevTools && <ReactQueryDevtools initialIsOpen={false} />}
       <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
-        <GlobalStyle></GlobalStyle>
+        <GlobalStyle />
         <StyledApp>
           <header>
             <nav>
@@ -53,8 +56,16 @@ export function App() {
           <Routes>
             <Route path="blog">
               <Route index element={<Blog />} />
-              <Route path=":postId" element={<Post />} />
+              <Route
+                path=":postId"
+                element={
+                  <ErrorBoundary FallbackComponent={Fallback}>
+                    <Post />
+                  </ErrorBoundary>
+                }
+              />
             </Route>
+            <Route path="*" element={<NotFound />}></Route>
           </Routes>
         </StyledApp>
       </ThemeProvider>

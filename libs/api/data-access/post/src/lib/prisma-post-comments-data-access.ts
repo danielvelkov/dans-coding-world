@@ -88,17 +88,20 @@ export class PrismaPostCommentsDataAccess
   }
 
   private buildPrismaCommentIncludeQuery(depth: number): any {
-    if (depth <= 1)
-      return {
-        include: {
-          replies: true,
-        },
-      };
-    else
-      return {
-        include: {
-          replies: this.buildPrismaCommentIncludeQuery(depth - 1),
-        },
-      };
+    const userInclude = {
+      omit: { password: true, email: true, isBanned: true, role: true },
+      include: { profile: true },
+    };
+
+    if (depth <= 1) {
+      return { include: { user: userInclude } };
+    }
+
+    return {
+      include: {
+        user: userInclude,
+        replies: this.buildPrismaCommentIncludeQuery(depth - 1),
+      },
+    };
   }
 }

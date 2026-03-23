@@ -45,10 +45,7 @@ const createAndReturnReportHistoriesWithId = async (
   reportHistories: Omit<ReportHistory, 'id'>[]
 ) => {
   if (!reportHistories.length) return [];
-  const createdReportHistories = await client.$transaction(
-    reportHistories.map((reportHistory) =>
-      client.reportHistory.create({ data: reportHistory })
-    )
-  );
-  return createdReportHistories.map((u) => ({ ...u }));
+  return await client.reportHistory.createManyAndReturn({
+    data: reportHistories,
+  });
 };

@@ -23,4 +23,5 @@ export const darkTheme: DefaultTheme = {
     soft: 'rgba(224, 82, 82, 0.15)',
     muted: 'rgba(224, 82, 82, 0.08)',
   },
+  shimmer: { base: '#312d50', highlight: '#645c7c' },
 };

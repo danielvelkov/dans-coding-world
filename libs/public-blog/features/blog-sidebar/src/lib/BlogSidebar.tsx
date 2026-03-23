@@ -73,7 +73,7 @@ export function BlogSidebar({
   const hasAnyFilters = hasTags || hasYears;
 
   return (
-    <StyledAside className={className} data-test="sidebar">
+    <StyledAside className={className} data-testid="sidebar">
       {isLoading && <ShimmerFilters />}
 
       {!isLoading && (

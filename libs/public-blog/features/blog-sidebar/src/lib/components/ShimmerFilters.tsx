@@ -11,9 +11,9 @@ const StyledFilters = styled.div<React.ComponentPropsWithoutRef<'div'>>`
   .line {
     background: linear-gradient(
       90deg,
-      ${({ theme }) => theme.background.surface} 0%,
-      ${({ theme }) => theme.background.inverse} 50%,
-      ${({ theme }) => theme.background.surface} 100%
+      ${({ theme }) => theme.shimmer.base} 0%,
+      ${({ theme }) => theme.shimmer.highlight} 50%,
+      ${({ theme }) => theme.shimmer.base} 100%
     );
     background-size: 200% 100%;
     animation: shimmer 2.5s infinite;

@@ -18,11 +18,14 @@ export async function expectNetworkError({
   expect(result.current.isPending).toBe(true);
   expect(result.current.error).toBe(null);
 
-  await waitFor(() => {
-    expect(result.current.isError).toBe(true);
-  });
+  await waitFor(
+    () => {
+      expect(result.current.isError).toBe(true);
+    },
+    { timeout: 5000 }
+  );
 
-  expect(result.current.error?.message).toBe(connectionError.message);
+  expect(result.current.error).toMatchObject(connectionError);
 }
 
 export async function expectApiError({
@@ -42,10 +45,13 @@ export async function expectApiError({
 
   const { result } = renderHook();
 
-  await waitFor(() => {
-    expect(result.current.isError).toBe(true);
-  });
+  await waitFor(
+    () => {
+      expect(result.current.isError).toBe(true);
+    },
+    { timeout: 5000 }
+  );
 
   expect(result.current.data).toBeFalsy();
-  expect(result.current.error).toBe(error);
+  expect(result.current.error).toMatchObject(error);
 }

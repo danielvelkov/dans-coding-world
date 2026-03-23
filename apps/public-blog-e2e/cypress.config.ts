@@ -43,6 +43,19 @@ export default defineConfig({
           });
           return data;
         },
+        async 'db:seed-profiles'(args = {}) {
+          const { profiles, options } = args;
+          const {
+            data: { data },
+          } = await axios.post(
+            `${API_ENDPOINTS.TEST_DATA.PROFILES}`,
+            profiles,
+            {
+              params: options,
+            }
+          );
+          return data;
+        },
         async 'db:seed-posts'(args = {}) {
           const { posts, options } = args;
           const {
@@ -50,6 +63,19 @@ export default defineConfig({
           } = await axios.post(`${API_ENDPOINTS.TEST_DATA.POSTS}`, posts, {
             params: options,
           });
+          return data;
+        },
+        async 'db:seed-comments'(args = {}) {
+          const { comments, options } = args;
+          const {
+            data: { data },
+          } = await axios.post(
+            `${API_ENDPOINTS.TEST_DATA.COMMENTS}`,
+            comments,
+            {
+              params: options,
+            }
+          );
           return data;
         },
         async 'db:seed-tags'(args = {}) {

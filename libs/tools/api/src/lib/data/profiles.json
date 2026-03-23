@@ -1,0 +1,30 @@
+[
+  {
+    "userId": 1,
+    "firstName": "Daniel",
+    "lastName": "Ivanov",
+    "bio": "System administrator with a passion for security, automation, and backend architecture.",
+    "avatarURL": "https://i.pravatar.cc/150?img=12"
+  },
+  {
+    "userId": 2,
+    "firstName": "Mariya",
+    "lastName": "Petrova",
+    "bio": "Community moderator focused on maintaining healthy discussions and improving user experience.",
+    "avatarURL": "https://i.pravatar.cc/150?img=32"
+  },
+  {
+    "userId": 3,
+    "firstName": "Georgi",
+    "lastName": "Dimitrov",
+    "bio": "Casual blogger who enjoys sharing thoughts on tech, gaming, and everyday life.",
+    "avatarURL": "https://i.pravatar.cc/150?img=45"
+  },
+  {
+    "userId": 4,
+    "firstName": "Elena",
+    "lastName": "Stoyanova",
+    "bio": "Author and content creator writing about software development, design, and productivity.",
+    "avatarURL": "https://i.pravatar.cc/150?img=18"
+  }
+]

@@ -23,6 +23,7 @@ declare namespace Cypress {
     selectPostPublicationYearFilter(year: number): void;
     selectPostTagFilter(tagName: string): void;
     selectPostSorting(option: string): void;
+    selectCommentSorting(option: string): void;
   }
 }
 
@@ -31,7 +32,7 @@ Cypress.Commands.add('login', (email, password) => {
   console.log('Custom command example: Login', email, password);
 });
 Cypress.Commands.add('getByTestId', (id) => {
-  return cy.get(`[data-test=${id}]`);
+  return cy.get(`[data-testid=${id}]`);
 });
 
 Cypress.Commands.add('goToPage', (pageNumber: number) => {
@@ -50,6 +51,15 @@ Cypress.Commands.add('clickPrevPage', () => {
 
 Cypress.Commands.add('selectItemsPerPage', (value) => {
   cy.contains('label', /items per page/i)
+    .invoke('attr', 'for')
+    .then((id) => {
+      cy.get(`#${id}`).click();
+    });
+  cy.contains('[class*="option"]', value).click();
+});
+
+Cypress.Commands.add('selectCommentSorting', (value) => {
+  cy.contains('label', /sort comments/i)
     .invoke('attr', 'for')
     .then((id) => {
       cy.get(`#${id}`).click();

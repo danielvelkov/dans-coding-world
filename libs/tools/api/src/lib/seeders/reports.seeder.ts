@@ -41,8 +41,5 @@ export const seedReports = async (
 
 const createAndReturnReportsWithId = async (reports: Omit<Report, 'id'>[]) => {
   if (!reports.length) return [];
-  const createdReports = await client.$transaction(
-    reports.map((report) => client.report.create({ data: report }))
-  );
-  return createdReports.map((u) => ({ ...u }));
+  return await client.report.createManyAndReturn({ data: reports });
 };

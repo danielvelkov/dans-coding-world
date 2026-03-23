@@ -10,10 +10,11 @@ A basic blog full stack app with an express backend and two React front ends:
 
 This is a monorepo containing:
 
-Backend: REST API built with Express
-Frontend 1 - Public Blog: Web app built with React
-Frontend 2 - Blog Editor: Web app built with React
-Database: PostgreSQL
+- Backend: REST API built with Express
+- Frontend 1 - Public Blog: Web app built with React
+- Frontend 2 - Blog Editor: Web app built with React
+
+- Database: PostgreSQL
 
 ## Data-model
 
@@ -41,7 +42,7 @@ Database: PostgreSQL
     - create/edit/delete own comments
     - issue reports on comments
 
-- Profile - each user has 1 profile. Profile is not required user to register
+- Profile - each user has 1 profile. Profile is not required for user to register
 
 - RefreshToken - used in JWT authentication
 

@@ -65,7 +65,7 @@ describe('Blog - pagination', () => {
 
     before(() => {
       cy.task('db:seed-users');
-      cy.fixture('posts-pagination-template.json')
+      cy.fixture('blog/pagination-template.json')
         .then((postsTemplate) => {
           const numOfTestPosts = randNumber({ min: 30, max: 50 });
 
@@ -186,6 +186,7 @@ describe('Blog - pagination', () => {
           cy.get('article').should('have.length', pageSize);
         }
       });
+
       it('displays correct number of pagination buttons', () => {
         for (const pageSize of PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS) {
           cy.selectItemsPerPage(pageSize);
@@ -199,6 +200,7 @@ describe('Blog - pagination', () => {
             .should('have.length', expectedPages + 1);
         }
       });
+
       it('shows correct results when navigating to random pages', () => {
         for (const pageSize of PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS) {
           cy.selectItemsPerPage(pageSize);

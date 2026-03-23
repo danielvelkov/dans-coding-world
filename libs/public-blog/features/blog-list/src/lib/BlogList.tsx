@@ -50,7 +50,7 @@ const StyledFilterBar = styled.div`
   }
 `;
 
-const StyledBlogListFeature = styled.div<React.ComponentPropsWithoutRef<'div'>>`
+const StyledBlogList = styled.div<React.ComponentPropsWithoutRef<'div'>>`
   padding: 1em;
   min-height: 80vh;
 
@@ -130,7 +130,7 @@ export function BlogList({
   const showLoading = isPending || isLoading || !data;
 
   return (
-    <StyledBlogListFeature className={className}>
+    <StyledBlogList className={className}>
       <StyledFilterBar>
         <PostSortingDropdown
           className="filter-col"
@@ -200,7 +200,7 @@ export function BlogList({
           )}
         </main>
       )}
-    </StyledBlogListFeature>
+    </StyledBlogList>
   );
 }
 

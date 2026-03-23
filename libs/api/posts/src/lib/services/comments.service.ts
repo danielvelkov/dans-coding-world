@@ -250,7 +250,7 @@ export class CommentsService implements ICommentsService {
     });
     return sum;
   }
-  
+
   private setReplyCountRecursively(
     comment: CommentWithReplies
   ): CommentWithReplies {

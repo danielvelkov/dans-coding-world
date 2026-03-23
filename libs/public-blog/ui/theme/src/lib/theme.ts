@@ -21,4 +21,5 @@ export interface Theme {
     soft: string;
     muted: string;
   };
+  shimmer: { base: string; highlight: string };
 }

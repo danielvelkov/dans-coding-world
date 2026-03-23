@@ -1,13 +1,11 @@
 import styled from 'styled-components';
 import { randParagraph } from '@ngneat/falso';
 import { BlogPostItem } from '../types/post-item-data.type';
-import {
-  formatDateTo_DD_MMM_YYYY,
-  getExcerpt,
-} from '../util/post-content.util';
+import { getExcerpt } from '../util/post-content.util';
+import { formatDateTo_DD_MMM_YYYY } from '@dans-coding-world/helpers';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Tag } from '@dans-coding-world/public-blog-ui-common';
+import { Tag, UserAvatar } from '@dans-coding-world/public-blog-ui-common';
 
 const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   padding: 0.5em 1em;
@@ -27,7 +25,7 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   .author {
     gap: 0.8em;
     color: ${({ theme }) => theme.text.secondary};
-    font-size: small;
+    font-size: 0.9em;
   }
 
   .tag-list {
@@ -48,6 +46,7 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
 
   .author-name:hover {
     color: ${({ theme }) => theme.accent.hover};
+    text-decoration: underline;
   }
 
   .image-container {
@@ -145,6 +144,9 @@ export function PostItem({
     new Date(postData.updatedAt)
   );
 
+  const showUpdatedDate =
+    new Date(postData.publishedAt) < new Date(postData.updatedAt);
+
   return (
     <StyledListItem>
       <article className="post" aria-label={`Blog post: ${post.title}`}>
@@ -155,35 +157,31 @@ export function PostItem({
             <Link to={`/blog/${post.id}`}>{post.title}</Link>
           )}
         </h2>
+
         <div className="details">
           <Link
             className="author"
             to={`/users/${post.author.id}`}
             aria-label={`View profile of ${authorName}`}
           >
-            <div className="image-container">
-              {author.profile && author.profile.avatarURL ? (
-                <img
-                  src={author.profile.avatarURL}
-                  alt={`${authorName}'s avatar`}
-                />
-              ) : (
-                <i
-                  className="fa fa-regular fa-user"
-                  aria-label="Default user avatar"
-                ></i>
-              )}
-            </div>
+            <UserAvatar
+              avatarURL={post.author.profile?.avatarURL}
+              name={authorName}
+              size="S"
+            />
             <span className="author-name">
               {`By `}
               <em>{authorName}</em>
             </span>
           </Link>
+
           {' • '}
+
           <time dateTime={new Date(postData.publishedAt).toISOString()}>
             {`Posted on ${formattedPublishedDate}`}
           </time>
-          {formattedPublishedDate !== formattedUpdatedDate ? (
+
+          {showUpdatedDate ? (
             <>
               {' • '}
               <time dateTime={new Date(postData.updatedAt).toISOString()}>
@@ -193,6 +191,7 @@ export function PostItem({
           ) : (
             ''
           )}
+
           <div className="tag-list" role="group" aria-label="Post tags">
             {postData.tags &&
               postData.tags.map((tagName) => {
@@ -208,6 +207,7 @@ export function PostItem({
               })}
           </div>
         </div>
+
         {isLocked ? (
           <div className="locked-container">
             <p className="blurred-text" aria-hidden="true">

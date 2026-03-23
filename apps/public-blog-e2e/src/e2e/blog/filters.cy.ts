@@ -7,7 +7,7 @@ describe('Blog - filters', () => {
   before(() => {
     cy.task('db:seed-users');
 
-    cy.fixture('posts-filters-dataset.json').then((fixturePosts) => {
+    cy.fixture('blog/filters-dataset.json').then((fixturePosts) => {
       const postsWithoutTags = fixturePosts.map(
         ({ tags, ...rest }: { tags: string[] }) => rest
       );
