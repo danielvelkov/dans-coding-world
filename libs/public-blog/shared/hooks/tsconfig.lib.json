@@ -44,9 +44,6 @@
       "path": "../../../shared/post/testing/tsconfig.lib.json"
     },
     {
-      "path": "../../../shared/util/shared-constants/tsconfig.lib.json"
-    },
-    {
       "path": "../../../prisma-schema/tsconfig.lib.json"
     },
     {
@@ -63,6 +60,9 @@
     },
     {
       "path": "../../../shared/data-access/api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/shared-constants/tsconfig.lib.json"
     },
     {
       "path": "../../../shared/util/api-types/tsconfig.lib.json"
