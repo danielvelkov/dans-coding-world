@@ -6,3 +6,4 @@ export * from './lib/comments-response-generator.js';
 export * from './lib/post-tags-generator.js';
 export * from './lib/tags-response-generator.js';
 export * from './lib/post-metadata-response-generator.js';
+export * from './lib/util/createMockQueryResult.js';

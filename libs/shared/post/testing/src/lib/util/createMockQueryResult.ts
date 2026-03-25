@@ -10,5 +10,3 @@ export function createMockQueryResult<T>(
     ...overrides,
   } as UseQueryResult<T>;
 }
-
-export default createMockQueryResult;
