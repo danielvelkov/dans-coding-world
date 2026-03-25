@@ -28,14 +28,25 @@ export function useAuth() {
     },
   });
 
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.post<BaseResponse>(API_ENDPOINTS.AUTH.LOGOUT);
+      return handleQueryResponse(response);
+    },
+    onSuccess: () => {
+      setUser(null);
+    },
+  });
+
   return {
     user,
     isAuthenticated: !!user,
 
     login: loginMutation.mutate,
+    logout: logoutMutation.mutate,
 
-    isLoading: loginMutation.isPending,
-    error: loginMutation.error,
+    isLoading: loginMutation.isPending || logoutMutation.isPending,
+    error: loginMutation.error || logoutMutation.error,
   };
 }
 
