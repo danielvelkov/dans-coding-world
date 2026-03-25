@@ -63,6 +63,7 @@ app.use(
 
 app.use(
   cors({
+    // TODO: specify frontends' origins from .env
     // origin: 'http://localhost:3000', // allow only requests from that origin (*PORT is also part of origin)
     origin: true, // allow requests from everywhere
     credentials: true,

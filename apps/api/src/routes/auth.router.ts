@@ -134,16 +134,8 @@ export default authRouter;
  *   post:
  *     tags: [Authentication]
  *     summary: Refresh access and refresh tokens
- *     description: Validates provided refresh token, then returns user data with newly provided access and refresh tokens set in "Set-Cookie" header.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RefreshTokenDTO'
- *         application/x-www-form-urlencoded:
- *           schema:
- *             $ref: '#/components/schemas/RefreshTokenDTO'
+ *     description: Validates provided refresh token defined in http-only "Set-Cookie" header.
+ *          If valid, returns user data with newly provided access and refresh tokens set in "Set-Cookie" header.
  *     responses:
  *       200:
  *         description: Token refresh successful
@@ -479,17 +471,6 @@ export default authRouter;
  *         email: user_123@gmail.com
  *         username: username132
  *         password: Password_123
- *
- *     RefreshTokenDTO:
- *       type: object
- *       required:
- *         - token
- *       properties:
- *         token:
- *           type: string
- *           description: User's refresh token
- *       example:
- *         token: 03j1fj391i90vi90n10n39n1v...
  *
  *     LoginSuccessData:
  *       type: object

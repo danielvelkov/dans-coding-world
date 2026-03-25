@@ -4,6 +4,7 @@ import {
 } from '@dans-coding-world/shared-data-access-api';
 import { AxiosResponse } from 'axios';
 import { decode, JwtPayload } from 'jsonwebtoken';
+import { REFRESH_TOKEN_COOKIE } from '@dans-coding-world/shared-constants';
 
 export function createAuthRouteHelper(client: ApiClient) {
   return {
@@ -45,14 +46,18 @@ export function createAuthRouteHelper(client: ApiClient) {
     },
 
     renewAuthToken(token: string) {
-      const urlSearchParams = new URLSearchParams();
-      urlSearchParams.append('token', token);
-
-      return client.post(API_ENDPOINTS.AUTH.REFRESH, urlSearchParams, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
+      if (token)
+        return client.post(
+          API_ENDPOINTS.AUTH.REFRESH,
+          {},
+          {
+            headers: {
+              Cookie: `${REFRESH_TOKEN_COOKIE}=${token}`,
+            },
+            withCredentials: true,
+          }
+        );
+      return client.post(API_ENDPOINTS.AUTH.REFRESH);
     },
 
     revokeToken(token: string) {

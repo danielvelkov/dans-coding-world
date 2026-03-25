@@ -101,8 +101,9 @@ export class AuthController {
   // Refresh route for generating new access/refresh token pair
   refresh = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE];
       const refreshDto: RefreshTokenDto = {
-        ...req.body,
+        token: refreshToken,
       };
 
       const result = await this.authService.refreshToken(refreshDto);
