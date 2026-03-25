@@ -13,6 +13,13 @@ import { waitFor } from '@testing-library/dom';
 vi.mock('@dans-coding-world/shared-data-access-api');
 
 describe('useAuth', () => {
+  const testUser = {
+    id: 1,
+    email: 'Bingo@mail.com',
+    username: 'Bingo',
+    isBanned: false,
+    role: 'ADMIN',
+  };
   const renderUseAuthHook = () => renderReactQueryHook(useAuth);
 
   beforeEach(() => {
@@ -28,14 +35,6 @@ describe('useAuth', () => {
 
   describe('login()', () => {
     describe('on successful login', () => {
-      const testUser = {
-        id: 1,
-        email: 'Bingo@mail.com',
-        username: 'Bingo',
-        isBanned: false,
-        role: 'ADMIN',
-      };
-
       beforeEach(() => {
         vi.mocked(api.post).mockResolvedValue({
           error: null,
@@ -150,6 +149,73 @@ describe('useAuth', () => {
 
         expect(result.current.user).toBeFalsy();
         expect(result.current.isAuthenticated).toBe(false);
+      });
+    });
+  });
+
+  describe('logout()', () => {
+    it.todo('clear refresh interval');
+
+    describe('on successful logout', () => {
+      beforeEach(() => {
+        vi.mocked(api.post).mockResolvedValueOnce({
+          error: null,
+          success: true,
+          data: {
+            user: testUser,
+          },
+        });
+        vi.mocked(api.post).mockResolvedValueOnce({
+          error: null,
+          success: true,
+          data: {
+            message: 'Logged out',
+          },
+        });
+      });
+
+      it('sets user to null and "isAuthenticated" to false', async () => {
+        const { result } = renderUseAuthHook();
+        await act(async () => {
+          result.current.login({
+            email: testUser.email,
+            password: 'bongo',
+          });
+        });
+
+        expect(result.current.user).toMatchObject(testUser);
+        result.current.logout();
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBeFalsy();
+        });
+        expect(result.current.user).toBeFalsy();
+        expect(result.current.isAuthenticated).toBe(false);
+      });
+    });
+
+    describe('on unsuccessful logout', () => {
+      const mockError: ResponseErrorDetails = {
+        status: ERROR_HTTP_STATUS[ERROR_CODES.AUTH.UNAUTHORIZED],
+        errorCode: ERROR_CODES.AUTH.UNAUTHORIZED,
+        message: ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED],
+      };
+      beforeEach(() => {
+        vi.mocked(api.post).mockResolvedValueOnce({
+          error: mockError,
+          success: false,
+          data: null,
+        });
+      });
+
+      it('sets error field to the api error', async () => {
+        const { result } = renderUseAuthHook();
+        result.current.logout();
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBeFalsy();
+        });
+        expect(result.current.error).toMatchObject(mockError);
       });
     });
   });
