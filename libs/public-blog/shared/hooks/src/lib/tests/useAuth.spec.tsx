@@ -7,8 +7,10 @@ import {
   ERROR_CODES,
   ERROR_HTTP_STATUS,
   ERROR_MESSAGES,
+  TOKEN_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
 import { waitFor } from '@testing-library/dom';
+import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 
@@ -24,6 +26,10 @@ describe('useAuth', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('returns no user and "isAuthenticated" equal to false by default', () => {
@@ -101,6 +107,29 @@ describe('useAuth', () => {
         expect(result.current.isAuthenticated).toBe(true);
         expect(result.current.user).toMatchObject(otherUser);
       });
+
+      it('sets up a refresh interval according to access token expiration', async () => {
+        vi.useFakeTimers();
+
+        const { result } = renderUseAuthHook();
+
+        const apiSpy = vi.spyOn(api, 'post');
+
+        await act(async () => {
+          result.current.login({
+            email: testUser.email,
+            password: 'bongo',
+          });
+        });
+        expect(result.current.isAuthenticated).toBe(true);
+
+        await act(async () => {
+          vi.advanceTimersByTime(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION + 1);
+        });
+
+        expect(apiSpy).toHaveBeenCalledWith(API_ENDPOINTS.AUTH.REFRESH);
+        vi.useRealTimers();
+      });
     });
 
     describe('on unsuccessful login', () => {
@@ -150,12 +179,32 @@ describe('useAuth', () => {
         expect(result.current.user).toBeFalsy();
         expect(result.current.isAuthenticated).toBe(false);
       });
+
+      it('does not setup interval for refreshing token', async () => {
+        vi.useFakeTimers();
+
+        const { result } = renderUseAuthHook();
+
+        const apiSpy = vi.spyOn(api, 'post');
+
+        await act(async () => {
+          result.current.login({
+            email: 'bonger@email.com',
+            password: 'bonger',
+          });
+        });
+
+        await act(async () => {
+          vi.advanceTimersByTime(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 2);
+        });
+
+        expect(apiSpy).not.toHaveBeenCalledWith(API_ENDPOINTS.AUTH.REFRESH);
+        vi.useRealTimers();
+      });
     });
   });
 
   describe('logout()', () => {
-    it.todo('clear refresh interval');
-
     describe('on successful logout', () => {
       beforeEach(() => {
         vi.mocked(api.post).mockResolvedValueOnce({
@@ -173,7 +222,6 @@ describe('useAuth', () => {
           },
         });
       });
-
       it('sets user to null and "isAuthenticated" to false', async () => {
         const { result } = renderUseAuthHook();
         await act(async () => {
@@ -217,6 +265,47 @@ describe('useAuth', () => {
         });
         expect(result.current.error).toMatchObject(mockError);
       });
+    });
+
+    it(`clears set interval for the refreshing of the user's token`, async () => {
+      vi.mocked(api.post).mockResolvedValueOnce({
+        error: null,
+        success: true,
+        data: {
+          user: testUser,
+        },
+      });
+      vi.mocked(api.post).mockResolvedValueOnce({
+        error: null,
+        success: true,
+        data: {
+          message: 'Logged out',
+        },
+      });
+      vi.useFakeTimers();
+      const apiSpy = vi.spyOn(api, 'post');
+
+      const { result } = renderUseAuthHook();
+
+      await act(async () => {
+        result.current.login({
+          email: testUser.email,
+          password: 'bongo',
+        });
+      });
+
+      expect(result.current.user).toMatchObject(testUser);
+
+      await act(async () => {
+        result.current.logout();
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTime(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 2);
+      });
+
+      expect(apiSpy).not.toHaveBeenCalledWith(API_ENDPOINTS.AUTH.REFRESH);
+      vi.useRealTimers();
     });
   });
 });
