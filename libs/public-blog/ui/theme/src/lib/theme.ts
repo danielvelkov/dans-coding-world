@@ -3,12 +3,14 @@ export interface Theme {
     primary: string;
     secondary: string;
     muted: string;
+    error: string;
   };
   background: {
     base: string;
     surface: string;
     elevated: string;
     inverse: string;
+    error: string;
   };
   border: {
     primary: string;
