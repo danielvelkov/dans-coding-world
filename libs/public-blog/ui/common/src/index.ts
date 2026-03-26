@@ -6,3 +6,4 @@ export * from './lib/components/Button';
 export * from './lib/components/UserAvatar';
 export * from './lib/components/Modal';
 export * from './lib/components/Input';
+export * from './lib/components/LoadingSpinner';
