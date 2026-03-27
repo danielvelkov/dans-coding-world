@@ -22,7 +22,7 @@ describe('useAuthState', () => {
     isBanned: false,
     role: 'ADMIN',
   };
-  const renderUseAuthHook = () => renderReactQueryHook(useAuthState);
+  const renderUseAuthStateHook = () => renderReactQueryHook(useAuthState);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -33,7 +33,7 @@ describe('useAuthState', () => {
   });
 
   it('returns no user and "isAuthenticated" equal to false by default', () => {
-    const { result } = renderUseAuthHook();
+    const { result } = renderUseAuthStateHook();
 
     expect(result.current.user).toBeFalsy();
     expect(result.current.isAuthenticated).toBe(false);
@@ -52,7 +52,7 @@ describe('useAuthState', () => {
       });
 
       it('sets "user" field to currently logged in user (without his password)', async () => {
-        const { result } = renderUseAuthHook();
+        const { result } = renderUseAuthStateHook();
         await act(async () => {
           result.current.login({
             email: testUser.email,
@@ -65,7 +65,7 @@ describe('useAuthState', () => {
       });
 
       it('sets "isAuthenticated" field to true', async () => {
-        const { result } = renderUseAuthHook();
+        const { result } = renderUseAuthStateHook();
         await act(async () => {
           result.current.login({
             email: testUser.email,
@@ -81,7 +81,7 @@ describe('useAuthState', () => {
           username: 'Bongo',
           email: 'Bongo@email.com',
         };
-        const { result } = renderUseAuthHook();
+        const { result } = renderUseAuthStateHook();
         await act(async () => {
           result.current.login({
             email: testUser.email,
@@ -111,7 +111,7 @@ describe('useAuthState', () => {
       it('sets up a refresh interval according to access token expiration', async () => {
         vi.useFakeTimers();
 
-        const { result } = renderUseAuthHook();
+        const { result } = renderUseAuthStateHook();
 
         const apiSpy = vi.spyOn(api, 'post');
 
@@ -148,7 +148,7 @@ describe('useAuthState', () => {
       });
 
       it('sets "error" field to the api error response', async () => {
-        const { result } = renderUseAuthHook();
+        const { result } = renderUseAuthStateHook();
         await act(async () => {
           result.current.login({
             email: 'bonger@email.com',
@@ -164,7 +164,7 @@ describe('useAuthState', () => {
       });
 
       it('sets "user" field to be empty, and "isAuthenticated" to false', async () => {
-        const { result } = renderUseAuthHook();
+        const { result } = renderUseAuthStateHook();
         await act(async () => {
           result.current.login({
             email: 'bonger@email.com',
@@ -183,7 +183,7 @@ describe('useAuthState', () => {
       it('does not setup interval for refreshing token', async () => {
         vi.useFakeTimers();
 
-        const { result } = renderUseAuthHook();
+        const { result } = renderUseAuthStateHook();
 
         const apiSpy = vi.spyOn(api, 'post');
 
@@ -223,7 +223,7 @@ describe('useAuthState', () => {
         });
       });
       it('sets user to null and "isAuthenticated" to false', async () => {
-        const { result } = renderUseAuthHook();
+        const { result } = renderUseAuthStateHook();
         await act(async () => {
           result.current.login({
             email: testUser.email,
@@ -257,7 +257,7 @@ describe('useAuthState', () => {
       });
 
       it('sets error field to the api error', async () => {
-        const { result } = renderUseAuthHook();
+        const { result } = renderUseAuthStateHook();
         result.current.logout();
 
         await waitFor(() => {
@@ -285,7 +285,7 @@ describe('useAuthState', () => {
       vi.useFakeTimers();
       const apiSpy = vi.spyOn(api, 'post');
 
-      const { result } = renderUseAuthHook();
+      const { result } = renderUseAuthStateHook();
 
       await act(async () => {
         result.current.login({
