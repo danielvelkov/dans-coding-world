@@ -1,5 +1,5 @@
 import { renderReactQueryHook } from './helper/render-react-query-hook';
-import useAuth from '../users/useAuth.js';
+import { useAuthState } from '../users/useAuthState.js';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { act } from 'react';
 import { ResponseErrorDetails } from '@dans-coding-world/api-types';
@@ -14,7 +14,7 @@ import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 
-describe('useAuth', () => {
+describe('useAuthState', () => {
   const testUser = {
     id: 1,
     email: 'Bingo@mail.com',
@@ -22,7 +22,7 @@ describe('useAuth', () => {
     isBanned: false,
     role: 'ADMIN',
   };
-  const renderUseAuthHook = () => renderReactQueryHook(useAuth);
+  const renderUseAuthHook = () => renderReactQueryHook(useAuthState);
 
   beforeEach(() => {
     vi.clearAllMocks();
