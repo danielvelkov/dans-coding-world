@@ -110,6 +110,9 @@
     },
     {
       "path": "./libs/public-blog/ui/errors"
+    },
+    {
+      "path": "./libs/public-blog/features/user-login"
     }
   ]
 }
