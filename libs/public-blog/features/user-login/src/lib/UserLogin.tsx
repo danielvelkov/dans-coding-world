@@ -5,7 +5,7 @@ import {
   LoadingSpinner,
 } from '@dans-coding-world/public-blog-ui-common';
 import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getLoginValidationErrors } from './helper/login-validation';
 
@@ -81,12 +81,14 @@ export function UserLogin() {
   const { login, isAuthenticated, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
-  if (isAuthenticated) navigate('/blog');
+  useEffect(() => {
+    if (isAuthenticated) navigate('/blog');
+  }, [isAuthenticated, navigate]);
 
-  // const [email, setEmail] = useState('admin123@gmail.com'); // For quicker testing
-  // const [password, setPassword] = useState('Admin123@');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin123@gmail.com'); // For quicker testing
+  const [password, setPassword] = useState('Admin123@');
+  // const [email, setEmail] = useState('');
+  // const [password, setPassword] = useState('');
 
   const [emailError, passwordError] = getLoginValidationErrors(error);
 
