@@ -7,8 +7,7 @@ import {
 import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { isErrorDetailsResponse } from '@dans-coding-world/api-types';
-import { getValidationErrorDetails } from '@dans-coding-world/validation';
+import { getLoginValidationErrors } from './helper/login-validation';
 
 const StyledButton = styled(Button)`
   display: flex;
@@ -92,7 +91,7 @@ export function UserLogin() {
   const [emailError, passwordError] = getLoginValidationErrors(error);
 
   const handleFormSubmit = () => {
-    if (email && password) login({ email: email, password });
+    if (email && password) login({ email, password });
   };
 
   return (
@@ -113,6 +112,7 @@ export function UserLogin() {
           value={email}
           onChange={(e) => setEmail((e.target as any).value)}
           $isValid={!emailError}
+          placeholder="john.doe@mail.com"
         ></StyledInput>
         {emailError && (
           <StyledError>
@@ -153,36 +153,5 @@ export function UserLogin() {
     </StyledUserLoginForm>
   );
 }
-
-const getLoginValidationErrors = (
-  error: unknown
-): [emailValidationError?: string, passwordValidationError?: string] => {
-  let emailError, passwordError;
-
-  if (!isErrorDetailsResponse(error)) {
-    return [emailError, passwordError];
-  }
-
-  const validationDetails = getValidationErrorDetails(error);
-
-  const emailValidationErrorDetail = validationDetails.find(
-    (e) => e.field === 'email'
-  );
-  const passwordValidationErrorDetail = validationDetails.find(
-    (e) => e.field === 'password'
-  );
-
-  if (emailValidationErrorDetail)
-    emailError = Object.values(emailValidationErrorDetail.constraints).join(
-      '\n'
-    );
-
-  if (passwordValidationErrorDetail)
-    passwordError = Object.values(
-      passwordValidationErrorDetail.constraints
-    ).join('\n');
-
-  return [emailError, passwordError];
-};
 
 export default UserLogin;
