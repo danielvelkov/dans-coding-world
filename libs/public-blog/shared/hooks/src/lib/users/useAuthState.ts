@@ -1,6 +1,6 @@
 import { User } from '@dans-coding-world/prisma-schema';
 import { noop, useMutation } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { handleQueryResponse } from '../helper/handle-query-response';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
@@ -29,8 +29,6 @@ export function useAuthState() {
       if (data) setUser(data.user);
     },
     onError: (error) => {
-      console.log('Could not refresh user session');
-      console.log(error);
       setUser(null);
       if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current);
     },
@@ -68,6 +66,13 @@ export function useAuthState() {
       if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current);
     },
   });
+
+  // Try to refresh on mount:
+  // If access token cookie is present,
+  // user will not have to login again on refresh or tab change
+  useEffect(() => {
+    refreshMutateRef.current();
+  }, []);
 
   return {
     user,
