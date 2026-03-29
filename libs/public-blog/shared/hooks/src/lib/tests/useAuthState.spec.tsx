@@ -26,10 +26,38 @@ describe('useAuthState', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(api.post).mockRejectedValueOnce({
+      error: {
+        status: ERROR_HTTP_STATUS[ERROR_CODES.AUTH.INVALID_TOKEN],
+        errorCode: ERROR_CODES.AUTH.INVALID_TOKEN,
+        message: ERROR_MESSAGES[ERROR_CODES.AUTH.INVALID_TOKEN],
+      },
+      success: false,
+      data: null,
+    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('sets user and "isAuthenticated" to true on mount if refresh response is valid', async () => {
+    // clear the rejected once just for this test
+    vi.mocked(api.post).mockReset();
+    vi.mocked(api.post).mockResolvedValueOnce({
+      error: null,
+      success: true,
+      data: { user: testUser },
+    });
+
+    const result = await renderAndAwaitEffects();
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(API_ENDPOINTS.AUTH.REFRESH);
+    });
+
+    expect(result.current.user).toBe(testUser);
+    expect(result.current.isAuthenticated).toBe(true);
   });
 
   it('returns no user and "isAuthenticated" equal to false by default', () => {
@@ -42,7 +70,7 @@ describe('useAuthState', () => {
   describe('login()', () => {
     describe('on successful login', () => {
       beforeEach(() => {
-        vi.mocked(api.post).mockResolvedValue({
+        vi.mocked(api.post).mockResolvedValueOnce({
           error: null,
           success: true,
           data: {
@@ -52,26 +80,18 @@ describe('useAuthState', () => {
       });
 
       it('sets "user" field to currently logged in user (without his password)', async () => {
-        const { result } = renderUseAuthStateHook();
-        await act(async () => {
-          result.current.login({
-            email: testUser.email,
-            password: 'bongo',
-          });
-        });
+        const result = await renderAndAwaitEffects();
+
+        await loginAs(result);
 
         expect(result.current.user).toMatchObject(testUser);
         expect((result.current.user as any).password).toBeUndefined();
       });
 
       it('sets "isAuthenticated" field to true', async () => {
-        const { result } = renderUseAuthStateHook();
-        await act(async () => {
-          result.current.login({
-            email: testUser.email,
-            password: 'bongo',
-          });
-        });
+        const result = await renderAndAwaitEffects();
+
+        await loginAs(result);
         expect(result.current.isAuthenticated).toBe(true);
       });
 
@@ -81,15 +101,12 @@ describe('useAuthState', () => {
           username: 'Bongo',
           email: 'Bongo@email.com',
         };
-        const { result } = renderUseAuthStateHook();
-        await act(async () => {
-          result.current.login({
-            email: testUser.email,
-            password: 'bongo',
-          });
-        });
+        const result = await renderAndAwaitEffects();
+
+        await loginAs(result);
+
         expect(result.current.isAuthenticated).toBe(true);
-        vi.mocked(api.post).mockResolvedValue({
+        vi.mocked(api.post).mockResolvedValueOnce({
           error: null,
           success: true,
           data: {
@@ -97,12 +114,7 @@ describe('useAuthState', () => {
           },
         });
 
-        await act(async () => {
-          result.current.login({
-            email: otherUser.email,
-            password: 'bongo',
-          });
-        });
+        await loginAs(result, otherUser);
 
         expect(result.current.isAuthenticated).toBe(true);
         expect(result.current.user).toMatchObject(otherUser);
@@ -111,16 +123,12 @@ describe('useAuthState', () => {
       it('sets up a refresh interval according to access token expiration', async () => {
         vi.useFakeTimers();
 
-        const { result } = renderUseAuthStateHook();
+        const result = await renderAndAwaitEffects();
 
         const apiSpy = vi.spyOn(api, 'post');
 
-        await act(async () => {
-          result.current.login({
-            email: testUser.email,
-            password: 'bongo',
-          });
-        });
+        await loginAs(result);
+
         expect(result.current.isAuthenticated).toBe(true);
 
         await act(async () => {
@@ -148,13 +156,8 @@ describe('useAuthState', () => {
       });
 
       it('sets "error" field to the api error response', async () => {
-        const { result } = renderUseAuthStateHook();
-        await act(async () => {
-          result.current.login({
-            email: 'bonger@email.com',
-            password: 'bonger',
-          });
-        });
+        const result = await renderAndAwaitEffects();
+        await loginAs(result);
 
         await waitFor(() => {
           expect(result.current.error).toMatchObject(mockError);
@@ -164,13 +167,8 @@ describe('useAuthState', () => {
       });
 
       it('sets "user" field to be empty, and "isAuthenticated" to false', async () => {
-        const { result } = renderUseAuthStateHook();
-        await act(async () => {
-          result.current.login({
-            email: 'bonger@email.com',
-            password: 'bonger',
-          });
-        });
+        const result = await renderAndAwaitEffects();
+        await loginAs(result);
 
         await waitFor(() => {
           expect(result.current.error).toMatchObject(mockError);
@@ -182,23 +180,17 @@ describe('useAuthState', () => {
 
       it('does not setup interval for refreshing token', async () => {
         vi.useFakeTimers();
-
-        const { result } = renderUseAuthStateHook();
-
         const apiSpy = vi.spyOn(api, 'post');
 
-        await act(async () => {
-          result.current.login({
-            email: 'bonger@email.com',
-            password: 'bonger',
-          });
-        });
+        const result = await renderAndAwaitEffects();
+
+        await loginAs(result);
 
         await act(async () => {
           vi.advanceTimersByTime(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 2);
         });
 
-        expect(apiSpy).not.toHaveBeenCalledWith(API_ENDPOINTS.AUTH.REFRESH);
+        expect(apiSpy).not.toHaveBeenLastCalledWith(API_ENDPOINTS.AUTH.REFRESH);
         vi.useRealTimers();
       });
     });
@@ -223,13 +215,9 @@ describe('useAuthState', () => {
         });
       });
       it('sets user to null and "isAuthenticated" to false', async () => {
-        const { result } = renderUseAuthStateHook();
-        await act(async () => {
-          result.current.login({
-            email: testUser.email,
-            password: 'bongo',
-          });
-        });
+        const result = await renderAndAwaitEffects();
+
+        await loginAs(result);
 
         expect(result.current.user).toMatchObject(testUser);
         result.current.logout();
@@ -257,7 +245,7 @@ describe('useAuthState', () => {
       });
 
       it('sets error field to the api error', async () => {
-        const { result } = renderUseAuthStateHook();
+        const result = await renderAndAwaitEffects();
         result.current.logout();
 
         await waitFor(() => {
@@ -285,14 +273,9 @@ describe('useAuthState', () => {
       vi.useFakeTimers();
       const apiSpy = vi.spyOn(api, 'post');
 
-      const { result } = renderUseAuthStateHook();
+      const result = await renderAndAwaitEffects();
 
-      await act(async () => {
-        result.current.login({
-          email: testUser.email,
-          password: 'bongo',
-        });
-      });
+      await loginAs(result);
 
       expect(result.current.user).toMatchObject(testUser);
 
@@ -304,8 +287,25 @@ describe('useAuthState', () => {
         vi.advanceTimersByTime(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 2);
       });
 
-      expect(apiSpy).not.toHaveBeenCalledWith(API_ENDPOINTS.AUTH.REFRESH);
+      expect(apiSpy).not.toHaveBeenLastCalledWith(API_ENDPOINTS.AUTH.REFRESH);
       vi.useRealTimers();
     });
   });
+
+  async function loginAs(result: any, user = testUser) {
+    await act(async () => {
+      result.current.login({ email: user.email, password: 'bongo' });
+    });
+  }
+
+  /**
+   * Render useAuthState hook and wait out useEffect hooks with act()
+   * @returns Hook result
+   */
+  async function renderAndAwaitEffects() {
+    return await act(async () => {
+      const { result } = renderUseAuthStateHook();
+      return result;
+    });
+  }
 });
