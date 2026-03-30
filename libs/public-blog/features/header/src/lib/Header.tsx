@@ -12,13 +12,14 @@ const StyledHeader = styled.header`
   align-items: center;
   margin: 1em 0em;
   padding: 1em 0em;
-  gap: 1em;
 
   @media screen and (max-width: 660px) {
     flex-wrap: wrap;
   }
 
   ul {
+    margin: 0;
+    padding: 0;
     list-style: none;
     display: flex;
     gap: 2em;
@@ -43,7 +44,7 @@ const StyledSiteLogo = styled(Link)`
 const StyledButton = styled(Button)`
   padding: 5px 8px;
   margin: 0;
-  border-radius: 20px;
+  border-radius: 10px;
   color: ${({ theme }) => theme.text.primary};
 `;
 

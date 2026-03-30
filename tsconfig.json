@@ -113,6 +113,9 @@
     },
     {
       "path": "./libs/public-blog/features/user-login"
+    },
+    {
+      "path": "./libs/public-blog/features/header"
     }
   ]
 }
