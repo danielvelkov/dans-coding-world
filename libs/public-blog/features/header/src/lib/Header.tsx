@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { Button } from '@dans-coding-world/public-blog-ui-common';
+import {
+  Button,
+  LoadingSpinner,
+} from '@dans-coding-world/public-blog-ui-common';
+import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
 
 const StyledHeader = styled.header`
   display: flex;
@@ -24,7 +28,7 @@ const StyledHeader = styled.header`
 
 const StyledSiteNavLink = styled(Link)`
   text-underline-offset: 5px;
-  color: ${({ theme }) => theme.accent.primary};
+  color: ${({ theme }) => theme.accent.primary} !important;
 `;
 
 const StyledSiteLogo = styled(Link)`
@@ -50,6 +54,7 @@ export function Header({
   isDarkMode: boolean;
   setIsDarkMode: (flag: boolean) => void;
 }) {
+  const { isAuthenticated, logout, isLoading } = useAuth();
   return (
     <StyledHeader>
       <StyledSiteLogo to={'/blog'}>
@@ -58,7 +63,18 @@ export function Header({
       <nav>
         <ul>
           <li>
-            <StyledSiteNavLink to="/login">Login</StyledSiteNavLink>
+            {isAuthenticated ? (
+              <StyledButton
+                as={StyledSiteNavLink}
+                onClick={() => {
+                  logout();
+                }}
+              >
+                {isLoading ? <LoadingSpinner></LoadingSpinner> : 'Logout'}
+              </StyledButton>
+            ) : (
+              <StyledSiteNavLink to="/login">Login</StyledSiteNavLink>
+            )}
           </li>
           <li>
             <StyledSiteNavLink to="/blog">Blog</StyledSiteNavLink>
