@@ -82,9 +82,10 @@ export function UserLogin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/blog');
+    if (isAuthenticated) navigate(-1);
   }, [isAuthenticated, navigate]);
 
+  // TODO: remove
   const [email, setEmail] = useState('admin123@gmail.com'); // For quicker testing
   const [password, setPassword] = useState('Admin123@');
   // const [email, setEmail] = useState('');
