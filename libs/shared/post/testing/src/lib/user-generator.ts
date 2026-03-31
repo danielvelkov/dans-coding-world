@@ -6,14 +6,13 @@ import {
   randNumber,
   randPassword,
   randSentence,
-  randUserName,
 } from '@ngneat/falso';
 
 export const generateRandomUserPreview = (): UserPreview => {
   const authorId = randNumber({ min: 1, max: 1000 });
   return {
     id: authorId,
-    username: randUserName(),
+    username: randFirstName() + randNumber({ min: 1, max: 1000 }),
     profile: {
       id: randNumber({ min: 1, max: 1000 }),
       avatarURL: '',
@@ -29,7 +28,7 @@ export const generateRandomUser = (): User => {
   const authorId = randNumber({ min: 1, max: 1000 });
   return {
     id: authorId,
-    username: randUserName(),
+    username: randFirstName() + randNumber({ min: 1, max: 1000 }),
     password: randPassword(),
     email: randEmail(),
     isBanned: false,
