@@ -23,7 +23,7 @@ const StyledHeader = styled.header`
     list-style: none;
     display: flex;
     gap: 2em;
-    align-items: baseline;
+    align-items: center;
   }
 `;
 
@@ -65,14 +65,18 @@ export function Header({
         <ul>
           <li>
             {isAuthenticated ? (
-              <StyledButton
-                as={StyledSiteNavLink}
-                onClick={() => {
-                  logout();
-                }}
-              >
-                {isLoading ? <LoadingSpinner></LoadingSpinner> : 'Logout'}
-              </StyledButton>
+              isLoading ? (
+                <LoadingSpinner></LoadingSpinner>
+              ) : (
+                <StyledButton
+                  as={StyledSiteNavLink}
+                  onClick={() => {
+                    logout();
+                  }}
+                >
+                  Logout
+                </StyledButton>
+              )
             ) : (
               <StyledSiteNavLink to="/login">Login</StyledSiteNavLink>
             )}
