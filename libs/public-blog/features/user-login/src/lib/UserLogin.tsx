@@ -86,10 +86,10 @@ export function UserLogin() {
   }, [isAuthenticated, navigate]);
 
   // TODO: remove
-  const [email, setEmail] = useState('admin123@gmail.com'); // For quicker testing
-  const [password, setPassword] = useState('Admin123@');
-  // const [email, setEmail] = useState('');
-  // const [password, setPassword] = useState('');
+  // const [email, setEmail] = useState('admin123@gmail.com'); // For quicker testing
+  // const [password, setPassword] = useState('Admin123@');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const [emailError, passwordError] = getLoginValidationErrors(error);
 

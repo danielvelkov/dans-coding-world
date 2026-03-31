@@ -1,5 +1,4 @@
 import {
-  rand,
   randNumber,
   randPastDate,
   randProgrammingLanguage,

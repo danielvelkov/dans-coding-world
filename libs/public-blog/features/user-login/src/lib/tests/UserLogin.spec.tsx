@@ -2,27 +2,15 @@ import {
   fireEvent,
   render,
   screen,
+  mockAuth,
 } from '@dans-coding-world/public-blog-tools';
 import userEvent from '@testing-library/user-event';
 import { UserLogin } from '../UserLogin';
-import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
 import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('@dans-coding-world/public-blog-shared-hooks');
 
-const mockAuthData = (data: ReturnType<typeof useAuth>) =>
-  vi.mocked(useAuth).mockReturnValue(data);
-
 describe('UserLogin', () => {
-  const defaultAuthData = {
-    user: null,
-    isAuthenticated: false,
-    error: null,
-    isLoading: false,
-    login: vi.fn(),
-    logout: vi.fn(),
-  };
-
   const renderFeature = () => {
     return render(
       <MemoryRouter>
@@ -34,7 +22,7 @@ describe('UserLogin', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockAuthData(defaultAuthData);
+    mockAuth();
   });
 
   it('renders successfully', () => {
@@ -63,7 +51,7 @@ describe('UserLogin', () => {
 
   it('should render error message on useAuth() hook returning an error', () => {
     const errorMessage = 'Failed to login';
-    mockAuthData({ ...defaultAuthData, error: new Error(errorMessage) });
+    mockAuth({ error: new Error(errorMessage) });
     renderFeature();
     expect(screen.getByText(errorMessage)).toBeTruthy();
   });
@@ -72,8 +60,7 @@ describe('UserLogin', () => {
     and username and password fields filled`, async () => {
     const user = userEvent.setup();
     const mockLogin = vi.fn();
-    mockAuthData({
-      ...defaultAuthData,
+    mockAuth({
       login: mockLogin,
     });
     renderFeature();
