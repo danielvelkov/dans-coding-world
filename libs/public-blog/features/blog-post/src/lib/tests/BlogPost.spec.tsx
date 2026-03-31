@@ -1,4 +1,5 @@
 import {
+  mockAuth,
   render,
   screen,
   waitFor,
@@ -13,6 +14,17 @@ import { PostFull } from '@dans-coding-world/post-data-access';
 import '@testing-library/jest-dom';
 import { formatDateTo_Month_DD_YYYY } from '@dans-coding-world/helpers';
 
+// TODO: somehow remove this nasty copy-paste
+// mock only "useAuth" from shared hooks module
+vi.mock(
+  '@dans-coding-world/public-blog-shared-hooks',
+  async (importOriginal) => {
+    return {
+      ...(await importOriginal()),
+      useAuth: vi.fn(),
+    };
+  }
+);
 vi.mock('@dans-coding-world/shared-data-access-api');
 
 const mockPostResponse = generateMockPostResponse({});
@@ -29,6 +41,7 @@ describe('BlogPost', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAuth();
     vi.mocked(api.get<BaseResponse>).mockResolvedValue(mockPostResponse);
   });
 
