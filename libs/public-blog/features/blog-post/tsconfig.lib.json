@@ -41,6 +41,9 @@
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
+      "path": "../../../shared/user/testing/tsconfig.lib.json"
+    },
+    {
       "path": "../../../api/data-access/post/tsconfig.lib.json"
     },
     {

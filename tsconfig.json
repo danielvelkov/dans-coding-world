@@ -116,6 +116,9 @@
     },
     {
       "path": "./libs/public-blog/features/header"
+    },
+    {
+      "path": "./libs/shared/user/testing"
     }
   ]
 }

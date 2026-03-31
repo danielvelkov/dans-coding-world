@@ -12,5 +12,18 @@
     "types": ["node"]
   },
   "include": ["src/**/*.ts"],
-  "references": []
+  "references": [
+    {
+      "path": "../dtos/tsconfig.lib.json"
+    },
+    {
+      "path": "../../util/api-types/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../api/data-access/user/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../prisma-schema/tsconfig.lib.json"
+    }
+  ]
 }

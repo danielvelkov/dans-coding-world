@@ -7,10 +7,8 @@ import {
 } from '@dans-coding-world/public-blog-tools';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import BlogList from '../BlogList';
-import {
-  generateMockPostsResponse,
-  generateRandomUser,
-} from '@dans-coding-world/shared-post-testing';
+import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
+import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { MemoryRouter } from 'react-router-dom';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
