@@ -1,4 +1,9 @@
-import { render, screen, waitFor } from '@dans-coding-world/public-blog-tools';
+import {
+  mockAuth,
+  render,
+  screen,
+  waitFor,
+} from '@dans-coding-world/public-blog-tools';
 import userEvent from '@testing-library/user-event';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import Blog from './Blog';
@@ -9,6 +14,15 @@ import qs from 'qs';
 import { server } from './mocks/node.js';
 import { FetchPostsQueryParams } from '@dans-coding-world/public-blog-shared-hooks';
 
+vi.mock(
+  '@dans-coding-world/public-blog-shared-hooks',
+  async (importOriginal) => {
+    return {
+      ...(await importOriginal()),
+      useAuth: vi.fn(),
+    };
+  }
+);
 vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('Blog', () => {
@@ -26,6 +40,7 @@ describe('Blog', () => {
   afterAll(() => server.close());
 
   beforeEach(() => {
+    mockAuth();
     vi.clearAllMocks();
   });
 

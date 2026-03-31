@@ -45,7 +45,7 @@ export function App() {
             ></Header>
             <Routes>
               <Route path="login">
-                <Route index element={<Login />}></Route>
+                <Route index element={<Login />} />
               </Route>
               <Route path="blog">
                 <Route index element={<Blog />} />
@@ -58,7 +58,7 @@ export function App() {
                   }
                 />
               </Route>
-              <Route path="*" element={<NotFound />}></Route>
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </StyledApp>
         </ThemeProvider>
