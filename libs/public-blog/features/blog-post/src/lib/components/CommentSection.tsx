@@ -1,4 +1,7 @@
-import { useFetchPostCommentsInfinite } from '@dans-coding-world/public-blog-shared-hooks';
+import {
+  useAuth,
+  useFetchPostCommentsInfinite,
+} from '@dans-coding-world/public-blog-shared-hooks';
 import styled from 'styled-components';
 import {
   COMMENT_CONSTRAINTS,
@@ -50,6 +53,7 @@ const StyledSectionMeta = styled.div`
 `;
 
 export function CommentSection({ postId }: { postId: number }) {
+  const { isAuthenticated } = useAuth();
   const [commentSortOrder, setCommentSortOrder] = useState<SortOrder>('desc');
 
   const { data, isPending, isError, error, isFetchingNextPage, fetchNextPage } =
@@ -115,7 +119,7 @@ export function CommentSection({ postId }: { postId: number }) {
       </StyledSectionMeta>
       {/* TODO: */}
       <CommentForm
-        isLocked={false}
+        isLocked={!isAuthenticated}
         onSubmit={(val) => console.log(val)}
       ></CommentForm>
       <CommentThread comments={comments}></CommentThread>

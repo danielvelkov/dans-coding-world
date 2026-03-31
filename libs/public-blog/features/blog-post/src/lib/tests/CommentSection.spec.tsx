@@ -1,4 +1,9 @@
-import { render, screen, waitFor } from '@dans-coding-world/public-blog-tools';
+import {
+  mockAuth,
+  render,
+  screen,
+  waitFor,
+} from '@dans-coding-world/public-blog-tools';
 import userEvent from '@testing-library/user-event';
 import CommentSection from '../components/CommentSection';
 import { MemoryRouter } from 'react-router-dom';
@@ -9,6 +14,17 @@ import { BaseResponse } from '@dans-coding-world/api-types';
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
+// TODO: somehow remove this nasty copy-paste
+// mock only "useAuth" from shared hooks module
+vi.mock(
+  '@dans-coding-world/public-blog-shared-hooks',
+  async (importOriginal) => {
+    return {
+      ...(await importOriginal()),
+      useAuth: vi.fn(),
+    };
+  }
+);
 
 const TEST_POST_ID = 1;
 const mockCommentsResponse = generateMockPostCommentsResponse({
@@ -28,6 +44,7 @@ describe('CommentSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAuth();
     vi.mocked(api.get<BaseResponse>).mockResolvedValue(mockCommentsResponse);
   });
 
@@ -142,6 +159,33 @@ describe('CommentSection', () => {
 
     renderFeature();
     expect(screen.getByText(/Loading comments/)).toBeTruthy();
+  });
+
+  describe('based on user auth state', () => {
+    describe('if user logged-in', () => {
+      beforeEach(() => {
+        mockAuth({ isAuthenticated: true });
+      });
+
+      it('disables comment form textarea', async () => {
+        renderFeature();
+        await waitFor(() => {
+          expect(screen.getByRole('textbox')).not.toBeDisabled();
+        });
+      });
+    });
+
+    describe('if user logged-out', () => {
+      beforeEach(() => {
+        mockAuth({ isAuthenticated: false });
+      });
+      it('enables comment form textarea', async () => {
+        renderFeature();
+        await waitFor(() => {
+          expect(screen.getByRole('textbox')).toBeDisabled();
+        });
+      });
+    });
   });
 });
 
