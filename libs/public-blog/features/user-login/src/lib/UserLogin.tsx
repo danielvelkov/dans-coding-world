@@ -5,8 +5,8 @@ import {
   LoadingSpinner,
 } from '@dans-coding-world/public-blog-ui-common';
 import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getLoginValidationErrors } from './helper/login-validation';
 
 const StyledButton = styled(Button)`
@@ -80,9 +80,16 @@ const StyledUserLoginForm = styled.form<React.ComponentPropsWithoutRef<'form'>>`
 export function UserLogin() {
   const { login, isAuthenticated, isLoading, error } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const locationRef = useRef(location);
 
   useEffect(() => {
-    if (isAuthenticated) navigate(-1);
+    if (isAuthenticated) {
+      if (locationRef.current.key === 'default')
+        navigate('/blog', { replace: true }); // if no history navigate to /blog
+      else navigate(-1);
+    }
   }, [isAuthenticated, navigate]);
 
   // TODO: remove
