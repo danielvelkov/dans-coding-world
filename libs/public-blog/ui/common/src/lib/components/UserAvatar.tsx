@@ -36,14 +36,16 @@ export function UserAvatar({
   name,
   size = 'M',
   shape = 'square',
+  className,
 }: {
   avatarURL?: string;
   name: string;
   size?: AvatarSize;
   shape?: AvatarShape;
+  className?: string;
 }) {
   return (
-    <StyledAvatar $imgSize={size} $shape={shape}>
+    <StyledAvatar className={className} $imgSize={size} $shape={shape}>
       {avatarURL ? (
         <img className="avatar" src={avatarURL} alt={`${name}'s avatar`} />
       ) : (
