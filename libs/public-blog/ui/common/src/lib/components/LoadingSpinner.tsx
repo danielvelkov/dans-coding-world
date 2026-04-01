@@ -1,6 +1,7 @@
+import React from 'react';
 import styled from 'styled-components';
 
-const StyledSpinner = styled.div`
+const StyledSpinner = styled.div<React.ComponentPropsWithoutRef<'div'>>`
   position: relative;
   aspect-ratio: 1/1;
   height: 20px;
@@ -29,9 +30,9 @@ const StyledSpinner = styled.div`
   }
 `;
 
-export function LoadingSpinner() {
+export function LoadingSpinner({ className }: { className?: string }) {
   return (
-    <StyledSpinner>
+    <StyledSpinner className={className}>
       <div className="background"></div>
       <div className="spinning-object"></div>
     </StyledSpinner>
