@@ -119,6 +119,9 @@
     },
     {
       "path": "./libs/shared/user/testing"
+    },
+    {
+      "path": "./libs/public-blog/shared/util/helpers"
     }
   ]
 }
