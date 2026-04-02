@@ -6,6 +6,7 @@ import { formatDateTo_DD_MMM_YYYY } from '@dans-coding-world/helpers';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Tag, UserAvatar } from '@dans-coding-world/public-blog-ui-common';
+import { getDisplayName } from '@dans-coding-world/public-blog-shared-helpers';
 
 const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   padding: 0.5em 1em;
@@ -134,9 +135,7 @@ export function PostItem({
   const { author, ...postData } = post;
 
   const excerpt = getExcerpt(postData.content) + '...';
-  const authorName = author.profile
-    ? `${author.profile.firstName} ${author.profile.lastName}`
-    : author.username;
+  const authorName = getDisplayName(author);
   const formattedPublishedDate = formatDateTo_DD_MMM_YYYY(
     new Date(postData.publishedAt)
   );

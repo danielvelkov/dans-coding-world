@@ -47,10 +47,13 @@
       "path": "../../../shared/auth/dtos/tsconfig.lib.json"
     },
     {
-      "path": "../../../shared/user/testing/tsconfig.lib.json"
+      "path": "../../../shared/post/testing/tsconfig.lib.json"
     },
     {
-      "path": "../../../shared/post/testing/tsconfig.lib.json"
+      "path": "../../../api/data-access/user/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/user/testing/tsconfig.lib.json"
     },
     {
       "path": "../../../prisma-schema/tsconfig.lib.json"
