@@ -35,14 +35,14 @@ const StyledUserProfileDropdown = styled.div<
 
       span:first-child {
         align-self: center;
-        font-weight: bold;
-        font-size: medium;
+        font-weight: 600;
+        font-size: 1em;
       }
 
       span:nth-child(2) {
         align-self: flex-start;
         color: ${({ theme }) => theme.text.muted};
-        font-size: small;
+        font-size: smaller;
       }
     }
   }
@@ -52,7 +52,7 @@ const StyledUserAvatar = styled(UserAvatar)`
   color: ${({ theme }) => theme.text.primary};
   border: 2px solid ${({ theme }) => theme.border.primary};
   border-radius: 50%;
-  padding: 6px 8px;
+  padding: 3px 4px;
 `;
 
 const StyledLoadingAvatarWrapper = styled.div`
@@ -154,8 +154,9 @@ export function UserProfileDropdown({
           {isLoading && <StyledLoadingSpinner />}
           <StyledUserAvatar
             name={user.username}
-            size="S"
+            size="M"
             avatarURL={user.profile?.avatarURL}
+            shape={'circle'}
           />
         </StyledLoadingAvatarWrapper>
       </StyledButton>
