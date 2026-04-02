@@ -1,24 +1,12 @@
-import { render, screen } from '@dans-coding-world/public-blog-tools';
+import { render, screen, mockAuth } from '@dans-coding-world/public-blog-tools';
 import userEvent from '@testing-library/user-event';
 import { Header } from '../Header';
-import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
 import { MemoryRouter } from 'react-router-dom';
+import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
 
 vi.mock('@dans-coding-world/public-blog-shared-hooks');
 
-const mockAuthData = (data: ReturnType<typeof useAuth>) =>
-  vi.mocked(useAuth).mockReturnValue(data);
-
 describe('Header', () => {
-  const defaultAuthData = {
-    user: null,
-    isAuthenticated: false,
-    error: null,
-    isLoading: false,
-    login: vi.fn(),
-    logout: vi.fn(),
-  };
-
   const defaultProps: Parameters<typeof Header>[0] = {
     isDarkMode: false,
     setIsDarkMode: vi.fn(),
@@ -35,7 +23,9 @@ describe('Header', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockAuthData(defaultAuthData);
+    mockAuth({
+      user: generateRandomUser(),
+    });
   });
 
   it('renders successfully', () => {
@@ -54,30 +44,24 @@ describe('Header', () => {
     screen.getByRole('link', { name: /login/i });
   });
 
-  it('changes login link to logout if "isAuthenticated" is true', async () => {
-    mockAuthData({
-      ...defaultAuthData,
+  it('changes login link to user profile dropdown if user logged in', async () => {
+    const randomUser = generateRandomUser();
+    mockAuth({
       isAuthenticated: true,
+      user: randomUser,
     });
 
     renderFeature();
 
     expect(screen.queryByRole('link', { name: /login/i })).toBeFalsy();
-    expect(screen.getByRole('link', { name: /logout/i })).toBeTruthy();
-  });
-
-  it('calls logout action from useAuth hook on "logout" button click', async () => {
-    const user = userEvent.setup();
-    mockAuthData({
-      ...defaultAuthData,
-      isAuthenticated: true,
-    });
-
-    renderFeature();
-
-    const logoutButton = screen.getByRole('link', { name: /logout/i });
-    await user.click(logoutButton);
-    expect(defaultAuthData.logout).toHaveBeenCalledOnce();
+    expect(
+      screen.getByRole('button', {
+        name: /avatar/,
+      })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: new RegExp(randomUser.email) })
+    ).toBeTruthy();
   });
 
   it('contains dark/light theme change button', () => {
