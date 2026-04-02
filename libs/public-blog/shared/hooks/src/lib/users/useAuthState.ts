@@ -7,16 +7,36 @@ import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { LoginDto, LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
 import { TOKEN_CONSTRAINTS } from '@dans-coding-world/shared-constants';
+import { useFetchUser } from './useFetchUser';
+import { useAuth } from './useAuth';
 
 export type UserWithoutPass = Omit<User, 'password'>;
 export type LoginResponseWithoutTokens = Omit<
   LoginResponseDto,
   'accessToken' | 'refreshToken'
 >;
+
+/**
+ * Core authentication state for the application.
+ * Intended to be used inside {@link AuthProvider} only — do not call directly in components.
+ *
+ * Use {@link useAuth} instead to access the shared auth context.
+ *
+ * Handles:
+ * - Login / logout mutations
+ * - Silent token refresh on mount (rehydration from httpOnly cookie)
+ * - Periodic access token refresh via interval
+ * - Fetching full user profile details once authenticated
+ */
 export function useAuthState() {
   const [user, setUser] = useState<UserWithoutPass | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const refreshMutateRef = useRef<() => void>(() => noop);
+
+  const { data: userDataResponse, isLoading: isLoadingProfile } = useFetchUser(
+    user?.id as number,
+    { enabled: !!user }
+  );
 
   const refreshMutation = useMutation({
     mutationFn: async () => {
@@ -75,7 +95,7 @@ export function useAuthState() {
   }, []);
 
   return {
-    user,
+    user: userDataResponse?.user ?? user,
     isAuthenticated: !!user,
 
     login: loginMutation.mutate,
@@ -83,5 +103,6 @@ export function useAuthState() {
 
     isLoading: loginMutation.isPending || logoutMutation.isPending,
     error: loginMutation.error || logoutMutation.error,
+    isLoadingProfile,
   };
 }
