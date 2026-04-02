@@ -4,9 +4,9 @@ import { generateRandomUser } from './user-generator.js';
 import { GetUserResponseDto } from '@dans-coding-world/shared-user-dto';
 
 export function generateMockUserResponse({
-  post: user,
+  user,
 }: {
-  post?: Partial<UserDetail>;
+  user?: Partial<UserDetail>;
 }): BaseResponse<GetUserResponseDto> {
   const mockUser = generateRandomUser();
   return {

@@ -3,6 +3,7 @@ import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
 
 export function mockAuth(overrides: Partial<ReturnType<typeof useAuth>> = {}) {
   vi.mocked(useAuth).mockReturnValue({
+    isLoadingProfile: false,
     isAuthenticated: false,
     user: null,
     error: null,
