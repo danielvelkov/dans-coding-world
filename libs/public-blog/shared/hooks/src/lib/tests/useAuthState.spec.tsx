@@ -11,21 +11,32 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { waitFor } from '@testing-library/dom';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
+import {
+  generateMockLoginResponse,
+  generateMockUserResponse,
+} from '@dans-coding-world/shared-user-testing';
+import { UserDetail } from '@dans-coding-world/user-data-access';
+
+const mockLoginResponse = generateMockLoginResponse({});
+const mockLogoutResponse = {
+  error: null,
+  success: true,
+  data: {
+    message: 'Logged out',
+  },
+};
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 
 describe('useAuthState', () => {
-  const testUser = {
-    id: 1,
-    email: 'Bingo@mail.com',
-    username: 'Bingo',
-    isBanned: false,
-    role: 'ADMIN',
-  };
+  if (!mockLoginResponse.data?.user) throw new Error('Missing mock user');
+  const testUser = mockLoginResponse.data.user;
+
   const renderUseAuthStateHook = () => renderReactQueryHook(useAuthState);
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // mock useAuthState refreshMutation query call
     vi.mocked(api.post).mockRejectedValueOnce({
       error: {
         status: ERROR_HTTP_STATUS[ERROR_CODES.AUTH.INVALID_TOKEN],
@@ -41,14 +52,10 @@ describe('useAuthState', () => {
     vi.restoreAllMocks();
   });
 
-  it('sets user and "isAuthenticated" to true on mount if refresh response is valid', async () => {
+  it('sets user and "isAuthenticated" to true, on hook start if refresh response is valid', async () => {
     // clear the rejected once just for this test
     vi.mocked(api.post).mockReset();
-    vi.mocked(api.post).mockResolvedValueOnce({
-      error: null,
-      success: true,
-      data: { user: testUser },
-    });
+    vi.mocked(api.post).mockResolvedValueOnce(mockLoginResponse);
 
     const result = await renderAndAwaitEffects();
 
@@ -70,13 +77,7 @@ describe('useAuthState', () => {
   describe('login()', () => {
     describe('on successful login', () => {
       beforeEach(() => {
-        vi.mocked(api.post).mockResolvedValueOnce({
-          error: null,
-          success: true,
-          data: {
-            user: testUser,
-          },
-        });
+        vi.mocked(api.post).mockResolvedValueOnce(mockLoginResponse);
       });
 
       it('sets "user" field to currently logged in user (without his password)', async () => {
@@ -107,8 +108,7 @@ describe('useAuthState', () => {
 
         expect(result.current.isAuthenticated).toBe(true);
         vi.mocked(api.post).mockResolvedValueOnce({
-          error: null,
-          success: true,
+          ...mockLoginResponse,
           data: {
             user: otherUser,
           },
@@ -137,6 +137,25 @@ describe('useAuthState', () => {
 
         expect(apiSpy).toHaveBeenCalledWith(API_ENDPOINTS.AUTH.REFRESH);
         vi.useRealTimers();
+      });
+
+      it('fetches full user profile data after login', async () => {
+        const mockUserResponse = generateMockUserResponse({ user: testUser });
+        vi.mocked(api.get).mockResolvedValueOnce(mockUserResponse);
+
+        const result = await renderAndAwaitEffects();
+        await act(async () => {
+          await loginAs(result);
+        });
+
+        expect(result.current.isAuthenticated).toBe(true);
+        expect(result.current.user).not.toHaveProperty('profile');
+        await waitFor(() => {
+          expect(result.current.user).toHaveProperty('profile');
+        });
+        expect((result.current.user as UserDetail).profile).toBe(
+          mockUserResponse.data?.user.profile
+        );
       });
     });
 
@@ -197,23 +216,18 @@ describe('useAuthState', () => {
   });
 
   describe('logout()', () => {
+    const mockError: ResponseErrorDetails = {
+      status: ERROR_HTTP_STATUS[ERROR_CODES.AUTH.UNAUTHORIZED],
+      errorCode: ERROR_CODES.AUTH.UNAUTHORIZED,
+      message: ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED],
+    };
+
     describe('on successful logout', () => {
       beforeEach(() => {
-        vi.mocked(api.post).mockResolvedValueOnce({
-          error: null,
-          success: true,
-          data: {
-            user: testUser,
-          },
-        });
-        vi.mocked(api.post).mockResolvedValueOnce({
-          error: null,
-          success: true,
-          data: {
-            message: 'Logged out',
-          },
-        });
+        vi.mocked(api.post).mockResolvedValueOnce(mockLoginResponse);
+        vi.mocked(api.post).mockResolvedValueOnce(mockLogoutResponse);
       });
+
       it('sets user to null and "isAuthenticated" to false', async () => {
         const result = await renderAndAwaitEffects();
 
@@ -231,11 +245,6 @@ describe('useAuthState', () => {
     });
 
     describe('on unsuccessful logout', () => {
-      const mockError: ResponseErrorDetails = {
-        status: ERROR_HTTP_STATUS[ERROR_CODES.AUTH.UNAUTHORIZED],
-        errorCode: ERROR_CODES.AUTH.UNAUTHORIZED,
-        message: ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED],
-      };
       beforeEach(() => {
         vi.mocked(api.post).mockResolvedValueOnce({
           error: mockError,
@@ -255,40 +264,47 @@ describe('useAuthState', () => {
       });
     });
 
-    it(`clears set interval for the refreshing of the user's token`, async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({
-        error: null,
-        success: true,
-        data: {
-          user: testUser,
-        },
-      });
-      vi.mocked(api.post).mockResolvedValueOnce({
-        error: null,
-        success: true,
-        data: {
-          message: 'Logged out',
-        },
-      });
-      vi.useFakeTimers();
-      const apiSpy = vi.spyOn(api, 'post');
+    describe('in any case', () => {
+      test.each([
+        ['successful logout', mockLogoutResponse],
+        [
+          'unsuccessful logout',
+          {
+            data: null,
+            success: false,
+            error: mockError,
+          },
+        ],
+      ])(
+        `clears set interval for the refreshing of the user's token (%s)`,
+        async (_, mockLogoutResponse) => {
+          vi.mocked(api.post).mockResolvedValueOnce(mockLoginResponse);
+          vi.mocked(api.post).mockResolvedValueOnce(mockLogoutResponse);
+          vi.useFakeTimers();
+          const apiSpy = vi.spyOn(api, 'post');
 
-      const result = await renderAndAwaitEffects();
+          const result = await renderAndAwaitEffects();
 
-      await loginAs(result);
+          await loginAs(result);
 
-      expect(result.current.user).toMatchObject(testUser);
+          expect(result.current.user).toMatchObject(testUser);
 
-      await act(async () => {
-        result.current.logout();
-      });
+          await act(async () => {
+            result.current.logout();
+          });
 
-      await act(async () => {
-        vi.advanceTimersByTime(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 2);
-      });
+          await act(async () => {
+            vi.advanceTimersByTime(
+              TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 2
+            );
+          });
 
-      expect(apiSpy).not.toHaveBeenLastCalledWith(API_ENDPOINTS.AUTH.REFRESH);
-      vi.useRealTimers();
+          expect(apiSpy).not.toHaveBeenLastCalledWith(
+            API_ENDPOINTS.AUTH.REFRESH
+          );
+          vi.useRealTimers();
+        }
+      );
     });
   });
 

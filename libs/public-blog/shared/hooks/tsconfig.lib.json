@@ -41,7 +41,13 @@
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
+      "path": "../../../shared/user/dtos/tsconfig.lib.json"
+    },
+    {
       "path": "../../../shared/auth/dtos/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/user/testing/tsconfig.lib.json"
     },
     {
       "path": "../../../shared/post/testing/tsconfig.lib.json"
