@@ -50,9 +50,6 @@
       "path": "../../../shared/post/testing/tsconfig.lib.json"
     },
     {
-      "path": "../../../shared/user/testing/tsconfig.lib.json"
-    },
-    {
       "path": "../../data-access/blog-api/tsconfig.lib.json"
     },
     {
@@ -60,9 +57,6 @@
     },
     {
       "path": "../../../shared/post/dtos/tsconfig.lib.json"
-    },
-    {
-      "path": "../../shared/util/helpers/tsconfig.lib.json"
     },
     {
       "path": "../../shared/hooks/tsconfig.lib.json"

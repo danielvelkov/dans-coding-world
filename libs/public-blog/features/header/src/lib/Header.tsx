@@ -1,10 +1,8 @@
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import {
-  Button,
-  LoadingSpinner,
-} from '@dans-coding-world/public-blog-ui-common';
+import { Button } from '@dans-coding-world/public-blog-ui-common';
 import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
+import UserProfileDropdown from './components/UserProfileDropdown';
 
 const StyledHeader = styled.header`
   display: flex;
@@ -55,7 +53,9 @@ export function Header({
   isDarkMode: boolean;
   setIsDarkMode: (flag: boolean) => void;
 }) {
-  const { isAuthenticated, logout, isLoading } = useAuth();
+  const { isAuthenticated, logout, isLoading, user, isLoadingProfile } =
+    useAuth();
+
   return (
     <StyledHeader>
       <StyledSiteLogo to={'/blog'}>
@@ -64,25 +64,18 @@ export function Header({
       <nav>
         <ul>
           <li>
-            {isAuthenticated ? (
-              isLoading ? (
-                <LoadingSpinner></LoadingSpinner>
-              ) : (
-                <StyledButton
-                  as={StyledSiteNavLink}
-                  onClick={() => {
-                    logout();
-                  }}
-                >
-                  Logout
-                </StyledButton>
-              )
+            <StyledSiteNavLink to="/blog">Blog</StyledSiteNavLink>
+          </li>
+          <li>
+            {isAuthenticated && user ? (
+              <UserProfileDropdown
+                user={user}
+                logoutAction={logout}
+                isLoading={isLoading || isLoadingProfile}
+              ></UserProfileDropdown>
             ) : (
               <StyledSiteNavLink to="/login">Login</StyledSiteNavLink>
             )}
-          </li>
-          <li>
-            <StyledSiteNavLink to="/blog">Blog</StyledSiteNavLink>
           </li>
           <li>
             <StyledButton
