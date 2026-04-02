@@ -9,7 +9,8 @@
     ],
     "rootDir": "src",
     "jsx": "react-jsx",
-    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo"
+    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
+    "lib": ["DOM"]
   },
   "exclude": [
     "out-tsc",
@@ -45,6 +46,9 @@
     },
     {
       "path": "../../../tools/public-blog/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/util/helpers/tsconfig.lib.json"
     },
     {
       "path": "../../../api/data-access/user/tsconfig.lib.json"
