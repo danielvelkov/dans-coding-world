@@ -65,9 +65,6 @@
       "path": "../../../prisma-schema/tsconfig.lib.json"
     },
     {
-      "path": "../../shared/util/helpers/tsconfig.lib.json"
-    },
-    {
       "path": "../../../shared/util/helpers/tsconfig.lib.json"
     },
     {

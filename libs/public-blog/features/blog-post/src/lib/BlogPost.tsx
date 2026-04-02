@@ -15,7 +15,6 @@ import { getReadingTime } from './util/post-ux.util';
 import { ShimmerPost } from './components/ShimmerPost';
 import CommentSection from './components/CommentSection';
 import { useEffect } from 'react';
-import { getDisplayName } from '@dans-coding-world/public-blog-shared-helpers';
 
 const StyledPost = styled.article`
   display: flex;
@@ -94,7 +93,9 @@ export function BlogPost({ postId }: { postId: number }) {
 
   const { post } = data;
 
-  const authorName = getDisplayName(post.author);
+  const authorName = post.author.profile
+    ? `${post.author.profile.firstName} ${post.author.profile.lastName}`
+    : post.author.username;
   const publishedDate = new Date(post.publishedAt as Date);
   const modifiedDate = new Date(post.updatedAt as Date);
 
