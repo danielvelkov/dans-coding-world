@@ -216,10 +216,16 @@ describe('useAuthState', () => {
   });
 
   describe('logout()', () => {
-    const mockError: ResponseErrorDetails = {
+    const unauthorizedError: ResponseErrorDetails = {
       status: ERROR_HTTP_STATUS[ERROR_CODES.AUTH.UNAUTHORIZED],
       errorCode: ERROR_CODES.AUTH.UNAUTHORIZED,
       message: ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED],
+    };
+
+    const serverError: ResponseErrorDetails = {
+      status: ERROR_HTTP_STATUS[ERROR_CODES.SERVER.INTERNAL_ERROR],
+      errorCode: ERROR_CODES.SERVER.INTERNAL_ERROR,
+      message: ERROR_MESSAGES[ERROR_CODES.SERVER.INTERNAL_ERROR],
     };
 
     describe('on successful logout', () => {
@@ -245,22 +251,69 @@ describe('useAuthState', () => {
     });
 
     describe('on unsuccessful logout', () => {
-      beforeEach(() => {
+      const mockLogoutError = (error: ResponseErrorDetails) => {
+        // TODO: maybe its better to have api query funcs so you can mock like this:
+        // vi.mocked(blog.login)...
+        // vi.mocked(blog.logout)...
+
+        // mock Login response
+        vi.mocked(api.post).mockResolvedValueOnce(mockLoginResponse);
+        // mock Logout response
         vi.mocked(api.post).mockResolvedValueOnce({
-          error: mockError,
+          error,
           success: false,
           data: null,
         });
-      });
+      };
 
-      it('sets error field to the api error', async () => {
+      test.each([serverError, unauthorizedError])(
+        'sets error field to the api error',
+        async (error) => {
+          mockLogoutError(error);
+          const result = await renderAndAwaitEffects();
+
+          await loginAs(result);
+          expect(result.current.user).toMatchObject(testUser);
+
+          result.current.logout();
+
+          await waitFor(() => {
+            expect(result.current.isLoading).toBeFalsy();
+          });
+          expect(result.current.error).toMatchObject(error);
+        }
+      );
+
+      it('keeps user if error is anything but 401-Unauthorized', async () => {
+        mockLogoutError(serverError);
         const result = await renderAndAwaitEffects();
+
+        await loginAs(result);
+        expect(result.current.user).toMatchObject(testUser);
+
         result.current.logout();
 
         await waitFor(() => {
           expect(result.current.isLoading).toBeFalsy();
         });
-        expect(result.current.error).toMatchObject(mockError);
+
+        expect(result.current.error).toMatchObject(serverError);
+        expect(result.current.user).toMatchObject(testUser);
+      });
+
+      it('clears user if error is 401-Unauthorized', async () => {
+        mockLogoutError(unauthorizedError);
+        const result = await renderAndAwaitEffects();
+        await loginAs(result);
+
+        expect(result.current.user).toMatchObject(testUser);
+        result.current.logout();
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBeFalsy();
+          expect(result.current.error).toMatchObject(unauthorizedError);
+        });
+        expect(result.current.user).toBeFalsy();
       });
     });
 
@@ -272,7 +325,7 @@ describe('useAuthState', () => {
           {
             data: null,
             success: false,
-            error: mockError,
+            error: unauthorizedError,
           },
         ],
       ])(
