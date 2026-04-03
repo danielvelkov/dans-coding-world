@@ -6,9 +6,14 @@ import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { LoginDto, LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
-import { TOKEN_CONSTRAINTS } from '@dans-coding-world/shared-constants';
+import {
+  ERROR_CODES,
+  ERROR_HTTP_STATUS,
+  TOKEN_CONSTRAINTS,
+} from '@dans-coding-world/shared-constants';
 import { useFetchUser } from './useFetchUser';
 import { useAuth } from './useAuth';
+import { ApiError } from '../types/api.error';
 
 export type UserWithoutPass = Omit<User, 'password'>;
 export type LoginResponseWithoutTokens = Omit<
@@ -81,6 +86,14 @@ export function useAuthState() {
     },
     onSuccess: () => {
       setUser(null);
+    },
+    onError: (error) => {
+      const apiError = error as ApiError;
+      if (
+        apiError.status &&
+        apiError.status === ERROR_HTTP_STATUS[ERROR_CODES.AUTH.UNAUTHORIZED]
+      )
+        setUser(null);
     },
     onSettled: () => {
       if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current);
