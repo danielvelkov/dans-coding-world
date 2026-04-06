@@ -5,7 +5,7 @@ import {
   LoadingSpinner,
 } from '@dans-coding-world/public-blog-ui-common';
 import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getLoginValidationErrors } from './helper/login-validation';
 
@@ -31,7 +31,7 @@ const StyledInput = styled(Input)<
       $isValid ? theme.border.primary : theme.text.error};
 `;
 
-const StyledError = styled.span`
+const StyledError = styled.span<React.ComponentPropsWithoutRef<'span'>>`
   &:has(i) {
     margin-left: 2em;
     position: relative;
@@ -82,15 +82,12 @@ export function UserLogin() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const locationRef = useRef(location);
-
   useEffect(() => {
     if (isAuthenticated) {
-      if (locationRef.current.key === 'default')
-        navigate('/blog', { replace: true }); // if no history navigate to /blog
-      else navigate(-1);
+      const redirectTo = location.state?.redirectTo ?? '/blog';
+      navigate(redirectTo, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, location.state]);
 
   // TODO: remove
   // const [email, setEmail] = useState('admin123@gmail.com'); // For quicker testing
@@ -151,11 +148,27 @@ export function UserLogin() {
       </div>
 
       {error && !emailError && !passwordError && (
-        <StyledError>{error.message}</StyledError>
+        <StyledError
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          data-testid="login-error"
+        >
+          {error.message}
+        </StyledError>
       )}
 
       <StyledButton type="submit">
-        {isLoading ? <LoadingSpinner /> : 'Login'}
+        {isLoading ? (
+          <>
+            <span style={{ position: 'absolute', left: '-9999px' }}>
+              Logging in…
+            </span>
+            <LoadingSpinner />
+          </>
+        ) : (
+          'Login'
+        )}
       </StyledButton>
       <span className="call-to-action">
         Not a member? <StyledLink to={'/register'}>Register</StyledLink>
