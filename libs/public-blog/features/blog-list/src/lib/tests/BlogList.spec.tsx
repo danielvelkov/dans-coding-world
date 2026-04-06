@@ -111,13 +111,27 @@ describe('BlogList', () => {
     });
   });
 
-  it(`renders loading message while loading`, async () => {
+  it(`does not render loading message if loading is faster than 200ms`, async () => {
     vi.mocked(api.get).mockImplementation(() => {
-      return new Promise((resolve) => setTimeout(() => resolve({}), 5000));
+      return new Promise((resolve) => setTimeout(() => resolve({}), 100));
     });
 
     renderFeature();
-    expect(screen.getByText(/Loading posts/)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.queryByText(/Loading posts/)).toBeFalsy();
+      expect(screen.queryByLabelText('Sort by')).toBeTruthy();
+    });
+  });
+
+  it(`renders loading message if loading takes more than 200ms`, async () => {
+    vi.mocked(api.get).mockImplementation(() => {
+      return new Promise((resolve) => setTimeout(() => resolve({}), 300));
+    });
+
+    renderFeature();
+    await waitFor(() => {
+      expect(screen.getByText(/Loading posts/)).toBeTruthy();
+    });
   });
 
   it(`does not render pagination while loading`, () => {
