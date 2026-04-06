@@ -1,11 +1,11 @@
-import { PostFull } from '@dans-coding-world/post-data-access';
 import { Post, Profile, User } from '@dans-coding-world/prisma-schema';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateMockPostResponse } from '@dans-coding-world/shared-post-testing';
+import { UserDetail } from '@dans-coding-world/user-data-access';
 
 describe('Post - error state', () => {
   let testPosts: Post[];
-  const testUsers: PostFull['author'][] = [];
+  const testUsers: UserDetail[] = [];
 
   before(() => {
     cy.task('db:seed-users', {
@@ -95,10 +95,38 @@ describe('Post - error state', () => {
     });
   });
 
-  // TODO:
   context('Authenticated user', () => {
-    it(
-      'displays 403 forbidden page if post is private and user is not the author'
-    );
+    it('displays 403 forbidden page if post is private and user is not the author', () => {
+      const privatePost = testPosts.find((p) => p.status !== 'PUBLISHED');
+      if (!privatePost) throw new Error('Missing post fixture');
+
+      const randomUser = Cypress._.sample(
+        testUsers.filter(
+          (u) => u.id !== privatePost.authorId && u.role === 'AUTHOR'
+        )
+      ) as UserDetail;
+      cy.visit('/login');
+      cy.login(randomUser.email, randomUser.password);
+
+      cy.visit(`/blog/${privatePost.id}`);
+      cy.contains('h1', '403');
+      cy.contains(/you do not have permissions/i);
+    });
+
+    // TODO: im not sure about this feature, maybe hide all private posts
+    it('shows post if its private and user is the author', () => {
+      const privatePost = testPosts.find((p) => p.status !== 'PUBLISHED');
+      if (!privatePost) throw new Error('Missing post fixture');
+
+      const author = testUsers.find(
+        (u) => u.id === privatePost.authorId
+      ) as UserDetail;
+      cy.visit('/login');
+      cy.login(author.email, author.password);
+
+      cy.visit(`/blog/${privatePost.id}`);
+      cy.contains('h1', '403').should('not.exist');
+      cy.contains('h1', privatePost.title).should('exist');
+    });
   });
 });
