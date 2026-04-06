@@ -107,6 +107,7 @@ describe('Post - error state', () => {
       ) as UserDetail;
       cy.visit('/login');
       cy.login(randomUser.email, randomUser.password);
+      cy.contains('h1', 'Login').should('not.exist');
 
       cy.visit(`/blog/${privatePost.id}`);
       cy.contains('h1', '403');
@@ -123,6 +124,7 @@ describe('Post - error state', () => {
       ) as UserDetail;
       cy.visit('/login');
       cy.login(author.email, author.password);
+      cy.contains('h1', 'Login').should('not.exist');
 
       cy.visit(`/blog/${privatePost.id}`);
       cy.contains('h1', '403').should('not.exist');

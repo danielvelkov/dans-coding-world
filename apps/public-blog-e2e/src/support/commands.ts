@@ -31,7 +31,6 @@ Cypress.Commands.add('login', (email, password) => {
   cy.get('[name="email"]').type(email);
   cy.get('[name="password"]').type(password);
   cy.contains('button', /login/i).click();
-  cy.get('[name="email"]').should('not.exist');
 });
 
 Cypress.Commands.add('getByTestId', (id) => {
