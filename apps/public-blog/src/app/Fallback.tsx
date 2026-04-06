@@ -8,9 +8,10 @@ import {
 } from '@dans-coding-world/public-blog-ui-errors';
 import { StatusCodes } from 'http-status-codes';
 import { getErrorMessage, type FallbackProps } from 'react-error-boundary';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 export function Fallback({ error, resetErrorBoundary }: FallbackProps) {
+  const location = useLocation();
   if (error && isErrorResponse(error)) {
     const message = getErrorMessage(error);
 
@@ -20,7 +21,9 @@ export function Fallback({ error, resetErrorBoundary }: FallbackProps) {
       case StatusCodes.FORBIDDEN:
         return <Forbidden reason={message} />;
       case StatusCodes.UNAUTHORIZED:
-        return <Navigate to="/login" replace />;
+        return (
+          <Navigate to="/login" state={{ redirectTo: location.pathname }} />
+        );
       case StatusCodes.INTERNAL_SERVER_ERROR:
         return <ServerError />;
     }
