@@ -5,7 +5,7 @@ import {
 import { Tag, UserAvatar } from '@dans-coding-world/public-blog-ui-common';
 import DOMPurify from 'dompurify';
 import styled from 'styled-components';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   stringifyToQueryString,
   formatDateTo_Month_DD_YYYY,
@@ -76,13 +76,14 @@ export function BlogPost({ postId }: { postId: number }) {
   const navigate = useNavigate();
   const { data, isPending, isError, error } = useFetchPost(postId);
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     if (!data) return;
     if (data.post.visibility === 'MEMBERS_ONLY' && !isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { state: { redirectTo: location.pathname } });
     }
-  }, [data, isAuthenticated, navigate]);
+  }, [data, isAuthenticated, navigate, location.pathname]);
 
   if (isError) throw error;
 
