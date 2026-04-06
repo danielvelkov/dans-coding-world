@@ -7,10 +7,12 @@ import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 describe('Blog - loading state', () => {
   context('BlogPosts', () => {
     it(`displays "loading" message while fetching blog posts`, () => {
-      cy.intercept(
-        `${API_ENDPOINTS.POSTS.LIST}*`,
-        generateMockPostsResponse({ length: 5, pageSize: 5 })
-      ).as('postsResponse');
+      cy.intercept(`${API_ENDPOINTS.POSTS.LIST}*`, (req) => {
+        req.reply({
+          delay: 1000, // Simulate delay
+          body: generateMockPostsResponse({ length: 5, pageSize: 5 }),
+        });
+      }).as('postsResponse');
 
       cy.visit('/blog');
 
