@@ -1,6 +1,6 @@
-import { BaseResponse } from '@dans-coding-world/api-types';
+import { SuccessResponse } from '@dans-coding-world/api-types';
 
-export const getData = <T>(res: BaseResponse, key?: string): T => {
+export const getData = <T>(res: SuccessResponse, key?: string): T => {
   if (key) return (res.data as any)[key] as T;
   else return res.data as T;
 };

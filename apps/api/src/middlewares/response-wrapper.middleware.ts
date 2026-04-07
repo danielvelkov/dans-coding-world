@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { BaseResponse } from '@dans-coding-world/api-types';
+import { SuccessResponse } from '@dans-coding-world/api-types';
 
 /**
  * Express middleware that wraps a successful JSON response in a
@@ -19,7 +19,7 @@ export function responseWrapper(
   res.json = function (data) {
     if (data && data.success === false) return originalJson.call(this, data);
 
-    const wrapped: BaseResponse = {
+    const wrapped: SuccessResponse = {
       success: true,
       data,
       error: null,
