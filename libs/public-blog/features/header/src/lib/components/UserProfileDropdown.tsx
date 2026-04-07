@@ -137,7 +137,10 @@ export function UserProfileDropdown({
   const name = getDisplayName(user);
 
   return (
-    <StyledUserProfileDropdown ref={cardMenuRef}>
+    <StyledUserProfileDropdown
+      ref={cardMenuRef}
+      data-testid={'user-profile-dropdown'}
+    >
       <StyledButton
         aria-haspopup="true"
         aria-controls="expandable-menu"
