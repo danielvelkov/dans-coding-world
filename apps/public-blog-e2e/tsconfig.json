@@ -35,6 +35,9 @@
       "path": "../../libs/api/data-access/post"
     },
     {
+      "path": "../../libs/public-blog/shared/util/helpers"
+    },
+    {
       "path": "../../libs/api/data-access/user"
     },
     {
