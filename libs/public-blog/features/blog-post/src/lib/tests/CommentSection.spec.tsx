@@ -199,6 +199,7 @@ async function checkRepliesForComment(
   if (!viewReplies) throw new Error('"View replies" button should be present');
 
   await userEvent.click(viewReplies);
+  expect(viewReplies).toHaveAttribute('aria-label', 'Hide replies');
 
   const replyList = await screen.findByRole('list', {
     name: new RegExp(
