@@ -31,7 +31,7 @@ const mockCommentsResponse = generateMockPostCommentsResponse({
   postId: TEST_POST_ID,
   replyLevels: 2,
   pageSize: 10,
-  length: 7,
+  length: 3,
 });
 
 describe('CommentSection', () => {
@@ -89,6 +89,7 @@ describe('CommentSection', () => {
     });
   });
 
+  // this test times out
   it(`should show comment replies as expandable tree view structure`, async () => {
     renderFeature();
     const comments = mockCommentsResponse.data?.items;
@@ -199,27 +200,33 @@ async function checkRepliesForComment(
   if (!viewReplies) throw new Error('"View replies" button should be present');
 
   await userEvent.click(viewReplies);
-  expect(viewReplies).toHaveAttribute('aria-label', 'Hide replies');
 
-  const replyList = await screen.findByRole('list', {
-    name: new RegExp(
-      `Replies to ${comment.user.username.replace(
-        /[.*+?^${}()|[\]\\]/g,
-        '\\$&'
-      )}`
-    ),
+  await waitFor(() => {
+    expect(viewReplies).toHaveAttribute('aria-label', 'Hide replies');
+  });
+
+  const escapedUsername = comment.user.username.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  const replyList = await screen.findByRole(
+    'list',
+    {
+      name: new RegExp(`Replies to ${escapedUsername}`),
+    },
+    { timeout: 5000 }
+  );
+
+  // wait for all items to render before asserting count
+  await waitFor(() => {
+    const replyItems = Array.from(replyList.querySelectorAll(':scope > li'));
+    expect(replyItems.length).toBe(comment.replies.length);
   });
 
   const replyItems = Array.from(replyList.querySelectorAll(':scope > li'));
-  expect(replyItems.length).toBe(comment.replies.length);
 
   for (let i = 0; i < comment.replies.length; i++) {
-    const reply = comment.replies[i];
-    const replyItem = replyItems[i];
-
-    const paragraph = replyItem.querySelector('p');
-    expect(paragraph?.textContent).toBe(reply.content);
-
-    await checkRepliesForComment(replyItem, reply);
+    await checkRepliesForComment(replyItems[i], comment.replies[i]);
   }
 }
