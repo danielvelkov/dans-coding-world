@@ -1,6 +1,7 @@
-import { ErrorResponse } from './error-response.js';
-import { SuccessResponse } from './success-response.js';
+import { ResponseErrorDetails } from './response-error-details.js';
 
-export type BaseResponse<payload = object> =
-  | SuccessResponse<payload>
-  | ErrorResponse;
+export interface BaseResponse<payload = object> {
+  success: boolean;
+  data: payload | null;
+  error: ResponseErrorDetails | null;
+}
