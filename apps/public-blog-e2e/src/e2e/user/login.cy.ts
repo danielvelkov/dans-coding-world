@@ -87,7 +87,7 @@ describe('User - login', () => {
 
     context('validation', () => {
       it('shows validation message if invalid email', () => {
-        cy.login('notAnEmail', 'password');
+        cy.login('notAnEmail', 'password', { waitForRequest: false });
         cy.contains('Please enter a valid email address');
       });
 

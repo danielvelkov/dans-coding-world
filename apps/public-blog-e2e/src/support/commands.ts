@@ -14,7 +14,11 @@
 declare namespace Cypress {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Chainable<Subject> {
-    login(email: string, password: string): void;
+    login(
+      email: string,
+      password: string,
+      options?: { waitForRequest?: boolean }
+    ): void;
     logout(): void;
     checkIfLoggedIn(): void;
     getByTestId(id: string): Chainable<Subject>;
@@ -29,10 +33,17 @@ declare namespace Cypress {
   }
 }
 
-Cypress.Commands.add('login', (email, password) => {
+Cypress.Commands.add('login', (email, password, options = {}) => {
+  const { waitForRequest = true } = options;
+  cy.intercept('POST', `/api/v1/auth/login*`).as('loginRequest');
   cy.get('[name="email"]').type(email);
   cy.get('[name="password"]').type(password);
   cy.contains('button', /login/i).click();
+  if (waitForRequest) {
+    cy.wait('@loginRequest')
+      .its('response.statusCode')
+      .should('be.oneOf', [200, 400, 401]);
+  }
 });
 
 Cypress.Commands.add('logout', () => {
