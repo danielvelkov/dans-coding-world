@@ -62,15 +62,16 @@ describe('Comments - commenting', () => {
     });
   }
 
-  beforeEach(() => {
-    mockBlogPostPage();
-  });
-
   it('should include text area for adding comments', () => {
+    mockBlogPostPage();
     cy.get('textarea').should('exist');
   });
 
   context('Unauthenticated users', () => {
+    beforeEach(() => {
+      mockBlogPostPage();
+    });
+
     it('disables add comment text area for logged out users', () => {
       cy.get('textarea').should('be.disabled');
     });
@@ -105,13 +106,13 @@ describe('Comments - commenting', () => {
       cy.contains(randomUser.email).should('not.exist');
       cy.contains('a', 'Login').should('exist').click();
       cy.login(randomUser.email, randomUser.password);
-      cy.url().should('match', /\/blog$/);
       return randomUser;
     }
 
     beforeEach(() => {
       cy.visit('/login');
       loginAsRandomUser();
+      cy.checkIfLoggedIn();
       mockBlogPostPage();
     });
 
