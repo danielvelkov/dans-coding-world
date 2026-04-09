@@ -101,23 +101,24 @@ describe('Comments - commenting', () => {
   });
 
   context('Authenticated users', () => {
-    function loginAsRandomUser() {
-      const randomUser = Cypress._.sample(testUsers) as UserDetail;
-      cy.contains(randomUser.email).should('not.exist');
-      cy.contains('a', 'Login').should('exist').click();
-      cy.login(randomUser.email, randomUser.password);
-      return randomUser;
-    }
+    const getEnabledCommentTextarea = () =>
+      cy.getByTestId('comment-textarea').should('not.be.disabled');
 
     beforeEach(() => {
-      cy.visit('/login');
-      loginAsRandomUser();
-      cy.checkIfLoggedIn();
+      const randomUser = Cypress._.sample(testUsers) as UserDetail;
+
+      
+        cy.visit('/login');
+        cy.login(randomUser.email, randomUser.password);
+        cy.url().should('match', /\/blog$/);
+        cy.checkIfLoggedIn();
+        cy.contains(randomUser.email).should('exist');
+  
       mockBlogPostPage();
     });
 
     it('enables text area for adding comments', () => {
-      cy.get('textarea').should('not.be.disabled');
+      getEnabledCommentTextarea();
     });
 
     it('reflects comment length in a counter near textarea', () => {
@@ -125,8 +126,8 @@ describe('Comments - commenting', () => {
         COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH
       );
       const content = generateRandomString(randomLen);
-      cy.get('textarea').type(content, { delay: 0 });
-      cy.get('textarea')
+      getEnabledCommentTextarea().type(content, { delay: 0 });
+      getEnabledCommentTextarea()
         .parent()
         .within(() => {
           cy.contains(
@@ -139,10 +140,10 @@ describe('Comments - commenting', () => {
       const content = generateRandomString(
         COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH
       );
-      cy.get('textarea').type(content, { delay: 0 });
-      cy.get('textarea').type('bababui!');
+      getEnabledCommentTextarea().type(content, { delay: 0 });
+      getEnabledCommentTextarea().type('bababui!');
 
-      cy.get('textarea')
+      getEnabledCommentTextarea()
         .invoke('val')
         .then((val) => {
           expect(val).to.equal(content);
@@ -150,9 +151,9 @@ describe('Comments - commenting', () => {
     });
 
     it('enables submit button only after a character is typed', () => {
-      cy.get('textarea').type(' ');
+      getEnabledCommentTextarea().type(' ');
       cy.get('button[type="submit"]').should('be.disabled');
-      cy.get('textarea').type('bababui!');
+      getEnabledCommentTextarea().type('bababui!');
       cy.get('button[type="submit"]').should('not.be.disabled');
     });
 
