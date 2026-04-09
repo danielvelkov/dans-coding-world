@@ -46,7 +46,7 @@ export const seedUsers = async (
     return seeded;
   } catch (e) {
     console.error(e);
-    process.exit(1);
+    throw e;
   } finally {
     await client.$disconnect();
   }
