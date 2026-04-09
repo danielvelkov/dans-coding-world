@@ -24,10 +24,7 @@
         "options": {
           "command": "prisma generate",
           "cwd": "libs/prisma-schema/prisma"
-        },
-        "dependsOn": [
-          "prisma-migrate"
-        ]
+        }
       },
       "prisma-migrate:e2e": {
         "executor": "nx:run-commands",
@@ -43,10 +40,7 @@
           "command": "prisma generate",
           "cwd": "libs/prisma-schema/prisma"
         },
-        "defaultConfiguration": "e2e",
-        "dependsOn": [
-          "prisma-migrate:e2e"
-        ]
+        "defaultConfiguration": "e2e"
       },
       "migrate-reset": {
         "executor": "nx:run-commands",

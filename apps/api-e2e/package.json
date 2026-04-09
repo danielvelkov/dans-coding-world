@@ -19,6 +19,7 @@
           "runInBand": true
         },
         "dependsOn": [
+          "@dans-coding-world/prisma-schema:generate-types:e2e",
           "@dans-coding-world/api:build",
           "@dans-coding-world/api:serve:e2e"
         ]

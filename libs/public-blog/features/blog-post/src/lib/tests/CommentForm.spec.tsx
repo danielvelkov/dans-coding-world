@@ -11,6 +11,7 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { generateRandomString } from '@dans-coding-world/helpers';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
+import { fireEvent } from '@testing-library/react';
 
 describe('CommentForm', () => {
   const renderFeature = (
@@ -51,15 +52,17 @@ describe('CommentForm', () => {
     const { baseElement } = renderFeature();
     const textbox = within(baseElement).getByRole('textbox');
 
-    const commentText = generateRandomString(
-      COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH + 1
+    const maxLenComment = generateRandomString(
+      COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH
     );
+    const overflowCharacter = 'z';
 
-    await user.type(textbox, commentText);
+    fireEvent.change(textbox, { target: { value: maxLenComment } });
+    await user.type(textbox, overflowCharacter);
 
     expect(
       screen.getByDisplayValue(
-        commentText.substring(0, COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH)
+        maxLenComment.substring(0, COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH)
       )
     ).toBeInTheDocument();
   });
@@ -93,6 +96,7 @@ describe('CommentForm', () => {
 
     const commentText = generateRandomString(50);
 
+    await user.clear(textbox);
     await user.type(textbox, commentText);
     await user.click(
       within(baseElement).getByRole('button', { name: 'Submit' })
