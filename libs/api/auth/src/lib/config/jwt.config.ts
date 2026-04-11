@@ -3,7 +3,6 @@ export interface JwtOptions {
   accessExpiration: number;
   refreshSecret: string;
   refreshExpiration: number;
-
 }
 
 export class JwtConfiguration {
