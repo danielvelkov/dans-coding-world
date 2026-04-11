@@ -35,7 +35,8 @@ declare namespace Cypress {
 
 Cypress.Commands.add('login', (email, password, options = {}) => {
   const { waitForRequest = true } = options;
-  cy.intercept('POST', `/api/v1/auth/login*`).as('loginRequest');
+  if (waitForRequest)
+    cy.intercept('POST', `/api/v1/auth/login*`).as('loginRequest');
   cy.get('[name="email"]').type(email);
   cy.get('[name="password"]').type(password);
   cy.contains('button', /login/i).click();

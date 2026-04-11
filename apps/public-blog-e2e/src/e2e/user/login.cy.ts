@@ -48,7 +48,9 @@ describe('User - login', () => {
        as HTTP-only cookies in "Set-Cookie" header`, () => {
       const randomUser = Cypress._.sample(testUsers) as UserDetail;
       cy.intercept(`${API_ENDPOINTS.AUTH.LOGIN}*`).as('login');
-      cy.login(randomUser.email, randomUser.password);
+      cy.login(randomUser.email, randomUser.password, {
+        waitForRequest: false,
+      });
       cy.wait('@login')
         .its('response.headers.set-cookie')
         .then((cookies: string[]) => {
@@ -79,7 +81,9 @@ describe('User - login', () => {
       const randomUser = Cypress._.sample(testUsers) as UserDetail;
       cy.intercept('POST', API_ENDPOINTS.AUTH.LOGIN).as('login');
       cy.contains('button', 'Login');
-      cy.login(randomUser.email, randomUser.password);
+      cy.login(randomUser.email, randomUser.password, {
+        waitForRequest: false,
+      });
       cy.contains('button', 'Login').should('not.exist');
       cy.contains('button', 'Logging in…').should('exist');
       cy.wait('@login');

@@ -107,13 +107,12 @@ describe('Comments - commenting', () => {
     beforeEach(() => {
       const randomUser = Cypress._.sample(testUsers) as UserDetail;
 
-      
-        cy.visit('/login');
-        cy.login(randomUser.email, randomUser.password);
-        cy.url().should('match', /\/blog$/);
-        cy.checkIfLoggedIn();
-        cy.contains(randomUser.email).should('exist');
-  
+      cy.visit('/login');
+      cy.login(randomUser.email, randomUser.password);
+      cy.url().should('match', /\/blog$/);
+      cy.checkIfLoggedIn();
+      cy.contains(randomUser.email).should('exist');
+
       mockBlogPostPage();
     });
 
@@ -158,10 +157,10 @@ describe('Comments - commenting', () => {
     });
 
     // TODO:
-    it('creates comment after entering valid content and submitting');
-    it('allows replying to another users comment');
-    it('replying to comments 3 levels deep should not be possible');
-    it('allows editing own user comments');
-    it('shows if comment was edited by user');
+    // it('creates comment after entering valid content and submitting');
+    // it('allows replying to another users comment');
+    // it('replying to comments 3 levels deep should not be possible');
+    // it('allows editing own user comments');
+    // it('shows if comment was edited by user');
   });
 });
