@@ -1,8 +1,11 @@
-import { useFetchPost } from '@dans-coding-world/public-blog-shared-hooks';
+import {
+  useAuth,
+  useFetchPost,
+} from '@dans-coding-world/public-blog-shared-hooks';
 import { Tag, UserAvatar } from '@dans-coding-world/public-blog-ui-common';
 import DOMPurify from 'dompurify';
 import styled from 'styled-components';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   stringifyToQueryString,
   formatDateTo_Month_DD_YYYY,
@@ -11,6 +14,7 @@ import type { FetchPostsQueryParams } from '@dans-coding-world/public-blog-share
 import { getReadingTime } from './util/post-ux.util';
 import { ShimmerPost } from './components/ShimmerPost';
 import CommentSection from './components/CommentSection';
+import { useEffect } from 'react';
 
 const StyledPost = styled.article`
   display: flex;
@@ -71,19 +75,24 @@ const StyledHeader = styled.header`
 export function BlogPost({ postId }: { postId: number }) {
   const navigate = useNavigate();
   const { data, isPending, isError, error } = useFetchPost(postId);
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!data) return;
+    if (data.post.visibility === 'MEMBERS_ONLY' && !isAuthenticated) {
+      navigate('/login', { state: { redirectTo: location.pathname } });
+    }
+  }, [data, isAuthenticated, navigate, location.pathname]);
 
   if (isError) throw error;
 
   const showLoading = isPending || !data;
 
-  const userLoggedIn = false; //TODO
-
   if (showLoading || !data)
     return <main>{showLoading && <ShimmerPost />}</main>;
 
   const { post } = data;
-
-  if (post.visibility === 'MEMBERS_ONLY' && !userLoggedIn) navigate('/login');
 
   const authorName = post.author.profile
     ? `${post.author.profile.firstName} ${post.author.profile.lastName}`

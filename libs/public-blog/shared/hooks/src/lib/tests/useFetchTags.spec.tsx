@@ -8,6 +8,11 @@ import {
   expectNetworkError,
 } from './helper/test-fetch-hook-errors.js';
 import { renderReactQueryHook } from './helper/render-react-query-hook.js';
+import {
+  ERROR_CODES,
+  ERROR_HTTP_STATUS,
+  ERROR_MESSAGES,
+} from '@dans-coding-world/shared-constants';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 
@@ -46,16 +51,16 @@ describe('useFetchTags', () => {
   });
 
   it('returns error details from API response', async () => {
-    const MOCK_API_ERROR: ResponseErrorDetails = {
-      message: 'Something went wrong',
-      status: 500,
-      errorCode: 'SER001',
+    const mockResponseErrorDetails: ResponseErrorDetails = {
+      message: ERROR_MESSAGES[ERROR_CODES['SERVER'].INTERNAL_ERROR],
+      status: ERROR_HTTP_STATUS[ERROR_CODES['SERVER'].INTERNAL_ERROR],
+      errorCode: ERROR_CODES['SERVER'].INTERNAL_ERROR,
     };
 
     await expectApiError({
       renderHook: renderUseFetchTagsHook,
       apiMock: vi.mocked(api.get),
-      error: MOCK_API_ERROR,
+      error: mockResponseErrorDetails,
     });
   });
 });

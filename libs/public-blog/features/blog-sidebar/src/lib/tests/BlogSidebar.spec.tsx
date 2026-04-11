@@ -16,7 +16,7 @@ import {
   useFetchPostsMetadata,
   useFetchTags,
 } from '@dans-coding-world/public-blog-shared-hooks';
-import createMockQueryResult from './util/createMockQueryResult';
+import { createMockQueryResult } from '@dans-coding-world/shared-post-testing';
 import {
   GetPostsMetadataResponse,
   GetTagsResponse,

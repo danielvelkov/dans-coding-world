@@ -1,9 +1,17 @@
-import { Post } from '@dans-coding-world/prisma-schema';
+import { Post, User } from '@dans-coding-world/prisma-schema';
 
 describe('Blog - general', () => {
   let seededPosts: Post[];
+  let seededUsers: User[];
+
   before(() => {
-    cy.task('db:seed-users');
+    cy.task('db:seed-users', {
+      options: { useDefaults: true, clearExisting: true },
+    }).then((users) => {
+      seededUsers = users as User[];
+      if (!seededUsers || !seededUsers.length)
+        throw new Error('Missing user fixtures');
+    });
     cy.fixture('blog/sorting-dataset.json').then((posts) =>
       cy
         .task('db:seed-posts', {
@@ -37,14 +45,14 @@ describe('Blog - general', () => {
     it(`does not show content or provide navigation 
       for members-only posts when logged out`, () => {
       const membersOnlyPost = seededPosts.find(
-        (p) => p.visibility === 'MEMBERS_ONLY'
+        (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
       );
       if (!membersOnlyPost) throw new Error('Missing members only post');
 
       cy.contains('article h2', membersOnlyPost.title)
         .closest('article')
         .within(() => {
-          cy.contains(membersOnlyPost.content.substring(0, 20)).should(
+          cy.contains(membersOnlyPost.content.substring(0, 10)).should(
             'not.exist'
           );
           cy.contains('a', /continue reading/i).should('not.exist');
@@ -52,7 +60,9 @@ describe('Blog - general', () => {
           cy.contains(membersOnlyPost.title).click();
           cy.url().should('not.include', `/blog/${membersOnlyPost.id}`);
 
-          cy.contains('Members Only').should('exist').click();
+          cy.contains('a', /members only/i)
+            .should('exist')
+            .click();
           cy.url().should('include', `/login`);
         });
     });
@@ -67,7 +77,21 @@ describe('Blog - general', () => {
         });
     });
 
-    // TODO:
-    it.skip('posts that are members-only are shown to logged in users');
+    it('posts that are members-only are shown to logged in users', () => {
+      const randomUser = Cypress._.sample(seededUsers) as User;
+      cy.visit('/login');
+      cy.login(randomUser.email, randomUser.password);
+
+      const membersOnlyPost = seededPosts.find(
+        (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
+      );
+      if (!membersOnlyPost) throw new Error('Missing members only post');
+
+      cy.contains('article h2', membersOnlyPost.title)
+        .closest('article')
+        .within(() => {
+          cy.contains(membersOnlyPost.content.substring(0, 10)).should('exist');
+        });
+    });
   });
 });

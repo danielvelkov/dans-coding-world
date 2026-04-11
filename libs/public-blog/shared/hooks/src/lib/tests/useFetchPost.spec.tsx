@@ -8,6 +8,11 @@ import {
   expectApiError,
   expectNetworkError,
 } from './helper/test-fetch-hook-errors.js';
+import {
+  ERROR_CODES,
+  ERROR_HTTP_STATUS,
+  ERROR_MESSAGES,
+} from '@dans-coding-world/shared-constants';
 
 const mockPostResponse = generateMockPostResponse({});
 vi.mock('@dans-coding-world/shared-data-access-api');
@@ -48,16 +53,16 @@ describe('useFetchPost', () => {
   });
 
   it('returns error details from API response', async () => {
-    const MOCK_API_ERROR: ResponseErrorDetails = {
-      message: 'Resource not found',
-      status: 404,
-      errorCode: 'SER002',
+    const mockResponseErrorDetails: ResponseErrorDetails = {
+      message: ERROR_MESSAGES[ERROR_CODES['SERVER'].NOT_FOUND],
+      status: ERROR_HTTP_STATUS[ERROR_CODES['SERVER'].NOT_FOUND],
+      errorCode: ERROR_CODES['SERVER'].NOT_FOUND,
     };
 
     await expectApiError({
       renderHook: renderUseFetchPostsHook,
       apiMock: vi.mocked(api.get),
-      error: MOCK_API_ERROR,
+      error: mockResponseErrorDetails,
     });
   });
 });

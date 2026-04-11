@@ -5,7 +5,7 @@ module.exports = {
   output: {
     path: join(__dirname, 'dist'),
   },
-  devtool: 'inline-source-map',
+  devtool: false,
   plugins: [
     new NxAppWebpackPlugin({
       target: 'node',
@@ -16,7 +16,7 @@ module.exports = {
       optimization: false,
       outputHashing: 'none',
       generatePackageJson: true,
-      sourceMap: true,
+      sourceMap: false,
     }),
   ],
   ignoreWarnings: [

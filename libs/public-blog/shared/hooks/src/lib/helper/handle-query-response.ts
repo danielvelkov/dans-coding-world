@@ -2,7 +2,8 @@ import {
   BaseResponse,
   ResponseErrorDetails,
 } from '@dans-coding-world/api-types';
-import { ApiError } from '../types/apiError';
+import { ApiError } from '../types/api.error';
+import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 
 export function handleQueryResponse<ResponseDto>(
   response: BaseResponse<ResponseDto>
@@ -13,7 +14,7 @@ export function handleQueryResponse<ResponseDto>(
     throw new ApiError(
       error.status,
       error.message ?? 'Something went wrong',
-      error.errorCode,
+      error.errorCode ?? ERROR_CODES['SERVER'].INTERNAL_ERROR,
       error.details
     );
   }

@@ -42,6 +42,9 @@
   "references": [
     {
       "path": "../../public-blog/ui/theme/tsconfig.lib.json"
+    },
+    {
+      "path": "../../public-blog/shared/hooks/tsconfig.lib.json"
     }
   ]
 }

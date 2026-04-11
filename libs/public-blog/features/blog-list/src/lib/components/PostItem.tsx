@@ -220,6 +220,7 @@ export function PostItem({
             >
               <Link
                 to={`/login`}
+                state={{ redirectTo: `/blog/${post.id}` }}
                 aria-label="Login to view members only content"
               >
                 <span className="lock-badge" aria-hidden="true">

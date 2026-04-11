@@ -11,7 +11,7 @@ import { MemoryRouter } from 'react-router';
 import { generateMockPostMetadataResponse } from '@dans-coding-world/shared-post-testing';
 import { GetPostsMetadataResponse } from '@dans-coding-world/shared-post-dto';
 import { PostYearSelection } from '../components/PostYearSelection';
-import createMockQueryResult from './util/createMockQueryResult';
+import { createMockQueryResult } from '@dans-coding-world/shared-post-testing';
 
 const { data } = generateMockPostMetadataResponse({ length: 5 });
 if (!data) throw new Error('failed go generate mock response');
@@ -51,7 +51,9 @@ describe('PublishedYearSelectSection', () => {
   ])(
     'renders nothing %s',
     (_: string, params: Partial<UseQueryResult<GetPostsMetadataResponse>>) => {
-      validProps.yearsQuery = createMockQueryResult({ ...params });
+      validProps.yearsQuery = createMockQueryResult<GetPostsMetadataResponse>({
+        ...params,
+      });
       const { container } = renderFeature();
       expect(container.firstChild).toBe(null);
     }

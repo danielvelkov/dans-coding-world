@@ -5,12 +5,14 @@ export const darkTheme: DefaultTheme = {
     primary: '#f0eaea',
     secondary: '#b0a8a8',
     muted: '#6b6370',
+    error: '#ff6b6b',
   },
   background: {
     base: '#0f0f14',
     surface: '#1a1820',
     elevated: '#242030',
     inverse: '#504a63b9',
+    error: 'rgba(224, 82, 82, 0.12)',
   },
   border: {
     primary: 'rgba(255, 255, 255, 0.08)',

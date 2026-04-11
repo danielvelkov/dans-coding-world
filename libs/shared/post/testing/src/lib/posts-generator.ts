@@ -1,5 +1,4 @@
 import {
-  rand,
   randNumber,
   randPastDate,
   randProgrammingLanguage,
@@ -7,7 +6,7 @@ import {
 } from '@ngneat/falso';
 import { PostStatus, PostVisibility } from '@dans-coding-world/prisma-schema';
 import { GetPostsResponseDto } from '@dans-coding-world/shared-post-dto';
-import { generateRandomUserPreview } from './user-generator.js';
+import { generateRandomUserPreview } from '@dans-coding-world/shared-user-testing';
 
 export function generateRandomPosts(
   count: number

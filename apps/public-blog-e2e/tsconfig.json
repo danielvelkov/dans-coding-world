@@ -26,7 +26,19 @@
   ],
   "references": [
     {
+      "path": "../../libs/shared/user/testing"
+    },
+    {
+      "path": "../../libs/shared/util/exceptions"
+    },
+    {
       "path": "../../libs/api/data-access/post"
+    },
+    {
+      "path": "../../libs/public-blog/shared/util/helpers"
+    },
+    {
+      "path": "../../libs/api/data-access/user"
     },
     {
       "path": "../../libs/shared/util/helpers"

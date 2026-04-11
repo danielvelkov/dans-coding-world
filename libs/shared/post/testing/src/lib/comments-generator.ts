@@ -1,6 +1,6 @@
 import { randNumber, randPastDate, randSentence } from '@ngneat/falso';
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
-import { generateRandomUserPreview } from './user-generator.js';
+import { generateRandomUserPreview } from '@dans-coding-world/shared-user-testing';
 
 export function generateRandomComments(
   postId: number,

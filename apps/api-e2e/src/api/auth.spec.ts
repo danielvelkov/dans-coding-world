@@ -170,6 +170,7 @@ describe('/api/v1/auth', () => {
       const token = await getTokenById(jti);
       expect(token.revoked).toBe(true);
     });
+
     it('should return 401 Unauthorized when trying to access as a logged out user', async () => {
       return await expect(logout).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
@@ -238,13 +239,14 @@ describe('/api/v1/auth', () => {
       expect(refreshData).toHaveProperty('user');
     });
 
-    it('should return validation error message if string is not JWT token', async () => {
-      return await expect(
-        renewAuthToken('123.12312.123.3123')
-      ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
-      );
-    });
+    test.each(['123.12312.123.3123', 'abcd'])(
+      'should return validation error message if string is not valid JWT token',
+      async (token: string) => {
+        return await expect(renewAuthToken(token)).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        );
+      }
+    );
 
     test.each([
       [

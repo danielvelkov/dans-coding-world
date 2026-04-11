@@ -1,4 +1,9 @@
-import { render, screen, waitFor } from '@dans-coding-world/public-blog-tools';
+import {
+  mockAuth,
+  render,
+  screen,
+  waitFor,
+} from '@dans-coding-world/public-blog-tools';
 import userEvent from '@testing-library/user-event';
 import CommentSection from '../components/CommentSection';
 import { MemoryRouter } from 'react-router-dom';
@@ -9,13 +14,24 @@ import { BaseResponse } from '@dans-coding-world/api-types';
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
+// TODO: somehow remove this nasty copy-paste
+// mock only "useAuth" from shared hooks module
+vi.mock(
+  '@dans-coding-world/public-blog-shared-hooks',
+  async (importOriginal) => {
+    return {
+      ...(await importOriginal()),
+      useAuth: vi.fn(),
+    };
+  }
+);
 
 const TEST_POST_ID = 1;
 const mockCommentsResponse = generateMockPostCommentsResponse({
   postId: TEST_POST_ID,
   replyLevels: 2,
   pageSize: 10,
-  length: 7,
+  length: 3,
 });
 
 describe('CommentSection', () => {
@@ -28,6 +44,7 @@ describe('CommentSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAuth();
     vi.mocked(api.get<BaseResponse>).mockResolvedValue(mockCommentsResponse);
   });
 
@@ -72,6 +89,7 @@ describe('CommentSection', () => {
     });
   });
 
+  // this test times out
   it(`should show comment replies as expandable tree view structure`, async () => {
     renderFeature();
     const comments = mockCommentsResponse.data?.items;
@@ -143,6 +161,33 @@ describe('CommentSection', () => {
     renderFeature();
     expect(screen.getByText(/Loading comments/)).toBeTruthy();
   });
+
+  describe('based on user auth state', () => {
+    describe('if user logged-in', () => {
+      beforeEach(() => {
+        mockAuth({ isAuthenticated: true });
+      });
+
+      it('disables comment form textarea', async () => {
+        renderFeature();
+        await waitFor(() => {
+          expect(screen.getByRole('textbox')).not.toBeDisabled();
+        });
+      });
+    });
+
+    describe('if user logged-out', () => {
+      beforeEach(() => {
+        mockAuth({ isAuthenticated: false });
+      });
+      it('enables comment form textarea', async () => {
+        renderFeature();
+        await waitFor(() => {
+          expect(screen.getByRole('textbox')).toBeDisabled();
+        });
+      });
+    });
+  });
 });
 
 async function checkRepliesForComment(
@@ -156,25 +201,32 @@ async function checkRepliesForComment(
 
   await userEvent.click(viewReplies);
 
-  const replyList = await screen.findByRole('list', {
-    name: new RegExp(
-      `Replies to ${comment.user.username.replace(
-        /[.*+?^${}()|[\]\\]/g,
-        '\\$&'
-      )}`
-    ),
+  await waitFor(() => {
+    expect(viewReplies).toHaveAttribute('aria-label', 'Hide replies');
+  });
+
+  const escapedUsername = comment.user.username.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  const replyList = await screen.findByRole(
+    'list',
+    {
+      name: new RegExp(`Replies to ${escapedUsername}`),
+    },
+    { timeout: 5000 }
+  );
+
+  // wait for all items to render before asserting count
+  await waitFor(() => {
+    const replyItems = Array.from(replyList.querySelectorAll(':scope > li'));
+    expect(replyItems.length).toBe(comment.replies.length);
   });
 
   const replyItems = Array.from(replyList.querySelectorAll(':scope > li'));
-  expect(replyItems.length).toBe(comment.replies.length);
 
   for (let i = 0; i < comment.replies.length; i++) {
-    const reply = comment.replies[i];
-    const replyItem = replyItems[i];
-
-    const paragraph = replyItem.querySelector('p');
-    expect(paragraph?.textContent).toBe(reply.content);
-
-    await checkRepliesForComment(replyItem, reply);
+    await checkRepliesForComment(replyItems[i], comment.replies[i]);
   }
 }

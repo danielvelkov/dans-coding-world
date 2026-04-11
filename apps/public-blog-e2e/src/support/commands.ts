@@ -14,7 +14,13 @@
 declare namespace Cypress {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Chainable<Subject> {
-    login(email: string, password: string): void;
+    login(
+      email: string,
+      password: string,
+      options?: { waitForRequest?: boolean }
+    ): void;
+    logout(): void;
+    checkIfLoggedIn(): void;
     getByTestId(id: string): Chainable<Subject>;
     goToPage(pageNumber: number): void;
     clickNextPage(): void;
@@ -27,10 +33,29 @@ declare namespace Cypress {
   }
 }
 
-// -- This is a parent command --
-Cypress.Commands.add('login', (email, password) => {
-  console.log('Custom command example: Login', email, password);
+Cypress.Commands.add('login', (email, password, options = {}) => {
+  const { waitForRequest = true } = options;
+  if (waitForRequest)
+    cy.intercept('POST', `/api/v1/auth/login*`).as('loginRequest');
+  cy.get('[name="email"]').type(email);
+  cy.get('[name="password"]').type(password);
+  cy.contains('button', /login/i).click();
+  if (waitForRequest) {
+    cy.wait('@loginRequest')
+      .its('response.statusCode')
+      .should('be.oneOf', [200, 400, 401]);
+  }
 });
+
+Cypress.Commands.add('logout', () => {
+  cy.getByTestId('user-profile-dropdown').click();
+  cy.contains('button', 'Logout').click();
+});
+
+Cypress.Commands.add('checkIfLoggedIn', () => {
+  cy.getByTestId('user-profile-dropdown').should('exist');
+});
+
 Cypress.Commands.add('getByTestId', (id) => {
   return cy.get(`[data-testid=${id}]`);
 });

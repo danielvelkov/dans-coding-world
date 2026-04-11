@@ -9,10 +9,8 @@ import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import { formatToRelativeTimeFromNow } from '@dans-coding-world/helpers';
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
-import {
-  generateRandomComments,
-  generateRandomUserPreview,
-} from '@dans-coding-world/shared-post-testing';
+import { generateRandomComments } from '@dans-coding-world/shared-post-testing';
+import { generateRandomUserPreview } from '@dans-coding-world/shared-user-testing';
 
 const testComment: CommentWithReplies = generateRandomComments(1, 1)[0];
 testComment.user = generateRandomUserPreview();

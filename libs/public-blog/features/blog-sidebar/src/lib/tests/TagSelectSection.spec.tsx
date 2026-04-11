@@ -9,7 +9,7 @@ import { TagSelectSection } from '../components/TagSelectSection';
 import { MemoryRouter } from 'react-router';
 import { generateMockGetTagsResponse } from '@dans-coding-world/shared-post-testing';
 import { GetTagsResponse } from '@dans-coding-world/shared-post-dto';
-import createMockQueryResult from './util/createMockQueryResult';
+import { createMockQueryResult } from '@dans-coding-world/shared-post-testing';
 import { UseQueryResult } from '@tanstack/react-query';
 
 const { data } = generateMockGetTagsResponse({ length: 5 });
@@ -47,7 +47,9 @@ describe('TagsSelectList', () => {
   ])(
     'renders nothing %s',
     (_: string, params: Partial<UseQueryResult<GetTagsResponse>>) => {
-      validProps.tagsQuery = createMockQueryResult({ ...params });
+      validProps.tagsQuery = createMockQueryResult<GetTagsResponse>({
+        ...params,
+      });
       const { container } = renderFeature();
       expect(container.firstChild).toBe(null);
     }

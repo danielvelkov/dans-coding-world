@@ -8,6 +8,14 @@ const AVATAR_SIZES = {
   XL: 80,
 };
 
+const AVATAR_SIZES_FONT = {
+  XS: 1,
+  S: 1.2,
+  M: 1.4,
+  LG: 1.6,
+  XL: 2,
+};
+
 const AVATAR_SHAPES = ['circle', 'square'] as const;
 
 type AvatarSize = keyof typeof AVATAR_SIZES;
@@ -20,12 +28,15 @@ const StyledAvatar = styled.div<
   }
 >`
   display: flex;
-  justify-content: center;
   cursor: pointer;
+  justify-content: center;
+  text-align: center;
 
   .avatar {
-    font-size: ${(props) => AVATAR_SIZES[props.$imgSize]}px;
+    font-size: ${(props) => AVATAR_SIZES_FONT[props.$imgSize]}em;
     height: ${(props) => AVATAR_SIZES[props.$imgSize]}px;
+    align-content: center;
+    aspect-ratio: 1/1;
     border-radius: ${(props) =>
       props.$shape === AVATAR_SHAPES[0] ? '50%' : 'none'};
   }
@@ -36,14 +47,16 @@ export function UserAvatar({
   name,
   size = 'M',
   shape = 'square',
+  className,
 }: {
   avatarURL?: string;
   name: string;
   size?: AvatarSize;
   shape?: AvatarShape;
+  className?: string;
 }) {
   return (
-    <StyledAvatar $imgSize={size} $shape={shape}>
+    <StyledAvatar className={className} $imgSize={size} $shape={shape}>
       {avatarURL ? (
         <img className="avatar" src={avatarURL} alt={`${name}'s avatar`} />
       ) : (

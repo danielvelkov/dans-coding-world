@@ -79,7 +79,7 @@ describe('Blog - filters', () => {
         .and('contain.text', 'Members-only');
     });
 
-    it.only('applies filtering correctly when deselecting options', () => {
+    it('applies filtering correctly when deselecting options', () => {
       const testCases = [
         { remove: 'Public', show: 'MEMBERS_ONLY' },
         { remove: 'Members-only', show: 'PUBLIC' },

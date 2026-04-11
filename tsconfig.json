@@ -110,6 +110,18 @@
     },
     {
       "path": "./libs/public-blog/ui/errors"
+    },
+    {
+      "path": "./libs/public-blog/features/user-login"
+    },
+    {
+      "path": "./libs/public-blog/features/header"
+    },
+    {
+      "path": "./libs/shared/user/testing"
+    },
+    {
+      "path": "./libs/public-blog/shared/util/helpers"
     }
   ]
 }

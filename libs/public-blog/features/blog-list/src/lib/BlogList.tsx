@@ -7,7 +7,6 @@ import {
 import {
   PAGINATION,
   POST_CONSTRAINTS,
-  VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import { calculatePageOffset } from '@dans-coding-world/helpers';
 import { PostList, StyledUnorderedList } from './components/PostList';
@@ -17,7 +16,9 @@ import {
   FetchPostsQueryParams,
   useFetchPosts,
   useDebounce,
+  useAuth,
 } from '@dans-coding-world/public-blog-shared-hooks';
+import { useDelayedLoading } from '@dans-coding-world/public-blog-shared-helpers';
 import { PostVisibilityFilter } from './components/PostVisibilityFilter';
 import { PostSortingDropdown } from './components/PostSortingDropdown';
 import {
@@ -73,6 +74,7 @@ export function BlogList({
   className?: string;
 }) {
   const { data, isPending, isError, error } = useFetchPosts(params);
+  const { isAuthenticated } = useAuth();
 
   const { debounceCb: handleSearchDebounced, isPending: isLoading } =
     useDebounce((value: string) => {
@@ -127,7 +129,7 @@ export function BlogList({
     }
   };
 
-  const showLoading = isPending || isLoading || !data;
+  const showLoading = useDelayedLoading(isPending || isLoading || !data, 200);
 
   return (
     <StyledBlogList className={className}>
@@ -178,27 +180,29 @@ export function BlogList({
       ) : showLoading ? (
         <ShimmerList count={PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE} />
       ) : (
-        <main>
-          <PostList>
-            {data.items.map((p) => (
-              <PostItem
-                activeTags={params.filterBy?.tags}
-                key={p.id}
-                post={p as BlogPostItem}
-                isLocked={p.content === VALIDATION_MESSAGES.posts.membersOnly}
-                onTagClick={handleTagToggle}
-              />
-            ))}
-          </PostList>
+        data && (
+          <main>
+            <PostList>
+              {data.items.map((p) => (
+                <PostItem
+                  activeTags={params.filterBy?.tags}
+                  key={p.id}
+                  post={p as BlogPostItem}
+                  isLocked={!isAuthenticated && p.visibility === 'MEMBERS_ONLY'}
+                  onTagClick={handleTagToggle}
+                />
+              ))}
+            </PostList>
 
-          {data.pagination.totalPages > 1 && (
-            <Pagination
-              totalPages={data.pagination.totalPages}
-              currentPage={data.pagination.page}
-              onPageSelect={handlePageSelect}
-            />
-          )}
-        </main>
+            {data.pagination.totalPages > 1 && (
+              <Pagination
+                totalPages={data.pagination.totalPages}
+                currentPage={data.pagination.page}
+                onPageSelect={handlePageSelect}
+              />
+            )}
+          </main>
+        )
       )}
     </StyledBlogList>
   );

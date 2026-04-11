@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { GetPostsResponseDto } from '@dans-coding-world/shared-post-dto';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
@@ -21,7 +21,6 @@ export const useFetchPosts = (params?: FetchPostsQueryParams) => {
       );
       return handleQueryResponse(response);
     },
-    placeholderData: keepPreviousData, // makes fetching new posts appear seamless
   });
 
   return query;

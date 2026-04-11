@@ -120,6 +120,7 @@ export function CommentForm({
     >
       <StyledTextAreaWrapper title={isLocked ? 'Login to comment' : undefined}>
         <StyledTextArea
+          data-testid="comment-textarea"
           rows={3}
           disabled={isLocked}
           placeholder="Add comment..."

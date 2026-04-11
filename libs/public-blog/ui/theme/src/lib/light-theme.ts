@@ -5,12 +5,14 @@ export const lightTheme: DefaultTheme = {
     primary: '#1a1a2e',
     secondary: '#4a4a5a',
     muted: '#9a9aaa',
+    error: '#d64545',
   },
   background: {
     base: '#f9f7f7',
     surface: '#ffffff',
     elevated: '#f0eaea',
     inverse: '#fcddddc7',
+    error: 'rgba(214, 69, 69, 0.12)',
   },
   border: {
     primary: 'rgba(210, 200, 200, 0.8)',
