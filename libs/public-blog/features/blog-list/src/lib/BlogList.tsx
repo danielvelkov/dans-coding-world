@@ -17,8 +17,8 @@ import {
   useFetchPosts,
   useDebounce,
   useAuth,
+  useDelayedLoading,
 } from '@dans-coding-world/public-blog-shared-hooks';
-import { useDelayedLoading } from '@dans-coding-world/public-blog-shared-helpers';
 import { PostVisibilityFilter } from './components/PostVisibilityFilter';
 import { PostSortingDropdown } from './components/PostSortingDropdown';
 import {
