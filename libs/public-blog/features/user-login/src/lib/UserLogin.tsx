@@ -7,7 +7,7 @@ import {
 import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getLoginValidationErrors } from './helper/login-validation';
+import { getValidationErrors } from '@dans-coding-world/public-blog-shared-helpers';
 
 const StyledButton = styled(Button)`
   display: flex;
@@ -95,7 +95,10 @@ export function UserLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const [emailError, passwordError] = getLoginValidationErrors(error);
+  const { email: emailError, password: passwordError } = getValidationErrors(
+    error,
+    ['email', 'password']
+  );
 
   const handleFormSubmit = () => {
     if (email && password) login({ email, password });

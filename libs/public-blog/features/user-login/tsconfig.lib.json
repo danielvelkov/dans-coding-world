@@ -50,6 +50,9 @@
       "path": "../../../shared/util/api-types/tsconfig.lib.json"
     },
     {
+      "path": "../../shared/util/helpers/tsconfig.lib.json"
+    },
+    {
       "path": "../../shared/hooks/tsconfig.lib.json"
     },
     {
