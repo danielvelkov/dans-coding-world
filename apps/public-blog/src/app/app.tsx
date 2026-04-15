@@ -14,6 +14,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Fallback } from './Fallback';
 import { AuthProvider } from '@dans-coding-world/public-blog-shared-hooks';
 import { Header } from '@dans-coding-world/public-blog-features-header';
+import Register from '../routes/user/Register';
 
 const StyledApp = styled.div`
   padding: 0 clamp(5vmin, 5vw, 15vmax);
@@ -46,6 +47,9 @@ export function App() {
             <Routes>
               <Route path="login">
                 <Route index element={<Login />} />
+              </Route>
+              <Route path="register">
+                <Route index element={<Register />} />
               </Route>
               <Route path="blog">
                 <Route index element={<Blog />} />

@@ -122,6 +122,12 @@
     },
     {
       "path": "./libs/public-blog/shared/util/helpers"
+    },
+    {
+      "path": "./libs/public-blog/features/user-registration"
+    },
+    {
+      "path": "./libs/public-blog/ui/form"
     }
   ]
 }
