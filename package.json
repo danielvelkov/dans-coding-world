@@ -152,6 +152,7 @@
     "libs/public-blog/ui/*",
     "libs/public-blog/data-access/*",
     "libs/public-blog/shared/*",
+    "libs/public-blog/shared/ui/*",
     "libs/public-blog/shared/util/*"
   ]
 }
