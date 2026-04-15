@@ -26,7 +26,6 @@ export const createFieldInvalidHandler =
   ) => {
     e.preventDefault();
     const { name, validationMessage } = e.target;
-    console.log({ name, validationMessage });
     setErrors((prev) => ({
       ...prev,
       [name]: overwriteMessage(validationMessage),
