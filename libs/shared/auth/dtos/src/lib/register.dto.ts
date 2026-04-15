@@ -20,7 +20,7 @@ export class RegisterDto {
       USER_CONSTRAINTS.MAX_USERNAME_LENGTH
     ),
   })
-  @Matches(/^[a-zA-z0-9_]+$/, {
+  @Matches(USER_CONSTRAINTS.USERNAME_PATTERN, {
     message: VALIDATION_MESSAGES.username.invalid,
   })
   username: string;
