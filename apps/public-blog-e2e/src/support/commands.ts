@@ -19,6 +19,13 @@ declare namespace Cypress {
       password: string,
       options?: { waitForRequest?: boolean }
     ): void;
+    register(
+      email: string,
+      username: string,
+      password: string,
+      confirmPassword: string,
+      options?: { waitForRequest?: boolean }
+    ): void;
     logout(): void;
     checkIfLoggedIn(): void;
     getByTestId(id: string): Chainable<Subject>;
@@ -46,6 +53,25 @@ Cypress.Commands.add('login', (email, password, options = {}) => {
       .should('be.oneOf', [200, 400, 401]);
   }
 });
+
+Cypress.Commands.add(
+  'register',
+  (email, username, password, confirmPassword, options = {}) => {
+    const { waitForRequest = true } = options;
+    if (waitForRequest)
+      cy.intercept('POST', `/api/v1/auth/register`).as('registerRequest');
+    cy.get('[name="email"]').type(email);
+    cy.get('[name="username"]').type(username);
+    cy.get('[name="password"]').type(password);
+    cy.get('[name="confirmPassword"]').type(confirmPassword);
+    cy.contains('button', /create account/i).click();
+    if (waitForRequest) {
+      cy.wait('@registerRequest')
+        .its('response.statusCode')
+        .should('be.oneOf', [201, 400, 401, 409]);
+    }
+  }
+);
 
 Cypress.Commands.add('logout', () => {
   cy.getByTestId('user-profile-dropdown').click();
