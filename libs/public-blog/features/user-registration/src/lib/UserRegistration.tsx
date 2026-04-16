@@ -140,7 +140,7 @@ export function UserRegistration() {
           onInvalid={handleInvalid}
         />
         {errors.email && (
-          <FieldErrorText>
+          <FieldErrorText data-testid="email-error">
             <i className="fa fa-exclamation-triangle" /> {errors.email}
           </FieldErrorText>
         )}
@@ -155,10 +155,10 @@ export function UserRegistration() {
           minLength={USER_CONSTRAINTS.MIN_USERNAME_LENGTH}
           maxLength={USER_CONSTRAINTS.MAX_USERNAME_LENGTH}
           pattern={USER_CONSTRAINTS.USERNAME_PATTERN.source}
-          placeholder="john1eDo3"
+          placeholder="john1e_Do3"
           title={`
-            Username must contain only letters and numbers,
-             also be between (${USER_CONSTRAINTS.MIN_USERNAME_LENGTH}-${USER_CONSTRAINTS.MAX_USERNAME_LENGTH}) characters long.`.trim()}
+          Username must consist only of letters, numbers, or the underscore character (_)
+          Must also be between (${USER_CONSTRAINTS.MIN_USERNAME_LENGTH}-${USER_CONSTRAINTS.MAX_USERNAME_LENGTH}) characters long.`.trim()}
           value={formData.username}
           onChange={handleChange}
           $hasError={!!errors.username}
@@ -171,7 +171,7 @@ export function UserRegistration() {
           }}
         />
         {errors.username && (
-          <FieldErrorText>
+          <FieldErrorText data-testid="username-error">
             <i className="fa fa-exclamation-triangle" /> {errors.username}
           </FieldErrorText>
         )}
@@ -211,7 +211,7 @@ export function UserRegistration() {
           $hasError={!!errors.password}
         />
         {errors.password && (
-          <FieldErrorText>
+          <FieldErrorText data-testid="password-error">
             <i className="fa fa-exclamation-triangle" /> {errors.password}
           </FieldErrorText>
         )}
@@ -231,7 +231,7 @@ export function UserRegistration() {
           onInvalid={handleInvalid}
         />
         {errors.confirmPassword && (
-          <FieldErrorText>
+          <FieldErrorText data-testid="confirm-password-error">
             <i className="fa fa-exclamation-triangle" />{' '}
             {errors.confirmPassword}
           </FieldErrorText>

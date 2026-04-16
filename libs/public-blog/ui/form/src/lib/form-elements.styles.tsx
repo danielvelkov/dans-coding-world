@@ -13,7 +13,7 @@ export const FormContainer = styled.form<
   flex-direction: column;
   gap: 1.5rem;
   background-color: ${({ theme }) => theme.background.surface};
-  border: 1px solid ${({ theme }) => theme.border.primary};
+  border: 2px solid ${({ theme }) => theme.border.primary};
   border-radius: 5px;
   padding: 2.5rem;
   margin: 2rem auto;
