@@ -19,7 +19,7 @@ import Register from '../routes/user/Register';
 const StyledApp = styled.div`
   padding: 0 clamp(5vmin, 5vw, 15vmax);
   margin: 0 auto;
-  max-width: 1000px;
+  max-width: 1320px;
 `;
 
 // dev tools do not work during e2e testing for some reason
