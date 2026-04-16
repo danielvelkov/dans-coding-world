@@ -44,6 +44,11 @@ describe('User - login', () => {
   context('Login page', () => {
     beforeEach(() => cy.visit('/login'));
 
+    it('navigates to registration page on clicking the "Register" link', () => {
+      cy.contains('a', 'Register').click();
+      cy.url().should('include', `/register`);
+    });
+
     it(`on valid login, the server returns access and refresh tokens
        as HTTP-only cookies in "Set-Cookie" header`, () => {
       const randomUser = Cypress._.sample(testUsers) as UserDetail;
