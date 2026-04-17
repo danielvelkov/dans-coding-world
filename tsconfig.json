@@ -128,6 +128,9 @@
     },
     {
       "path": "./libs/public-blog/ui/form"
+    },
+    {
+      "path": "./libs/public-blog/features/user-account"
     }
   ]
 }
