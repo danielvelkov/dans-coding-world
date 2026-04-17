@@ -6,8 +6,9 @@ import {
   IsOptional,
   Matches,
   ValidateNested,
+  IsBoolean,
 } from 'class-validator';
-import { ToInteger } from '@dans-coding-world/validation';
+import { ToBoolean, ToInteger } from '@dans-coding-world/validation';
 import {
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
@@ -66,4 +67,9 @@ export class UpdateUserDto {
   @ValidateNested()
   @Type(() => AvatarImageDto)
   avatar?: AvatarImageDto;
+
+  @IsOptional()
+  @IsBoolean()
+  @ToBoolean()
+  removeAvatar?: boolean;
 }
