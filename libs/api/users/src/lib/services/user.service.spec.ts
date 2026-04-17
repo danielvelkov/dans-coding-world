@@ -122,6 +122,8 @@ describe('UserService', () => {
     fileExistsSpy = jest.spyOn(fs, 'existsSync').mockImplementation();
   });
 
+  afterEach(() => jest.clearAllMocks());
+
   describe('getById()', () => {
     it(`should return user data with profile details, excluding password always
       and removing protected fields like email if no viewerId is provided`, async () => {
@@ -284,6 +286,54 @@ describe('UserService', () => {
             size: 10000,
           },
         });
+
+      expect(mockStorageProvider.deleteFile).toHaveBeenCalledTimes(1);
+    });
+
+    it(`should not call for deletion of previous avatar if setting removeAvatar to "false"`, async () => {
+      fileExistsSpy.mockReturnValueOnce(true);
+      unlinkSyncSpy.mockReturnValueOnce(null);
+
+      const userWithProfile = user;
+
+      await userService.update({
+        userId: userWithProfile.id,
+        removeAvatar: false,
+      });
+
+      expect(mockStorageProvider.deleteFile).toHaveBeenCalledTimes(0);
+    });
+
+    it(`should call for deletion of previous avatar if setting removeAvatar to "true"`, async () => {
+      fileExistsSpy.mockReturnValueOnce(true);
+      unlinkSyncSpy.mockReturnValueOnce(null);
+
+      const userWithProfile = user;
+
+      await userService.update({
+        userId: userWithProfile.id,
+        removeAvatar: true,
+      });
+
+      expect(mockStorageProvider.deleteFile).toHaveBeenCalledTimes(1);
+    });
+
+    it(`should call for deletion of previous avatar if setting removeAvatar to "true" 
+      regardless of avatar specified`, async () => {
+      fileExistsSpy.mockReturnValueOnce(true);
+      unlinkSyncSpy.mockReturnValueOnce(null);
+
+      const userWithProfile = user;
+
+      await userService.update({
+        userId: userWithProfile.id,
+        removeAvatar: true,
+        avatar: {
+          path: 'some/file.png',
+          extension: '.png',
+          size: 10000,
+        },
+      });
 
       expect(mockStorageProvider.deleteFile).toHaveBeenCalledTimes(1);
     });
