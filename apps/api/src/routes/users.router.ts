@@ -601,6 +601,9 @@ export default usersRouter;
  *           type: string
  *           format: binary
  *           description: User's avatar file
+ *         removeAvatar:
+ *           type: boolean
+ *           description: Whether to remove avatar. (If "true", avatar field wont be taken into account even if present)
  *
  *     UpdatePasswordDto:
  *       type: object

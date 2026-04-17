@@ -252,6 +252,30 @@ describe('/api/v1/users', () => {
       expect(userData.profile?.avatarURL).toBe(MOCK_RESULT);
     });
 
+    it(`should remove profile avatar if removeAvatar is true`, async () => {
+      const res = await authorHelpers.updateUser({ removeAvatar: true });
+
+      const userData = getData<UserDetail>(res, 'user');
+      expect(userData.profile?.avatarURL).toBeFalsy();
+    });
+
+    it(`should not set profile avatar_url if valid avatar image is passed but "removeAvatar" is true`, async () => {
+      const rootPath = process.env.NX_WORKSPACE_ROOT;
+      if (!rootPath) throw new Error('Missing env variable');
+
+      const pathToTestFile = path.join(
+        rootPath,
+        'apps/api-e2e/src/data/avatar.png'
+      );
+      const res = await authorHelpers.updateUser(
+        { removeAvatar: true },
+        pathToTestFile
+      );
+
+      const userData = getData<UserDetail>(res, 'user');
+      expect(userData.profile?.avatarURL).toBeFalsy();
+    });
+
     it.concurrent(
       'should return 401 UNAUTHORIZED when not logged in',
       async () => {
