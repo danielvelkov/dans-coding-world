@@ -90,7 +90,11 @@ export function BlogPost({ postId }: { postId: number }) {
   const showLoading = isPending || !data;
 
   if (showLoading || !data)
-    return <main>{showLoading && <ShimmerPost />}</main>;
+    return (
+      <main>
+        <ShimmerPost />
+      </main>
+    );
 
   const { post } = data;
 

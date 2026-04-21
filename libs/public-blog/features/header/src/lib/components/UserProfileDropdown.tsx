@@ -180,12 +180,7 @@ export function UserProfileDropdown({
           </li>
 
           <li role="presentation">
-            <StyledLink
-              to={`/users/${user.id}/edit`}
-              role="menuitem"
-              as={Link}
-              state={{ mode: 'edit' }}
-            >
+            <StyledLink to={`/users/${user.id}/edit`} role="menuitem" as={Link}>
               <i className="fa fa-pen"></i>
               {user.profile ? 'Edit profile' : 'Setup profile'}
             </StyledLink>

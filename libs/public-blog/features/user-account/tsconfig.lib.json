@@ -38,5 +38,28 @@
     "eslint.config.cjs",
     "eslint.config.mjs"
   ],
-  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
+  "references": [
+    {
+      "path": "../../../api/data-access/user/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/user/testing/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/api-types/tsconfig.lib.json"
+    },
+    {
+      "path": "../../data-access/blog-api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../tools/public-blog/tsconfig.lib.json"
+    },
+    {
+      "path": "../../ui/common/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/hooks/tsconfig.lib.json"
+    }
+  ]
 }
