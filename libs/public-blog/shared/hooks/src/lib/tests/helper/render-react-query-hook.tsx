@@ -4,13 +4,15 @@ import React from 'react';
 
 export function renderReactQueryHook<T>(
   hook: () => T,
-  extraWrapper?: React.ComponentType<{ children: React.ReactNode }>
+  extraWrapper?: React.ComponentType<{ children: React.ReactNode }>,
+  queryClient?: QueryClient
 ) {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-    },
-  });
+  if (!queryClient)
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
 
   const BaseWrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
