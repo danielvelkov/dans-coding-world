@@ -14,9 +14,10 @@ import type { FetchPostsQueryParams } from '@dans-coding-world/public-blog-share
 import { getReadingTime } from './util/post-ux.util';
 import { ShimmerPost } from './components/ShimmerPost';
 import CommentSection from './components/CommentSection';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { getDisplayName } from '@dans-coding-world/public-blog-shared-helpers';
 
-const StyledPost = styled.article`
+const StyledPost = styled.article<React.ComponentPropsWithRef<'article'>>`
   display: flex;
   flex-direction: column;
   gap: 1em;
@@ -72,7 +73,13 @@ const StyledHeader = styled.header`
   }
 `;
 
-export function BlogPost({ postId }: { postId: number }) {
+export function BlogPost({
+  postId,
+  className,
+}: {
+  postId: number;
+  className?: string;
+}) {
   const navigate = useNavigate();
   const { data, isPending, isError, error } = useFetchPost(postId);
   const { isAuthenticated } = useAuth();
@@ -98,9 +105,7 @@ export function BlogPost({ postId }: { postId: number }) {
 
   const { post } = data;
 
-  const authorName = post.author.profile
-    ? `${post.author.profile.firstName} ${post.author.profile.lastName}`
-    : post.author.username;
+  const authorName = getDisplayName(post.author);
   const publishedDate = new Date(post.publishedAt as Date);
   const modifiedDate = new Date(post.updatedAt as Date);
 
@@ -108,7 +113,7 @@ export function BlogPost({ postId }: { postId: number }) {
     new Date(post.publishedAt as Date) < new Date(post.updatedAt as Date);
 
   return (
-    <StyledPost>
+    <StyledPost className={className}>
       <StyledHeader>
         <StyledTitle>{data.post.title}</StyledTitle>
 
