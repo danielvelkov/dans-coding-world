@@ -6,6 +6,7 @@ export const darkTheme: DefaultTheme = {
     secondary: '#b0a8a8',
     muted: '#6b6370',
     error: '#ff6b6b',
+    warning: '#e0e077ff',
   },
   background: {
     base: '#0f0f14',
@@ -20,9 +21,9 @@ export const darkTheme: DefaultTheme = {
     hover: 'rgba(192, 57, 43, 0.4)',
   },
   accent: {
-    primary: '#e05252',
-    hover: '#eb6b6b',
-    soft: 'rgba(224, 82, 82, 0.15)',
+    primary: '#f85b5b6b',
+    hover: '#d15f5fdc',
+    soft: 'rgba(248, 70, 70, 0.26)',
     muted: 'rgba(224, 82, 82, 0.08)',
   },
   shimmer: { base: '#312d50', highlight: '#645c7c' },

@@ -4,6 +4,7 @@ export interface Theme {
     secondary: string;
     muted: string;
     error: string;
+    warning: string;
   };
   background: {
     base: string;

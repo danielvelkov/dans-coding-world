@@ -15,7 +15,7 @@ const StyledTagButton = styled.button<
 
   ${({ theme, $active }) =>
     $active
-      ? `background:${theme.accent.primary}`
+      ? `background:${theme.accent.soft}`
       : `background:${theme.background.surface}`};
 
   ::before {
