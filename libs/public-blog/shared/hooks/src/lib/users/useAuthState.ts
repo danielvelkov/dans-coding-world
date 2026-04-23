@@ -14,6 +14,7 @@ import {
 import { useFetchUser } from './useFetchUser';
 import { useAuth } from './useAuth';
 import { ApiError } from '../types/api.error';
+import { UserDetail } from '@dans-coding-world/user-data-access';
 
 export type UserWithoutPass = Omit<User, 'password'>;
 export type LoginResponseWithoutTokens = Omit<
@@ -34,7 +35,7 @@ export type LoginResponseWithoutTokens = Omit<
  * - Fetching full user profile details once authenticated
  */
 export function useAuthState() {
-  const [user, setUser] = useState<UserWithoutPass | null>(null);
+  const [user, setUser] = useState<Omit<UserDetail, 'password'> | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const refreshMutateRef = useRef<() => void>(() => noop);
 
