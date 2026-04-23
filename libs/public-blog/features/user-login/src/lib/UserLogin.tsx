@@ -51,7 +51,7 @@ export function UserLogin() {
   });
 
   const [errors, setErrors] = useState<LoginErrors>({});
-  const handleInvalid = createFieldInvalidHandler(setErrors);
+  const handleInvalid = createFieldInvalidHandler<HTMLInputElement>(setErrors);
 
   useEffect(() => {
     if (isAuthenticated) {

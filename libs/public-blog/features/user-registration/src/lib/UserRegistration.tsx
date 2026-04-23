@@ -95,7 +95,7 @@ export function UserRegistration() {
     clearFieldError(name, errors, setErrors);
   };
 
-  const handleInvalid = createFieldInvalidHandler(setErrors);
+  const handleInvalid = createFieldInvalidHandler<HTMLInputElement>(setErrors);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};

@@ -19,13 +19,16 @@ export const getApiFieldErrors = <T extends string>(
 ) => getValidationErrors(error, fields);
 
 export const createFieldInvalidHandler =
-  (setErrors: Dispatch<SetStateAction<FormErrors>>) =>
+  <T extends HTMLInputElement | HTMLTextAreaElement>(
+    setErrors: Dispatch<SetStateAction<FormErrors>>
+  ) =>
   (
-    e: React.InvalidEvent<HTMLInputElement>,
+    e: React.InvalidEvent<T>,
     overwriteMessage: InvalidMessageFormatter = (message) => message
   ) => {
     e.preventDefault();
     const { name, validationMessage } = e.target;
+
     setErrors((prev) => ({
       ...prev,
       [name]: overwriteMessage(validationMessage),
