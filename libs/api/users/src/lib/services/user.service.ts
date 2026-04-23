@@ -104,9 +104,9 @@ export class UserService implements IUserService {
 
       const profileUpdates: Record<string, string> = {};
 
-      if (dto.firstName) profileUpdates.firstName = dto.firstName;
-      if (dto.lastName) profileUpdates.lastName = dto.lastName;
-      if (dto.bio) profileUpdates.bio = dto.bio;
+      if (dto.firstName !== undefined) profileUpdates.firstName = dto.firstName;
+      if (dto.lastName !== undefined) profileUpdates.lastName = dto.lastName;
+      if (dto.bio !== undefined) profileUpdates.bio = dto.bio;
 
       if (hasNewAvatar || wantsToRemoveAvatar) {
         profileUpdates.avatarURL = newAvatarURL ?? '';

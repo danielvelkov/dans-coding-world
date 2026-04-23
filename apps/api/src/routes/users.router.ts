@@ -613,11 +613,13 @@ export default usersRouter;
  *           description: User's old password
  *           minLength: 8
  *           maxLength: 32
+ *           required: true
  *         newPassword:
  *           type: string
  *           description: User's new password
  *           minLength: 8
  *           maxLength: 32
+ *           required: true
  *       example:
  *         oldPassword: badPassword1.
  *         newPassword: coolNewPass1@3
@@ -626,6 +628,7 @@ export default usersRouter;
  *       type: object
  *       properties:
  *         role:
+ *           required: true
  *           type: string
  *           enum: [USER, MOD, AUTHOR]
  *           description: New role. Could be one of [USER, MOD, AUTHOR]
@@ -636,6 +639,7 @@ export default usersRouter;
  *       type: object
  *       properties:
  *         isBanned:
+ *           required: true
  *           type: boolean
  *           description: Whether user is banned or not.
  *       example:

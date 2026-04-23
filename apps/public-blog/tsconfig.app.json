@@ -44,6 +44,9 @@
       "path": "../../libs/public-blog/features/user-registration/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/public-blog/features/user-account/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/public-blog/features/user-login/tsconfig.lib.json"
     },
     {

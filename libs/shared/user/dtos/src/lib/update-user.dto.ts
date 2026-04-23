@@ -7,6 +7,7 @@ import {
   Matches,
   ValidateNested,
   IsBoolean,
+  ValidateIf,
 } from 'class-validator';
 import { ToBoolean, ToInteger } from '@dans-coding-world/validation';
 import {
@@ -23,6 +24,7 @@ export class UpdateUserDto {
   userId: number;
 
   @IsOptional()
+  @ValidateIf(({ firstName }) => firstName !== '' && firstName !== undefined)
   @MinLength(USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH, {
     message: VALIDATION_MESSAGES.minLength(
       USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH
@@ -39,6 +41,7 @@ export class UpdateUserDto {
   firstName?: string;
 
   @IsOptional()
+  @ValidateIf(({ lastName }) => lastName !== '' && lastName !== undefined)
   @MinLength(USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH, {
     message: VALIDATION_MESSAGES.minLength(
       USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH
@@ -55,6 +58,7 @@ export class UpdateUserDto {
   lastName?: string;
 
   @IsOptional()
+  @ValidateIf(({ bio }) => bio !== '' && bio !== undefined)
   @MinLength(USER_CONSTRAINTS.MIN_BIO_LENGTH, {
     message: VALIDATION_MESSAGES.minLength(USER_CONSTRAINTS.MIN_BIO_LENGTH),
   })
