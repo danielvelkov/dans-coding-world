@@ -15,6 +15,7 @@ import { Fallback } from './Fallback';
 import { AuthProvider } from '@dans-coding-world/public-blog-shared-hooks';
 import { Header } from '@dans-coding-world/public-blog-features-header';
 import Register from '../routes/user/Register';
+import Profile from '../routes/user/Profile';
 
 const StyledApp = styled.div`
   padding: 0 clamp(5vmin, 5vw, 15vmax);
@@ -58,6 +59,16 @@ export function App() {
                   element={
                     <ErrorBoundary FallbackComponent={Fallback}>
                       <Post />
+                    </ErrorBoundary>
+                  }
+                />
+              </Route>
+              <Route path="users">
+                <Route
+                  path=":userId/*"
+                  element={
+                    <ErrorBoundary FallbackComponent={Fallback}>
+                      <Profile />
                     </ErrorBoundary>
                   }
                 />
