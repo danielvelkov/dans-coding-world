@@ -9,7 +9,8 @@
     ],
     "rootDir": "src",
     "jsx": "react-jsx",
-    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo"
+    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
+    "lib": ["DOM"]
   },
   "exclude": [
     "out-tsc",
@@ -41,6 +42,9 @@
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
+      "path": "../../../prisma-schema/tsconfig.lib.json"
+    },
+    {
       "path": "../../../api/data-access/user/tsconfig.lib.json"
     },
     {
@@ -57,6 +61,15 @@
     },
     {
       "path": "../../ui/common/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/shared-constants/tsconfig.lib.json"
+    },
+    {
+      "path": "../../ui/form/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/user/dtos/tsconfig.lib.json"
     },
     {
       "path": "../../shared/hooks/tsconfig.lib.json"
