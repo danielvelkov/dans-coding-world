@@ -150,15 +150,19 @@ export function UserProfile({ userId }: { userId: number }) {
         )}
         <StyledInfoRow>
           <StyledInfoLabel>First Name</StyledInfoLabel>
-          <StyledInfoValue>{user.profile?.firstName ?? '-'}</StyledInfoValue>
+          <StyledInfoValue>
+            {displayOrDash(user.profile?.firstName)}
+          </StyledInfoValue>
         </StyledInfoRow>
         <StyledInfoRow>
           <StyledInfoLabel>Last Name</StyledInfoLabel>
-          <StyledInfoValue>{user.profile?.lastName ?? '-'}</StyledInfoValue>
+          <StyledInfoValue>
+            {displayOrDash(user.profile?.lastName)}
+          </StyledInfoValue>
         </StyledInfoRow>
         <StyledInfoRow>
           <StyledInfoLabel>Bio</StyledInfoLabel>
-          <StyledInfoValue>{user.profile?.bio ?? '-'}</StyledInfoValue>
+          <StyledInfoValue>{displayOrDash(user.profile?.bio)}</StyledInfoValue>
         </StyledInfoRow>
       </StyledInfoList>
 
@@ -202,5 +206,8 @@ export function UserProfile({ userId }: { userId: number }) {
     </StyledUserProfile>
   );
 }
+
+export const displayOrDash = (value?: string | undefined) =>
+  value && value.trim().length > 0 ? value : '-';
 
 export default UserProfile;
