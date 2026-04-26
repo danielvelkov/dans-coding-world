@@ -83,7 +83,7 @@ describe('User session', () => {
 
         cy.visit('/blog');
         cy.contains('a', 'Login').should('exist');
-        cy.get('img.avatar').should('not.exist');
+        cy.checkIfLoggedOut();
       });
     }
   );
@@ -107,7 +107,7 @@ describe('User session', () => {
       while (count--) {
         cy.tick(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION + 1000);
         cy.wait('@refresh').its('response.statusCode').should('eq', 200);
-        cy.get('img.avatar').should('exist');
+        cy.checkIfLoggedIn();
       }
     });
 
@@ -143,7 +143,7 @@ describe('User session', () => {
       // Check if logged out after token expires and refresh sesh occurs
       cy.tick(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION + 1000);
       cy.wait('@refresh').its('response.statusCode').should('eq', 400);
-      cy.get('img.avatar').should('not.exist');
+      cy.checkIfLoggedOut();
       cy.contains('a', 'Login').should('exist');
     });
 
