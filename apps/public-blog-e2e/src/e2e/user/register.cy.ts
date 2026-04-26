@@ -12,7 +12,6 @@ import { UserDetail } from '@dans-coding-world/user-data-access';
 
 describe('User - register', () => {
   const testUsers: UserDetail[] = [];
-  const testPosts: Post[] = [];
 
   before(() => {
     cy.task('db:seed-users', {
@@ -34,14 +33,6 @@ describe('User - register', () => {
             profile: profiles[i],
           });
       });
-    });
-
-    cy.task('db:seed-posts', {
-      options: { useDefaults: true, clearExisting: true },
-    }).then((posts) => {
-      testPosts.push(...(posts as Post[]));
-      if (!testPosts || !testPosts.length)
-        throw new Error('Missing post fixtures');
     });
   });
 
