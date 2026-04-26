@@ -28,6 +28,7 @@ declare namespace Cypress {
     ): void;
     logout(): void;
     checkIfLoggedIn(): void;
+    checkIfLoggedOut(): void;
     getByTestId(id: string): Chainable<Subject>;
     goToPage(pageNumber: number): void;
     clickNextPage(): void;
@@ -80,6 +81,10 @@ Cypress.Commands.add('logout', () => {
 
 Cypress.Commands.add('checkIfLoggedIn', () => {
   cy.getByTestId('user-profile-dropdown').should('exist');
+});
+
+Cypress.Commands.add('checkIfLoggedOut', () => {
+  cy.getByTestId('user-profile-dropdown').should('not.exist');
 });
 
 Cypress.Commands.add('getByTestId', (id) => {
