@@ -116,12 +116,7 @@ export function UserProfile({ userId }: { userId: number }) {
   const { isAuthenticated, user: loggedInUser, logout } = useAuth();
 
   if (isError) throw error;
-  if (isPending || !data)
-    return (
-      <main>
-        <ShimmerProfile />
-      </main>
-    );
+  if (isPending || !data) return <ShimmerProfile />;
 
   const { user } = data;
   const isSameUser = isAuthenticated && loggedInUser?.id === user.id;
