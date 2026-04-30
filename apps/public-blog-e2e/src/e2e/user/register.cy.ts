@@ -82,6 +82,25 @@ describe('User - register', () => {
         cy.getByTestId(errorTestId).should('exist');
       };
 
+      it('registers user after correcting and retrying due to validation error', () => {
+        checkFieldValidation('username-error', {
+          username: 'abc',
+        });
+        cy.get('[name="email"]').clear();
+        cy.get('[name="username"]').clear();
+        cy.get('[name="password"]').clear();
+        cy.get('[name="confirmPassword"]').clear();
+
+        cy.register(
+          validFormFields.email + generateRandomString(2),
+          validFormFields.username + generateRandomString(2),
+          validFormFields.password,
+          validFormFields.password
+        );
+        cy.url().should('include', `/blog`);
+        cy.checkIfLoggedIn();
+      });
+
       it('does not allow typing an username longer than specified limit', () => {
         const tooLong = generateRandomString(
           USER_CONSTRAINTS.MAX_USERNAME_LENGTH + 4
