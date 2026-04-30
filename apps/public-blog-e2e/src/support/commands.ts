@@ -26,7 +26,15 @@ declare namespace Cypress {
       confirmPassword: string,
       options?: { waitForRequest?: boolean }
     ): void;
+    editProfile(
+      firstName: string,
+      lastName: string,
+      bio: string,
+      options?: { waitForRequest?: boolean }
+    ): void;
     logout(): void;
+    navigateToProfile(): void;
+    navigateToEditProfile(): void;
     checkIfLoggedIn(): void;
     checkIfLoggedOut(): void;
     getByTestId(id: string): Chainable<Subject>;
@@ -74,6 +82,27 @@ Cypress.Commands.add(
   }
 );
 
+Cypress.Commands.add(
+  'editProfile',
+  (firstName, lastName, bio, options = {}) => {
+    const { waitForRequest = true } = options;
+    if (waitForRequest)
+      cy.intercept('PATCH', `/api/v1/users*`).as('editProfileRequest');
+    cy.get('[name="firstName"]').clear();
+    cy.get('[name="firstName"]').type(firstName);
+    cy.get('[name="lastName"]').clear();
+    cy.get('[name="lastName"]').type(lastName);
+    cy.get('[name="bio"]').clear();
+    cy.get('[name="bio"]').type(bio);
+    cy.contains('button', /Save/i).click();
+    if (waitForRequest) {
+      cy.wait('@editProfileRequest')
+        .its('response.statusCode')
+        .should('be.oneOf', [200, 400, 401, 403, 404]);
+    }
+  }
+);
+
 Cypress.Commands.add('logout', () => {
   cy.getByTestId('user-profile-dropdown').click();
   cy.contains('button', 'Logout').click();
@@ -81,10 +110,25 @@ Cypress.Commands.add('logout', () => {
 
 Cypress.Commands.add('checkIfLoggedIn', () => {
   cy.getByTestId('user-profile-dropdown').should('exist');
+  cy.getByTestId('loading-profile-spinner').should('not.exist');
 });
 
 Cypress.Commands.add('checkIfLoggedOut', () => {
   cy.getByTestId('user-profile-dropdown').should('not.exist');
+});
+
+Cypress.Commands.add('navigateToEditProfile', () => {
+  cy.getByTestId('user-profile-dropdown').click();
+  cy.get('#expandable-menu').within(() => {
+    cy.contains('Edit profile').click();
+  });
+});
+
+Cypress.Commands.add('navigateToProfile', () => {
+  cy.getByTestId('user-profile-dropdown').click();
+  cy.get('#expandable-menu').within(() => {
+    cy.contains('Profile').click();
+  });
 });
 
 Cypress.Commands.add('getByTestId', (id) => {
