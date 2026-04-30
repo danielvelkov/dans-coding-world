@@ -3,7 +3,7 @@ import {
   useUpdateProfile,
 } from '@dans-coding-world/public-blog-shared-hooks';
 import { UpdateUserDto } from '@dans-coding-world/shared-user-dto';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   clearFieldError,
   createFieldInvalidHandler,
@@ -19,6 +19,7 @@ import {
   ERROR_CODES,
   ERROR_MESSAGES,
   USER_CONSTRAINTS,
+  VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import {
   Button,
@@ -26,9 +27,15 @@ import {
   UserAvatar,
 } from '@dans-coding-world/public-blog-ui-common';
 import styled from 'styled-components';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { ShimmerProfile } from './components/ShimmerProfile';
 
 type ErrorMap<T> = Partial<Record<keyof T, string>>;
 type UpdateProfileErrors = ErrorMap<UpdateUserDto>;
+
+const allowedFileTypes = USER_CONSTRAINTS.AVATAR_IMAGE_ALLOWED_EXTENSIONS.map(
+  (ext) => `image/${ext.substring(1)}, ${ext}`
+);
 
 const StyledFormContainer = styled(FormContainer)`
   h1 {
@@ -126,7 +133,7 @@ const StyledFormTextarea = styled(FormInput.withComponent('textarea'))`
 `;
 
 export function EditUserProfile({ userId }: { userId: number }) {
-  const { isAuthenticated, user: loggedInUser } = useAuth();
+  const { isAuthenticated, user: loggedInUser, isLoading } = useAuth();
   const {
     error: apiError,
     updateProfile,
@@ -155,19 +162,32 @@ export function EditUserProfile({ userId }: { userId: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!isAuthenticated || (isAuthenticated && loggedInUser?.id !== userId)) {
+    if (isLoading) return;
+    if (!isAuthenticated) {
       navigate('/login', {
         state: {
           redirectTo: location.pathname,
         },
       });
-    } else if (loggedInUser?.profile)
+    } else if (isAuthenticated && loggedInUser?.id !== userId) {
+      const { error } = generateErrorResponseByErrorCode(
+        ERROR_CODES.SERVER.FORBIDDEN
+      );
+      throw error;
+    } else if (isAuthenticated && loggedInUser?.profile)
       setFormData({
         firstName: loggedInUser.profile.firstName,
         lastName: loggedInUser.profile.lastName,
         bio: loggedInUser.profile.bio,
       });
-  }, [isAuthenticated, navigate, location.pathname, loggedInUser, userId]);
+  }, [
+    isLoading,
+    isAuthenticated,
+    navigate,
+    location.pathname,
+    loggedInUser,
+    userId,
+  ]);
 
   useEffect(() => {
     reset();
@@ -197,6 +217,29 @@ export function EditUserProfile({ userId }: { userId: number }) {
     clearFieldError(name, errors, setErrors);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const isWrongType = !allowedFileTypes.some((type) =>
+        type.includes(file.type)
+      );
+      const isWrongSize = file.size >= USER_CONSTRAINTS.MAX_SIZE_AVATAR_IMAGE;
+      if (!isWrongType && !isWrongSize) setAvatar(file);
+      else
+        setErrors((prev) => ({
+          ...prev,
+          avatar: isWrongType
+            ? VALIDATION_MESSAGES.allowedExtensions([
+                ...USER_CONSTRAINTS.AVATAR_IMAGE_ALLOWED_EXTENSIONS,
+              ])
+            : `File exceeds maximum size of  ${
+                USER_CONSTRAINTS.MAX_SIZE_AVATAR_IMAGE / 1024 / 1024
+              }mb. Your image file size - ${file.size / 1024 / 1024}mb`,
+        }));
+    }
+    clearFieldError('avatar', errors, setErrors);
+  };
+
   const handleInvalidInput =
     createFieldInvalidHandler<HTMLInputElement>(setErrors);
   const handleInvalidTextarea =
@@ -204,7 +247,7 @@ export function EditUserProfile({ userId }: { userId: number }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (Object.keys(errors).length === 0) {
+    if (!Object.values(errors).some((err) => err.length > 0)) {
       const updateDto: Omit<Parameters<typeof updateProfile>[0], 'avatarURL'> =
         {
           userId,
@@ -215,6 +258,8 @@ export function EditUserProfile({ userId }: { userId: number }) {
       updateProfile(updateDto);
     }
   };
+
+  if (isLoading) return <ShimmerProfile />;
 
   return (
     <StyledFormContainer onSubmit={handleSubmit}>
@@ -367,12 +412,10 @@ export function EditUserProfile({ userId }: { userId: number }) {
       <input
         data-testid="file-input"
         ref={fileInputRef}
-        accept={USER_CONSTRAINTS.AVATAR_IMAGE_ALLOWED_EXTENSIONS.map(
-          (ext) => `image/${ext.substring(1)}, ${ext}`
-        ).join(', ')}
+        accept={allowedFileTypes.join(', ')}
         type="file"
         hidden
-        onChange={(e) => setAvatar(e.target.files?.[0])}
+        onChange={handleFileChange}
       ></input>
 
       <StyledRevertButton
