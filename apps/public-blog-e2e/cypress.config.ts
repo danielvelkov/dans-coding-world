@@ -1,5 +1,6 @@
 import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
 import { defineConfig } from 'cypress';
+import fs from 'fs/promises';
 import axios from 'axios';
 // The issue is that when Nx tries to load cypress.config.ts during "nx sync" or project graph generation,
 // it's running in a Node.js context that doesn't have TypeScript path mappings resolved,
@@ -34,6 +35,22 @@ export default defineConfig({
       }
 
       on('task', {
+        async generateFile({
+          path,
+          sizeInMB,
+        }: {
+          path: string;
+          sizeInMB: number;
+        }) {
+          const bytes = sizeInMB * 1024 * 1024;
+          const buffer = Buffer.alloc(bytes, 0);
+          await fs.writeFile(path, buffer);
+          return null;
+        },
+        async deleteFile(path: string) {
+          await fs.unlink(path);
+          return null;
+        },
         async 'db:seed-users'(args = {}) {
           const { users, options } = args;
           const {
