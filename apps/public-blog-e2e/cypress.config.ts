@@ -1,6 +1,5 @@
 import { nxE2EPreset } from '@nx/cypress/plugins/cypress-preset';
 import { defineConfig } from 'cypress';
-import fs from 'fs/promises';
 import axios from 'axios';
 // The issue is that when Nx tries to load cypress.config.ts during "nx sync" or project graph generation,
 // it's running in a Node.js context that doesn't have TypeScript path mappings resolved,
@@ -8,6 +7,7 @@ import axios from 'axios';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { API_ENDPOINTS } from '../../libs/shared/data-access/api/src/lib/routes';
+import fs from 'fs/promises';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ?? '3000';
