@@ -36,6 +36,7 @@ export type LoginResponseWithoutTokens = Omit<
  */
 export function useAuthState() {
   const [user, setUser] = useState<Omit<UserDetail, 'password'> | null>(null);
+  const [isAuthBootstrapPending, setIsAuthBootstrapPending] = useState(true);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const refreshMutateRef = useRef<() => void>(() => noop);
 
@@ -57,6 +58,9 @@ export function useAuthState() {
     onError: (error) => {
       setUser(null);
       if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current);
+    },
+    onSettled: () => {
+      setIsAuthBootstrapPending(false);
     },
   });
 
@@ -115,7 +119,9 @@ export function useAuthState() {
     login: loginMutation.mutate,
     logout: logoutMutation.mutate,
 
-    isLoading: loginMutation.isPending || logoutMutation.isPending,
+    isLoading:
+      isAuthBootstrapPending || loginMutation.isPending || logoutMutation.isPending,
+    isRefreshing: isAuthBootstrapPending,
     error: loginMutation.error || logoutMutation.error,
     isLoadingProfile,
   };

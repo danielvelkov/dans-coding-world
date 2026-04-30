@@ -5,6 +5,7 @@ export function mockAuth(overrides: Partial<ReturnType<typeof useAuth>> = {}) {
   vi.mocked(useAuth).mockReturnValue({
     isLoadingProfile: false,
     isAuthenticated: false,
+    isRefreshing: false,
     user: null,
     error: null,
     isLoading: false,
