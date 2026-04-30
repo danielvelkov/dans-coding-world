@@ -154,7 +154,9 @@ export function UserProfileDropdown({
           <span>{user.email}</span>
         </div>
         <StyledLoadingAvatarWrapper>
-          {isLoading && <StyledLoadingSpinner />}
+          {isLoading && (
+            <StyledLoadingSpinner data-testid="loading-profile-spinner" />
+          )}
           <StyledUserAvatar
             name={user.username}
             size="M"
