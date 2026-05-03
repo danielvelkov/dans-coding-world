@@ -32,9 +32,16 @@ declare namespace Cypress {
       bio: string,
       options?: { waitForRequest?: boolean }
     ): void;
+    changePassword(
+      oldPassword: string,
+      newPassword: string,
+      confirmPassword: string,
+      options?: { waitForRequest?: boolean }
+    ): void;
     logout(): void;
     navigateToProfile(): void;
     navigateToEditProfile(): void;
+    navigateToSettings(): void;
     checkIfLoggedIn(): void;
     checkIfLoggedOut(): void;
     getByTestId(id: string): Chainable<Subject>;
@@ -103,6 +110,29 @@ Cypress.Commands.add(
   }
 );
 
+Cypress.Commands.add(
+  'changePassword',
+  (oldPassword, newPassword, confirmPassword, options = {}) => {
+    const { waitForRequest = true } = options;
+    if (waitForRequest)
+      cy.intercept('PATCH', `/api/v1/users/password`).as(
+        'changePasswordRequest'
+      );
+    cy.get('[name="oldPassword"]').clear();
+    cy.get('[name="oldPassword"]').type(oldPassword);
+    cy.get('[name="newPassword"]').clear();
+    cy.get('[name="newPassword"]').type(newPassword);
+    cy.get('[name="confirmPassword"]').clear();
+    cy.get('[name="confirmPassword"]').type(confirmPassword);
+    cy.contains('button', /Change/i).click();
+    if (waitForRequest) {
+      cy.wait('@changePasswordRequest')
+        .its('response.statusCode')
+        .should('be.oneOf', [200, 400, 401, 404]);
+    }
+  }
+);
+
 Cypress.Commands.add('logout', () => {
   cy.getByTestId('user-profile-dropdown').click();
   cy.contains('button', 'Logout').click();
@@ -117,6 +147,13 @@ Cypress.Commands.add('checkIfLoggedOut', () => {
   cy.getByTestId('user-profile-dropdown').should('not.exist');
 });
 
+Cypress.Commands.add('navigateToProfile', () => {
+  cy.getByTestId('user-profile-dropdown').click();
+  cy.get('#expandable-menu').within(() => {
+    cy.contains('Profile').click();
+  });
+});
+
 Cypress.Commands.add('navigateToEditProfile', () => {
   cy.getByTestId('user-profile-dropdown').click();
   cy.get('#expandable-menu').within(() => {
@@ -124,10 +161,10 @@ Cypress.Commands.add('navigateToEditProfile', () => {
   });
 });
 
-Cypress.Commands.add('navigateToProfile', () => {
+Cypress.Commands.add('navigateToSettings', () => {
   cy.getByTestId('user-profile-dropdown').click();
   cy.get('#expandable-menu').within(() => {
-    cy.contains('Profile').click();
+    cy.contains('Settings').click();
   });
 });
 
