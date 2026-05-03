@@ -96,7 +96,8 @@ export function useAuthState() {
       const apiError = error as ApiError;
       if (
         apiError.status &&
-        apiError.status === ERROR_HTTP_STATUS[ERROR_CODES.AUTH.UNAUTHORIZED]
+        (apiError.status === ERROR_HTTP_STATUS[ERROR_CODES.SERVER.NOT_FOUND] ||
+          apiError.status === ERROR_HTTP_STATUS[ERROR_CODES.AUTH.UNAUTHORIZED])
       )
         setUser(null);
     },
@@ -120,7 +121,9 @@ export function useAuthState() {
     logout: logoutMutation.mutate,
 
     isLoading:
-      isAuthBootstrapPending || loginMutation.isPending || logoutMutation.isPending,
+      isAuthBootstrapPending ||
+      loginMutation.isPending ||
+      logoutMutation.isPending,
     isRefreshing: isAuthBootstrapPending,
     error: loginMutation.error || logoutMutation.error,
     isLoadingProfile,
