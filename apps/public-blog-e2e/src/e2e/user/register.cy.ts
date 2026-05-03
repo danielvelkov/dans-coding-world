@@ -2,7 +2,7 @@ import {
   generateRandomString,
   passwordGenerator,
 } from '@dans-coding-world/helpers';
-import { Post, Profile, User } from '@dans-coding-world/prisma-schema';
+import { Profile, User } from '@dans-coding-world/prisma-schema';
 import {
   ERROR_CODES,
   ERROR_MESSAGES,

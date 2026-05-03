@@ -77,6 +77,9 @@ describe('Comments - details', () => {
       .get(`img[src="${author.profile?.avatarURL}"]`);
   });
 
+  //TODO
+  it('displays the authors role as badge');
+
   it(`displays comment date relative to current time`, () => {
     cy.contains('p', comment.content)
       .closest('div')
