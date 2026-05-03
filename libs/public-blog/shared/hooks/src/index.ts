@@ -6,6 +6,8 @@ export * from './lib/posts/useFetchPostsMetadata';
 export * from './lib/users/useAuth';
 export * from './lib/users/useRegister';
 export * from './lib/users/useUpdateProfile';
+export * from './lib/users/useChangePassword';
+export * from './lib/users/useDeleteAccount';
 export * from './lib/users/providers/AuthProvider';
 export * from './lib/users/useFetchUser';
 export * from './lib/util/useDebounce';
