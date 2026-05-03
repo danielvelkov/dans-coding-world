@@ -26,10 +26,13 @@
   ],
   "references": [
     {
-      "path": "../../libs/shared/user/testing"
+      "path": "../../libs/shared/user/dtos"
     },
     {
       "path": "../../libs/shared/util/exceptions"
+    },
+    {
+      "path": "../../libs/shared/user/testing"
     },
     {
       "path": "../../libs/api/data-access/post"
