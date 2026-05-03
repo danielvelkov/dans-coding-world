@@ -120,6 +120,19 @@ export default authRouter;
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/UnauthorizedError'
+ *       404:
+ *         description: Not Found - Token does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: AUTH004
+ *                 message: Token no longer exists
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -167,6 +180,19 @@ export default authRouter;
  *                 status: 400
  *                 errorCode: VALIDATION_ERROR
  *                 message: Refresh token is required
+ *       404:
+ *         description: Not Found - Token does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 404
+ *                 errorCode: AUTH004
+ *                 message: Token no longer exists
  *       500:
  *         description: Internal Server Error
  *         content:
