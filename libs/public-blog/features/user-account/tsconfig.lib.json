@@ -42,6 +42,9 @@
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
+      "path": "../../../shared/util/helpers/tsconfig.lib.json"
+    },
+    {
       "path": "../../../prisma-schema/tsconfig.lib.json"
     },
     {

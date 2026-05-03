@@ -7,6 +7,7 @@ export const darkTheme: DefaultTheme = {
     muted: '#6b6370',
     error: '#ff6b6b',
     warning: '#e0e077ff',
+    success: '#8bc34a',
   },
   background: {
     base: '#0f0f14',
@@ -14,6 +15,7 @@ export const darkTheme: DefaultTheme = {
     elevated: '#242030',
     inverse: '#504a63b9',
     error: 'rgba(224, 82, 82, 0.12)',
+    success: 'rgba(139, 195, 74, 0.18)',
   },
   border: {
     primary: 'rgba(255, 255, 255, 0.08)',
