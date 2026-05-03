@@ -7,6 +7,7 @@ import axios from 'axios';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { API_ENDPOINTS } from '../../libs/shared/data-access/api/src/lib/routes';
+import fs from 'fs/promises';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ?? '3000';
@@ -34,6 +35,22 @@ export default defineConfig({
       }
 
       on('task', {
+        async generateFile({
+          path,
+          sizeInMB,
+        }: {
+          path: string;
+          sizeInMB: number;
+        }) {
+          const bytes = sizeInMB * 1024 * 1024;
+          const buffer = Buffer.alloc(bytes, 0);
+          await fs.writeFile(path, buffer);
+          return null;
+        },
+        async deleteFile(path: string) {
+          await fs.unlink(path);
+          return null;
+        },
         async 'db:seed-users'(args = {}) {
           const { users, options } = args;
           const {

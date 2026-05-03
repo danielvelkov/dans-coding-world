@@ -1,79 +1,43 @@
 import styled from 'styled-components';
-import {
-  Button,
-  Input,
-  LoadingSpinner,
-} from '@dans-coding-world/public-blog-ui-common';
+import { LoadingSpinner } from '@dans-coding-world/public-blog-ui-common';
 import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getLoginValidationErrors } from './helper/login-validation';
+import {
+  clearFieldError,
+  createFieldInvalidHandler,
+  FieldErrorText,
+  FormContainer,
+  FormField,
+  FormInput,
+  FormSubmitButton,
+  getApiFieldErrors,
+} from '@dans-coding-world/public-blog-ui-form';
+import { LoginDto } from '@dans-coding-world/shared-auth-dto';
+import {
+  ERROR_CODES,
+  ERROR_MESSAGES,
+} from '@dans-coding-world/shared-constants';
 
-const StyledButton = styled(Button)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
+type ErrorMap<T> = Partial<Record<keyof T, string>>;
+type LoginErrors = ErrorMap<LoginDto>;
 
 const StyledLink = styled(Link)`
   color: ${({ theme }) => theme.accent.primary};
 `;
 
-const StyledInput = styled(Input)<
-  React.ComponentPropsWithoutRef<typeof Input> & {
-    $isValid: boolean;
+const StyledUserLoginForm = styled(FormContainer)`
+  width: fit-content;
+  padding: 2em 10%;
+  align-items: center;
+  h1 {
+    text-align: center;
   }
->`
-  background-color: ${({ theme, $isValid }) =>
-    $isValid ? theme.background.elevated : theme.background.error};
-  border: 1px solid
-    ${({ theme, $isValid }) =>
-      $isValid ? theme.border.primary : theme.text.error};
-`;
-
-const StyledError = styled.span<React.ComponentPropsWithoutRef<'span'>>`
-  &:has(i) {
-    margin-left: 2em;
-    position: relative;
-  }
-  display: inline;
-  color: ${({ theme }) => theme.text.error};
-  max-width: fit-content;
-  white-space: pre-line;
-
-  i {
-    position: absolute;
-    left: -1.5em;
-    top: 20%;
-  }
-`;
-
-const StyledUserLoginForm = styled.form<React.ComponentPropsWithoutRef<'form'>>`
-  display: flex;
-  flex-direction: column;
-  gap: 1em;
-  background-color: ${({ theme }) => theme.background.surface};
-  border: 1px solid ${({ theme }) => theme.border.primary};
-  border-radius: 5px;
-  padding: 2em 15%;
-  margin: 0 auto;
-  max-width: 60ch;
 
   .call-to-action {
     font-size: 0.9em;
     color: ${({ theme }) => theme.text.secondary};
     margin-bottom: 1em;
-  }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 0.5em;
-  }
-
-  label {
-    font-weight: bold;
   }
 `;
 
@@ -81,6 +45,13 @@ export function UserLogin() {
   const { login, isAuthenticated, isLoading, error } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+
+  const [errors, setErrors] = useState<LoginErrors>({});
+  const handleInvalid = createFieldInvalidHandler<HTMLInputElement>(setErrors);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -89,76 +60,94 @@ export function UserLogin() {
     }
   }, [isAuthenticated, navigate, location.state]);
 
-  // TODO: remove
-  // const [email, setEmail] = useState('admin123@gmail.com'); // For quicker testing
-  // const [password, setPassword] = useState('Admin123@');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  useEffect(() => {
+    const apiErrors = getApiFieldErrors(error, ['email', 'password']);
+    if (Object.keys(apiErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...apiErrors }));
+    }
+  }, [error]);
 
-  const [emailError, passwordError] = getLoginValidationErrors(error);
+  const emailError = errors.email;
+  const passwordError = errors.password;
 
-  const handleFormSubmit = () => {
-    if (email && password) login({ email, password });
+  const handleFormSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (formData.email && formData.password) {
+      login({ email: formData.email, password: formData.password });
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.currentTarget;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    clearFieldError(name, errors, setErrors);
   };
 
   return (
-    <StyledUserLoginForm
-      onSubmit={(event) => {
-        event.preventDefault();
-        handleFormSubmit();
-      }}
-    >
-      <h1>Login</h1>
-      <span className="call-to-action">Log in to join the conversation</span>
-      <div className="form-field">
+    <StyledUserLoginForm onSubmit={handleFormSubmit}>
+      <div>
+        <h1>Login</h1>
+        <span className="call-to-action">Log in to join the conversation</span>
+      </div>
+
+      <FormField>
         <label htmlFor="email">Email</label>
-        <StyledInput
+        <FormInput
           required
           id="email"
           name="email"
-          value={email}
-          onChange={(e) => setEmail((e.target as any).value)}
-          $isValid={!emailError}
+          value={formData.email}
+          onChange={handleChange}
+          $hasError={!!emailError}
           placeholder="john.doe@mail.com"
-        ></StyledInput>
+          onInvalid={handleInvalid}
+        />
         {emailError && (
-          <StyledError>
+          <FieldErrorText>
             <i className="fa fa-exclamation-triangle"></i> {emailError}
-          </StyledError>
+          </FieldErrorText>
         )}
-      </div>
+      </FormField>
 
-      <div className="form-field">
+      <FormField>
         <label htmlFor="pwd">Password</label>
-        <StyledInput
+        <FormInput
           required
           id="pwd"
           name="password"
           type="password"
           autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword((e.target as any).value)}
-          $isValid={!passwordError}
-        ></StyledInput>
+          placeholder="••••••••"
+          value={formData.password}
+          onChange={handleChange}
+          $hasError={!!passwordError}
+          onInvalid={handleInvalid}
+        />
         {passwordError && (
-          <StyledError>
+          <FieldErrorText>
             <i className="fa fa-exclamation-triangle"></i> {passwordError}
-          </StyledError>
+          </FieldErrorText>
         )}
-      </div>
+      </FormField>
 
-      {error && !emailError && !passwordError && (
-        <StyledError
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-          data-testid="login-error"
-        >
-          {error.message}
-        </StyledError>
-      )}
+      {error &&
+        !emailError &&
+        !passwordError &&
+        error.message !==
+          ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR] && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            data-testid="login-error"
+          >
+            <FieldErrorText>
+              {error.message ?? 'Unable to login. Please try again.'}
+            </FieldErrorText>
+          </div>
+        )}
 
-      <StyledButton type="submit">
+      <FormSubmitButton type="submit">
         {isLoading ? (
           <>
             <span style={{ position: 'absolute', left: '-9999px' }}>
@@ -169,7 +158,8 @@ export function UserLogin() {
         ) : (
           'Login'
         )}
-      </StyledButton>
+      </FormSubmitButton>
+
       <span className="call-to-action">
         Not a member? <StyledLink to={'/register'}>Register</StyledLink>
       </span>

@@ -2,8 +2,10 @@ export function getDisplayName(user: {
   username: string;
   profile?: { firstName?: string; lastName?: string } | null;
 }) {
-  const first = user.profile?.firstName ?? '';
-  const last = user.profile?.lastName ?? '';
+  const first = user.profile?.firstName?.trim() ?? '';
+  const last = user.profile?.lastName?.trim() ?? '';
 
-  return first || last ? `${first} ${last}`.trim() : user.username;
+  return first.length > 0 || last.length > 0
+    ? `${first} ${last}`.trim()
+    : user.username;
 }

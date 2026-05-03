@@ -5,24 +5,25 @@ const StyledTagButton = styled.button<
 >`
   font-size: 0.75em;
   padding: 0.3em 0.5em;
-  font-weight: 600;
-  border: 2px solid ${({ theme }) => theme.border.primary};
-  border-radius: 2em;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  border: 1px solid ${({ theme }) => theme.border.primary};
+  border-radius: 5px;
   text-transform: lowercase;
   color: ${({ theme, $active }) =>
     $active ? theme.text.primary : theme.text.secondary};
 
   ${({ theme, $active }) =>
     $active
-      ? `background:${theme.accent.primary}`
+      ? `background:${theme.accent.soft}`
       : `background:${theme.background.surface}`};
 
   ::before {
     content: '#';
   }
   &:hover {
-  background-color: ${({ theme }) => theme.accent.hover};
-  color: ${({ theme }) => theme.text.primary};
+    background-color: ${({ theme }) => theme.accent.hover};
+    color: ${({ theme }) => theme.text.primary};
   }
 `;
 

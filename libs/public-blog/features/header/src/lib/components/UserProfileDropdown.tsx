@@ -154,7 +154,9 @@ export function UserProfileDropdown({
           <span>{user.email}</span>
         </div>
         <StyledLoadingAvatarWrapper>
-          {isLoading && <StyledLoadingSpinner />}
+          {isLoading && (
+            <StyledLoadingSpinner data-testid="loading-profile-spinner" />
+          )}
           <StyledUserAvatar
             name={user.username}
             size="M"
@@ -180,12 +182,7 @@ export function UserProfileDropdown({
           </li>
 
           <li role="presentation">
-            <StyledLink
-              to={`/users/${user.id}/edit`}
-              role="menuitem"
-              as={Link}
-              state={{ mode: 'edit' }}
-            >
+            <StyledLink to={`/users/${user.id}/edit`} role="menuitem" as={Link}>
               <i className="fa fa-pen"></i>
               {user.profile ? 'Edit profile' : 'Setup profile'}
             </StyledLink>

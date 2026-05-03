@@ -236,6 +236,28 @@ describe('/api/v1/users', () => {
       expect(userData.profile?.avatarURL).toBe('');
     });
 
+    test.each(['firstName', 'lastName', 'bio'])(
+      'should clear profile detail if set to empty string',
+      async (name) => {
+        let updateDto = {
+          [name]: 'Bogus',
+        };
+
+        let res = await authorHelpers.updateUser(updateDto);
+        let userData = getData<UserDetail>(res, 'user');
+
+        expect(userData.profile?.[name]).toBe(updateDto[name]);
+
+        updateDto = {
+          [name]: '',
+        };
+
+        res = await authorHelpers.updateUser(updateDto);
+        userData = getData<UserDetail>(res, 'user');
+        expect(userData.profile?.[name]).toBe('');
+      }
+    );
+
     it(`should set profile avatar_url if valid avatar image is passed`, async () => {
       const rootPath = process.env.NX_WORKSPACE_ROOT;
       if (!rootPath) throw new Error('Missing env variable');
@@ -247,9 +269,31 @@ describe('/api/v1/users', () => {
       const res = await authorHelpers.updateUser({}, pathToTestFile);
 
       const userData = getData<UserDetail>(res, 'user');
-      // Missing fields in request are set to empty string
-      expect(userData.profile?.bio).toBe('');
       expect(userData.profile?.avatarURL).toBe(MOCK_RESULT);
+    });
+
+    it(`should remove profile avatar if removeAvatar is true`, async () => {
+      const res = await authorHelpers.updateUser({ removeAvatar: true });
+
+      const userData = getData<UserDetail>(res, 'user');
+      expect(userData.profile?.avatarURL).toBeFalsy();
+    });
+
+    it(`should not set profile avatar_url if valid avatar image is passed but "removeAvatar" is true`, async () => {
+      const rootPath = process.env.NX_WORKSPACE_ROOT;
+      if (!rootPath) throw new Error('Missing env variable');
+
+      const pathToTestFile = path.join(
+        rootPath,
+        'apps/api-e2e/src/data/avatar.png'
+      );
+      const res = await authorHelpers.updateUser(
+        { removeAvatar: true },
+        pathToTestFile
+      );
+
+      const userData = getData<UserDetail>(res, 'user');
+      expect(userData.profile?.avatarURL).toBeFalsy();
     });
 
     it.concurrent(

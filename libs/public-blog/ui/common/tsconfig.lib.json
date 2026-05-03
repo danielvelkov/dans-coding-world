@@ -45,6 +45,9 @@
       "path": "../../../tools/public-blog/tsconfig.lib.json"
     },
     {
+      "path": "../../../prisma-schema/tsconfig.lib.json"
+    },
+    {
       "path": "../theme/tsconfig.lib.json"
     }
   ]

@@ -4,6 +4,8 @@ export interface Theme {
     secondary: string;
     muted: string;
     error: string;
+    warning: string;
+    success: string;
   };
   background: {
     base: string;
@@ -11,6 +13,7 @@ export interface Theme {
     elevated: string;
     inverse: string;
     error: string;
+    success: string;
   };
   border: {
     primary: string;

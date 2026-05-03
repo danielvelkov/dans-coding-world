@@ -94,10 +94,35 @@ describe('Global header', () => {
         cy.getByTestId('user-profile-dropdown').should('not.exist');
       });
 
-      // TODO
-      it('menu contains option to see profile');
-      it('menu contains option to edit profile');
-      it('menu contains option to change user settings');
+      it('menu contains option to see profile', () => {
+        cy.getByTestId('user-profile-dropdown').within(() => {
+          cy.contains(randomUser.email).click();
+          cy.get('#expandable-menu').within(() => {
+            cy.contains('Profile').click();
+            cy.url().should('match', /users\/\d+$/);
+          });
+        });
+      });
+
+      it('menu contains option to edit profile', () => {
+        cy.getByTestId('user-profile-dropdown').within(() => {
+          cy.contains(randomUser.email).click();
+          cy.get('#expandable-menu').within(() => {
+            cy.contains('Edit profile').click();
+            cy.url().should('match', /users\/\d+\/edit$/);
+          });
+        });
+      });
+
+      it('menu contains option to change user settings', () => {
+        cy.getByTestId('user-profile-dropdown').within(() => {
+          cy.contains(randomUser.email).click();
+          cy.get('#expandable-menu').within(() => {
+            cy.contains('Settings').click();
+            cy.url().should('match', /settings$/);
+          });
+        });
+      });
     });
   });
 

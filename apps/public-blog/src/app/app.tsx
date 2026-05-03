@@ -14,11 +14,15 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Fallback } from './Fallback';
 import { AuthProvider } from '@dans-coding-world/public-blog-shared-hooks';
 import { Header } from '@dans-coding-world/public-blog-features-header';
+import Register from '../routes/user/Register';
+import Profile from '../routes/user/Profile';
+import RootLayout from './RootLayout';
+import Settings from '../routes/user/Settings';
 
 const StyledApp = styled.div`
   padding: 0 clamp(5vmin, 5vw, 15vmax);
   margin: 0 auto;
-  max-width: 1000px;
+  max-width: 1320px;
 `;
 
 // dev tools do not work during e2e testing for some reason
@@ -44,21 +48,33 @@ export function App() {
               setIsDarkMode={setIsDarkMode}
             ></Header>
             <Routes>
-              <Route path="login">
-                <Route index element={<Login />} />
+              <Route element={<RootLayout />}>
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+                <Route path="blog">
+                  <Route index element={<Blog />} />
+                  <Route
+                    path=":postId"
+                    element={
+                      <ErrorBoundary FallbackComponent={Fallback}>
+                        <Post />
+                      </ErrorBoundary>
+                    }
+                  />
+                </Route>
+                <Route path="users">
+                  <Route
+                    path=":userId/*"
+                    element={
+                      <ErrorBoundary FallbackComponent={Fallback}>
+                        <Profile />
+                      </ErrorBoundary>
+                    }
+                  />
+                </Route>
+                <Route path="settings" element={<Settings />} />
+                <Route path="*" element={<NotFound />} />
               </Route>
-              <Route path="blog">
-                <Route index element={<Blog />} />
-                <Route
-                  path=":postId"
-                  element={
-                    <ErrorBoundary FallbackComponent={Fallback}>
-                      <Post />
-                    </ErrorBoundary>
-                  }
-                />
-              </Route>
-              <Route path="*" element={<NotFound />} />
             </Routes>
           </StyledApp>
         </ThemeProvider>

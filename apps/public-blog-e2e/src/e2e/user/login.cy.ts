@@ -44,6 +44,11 @@ describe('User - login', () => {
   context('Login page', () => {
     beforeEach(() => cy.visit('/login'));
 
+    it('navigates to registration page on clicking the "Register" link', () => {
+      cy.contains('a', 'Register').click();
+      cy.url().should('include', `/register`);
+    });
+
     it(`on valid login, the server returns access and refresh tokens
        as HTTP-only cookies in "Set-Cookie" header`, () => {
       const randomUser = Cypress._.sample(testUsers) as UserDetail;
@@ -74,7 +79,7 @@ describe('User - login', () => {
     it('navigates to /blog if already logged in and visiting /login page', () => {
       const randomUser = Cypress._.sample(testUsers) as UserDetail;
       cy.login(randomUser.email, randomUser.password);
-      cy.url().should('match', /\/blog$/);
+      cy.checkIfLoggedIn();
     });
 
     it('changes login button to loading spinner on login button click', () => {
@@ -109,6 +114,18 @@ describe('User - login', () => {
         cy.getByTestId('login-error')
           .should('exist')
           .should('contain.text', 'Provided password is wrong');
+      });
+
+      it('logs user in after correcting and retrying due to validation error', () => {
+        const randomUser = Cypress._.sample(testUsers) as UserDetail;
+        cy.login(randomUser.email + 'dingus', randomUser.password + '123');
+        cy.getByTestId('login-error')
+          .should('exist')
+          .should('contain.text', 'Provided credentials are invalid');
+        cy.get('[name="email"]').clear();
+        cy.get('[name="password"]').clear();
+        cy.login(randomUser.email, randomUser.password);
+        cy.checkIfLoggedIn();
       });
     });
   });

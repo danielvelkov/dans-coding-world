@@ -59,9 +59,7 @@ describe('Header', () => {
         name: /avatar/,
       })
     ).toBeTruthy();
-    expect(
-      screen.getByRole('button', { name: new RegExp(randomUser.email) })
-    ).toBeTruthy();
+    expect(screen.getByText(randomUser.email)).toBeTruthy();
   });
 
   it('contains dark/light theme change button', () => {

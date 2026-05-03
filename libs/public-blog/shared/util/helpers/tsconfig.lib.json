@@ -12,5 +12,12 @@
     "types": ["node"]
   },
   "include": ["src/**/*.ts"],
-  "references": []
+  "references": [
+    {
+      "path": "../../../../shared/util/validation/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../../shared/util/api-types/tsconfig.lib.json"
+    }
+  ]
 }

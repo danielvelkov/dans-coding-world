@@ -25,12 +25,13 @@ export function generateErrorResponse(
 
 export function generateErrorResponseByErrorCode(
   code: ErrorCode,
-  details?: any
+  details?: any,
+  message?: string
 ): ErrorResponse {
   return generateErrorResponse(
     ERROR_HTTP_STATUS[code],
     code,
-    ERROR_MESSAGES[code],
+    message ?? ERROR_MESSAGES[code],
     details ?? undefined
   );
 }

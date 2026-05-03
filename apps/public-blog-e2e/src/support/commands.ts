@@ -19,8 +19,31 @@ declare namespace Cypress {
       password: string,
       options?: { waitForRequest?: boolean }
     ): void;
+    register(
+      email: string,
+      username: string,
+      password: string,
+      confirmPassword: string,
+      options?: { waitForRequest?: boolean }
+    ): void;
+    editProfile(
+      firstName: string,
+      lastName: string,
+      bio: string,
+      options?: { waitForRequest?: boolean }
+    ): void;
+    changePassword(
+      oldPassword: string,
+      newPassword: string,
+      confirmPassword: string,
+      options?: { waitForRequest?: boolean }
+    ): void;
     logout(): void;
+    navigateToProfile(): void;
+    navigateToEditProfile(): void;
+    navigateToSettings(): void;
     checkIfLoggedIn(): void;
+    checkIfLoggedOut(): void;
     getByTestId(id: string): Chainable<Subject>;
     goToPage(pageNumber: number): void;
     clickNextPage(): void;
@@ -47,6 +70,69 @@ Cypress.Commands.add('login', (email, password, options = {}) => {
   }
 });
 
+Cypress.Commands.add(
+  'register',
+  (email, username, password, confirmPassword, options = {}) => {
+    const { waitForRequest = true } = options;
+    if (waitForRequest)
+      cy.intercept('POST', `/api/v1/auth/register`).as('registerRequest');
+    cy.get('[name="email"]').type(email);
+    cy.get('[name="username"]').type(username);
+    cy.get('[name="password"]').type(password);
+    cy.get('[name="confirmPassword"]').type(confirmPassword);
+    cy.contains('button', /create account/i).click();
+    if (waitForRequest) {
+      cy.wait('@registerRequest')
+        .its('response.statusCode')
+        .should('be.oneOf', [201, 400, 401, 409]);
+    }
+  }
+);
+
+Cypress.Commands.add(
+  'editProfile',
+  (firstName, lastName, bio, options = {}) => {
+    const { waitForRequest = true } = options;
+    if (waitForRequest)
+      cy.intercept('PATCH', `/api/v1/users*`).as('editProfileRequest');
+    cy.get('[name="firstName"]').clear();
+    cy.get('[name="firstName"]').type(firstName);
+    cy.get('[name="lastName"]').clear();
+    cy.get('[name="lastName"]').type(lastName);
+    cy.get('[name="bio"]').clear();
+    cy.get('[name="bio"]').type(bio);
+    cy.contains('button', /Save/i).click();
+    if (waitForRequest) {
+      cy.wait('@editProfileRequest')
+        .its('response.statusCode')
+        .should('be.oneOf', [200, 400, 401, 403, 404]);
+    }
+  }
+);
+
+Cypress.Commands.add(
+  'changePassword',
+  (oldPassword, newPassword, confirmPassword, options = {}) => {
+    const { waitForRequest = true } = options;
+    if (waitForRequest)
+      cy.intercept('PATCH', `/api/v1/users/password`).as(
+        'changePasswordRequest'
+      );
+    cy.get('[name="oldPassword"]').clear();
+    cy.get('[name="oldPassword"]').type(oldPassword);
+    cy.get('[name="newPassword"]').clear();
+    cy.get('[name="newPassword"]').type(newPassword);
+    cy.get('[name="confirmPassword"]').clear();
+    cy.get('[name="confirmPassword"]').type(confirmPassword);
+    cy.contains('button', /Change/i).click();
+    if (waitForRequest) {
+      cy.wait('@changePasswordRequest')
+        .its('response.statusCode')
+        .should('be.oneOf', [200, 400, 401, 404]);
+    }
+  }
+);
+
 Cypress.Commands.add('logout', () => {
   cy.getByTestId('user-profile-dropdown').click();
   cy.contains('button', 'Logout').click();
@@ -54,6 +140,32 @@ Cypress.Commands.add('logout', () => {
 
 Cypress.Commands.add('checkIfLoggedIn', () => {
   cy.getByTestId('user-profile-dropdown').should('exist');
+  cy.getByTestId('loading-profile-spinner').should('not.exist');
+});
+
+Cypress.Commands.add('checkIfLoggedOut', () => {
+  cy.getByTestId('user-profile-dropdown').should('not.exist');
+});
+
+Cypress.Commands.add('navigateToProfile', () => {
+  cy.getByTestId('user-profile-dropdown').click();
+  cy.get('#expandable-menu').within(() => {
+    cy.contains('Profile').click();
+  });
+});
+
+Cypress.Commands.add('navigateToEditProfile', () => {
+  cy.getByTestId('user-profile-dropdown').click();
+  cy.get('#expandable-menu').within(() => {
+    cy.contains('Edit profile').click();
+  });
+});
+
+Cypress.Commands.add('navigateToSettings', () => {
+  cy.getByTestId('user-profile-dropdown').click();
+  cy.get('#expandable-menu').within(() => {
+    cy.contains('Settings').click();
+  });
 });
 
 Cypress.Commands.add('getByTestId', (id) => {

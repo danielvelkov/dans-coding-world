@@ -14,6 +14,7 @@ import {
 import { useFetchUser } from './useFetchUser';
 import { useAuth } from './useAuth';
 import { ApiError } from '../types/api.error';
+import { UserDetail } from '@dans-coding-world/user-data-access';
 
 export type UserWithoutPass = Omit<User, 'password'>;
 export type LoginResponseWithoutTokens = Omit<
@@ -34,7 +35,8 @@ export type LoginResponseWithoutTokens = Omit<
  * - Fetching full user profile details once authenticated
  */
 export function useAuthState() {
-  const [user, setUser] = useState<UserWithoutPass | null>(null);
+  const [user, setUser] = useState<Omit<UserDetail, 'password'> | null>(null);
+  const [isAuthBootstrapPending, setIsAuthBootstrapPending] = useState(true);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const refreshMutateRef = useRef<() => void>(() => noop);
 
@@ -56,6 +58,9 @@ export function useAuthState() {
     onError: (error) => {
       setUser(null);
       if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current);
+    },
+    onSettled: () => {
+      setIsAuthBootstrapPending(false);
     },
   });
 
@@ -91,7 +96,8 @@ export function useAuthState() {
       const apiError = error as ApiError;
       if (
         apiError.status &&
-        apiError.status === ERROR_HTTP_STATUS[ERROR_CODES.AUTH.UNAUTHORIZED]
+        (apiError.status === ERROR_HTTP_STATUS[ERROR_CODES.SERVER.NOT_FOUND] ||
+          apiError.status === ERROR_HTTP_STATUS[ERROR_CODES.AUTH.UNAUTHORIZED])
       )
         setUser(null);
     },
@@ -114,7 +120,11 @@ export function useAuthState() {
     login: loginMutation.mutate,
     logout: logoutMutation.mutate,
 
-    isLoading: loginMutation.isPending || logoutMutation.isPending,
+    isLoading:
+      isAuthBootstrapPending ||
+      loginMutation.isPending ||
+      logoutMutation.isPending,
+    isRefreshing: isAuthBootstrapPending,
     error: loginMutation.error || logoutMutation.error,
     isLoadingProfile,
   };

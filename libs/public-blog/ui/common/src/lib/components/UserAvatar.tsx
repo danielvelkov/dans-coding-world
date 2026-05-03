@@ -33,6 +33,7 @@ const StyledAvatar = styled.div<
   text-align: center;
 
   .avatar {
+    object-fit: cover;
     font-size: ${(props) => AVATAR_SIZES_FONT[props.$imgSize]}em;
     height: ${(props) => AVATAR_SIZES[props.$imgSize]}px;
     align-content: center;

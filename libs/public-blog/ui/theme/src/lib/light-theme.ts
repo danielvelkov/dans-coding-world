@@ -6,6 +6,8 @@ export const lightTheme: DefaultTheme = {
     secondary: '#4a4a5a',
     muted: '#9a9aaa',
     error: '#d64545',
+    warning: '#ad7611e5',
+    success: '#1b5e20',
   },
   background: {
     base: '#f9f7f7',
@@ -13,6 +15,7 @@ export const lightTheme: DefaultTheme = {
     elevated: '#f0eaea',
     inverse: '#fcddddc7',
     error: 'rgba(214, 69, 69, 0.12)',
+    success: 'rgba(76, 175, 80, 0.18)',
   },
   border: {
     primary: 'rgba(210, 200, 200, 0.8)',
@@ -22,7 +25,7 @@ export const lightTheme: DefaultTheme = {
   accent: {
     primary: '#f8755eff',
     hover: '#d45448ff',
-    soft: '#f5e6e5',
+    soft: '#f3c5c2b6',
     muted: 'rgba(192, 57, 43, 0.15)',
   },
   shimmer: { base: '#e6e6e6', highlight: '#eeaa9dff' },

@@ -22,6 +22,7 @@ import {
   ChangeBanStatusDto,
   ChangeRoleDto,
   GetUserResponseDto,
+  AvatarImageDto,
 } from '@dans-coding-world/shared-user-dto';
 import { UserDetail } from '@dans-coding-world/user-data-access';
 import type { IStorageProvider } from '@dans-coding-world/api-file-storage';
@@ -73,9 +74,12 @@ export class UserService implements IUserService {
     let user = (await this.users.getById(dto.userId.toString())) as UserDetail;
     if (!user) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
-    const avatarURL =
-      dto.avatar && dto.avatar.path
-        ? await this.uploadAvatar(dto.avatar.path)
+    const wantsToRemoveAvatar = dto.removeAvatar;
+    const hasNewAvatar = !!dto.avatar?.path;
+
+    const newAvatarURL =
+      hasNewAvatar && !wantsToRemoveAvatar
+        ? await this.uploadAvatar((dto.avatar as AvatarImageDto).path)
         : undefined;
 
     if (!user.profile) {
@@ -85,28 +89,33 @@ export class UserService implements IUserService {
           firstName: dto.firstName ?? '',
           lastName: dto.lastName ?? '',
           bio: dto.bio ?? '',
-          avatarURL: avatarURL ?? '',
+          avatarURL: newAvatarURL ?? '',
         },
       });
+
       user.profile = profile;
     } else {
-      if (user.profile && user.profile.avatarURL && dto.avatar)
-        await this.storageProvider.deleteFile(user.profile.avatarURL);
+      const currentAvatarURL = user.profile.avatarURL;
 
-      user = await this.users.update(
-        dto.userId,
-        {},
-        {
-          ...(dto.firstName ? { firstName: dto.firstName } : undefined),
-          ...(dto.lastName ? { lastName: dto.lastName } : undefined),
-          ...(dto.bio ? { bio: dto.bio } : undefined),
-          ...(dto.avatar ? { avatarURL: avatarURL } : undefined),
-        }
-      );
+      // Delete old avatar if replaced or removed
+      if ((hasNewAvatar || wantsToRemoveAvatar) && currentAvatarURL) {
+        await this.storageProvider.deleteFile(currentAvatarURL);
+      }
+
+      const profileUpdates: Record<string, string> = {};
+
+      if (dto.firstName !== undefined) profileUpdates.firstName = dto.firstName;
+      if (dto.lastName !== undefined) profileUpdates.lastName = dto.lastName;
+      if (dto.bio !== undefined) profileUpdates.bio = dto.bio;
+
+      if (hasNewAvatar || wantsToRemoveAvatar) {
+        profileUpdates.avatarURL = newAvatarURL ?? '';
+      }
+
+      user = await this.users.update(dto.userId, {}, profileUpdates);
     }
 
     const filteredUser = this.filterUserData(user, true, false);
-
     return { user: filteredUser };
   }
 

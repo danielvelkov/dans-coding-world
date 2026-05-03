@@ -60,6 +60,23 @@ describe('User session', () => {
   context(
     `an attempt to refresh user session occurs on navigating to app`,
     () => {
+      it('shows page wide loading spinner while refreshing', () => {
+        const randomUser = Cypress._.sample(testUsers) as UserDetail;
+        const loginResponse = generateMockLoginResponse({ user: randomUser });
+
+        cy.intercept('POST', API_ENDPOINTS.AUTH.REFRESH, {
+          statusCode: 200,
+          body: loginResponse,
+        }).as('refreshRequest');
+
+        cy.visit('/blog');
+        cy.contains('Loading...').should('exist');
+        cy.wait('@refreshRequest');
+        cy.checkIfLoggedIn();
+        cy.contains('Loading...').should('not.exist');
+        cy.contains('a', 'Login').should('not.exist');
+      });
+
       it('logs user in if refresh is successful', () => {
         const randomUser = Cypress._.sample(testUsers) as UserDetail;
         const loginResponse = generateMockLoginResponse({ user: randomUser });
@@ -83,7 +100,7 @@ describe('User session', () => {
 
         cy.visit('/blog');
         cy.contains('a', 'Login').should('exist');
-        cy.get('img.avatar').should('not.exist');
+        cy.checkIfLoggedOut();
       });
     }
   );
@@ -107,7 +124,7 @@ describe('User session', () => {
       while (count--) {
         cy.tick(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION + 1000);
         cy.wait('@refresh').its('response.statusCode').should('eq', 200);
-        cy.get('img.avatar').should('exist');
+        cy.checkIfLoggedIn();
       }
     });
 
@@ -143,7 +160,7 @@ describe('User session', () => {
       // Check if logged out after token expires and refresh sesh occurs
       cy.tick(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION + 1000);
       cy.wait('@refresh').its('response.statusCode').should('eq', 400);
-      cy.get('img.avatar').should('not.exist');
+      cy.checkIfLoggedOut();
       cy.contains('a', 'Login').should('exist');
     });
 

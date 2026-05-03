@@ -11,7 +11,7 @@ export const VALIDATION_MESSAGES = {
     invalidEmail: 'Please enter a valid email address',
   },
   password: {
-    weak: 'Password must contain at least 1 upper case, 1 number and 1 symbol',
+    weak: 'Password must contain at least 1 upper case, 1 lower case, 1 number and 1 symbol',
   },
   username: {
     invalid:

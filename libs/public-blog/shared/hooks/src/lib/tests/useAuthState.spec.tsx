@@ -52,6 +52,19 @@ describe('useAuthState', () => {
     vi.restoreAllMocks();
   });
 
+  it('sets "isRefreshing" and "isLoading" to true on hook start, until refresh endpoint resolves', async () => {
+    const { result } = renderUseAuthStateHook();
+    expect(result.current.isLoading).toBeTruthy();
+    expect(result.current.isRefreshing).toBeTruthy();
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(API_ENDPOINTS.AUTH.REFRESH);
+    });
+
+    expect(result.current.isLoading).toBeFalsy();
+    expect(result.current.isRefreshing).toBeFalsy();
+  });
+
   it('sets user and "isAuthenticated" to true, on hook start if refresh response is valid', async () => {
     // clear the rejected once just for this test
     vi.mocked(api.post).mockReset();
