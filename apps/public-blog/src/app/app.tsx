@@ -17,6 +17,7 @@ import { Header } from '@dans-coding-world/public-blog-features-header';
 import Register from '../routes/user/Register';
 import Profile from '../routes/user/Profile';
 import RootLayout from './RootLayout';
+import Settings from '../routes/user/Settings';
 
 const StyledApp = styled.div`
   padding: 0 clamp(5vmin, 5vw, 15vmax);
@@ -48,12 +49,8 @@ export function App() {
             ></Header>
             <Routes>
               <Route element={<RootLayout />}>
-                <Route path="login">
-                  <Route index element={<Login />} />
-                </Route>
-                <Route path="register">
-                  <Route index element={<Register />} />
-                </Route>
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
                 <Route path="blog">
                   <Route index element={<Blog />} />
                   <Route
@@ -75,6 +72,7 @@ export function App() {
                     }
                   />
                 </Route>
+                <Route path="settings" element={<Settings />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
