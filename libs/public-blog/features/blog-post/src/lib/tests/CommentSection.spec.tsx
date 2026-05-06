@@ -13,6 +13,7 @@ import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import { mockCreateCommentHook } from './helpers/mockCreateCommentHook';
+import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 // TODO: somehow remove this nasty copy-paste
@@ -198,6 +199,20 @@ describe('CommentSection', () => {
           postId: TEST_POST_ID,
           content: testComment,
         });
+      });
+
+      it('hides textarea and displays "Banned" message if user is banned', async () => {
+        const randomUser = generateRandomUser();
+        mockAuth({
+          isAuthenticated: true,
+          user: { ...randomUser, isBanned: true },
+        });
+        renderFeature();
+        expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+        await waitFor(() => {
+          expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+        });
+        expect(screen.getByText(/you are banned/i));
       });
     });
 

@@ -54,9 +54,26 @@ const StyledSectionMeta = styled.div`
     align-items: center;
   }
 `;
+const BannedMessage = styled.div`
+  padding: 2em 5em;
+  text-align: center;
+
+  i {
+    font-size: 2em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    background: ${({ theme }) => theme.background.inverse};
+    box-shadow: -5px 5px 8px ${({ theme }) => theme.background.inverse};
+  }
+`;
 
 export function CommentSection({ postId }: { postId: number }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const {
     createComment,
     isSubmitting: isCreatingComment,
@@ -120,18 +137,30 @@ export function CommentSection({ postId }: { postId: number }) {
         </div>
       </StyledSectionMeta>
 
-      <CommentForm
-        isLocked={!isAuthenticated}
-        onSubmit={(val) => {
-          createComment({ postId: postId, content: val });
-        }}
-        isSubmitting={isCreatingComment}
-        resetValue={commentPosted ? '' : undefined}
-      ></CommentForm>
-      {commentingError && (
-        <FieldErrorText>
-          <span data-testid="error-message">{commentingError.message}</span>
-        </FieldErrorText>
+      {isAuthenticated && user?.isBanned ? (
+        <BannedMessage>
+          <i className="fa fa-ban"></i>
+          <h3>You are banned</h3>
+          <p>
+            You are unable to comment or reply until a moderator unbans you.
+          </p>
+        </BannedMessage>
+      ) : (
+        <>
+          <CommentForm
+            isLocked={!isAuthenticated}
+            onSubmit={(val) => {
+              createComment({ postId: postId, content: val });
+            }}
+            isSubmitting={isCreatingComment}
+            resetValue={commentPosted ? '' : undefined}
+          ></CommentForm>
+          {commentingError && (
+            <FieldErrorText>
+              <span data-testid="error-message">{commentingError.message}</span>
+            </FieldErrorText>
+          )}
+        </>
       )}
 
       <ReplyContextProvider postId={postId}>
