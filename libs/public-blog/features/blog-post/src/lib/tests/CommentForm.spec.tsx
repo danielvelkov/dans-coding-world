@@ -105,6 +105,17 @@ describe('CommentForm', () => {
     expect(mockSubmitFn).toHaveBeenLastCalledWith(commentText);
   });
 
+  it('should disable submit button when param isSubmitting is true', () => {
+    const { baseElement } = renderFeature({
+      isSubmitting: true,
+      isLocked: false,
+      onSubmit: vi.fn(),
+    });
+
+    const submitButton = within(baseElement).getByRole('button');
+    expect(submitButton).toBeDisabled();
+  });
+
   it(`should show login call to action modal only when
      "isLocked" is true and 
     user selects textbox`, async () => {

@@ -12,6 +12,7 @@ import { generateMockPostCommentsResponse } from '@dans-coding-world/shared-post
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
+import { mockCreateCommentHook } from './helpers/mockCreateCommentHook';
 
 vi.mock('@dans-coding-world/shared-data-access-api');
 // TODO: somehow remove this nasty copy-paste
@@ -22,6 +23,7 @@ vi.mock(
     return {
       ...(await importOriginal()),
       useAuth: vi.fn(),
+      useCreateComment: vi.fn(),
     };
   }
 );
@@ -46,6 +48,7 @@ describe('CommentSection', () => {
     vi.clearAllMocks();
     mockAuth();
     vi.mocked(api.get<BaseResponse>).mockResolvedValue(mockCommentsResponse);
+    mockCreateCommentHook({});
   });
 
   it('should render successfully', () => {
@@ -89,7 +92,6 @@ describe('CommentSection', () => {
     });
   });
 
-  // this test times out
   it(`should show comment replies as expandable tree view structure`, async () => {
     renderFeature();
     const comments = mockCommentsResponse.data?.items;
@@ -168,10 +170,33 @@ describe('CommentSection', () => {
         mockAuth({ isAuthenticated: true });
       });
 
-      it('disables comment form textarea', async () => {
+      it('enables comment form textarea', async () => {
         renderFeature();
         await waitFor(() => {
           expect(screen.getByRole('textbox')).not.toBeDisabled();
+        });
+      });
+
+      it(`calls createComment() action from usePostComment hook on
+        entering a valid comment and clicking 'submit'`, async () => {
+        const testComment = 'An awesome comment';
+        const user = userEvent.setup();
+        const mockCreateComment = vi.fn();
+        mockCreateCommentHook({
+          result: { createComment: mockCreateComment },
+        });
+        renderFeature();
+        await waitFor(async () => {
+          const commentTextbox = screen.getByRole('textbox');
+          expect(commentTextbox).not.toBeDisabled();
+          await user.type(commentTextbox, testComment);
+        });
+        expect(mockCreateComment).not.toHaveBeenCalled();
+        await user.click(screen.getByRole('button', { name: 'Submit' }));
+
+        expect(mockCreateComment).toHaveBeenCalledWith({
+          postId: TEST_POST_ID,
+          content: testComment,
         });
       });
     });
@@ -180,7 +205,7 @@ describe('CommentSection', () => {
       beforeEach(() => {
         mockAuth({ isAuthenticated: false });
       });
-      it('enables comment form textarea', async () => {
+      it('disables comment form textarea', async () => {
         renderFeature();
         await waitFor(() => {
           expect(screen.getByRole('textbox')).toBeDisabled();
