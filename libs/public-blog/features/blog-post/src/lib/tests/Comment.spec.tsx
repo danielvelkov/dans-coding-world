@@ -65,4 +65,26 @@ describe('Comment', () => {
       );
     });
   });
+
+  it('should render if comment was edited since being posted', async () => {
+    const createdAtDate = new Date(2016, 9, 5);
+    const modifiedAtDate = new Date(2017, 11, 9);
+    renderFeature({
+      ...testComment,
+      createdAt: createdAtDate,
+      updatedAt: createdAtDate,
+    });
+    await waitFor(() => {
+      expect(screen.queryByText(/edited/i)).not.toBeInTheDocument();
+    });
+
+    renderFeature({
+      ...testComment,
+      createdAt: createdAtDate,
+      updatedAt: modifiedAtDate,
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/edited/i)).toBeInTheDocument();
+    });
+  });
 });

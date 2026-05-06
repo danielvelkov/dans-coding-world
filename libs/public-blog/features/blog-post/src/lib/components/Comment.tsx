@@ -85,6 +85,8 @@ export function Comment({
           >
             {formatToRelativeTimeFromNow(new Date(comment.createdAt))}
           </time>
+          {new Date(comment.createdAt).getTime() !==
+            new Date(comment.updatedAt).getTime() && <span>{'(Edited)'}</span>}
         </div>
 
         <p>{comment.content}</p>
