@@ -62,6 +62,9 @@
       "path": "../../../shared/post/dtos/tsconfig.lib.json"
     },
     {
+      "path": "../../ui/form/tsconfig.lib.json"
+    },
+    {
       "path": "../../shared/hooks/tsconfig.lib.json"
     },
     {

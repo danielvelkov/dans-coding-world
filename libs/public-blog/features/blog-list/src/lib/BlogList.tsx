@@ -26,6 +26,7 @@ import {
   PostItemsPerPage,
 } from './components/PostItemsPerPage';
 import { BlogPostItem } from './types/post-item-data.type';
+import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
 import React from 'react';
 
 const StyledFilterBar = styled.div`
@@ -171,12 +172,9 @@ export function BlogList({
 
       {/* Dynamic Content Area */}
       {isError ? (
-        <span
-          data-testid="error-message"
-          style={{ padding: '1em', color: 'red' }}
-        >
-          {error.message}
-        </span>
+        <FieldErrorText>
+          <span data-testid="error-message">{error.message}</span>
+        </FieldErrorText>
       ) : showLoading ? (
         <ShimmerList count={PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE} />
       ) : (
