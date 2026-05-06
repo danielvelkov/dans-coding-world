@@ -1,29 +1,61 @@
-import { render, screen } from '@dans-coding-world/public-blog-tools';
+import {
+  mockAuth,
+  render,
+  screen,
+  within,
+} from '@dans-coding-world/public-blog-tools';
 import CommentThread from '../components/CommentThread';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import { generateCommentThreads } from '@dans-coding-world/shared-post-testing';
 import userEvent from '@testing-library/user-event';
+import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
+import { ReplyContextProvider } from '../providers/ReplyContextProvider';
+import { mockCreateCommentHook } from './helpers/mockCreateCommentHook';
+import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
-const commentsWithNoReplies = generateCommentThreads(1, 3, 0);
-const commentsWithDeeplyNestedReplies = generateCommentThreads(1, 2, 2);
+const TEST_POST_ID = 1;
+const commentsWithNoReplies = generateCommentThreads(TEST_POST_ID, 3, 0);
+const commentsWithDeeplyNestedReplies = generateCommentThreads(
+  TEST_POST_ID,
+  2,
+  2
+);
 const testComments: CommentWithReplies[] = [
   ...commentsWithDeeplyNestedReplies,
   ...commentsWithNoReplies,
 ];
 
+vi.mock('@dans-coding-world/shared-data-access-api');
+// TODO: somehow remove this nasty copy-paste
+// mock only "useAuth" from shared hooks module
+vi.mock(
+  '@dans-coding-world/public-blog-shared-hooks',
+  async (importOriginal) => {
+    return {
+      ...(await importOriginal()),
+      useAuth: vi.fn(),
+      useCreateComment: vi.fn(),
+    };
+  }
+);
+
 describe('CommentThread', () => {
   const renderFeature = (comments: CommentWithReplies[] = testComments) => {
     return render(
       <MemoryRouter>
-        <CommentThread comments={comments} />
+        <ReplyContextProvider postId={TEST_POST_ID}>
+          <CommentThread comments={comments} />
+        </ReplyContextProvider>
       </MemoryRouter>
     );
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAuth();
+    mockCreateCommentHook({});
   });
 
   it('should render successfully', () => {
@@ -80,5 +112,175 @@ describe('CommentThread', () => {
         expect(screen.queryByText(reply.content)).toBeNull();
       }
     }
+  });
+
+  describe('Authenticated users', () => {
+    const currentTestUser = generateRandomUser();
+    beforeEach(() => {
+      mockAuth({ isAuthenticated: true, user: currentTestUser });
+    });
+
+    it('should display "Reply" button next to comments if logged in', () => {
+      renderFeature();
+
+      expect(screen.getAllByRole('button', { name: 'Reply' }).length).toBe(
+        testComments.length
+      );
+    });
+
+    it(`should call useCreateComment hook's createComment() action when
+      valid comment set in reply textarea and submit button clicked`, async () => {
+      const commentContent = 'Normal comment';
+      const mockCreateComment = vi.fn();
+      const user = userEvent.setup();
+      mockCreateCommentHook({ result: { createComment: mockCreateComment } });
+      renderFeature();
+      const comment = screen.getByTestId(`comment-${testComments[0].id}`);
+      const replyButton = within(comment).getByRole('button', {
+        name: /reply/i,
+      });
+      await user.click(replyButton);
+      await user.type(within(comment).getByRole('textbox'), commentContent);
+      await user.click(
+        within(comment).getByRole('button', { name: /submit/i })
+      );
+      expect(mockCreateComment).toHaveBeenLastCalledWith({
+        postId: TEST_POST_ID,
+        content: commentContent,
+        replyToCommentId: testComments[0].id,
+      });
+    });
+
+    it(`should hide expanded list of replies for comment after
+      clicking the "Reply" button`, async () => {
+      const user = userEvent.setup();
+      renderFeature();
+
+      const comment = screen.getByTestId(`comment-${testComments[0].id}`);
+      const viewRepliesButton = within(comment).getByRole('button', {
+        name: /view replies/i,
+      });
+      const replyButton = within(comment).getByRole('button', {
+        name: /reply/i,
+      });
+      await user.click(viewRepliesButton);
+
+      for (const reply of testComments[0].replies)
+        expect(screen.getByText(reply.content)).toBeInTheDocument();
+
+      await user.click(replyButton);
+      for (const reply of testComments[0].replies)
+        expect(screen.queryByText(reply.content)).not.toBeInTheDocument();
+    });
+
+    it(`should toggle textarea visibility within comment after
+       clicking "Reply" button`, async () => {
+      const user = userEvent.setup();
+      renderFeature();
+
+      const comment = screen.getByTestId(`comment-${testComments[0].id}`);
+      const replyButton = within(comment).getByRole('button', {
+        name: 'Reply',
+      });
+      expect(within(comment).queryByRole('textbox')).not.toBeInTheDocument();
+      await user.click(replyButton);
+      expect(within(comment).getByRole('textbox')).toBeInTheDocument();
+      // Test out toggle
+      await user.click(replyButton);
+      expect(within(comment).queryByRole('textbox')).not.toBeInTheDocument();
+    });
+
+    it(`should hide other opened reply forms when clicking "Reply"`, async () => {
+      const user = userEvent.setup();
+      renderFeature();
+
+      const firstComment = screen.getByTestId(`comment-${testComments[0].id}`);
+      const secondComment = screen.getByTestId(`comment-${testComments[1].id}`);
+
+      // Select first comment "Reply" button
+      await user.click(
+        within(firstComment).getByRole('button', { name: 'Reply' })
+      );
+      expect(within(firstComment).getByRole('textbox')).toBeInTheDocument();
+      expect(
+        within(secondComment).queryByRole('textbox')
+      ).not.toBeInTheDocument();
+
+      // Select second comment "Reply" button, hiding the first form
+      await user.click(
+        within(secondComment).getByRole('button', { name: 'Reply' })
+      );
+      expect(within(secondComment).getByRole('textbox')).toBeInTheDocument();
+      expect(
+        within(firstComment).queryByRole('textbox')
+      ).not.toBeInTheDocument();
+    });
+
+    it(`should hide other comment's shown reply form
+       when clicking "View replies"`, async () => {
+      const user = userEvent.setup();
+      renderFeature();
+
+      const firstComment = screen.getByTestId(
+        `comment-${commentsWithDeeplyNestedReplies[0].id}`
+      );
+      const secondComment = screen.getByTestId(
+        `comment-${commentsWithDeeplyNestedReplies[1].id}`
+      );
+
+      // Select first comment "Reply" button
+      await user.click(
+        within(firstComment).getByRole('button', { name: 'Reply' })
+      );
+      expect(within(firstComment).getByRole('textbox')).toBeInTheDocument();
+      expect(
+        within(secondComment).queryByRole('textbox')
+      ).not.toBeInTheDocument();
+
+      // Select second comment's "View replies" button, hiding the first form
+      await user.click(
+        within(secondComment).getByRole('button', { name: /view replies/i })
+      );
+      expect(
+        within(firstComment).queryByRole('textbox')
+      ).not.toBeInTheDocument();
+    });
+
+    it('does not display "Reply" button on comments of max reply depth', async () => {
+      const user = userEvent.setup();
+      renderFeature();
+
+      let currentComment = commentsWithDeeplyNestedReplies[0];
+      for (
+        let depthLevel = 0;
+        depthLevel < COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH;
+        depthLevel++
+      ) {
+        const comment = screen.getByTestId(`comment-${currentComment.id}`);
+        const replyButton = within(comment).queryByRole('button', {
+          name: /reply/i,
+        });
+        if (depthLevel === COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH - 1) {
+          expect(replyButton).not.toBeInTheDocument();
+          break;
+        } else expect(replyButton).toBeInTheDocument();
+
+        const viewRepliesButton = within(comment).getByRole('button', {
+          name: /view replies/i,
+        });
+        await user.click(viewRepliesButton);
+
+        currentComment = currentComment.replies[0];
+        if (!currentComment) throw new Error('Missing comment fixture');
+      }
+    });
+  });
+
+  describe('Unauthenticated users', () => {
+    it('should not display "Reply" button next to comments', () => {
+      renderFeature();
+
+      expect(screen.queryAllByRole('button', { name: 'Reply' }).length).toBe(0);
+    });
   });
 });
