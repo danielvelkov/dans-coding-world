@@ -1,6 +1,6 @@
 import styled, { ThemeProvider } from 'styled-components';
 
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import Blog from '../routes/blog/Blog';
@@ -34,7 +34,8 @@ const showDevTools =
 const queryClient = new QueryClient();
 
 export function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  //TODO - get mode from user theme system settings
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -49,6 +50,8 @@ export function App() {
             ></Header>
             <Routes>
               <Route element={<RootLayout />}>
+                {/* TODO add homepage */}
+                <Route index element={<Navigate to="blog" replace />} />
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
                 <Route path="blog">
