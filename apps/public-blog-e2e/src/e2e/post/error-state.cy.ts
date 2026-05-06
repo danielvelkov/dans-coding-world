@@ -46,7 +46,6 @@ describe('Post - error state', () => {
 
   it('displays generic error page on invalid blog post id', () => {
     cy.visit('/blog/a');
-    cy.contains('h1', 'Oops');
     cy.contains(/something.* wrong/i);
   });
 

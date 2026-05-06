@@ -30,7 +30,10 @@ export function Fallback({ error, resetErrorBoundary }: FallbackProps) {
   }
 
   return (
-    <GenericError errorTitle={'Oops'} subtitle={'Something went wrong'}>
+    <GenericError
+      errorTitle={'Something went wrong'}
+      subtitle={'Please try again'}
+    >
       <Button onClick={resetErrorBoundary}>Retry</Button>
     </GenericError>
   );
