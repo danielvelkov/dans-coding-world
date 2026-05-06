@@ -1,5 +1,6 @@
 import {
   useAuth,
+  useCreateComment,
   useFetchPostCommentsInfinite,
 } from '@dans-coding-world/public-blog-shared-hooks';
 import styled from 'styled-components';
@@ -11,6 +12,7 @@ import CommentThread from './CommentThread';
 import { ShimmerComments } from './ShimmerComments';
 import { Dropdown, Button } from '@dans-coding-world/public-blog-ui-common';
 import { useState } from 'react';
+import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
 import CommentForm from './CommentForm';
 
 type AllowedPageSizes =
@@ -54,6 +56,12 @@ const StyledSectionMeta = styled.div`
 
 export function CommentSection({ postId }: { postId: number }) {
   const { isAuthenticated } = useAuth();
+  const {
+    createComment,
+    isSubmitting: isCreatingComment,
+    error: commentingError,
+    isSuccess: commentPosted,
+  } = useCreateComment();
   const [commentSortOrder, setCommentSortOrder] = useState<SortOrder>('desc');
 
   const { data, isPending, isError, error, isFetchingNextPage, fetchNextPage } =
@@ -69,19 +77,12 @@ export function CommentSection({ postId }: { postId: number }) {
   const showLoading = isPending || !data;
 
   if (showLoading || isError)
-    return (
-      <div>
-        {isError ? (
-          <span
-            data-testid="error-message"
-            style={{ padding: '1em', color: 'red' }}
-          >
-            {error.message}
-          </span>
-        ) : (
-          <ShimmerComments count={3} />
-        )}
-      </div>
+    return isError ? (
+      <FieldErrorText>
+        <span data-testid="error-message">{error.message}</span>
+      </FieldErrorText>
+    ) : (
+      <ShimmerComments count={3} />
     );
 
   const comments = data.pages
@@ -117,12 +118,21 @@ export function CommentSection({ postId }: { postId: number }) {
           ></Dropdown>
         </div>
       </StyledSectionMeta>
-      {/* TODO: */}
+
       <CommentForm
         isLocked={!isAuthenticated}
-        onSubmit={(val) => console.log(val)}
+        onSubmit={(val) => {
+          createComment({ postId: postId, content: val });
+        }}
+        isSubmitting={isCreatingComment}
+        resetValue={commentPosted ? '' : undefined}
       ></CommentForm>
-      <CommentThread comments={comments}></CommentThread>
+      {commentingError && (
+        <FieldErrorText>
+          <span data-testid="error-message">{commentingError.message}</span>
+        </FieldErrorText>
+      )}
+        <CommentThread comments={comments}></CommentThread>
 
       {!isFetchingNextPage && lastPaginationDetails?.hasNext && (
         <StyledLoadMoreButton onClick={() => fetchNextPage()}>

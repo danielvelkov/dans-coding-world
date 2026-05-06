@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Button, Modal } from '@dans-coding-world/public-blog-ui-common';
+import {
+  Button,
+  LoadingSpinner,
+  Modal,
+} from '@dans-coding-world/public-blog-ui-common';
 import { Link } from 'react-router-dom';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
@@ -102,12 +106,23 @@ const StyledContentLimitCounter = styled.span<
 export function CommentForm({
   isLocked,
   onSubmit,
+  isSubmitting,
+  resetValue,
+  className,
 }: {
   isLocked: boolean;
   onSubmit: (comment: string) => void;
+  isSubmitting?: boolean;
+  resetValue?: string;
+  className?: string;
 }) {
   const [openDialog, setOpenDialog] = useState(false);
   const [content, setContent] = useState('');
+
+  useEffect(() => {
+    if (resetValue !== undefined && resetValue !== content)
+      setContent(resetValue);
+  }, [setContent, resetValue, content]);
 
   const contentPresent = (content.match(/\S+/)?.length ?? 0) > 0;
 
@@ -117,6 +132,7 @@ export function CommentForm({
         e.preventDefault();
         return onSubmit(content);
       }}
+      className={className}
     >
       <StyledTextAreaWrapper title={isLocked ? 'Login to comment' : undefined}>
         <StyledTextArea
@@ -140,8 +156,11 @@ export function CommentForm({
 
         <div className="comment-actions">
           {!isLocked && (
-            <StyledSubmitButton disabled={!contentPresent} type="submit">
-              Submit
+            <StyledSubmitButton
+              disabled={!contentPresent || isSubmitting}
+              type="submit"
+            >
+              {isSubmitting ? <LoadingSpinner></LoadingSpinner> : 'Submit'}
             </StyledSubmitButton>
           )}
           <StyledContentLimitCounter
