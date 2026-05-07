@@ -3,10 +3,18 @@ import styled from 'styled-components';
 import Comment from './Comment';
 import React, { useState } from 'react';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
-import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
+import {
+  useAuth,
+  useDeleteComment,
+} from '@dans-coding-world/public-blog-shared-hooks';
 import CommentForm from './CommentForm';
 import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
 import { useReplyContext } from '../hooks/useReplyContext';
+import {
+  Button,
+  LoadingSpinner,
+  Modal,
+} from '@dans-coding-world/public-blog-ui-common';
 
 const StyledCommentList = styled.ul<
   React.ComponentPropsWithoutRef<'ul'> & { $depth: number }
@@ -61,6 +69,13 @@ const ActionButton = styled.button<
   }
 `;
 
+const StyledModalContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2em;
+`;
+
 const CommentListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   margin-top: 1.5em;
 
@@ -103,7 +118,7 @@ export function CommentThread({
   comments: CommentWithReplies[];
   parentComment?: CommentWithReplies;
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [expandedThreads, setExpandedThreads] = useState<number[]>([]);
   const {
     selectedCommentForReplyId,
@@ -112,6 +127,12 @@ export function CommentThread({
     isSubmittingReply,
     replyError,
   } = useReplyContext();
+
+  const { deleteComment, isPending, error: deletionError } = useDeleteComment();
+
+  const [selectedCommentForDeletion, setSelectedCommentForDeletion] = useState<
+    null | number
+  >(null);
 
   const depth = comments[0]?.depth ?? 0;
   const hasComments = comments.length > 0;
@@ -127,6 +148,10 @@ export function CommentThread({
 
   const canReply = (comment: CommentWithReplies) =>
     comment.depth !== MAX_REPLY_TREE_DEPTH - 1;
+  const canDelete = (comment: CommentWithReplies) =>
+    comment.userId === user?.id ||
+    user?.role === 'ADMIN' ||
+    user?.role === 'MOD';
 
   const handleReplyClick = (comment: CommentWithReplies) => {
     setSelectedCommentForReplyId(isReplyingTo(comment.id) ? null : comment.id);
@@ -163,6 +188,7 @@ export function CommentThread({
 
             {isAuthenticated && canReply(comment) && (
               <ReplyButton
+                disabled={user?.isBanned}
                 isOpen={isReplyingTo(comment.id)}
                 onClick={() => handleReplyClick(comment)}
               />
@@ -174,6 +200,56 @@ export function CommentThread({
                 isExpanded={isExpanded(comment.id)}
                 onClick={() => handleExpandClick(comment)}
               />
+            )}
+
+            {isAuthenticated && user && canDelete(comment) && (
+              <>
+                <DeleteButton
+                  disabled={user?.isBanned}
+                  isOpen={false}
+                  onClick={() => setSelectedCommentForDeletion(comment.id)}
+                />
+                {selectedCommentForDeletion === comment.id && (
+                  <Modal
+                    open
+                    modalTitle="Confirm Delete"
+                    onClose={() => setSelectedCommentForDeletion(null)}
+                  >
+                    <StyledModalContent>
+                      Are you sure you want to delete comment?
+                      {deletionError && (
+                        <FieldErrorText>
+                          <span data-testid="error-message">
+                            {deletionError.message}
+                          </span>
+                        </FieldErrorText>
+                      )}
+                      <div style={{ display: 'flex', gap: '1em' }}>
+                        <Button
+                          onClick={() => {
+                            deleteComment({
+                              authorId: user.id,
+                              commentId: comment.id,
+                              postId: comment.postId,
+                            });
+                          }}
+                        >
+                          {isPending ? (
+                            <LoadingSpinner></LoadingSpinner>
+                          ) : (
+                            'Yes'
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => setSelectedCommentForDeletion(null)}
+                        >
+                          No
+                        </Button>
+                      </div>
+                    </StyledModalContent>
+                  </Modal>
+                )}
+              </>
             )}
 
             {showReplyForm && (
@@ -208,15 +284,45 @@ export function CommentThread({
   );
 }
 
-function ReplyButton({
+function DeleteButton({
   isOpen,
   onClick,
+  disabled,
 }: {
   isOpen: boolean;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
-    <ActionButton $isOpen={isOpen} onClick={onClick}>
+    <ActionButton
+      disabled={disabled}
+      aria-label={
+        disabled ? 'You are banned. You cannot delete your comments' : undefined
+      }
+      $isOpen={isOpen}
+      onClick={onClick}
+    >
+      Delete
+    </ActionButton>
+  );
+}
+
+function ReplyButton({
+  isOpen,
+  onClick,
+  disabled,
+}: {
+  isOpen: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionButton
+      disabled={disabled}
+      aria-label={disabled ? 'You are banned. You cannot reply' : undefined}
+      $isOpen={isOpen}
+      onClick={onClick}
+    >
       Reply
     </ActionButton>
   );
