@@ -14,7 +14,7 @@ import { Dropdown, Button } from '@dans-coding-world/public-blog-ui-common';
 import { useState } from 'react';
 import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
 import CommentForm from './CommentForm';
-import { ReplyContextProvider } from '../providers/ReplyContextProvider';
+import { CommentContextProvider } from '../providers/CommentContextProvider';
 
 type AllowedPageSizes =
   (typeof PAGINATION.COMMENTS.ITEMS_PER_PAGE_OPTIONS)[number];
@@ -154,6 +154,7 @@ export function CommentSection({ postId }: { postId: number }) {
             }}
             isSubmitting={isCreatingComment}
             resetValue={commentPosted ? '' : undefined}
+            type="add"
           ></CommentForm>
           {commentingError && (
             <FieldErrorText>
@@ -163,9 +164,9 @@ export function CommentSection({ postId }: { postId: number }) {
         </>
       )}
 
-      <ReplyContextProvider postId={postId}>
+      <CommentContextProvider postId={postId}>
         <CommentThread comments={comments}></CommentThread>
-      </ReplyContextProvider>
+      </CommentContextProvider>
 
       {!isFetchingNextPage && lastPaginationDetails?.hasNext && (
         <StyledLoadMoreButton onClick={() => fetchNextPage()}>

@@ -1,7 +1,7 @@
 import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import styled from 'styled-components';
 import Comment from './Comment';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import {
   useAuth,
@@ -9,7 +9,7 @@ import {
 } from '@dans-coding-world/public-blog-shared-hooks';
 import CommentForm from './CommentForm';
 import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
-import { useReplyContext } from '../hooks/useReplyContext';
+import { useCommentContext } from '../hooks/useCommentContext';
 import {
   Button,
   LoadingSpinner,
@@ -81,13 +81,13 @@ const CommentListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
 
   ${ActionButton}:first-of-type {
     margin-left: 3em;
-    margin-right: 10px;
   }
 `;
+const StyledReplyForm = styled(CommentForm)`
+  padding-left: 0.5em;
+  margin-left: 3em;
 
-export const StyledReplyForm = styled(CommentForm)`
-  padding-left: 1em;
-  margin-left: 2em;
+  border-left: 3px solid ${({ theme }) => theme.accent.primary};
 
   &:hover {
     border-color: ${({ theme }) => theme.accent.primary};
@@ -95,10 +95,28 @@ export const StyledReplyForm = styled(CommentForm)`
 
   & > div {
     border-radius: 0;
+    border-left: none;
   }
-  textarea {
-    margin-bottom: 0.5em;
+
+  button[type='submit'] {
+    font-size: 0.8em;
+    padding: 0.4em 1em;
   }
+`;
+
+const StyledEditForm = styled(CommentForm)`
+  padding-left: 1em;
+  margin-left: 2em;
+
+  border-radius: 4px;
+  & > div {
+    border: 1px dashed ${({ theme }) => theme.text.muted};
+  }
+
+  & > div:focus-within {
+    border: 1px dashed ${({ theme }) => theme.text.muted};
+  }
+
   button[type='submit'] {
     font-size: 0.8em;
     padding: 0.4em 1em;
@@ -121,18 +139,42 @@ export function CommentThread({
   const { isAuthenticated, user } = useAuth();
   const [expandedThreads, setExpandedThreads] = useState<number[]>([]);
   const {
+    selectedCommentForEditId,
+    setSelectedCommentForEditId,
+    onEditSubmit,
+    isSubmittingEdit,
+    editError,
+    isEditSuccess,
+
     selectedCommentForReplyId,
     setSelectedCommentForReplyId,
     onReplySubmit,
     isSubmittingReply,
     replyError,
-  } = useReplyContext();
+    isCreateSuccess,
+  } = useCommentContext();
 
   const { deleteComment, isPending, error: deletionError } = useDeleteComment();
 
   const [selectedCommentForDeletion, setSelectedCommentForDeletion] = useState<
     null | number
   >(null);
+
+  useEffect(() => {
+    if (isEditSuccess) setSelectedCommentForEditId(null);
+  }, [isEditSuccess, setSelectedCommentForEditId]);
+
+  useEffect(() => {
+    if (isCreateSuccess) {
+      setSelectedCommentForReplyId(null);
+      if (selectedCommentForReplyId)
+        setExpandedThreads((prev) => [...prev, selectedCommentForReplyId]);
+    }
+  }, [
+    isCreateSuccess,
+    setSelectedCommentForReplyId,
+    selectedCommentForReplyId,
+  ]);
 
   const depth = comments[0]?.depth ?? 0;
   const hasComments = comments.length > 0;
@@ -144,6 +186,7 @@ export function CommentThread({
   if (!hasComments || anyAtMaxDepth) return null;
 
   const isReplyingTo = (id: number) => selectedCommentForReplyId === id;
+  const isEditing = (id: number) => selectedCommentForEditId === id;
   const isExpanded = (id: number) => expandedThreads.includes(id);
 
   const canReply = (comment: CommentWithReplies) =>
@@ -152,11 +195,20 @@ export function CommentThread({
     comment.userId === user?.id ||
     user?.role === 'ADMIN' ||
     user?.role === 'MOD';
+  const canEdit = (comment: CommentWithReplies) => comment.userId === user?.id;
 
   const handleReplyClick = (comment: CommentWithReplies) => {
     setSelectedCommentForReplyId(isReplyingTo(comment.id) ? null : comment.id);
     // collapse thread if opening reply form
     if (!isReplyingTo(comment.id)) {
+      setExpandedThreads((prev) => prev.filter((id) => id !== comment.id));
+    }
+  };
+
+  const handleEditClick = (comment: CommentWithReplies) => {
+    setSelectedCommentForEditId(isEditing(comment.id) ? null : comment.id);
+    // collapse thread if opening edit form
+    if (!isEditing(comment.id)) {
       setExpandedThreads((prev) => prev.filter((id) => id !== comment.id));
     }
   };
@@ -178,6 +230,7 @@ export function CommentThread({
       {comments.map((comment) => {
         const hasReplies = !!comment.replies?.length;
         const showReplyForm = isAuthenticated && isReplyingTo(comment.id);
+        const showEditForm = isAuthenticated && isEditing(comment.id);
 
         return (
           <CommentListItem
@@ -202,10 +255,18 @@ export function CommentThread({
               />
             )}
 
+            {isAuthenticated && user && canEdit(comment) && (
+              <EditButton
+                isOpen={false}
+                disabled={user.isBanned}
+                onClick={() => handleEditClick(comment)}
+              ></EditButton>
+            )}
+
             {isAuthenticated && user && canDelete(comment) && (
               <>
                 <DeleteButton
-                  disabled={user?.isBanned}
+                  disabled={user.isBanned}
                   isOpen={false}
                   onClick={() => setSelectedCommentForDeletion(comment.id)}
                 />
@@ -255,15 +316,37 @@ export function CommentThread({
             {showReplyForm && (
               <>
                 <StyledReplyForm
-                  isLocked={false}
+                  isLocked={!isAuthenticated}
                   onSubmit={onReplySubmit}
                   isSubmitting={isSubmittingReply}
+                  type="reply"
                 />
                 {replyError && (
                   <ReplyError>
                     <FieldErrorText>
                       <span data-testid="error-message">
                         {replyError.message}
+                      </span>
+                    </FieldErrorText>
+                  </ReplyError>
+                )}
+              </>
+            )}
+
+            {showEditForm && (
+              <>
+                <StyledEditForm
+                  isLocked={!isAuthenticated}
+                  onSubmit={onEditSubmit}
+                  isSubmitting={isSubmittingEdit}
+                  value={comment.content}
+                  type="edit"
+                />
+                {editError && (
+                  <ReplyError>
+                    <FieldErrorText>
+                      <span data-testid="error-message">
+                        {editError.message}
                       </span>
                     </FieldErrorText>
                   </ReplyError>
@@ -324,6 +407,27 @@ function ReplyButton({
       onClick={onClick}
     >
       Reply
+    </ActionButton>
+  );
+}
+
+function EditButton({
+  isOpen,
+  onClick,
+  disabled,
+}: {
+  isOpen: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionButton
+      disabled={disabled}
+      aria-label={disabled ? 'You are banned. You cannot edit' : undefined}
+      $isOpen={isOpen}
+      onClick={onClick}
+    >
+      Edit
     </ActionButton>
   );
 }
