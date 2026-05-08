@@ -12,10 +12,11 @@ import { CommentWithReplies, Role } from '@dans-coding-world/prisma-schema';
 import { generateCommentThreads } from '@dans-coding-world/shared-post-testing';
 import userEvent from '@testing-library/user-event';
 import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
-import { ReplyContextProvider } from '../providers/ReplyContextProvider';
+import { CommentContextProvider } from '../providers/CommentContextProvider';
 import { mockCreateCommentHook } from './helpers/mockCreateCommentHook';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import { act } from 'react';
+import { mockEditCommentHook } from './helpers/mockEditCommentHook';
 
 const TEST_POST_ID = 1;
 const commentsWithNoReplies = generateCommentThreads(TEST_POST_ID, 3, 0);
@@ -39,6 +40,7 @@ vi.mock(
       ...(await importOriginal()),
       useAuth: vi.fn(),
       useCreateComment: vi.fn(),
+      useEditComment: vi.fn(),
     };
   }
 );
@@ -47,9 +49,9 @@ describe('CommentThread', () => {
   const renderFeature = (comments: CommentWithReplies[] = testComments) => {
     return render(
       <MemoryRouter>
-        <ReplyContextProvider postId={TEST_POST_ID}>
+        <CommentContextProvider postId={TEST_POST_ID}>
           <CommentThread comments={comments} />
-        </ReplyContextProvider>
+        </CommentContextProvider>
       </MemoryRouter>
     );
   };
@@ -58,6 +60,7 @@ describe('CommentThread', () => {
     vi.clearAllMocks();
     mockAuth();
     mockCreateCommentHook({});
+    mockEditCommentHook({});
   });
 
   it('should render successfully', () => {
@@ -81,24 +84,7 @@ describe('CommentThread', () => {
       );
   });
 
-  it('should show direct replies to comment when clicking on "view replies"', async () => {
-    renderFeature();
-    const user = userEvent.setup();
-
-    const commentsWithReplies = testComments.filter((c) => c.replies.length);
-    const buttons = screen.getAllByRole('button', { name: /view replies/i });
-
-    for (let i = 0; i < commentsWithReplies.length; i++) {
-      for (const reply of commentsWithReplies[i].replies) {
-        expect(screen.queryByText(reply.content)).toBeNull();
-        await user.click(buttons[i]); // view replies
-        expect(screen.getByText(reply.content)).toBeInTheDocument();
-        await user.click(buttons[i]); // hide replies
-      }
-    }
-  });
-
-  it('should hide comments when selecting "hide replies"', async () => {
+  it('should show/hide direct replies to comment when clicking on "view replies"', async () => {
     renderFeature();
     const user = userEvent.setup();
 
@@ -349,6 +335,112 @@ describe('CommentThread', () => {
         await waitFor(() => {
           expect(screen.getByText(/delete comment/i)).toBeInTheDocument();
         });
+      });
+    });
+
+    describe('Editing comments', () => {
+      it('should display "Edit" button next to comments if logged in and author of comments', () => {
+        const userComment = testComments[0];
+        const otherComment = testComments.find(
+          (c) => c.userId !== userComment.userId
+        ) as CommentWithReplies;
+        mockAuth({
+          isAuthenticated: true,
+          user: {
+            ...currentTestUser,
+            role: 'USER',
+            id: userComment.userId,
+          },
+        });
+        renderFeature();
+        const userCommentElement = screen.getByTestId(
+          `comment-${userComment.id}`
+        );
+        expect(
+          within(userCommentElement).getByRole('button', { name: /Edit/i })
+        ).toBeInTheDocument();
+        const otherUserCommentElement = screen.getByTestId(
+          `comment-${otherComment.id}`
+        );
+        expect(
+          within(otherUserCommentElement).queryByRole('button', {
+            name: /Edit/i,
+          })
+        ).not.toBeInTheDocument();
+      });
+
+      it(`should call useEditComment hook's editComment() action when
+      valid comment set in edit textarea and submit button clicked`, async () => {
+        const userComment = testComments[0];
+        mockAuth({
+          isAuthenticated: true,
+          user: {
+            ...currentTestUser,
+            role: 'USER',
+            id: userComment.userId,
+          },
+        });
+        const commentContent = 'Normal comment';
+        const mockEditComment = vi.fn();
+        const user = userEvent.setup();
+        mockEditCommentHook({ result: { editComment: mockEditComment } });
+        renderFeature();
+
+        const comment = screen.getByTestId(`comment-${testComments[0].id}`);
+        const editButton = within(comment).getByRole('button', {
+          name: /edit/i,
+        });
+        await user.click(editButton);
+        await user.clear(within(comment).getByRole('textbox'));
+        await user.type(within(comment).getByRole('textbox'), commentContent);
+        await user.click(
+          within(comment).getByRole('button', { name: /submit/i })
+        );
+        expect(mockEditComment).toHaveBeenLastCalledWith({
+          commentId: userComment.id,
+          postId: TEST_POST_ID,
+          content: commentContent,
+        });
+      });
+
+      it(`should hide other comment's shown edit form
+       when clicking "View replies"`, async () => {
+        const user = userEvent.setup();
+        const userComment = testComments[0];
+        mockAuth({
+          isAuthenticated: true,
+          user: {
+            ...currentTestUser,
+            role: 'USER',
+            id: userComment.userId,
+          },
+        });
+        renderFeature();
+
+        const firstComment = screen.getByTestId(`comment-${userComment.id}`);
+        const secondComment = screen.getByTestId(
+          `comment-${
+            (
+              commentsWithDeeplyNestedReplies.find(
+                (c) => c.id !== userComment.id
+              ) as CommentWithReplies
+            ).id
+          }`
+        );
+
+        // Select user comment "Edit" button
+        await user.click(
+          within(firstComment).getByRole('button', { name: 'Edit' })
+        );
+        expect(within(firstComment).getByRole('textbox')).toBeInTheDocument();
+
+        // Select second comment's "View replies" button, hiding the first edit form
+        await user.click(
+          within(secondComment).getByRole('button', { name: /view replies/i })
+        );
+        expect(
+          within(firstComment).queryByRole('textbox')
+        ).not.toBeInTheDocument();
       });
     });
   });
