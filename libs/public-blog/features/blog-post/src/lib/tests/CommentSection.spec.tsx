@@ -242,7 +242,7 @@ async function checkRepliesForComment(
   await userEvent.click(viewReplies);
 
   await waitFor(() => {
-    expect(viewReplies).toHaveAttribute('aria-label', 'Hide replies');
+    expect(viewReplies).toHaveAttribute('aria-expanded', 'true');
   });
 
   const escapedUsername = comment.user.username.replace(

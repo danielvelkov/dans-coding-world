@@ -333,7 +333,7 @@ describe('CommentThread', () => {
           );
         });
         await waitFor(() => {
-          expect(screen.getByText(/delete comment/i)).toBeInTheDocument();
+          expect(screen.getByText(/delete this comment/i)).toBeInTheDocument();
         });
       });
     });

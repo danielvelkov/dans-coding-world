@@ -13,6 +13,7 @@ import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
 import { useCommentContext } from '../hooks/useCommentContext';
 import { ReportCommentModal } from './ReportCommentModal';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
+import { ActionButton } from './ActionButton';
 
 const StyledCommentList = styled.ul<
   React.ComponentPropsWithoutRef<'ul'> & { $depth: number }
@@ -40,37 +41,12 @@ const StyledCommentList = styled.ul<
     `}
 `;
 
-const ActionButton = styled.button<
-  React.ComponentPropsWithoutRef<'button'> & { $isOpen: boolean }
->`
-  background: transparent;
-  border: none;
-  color: ${({ theme }) => theme.text.secondary};
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0.5em 0.75em;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.background.elevated};
-    color: ${({ theme }) => theme.text.primary};
-  }
-
-  i {
-    transition: transform 0.2s ease;
-    transform: ${({ $isOpen }) =>
-      $isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
-  }
-`;
+const CommentActionButton = styled(ActionButton)``;
 
 const CommentListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   margin-top: 1.5em;
 
-  ${ActionButton}:first-of-type {
+  ${CommentActionButton}:first-of-type {
     margin-left: 3em;
   }
 `;
@@ -127,6 +103,8 @@ export function CommentThread({
   comments: CommentWithReplies[];
   parentComment?: CommentWithReplies;
 }) {
+  // Prepare yourself - a lot of state and variables up ahead
+  // It's dangerous to go alone through it. Take this -> ⚔️
   const { isAuthenticated, user } = useAuth();
   const [expandedThreads, setExpandedThreads] = useState<number[]>([]);
   const {
@@ -236,6 +214,8 @@ export function CommentThread({
         const hasReplies = !!comment.replies?.length;
         const showReplyForm = isAuthenticated && isReplyingTo(comment.id);
         const showEditForm = isAuthenticated && isEditing(comment.id);
+        const showDeleteModal = selectedCommentForDeletion === comment.id;
+        const showReportModal = selectedCommentForReporting === comment.id;
 
         return (
           <CommentListItem
@@ -245,37 +225,54 @@ export function CommentThread({
             <Comment comment={comment} />
 
             {isAuthenticated && canReply(comment) && (
-              <ReplyButton
+              <CommentActionButton
                 disabled={user?.isBanned}
                 isOpen={isReplyingTo(comment.id)}
                 onClick={() => handleReplyClick(comment)}
-              />
+                label={'Reply'}
+                showCaret={true}
+                bannedMessage="You are banned. You cannot reply"
+                aria-expanded={isReplyingTo(comment.id)}
+              ></CommentActionButton>
             )}
 
             {hasReplies && (
-              <ExpandRepliesButton
-                comment={comment}
-                isExpanded={isExpanded(comment.id)}
+              <CommentActionButton
+                label={
+                  isExpanded(comment.id)
+                    ? 'Hide Replies'
+                    : `View Replies (${comment.replyCount})`
+                }
+                disabled={false}
+                isOpen={isExpanded(comment.id)}
+                showCaret={true}
                 onClick={() => handleExpandClick(comment)}
+                aria-expanded={isExpanded(comment.id)}
               />
             )}
 
             {isAuthenticated && user && canEdit(comment) && (
-              <EditButton
-                isOpen={false}
+              <CommentActionButton
+                label={'Edit'}
                 disabled={user.isBanned}
                 onClick={() => handleEditClick(comment)}
-              ></EditButton>
+                aria-expanded={showEditForm}
+                isOpen={showEditForm}
+                bannedMessage="You are banned. You cannot edit your comment."
+              />
             )}
 
             {isAuthenticated && user && canDelete(comment) && (
               <>
-                <DeleteButton
+                <CommentActionButton
+                  label={'Delete'}
                   disabled={user.isBanned}
-                  isOpen={false}
+                  isOpen={showDeleteModal}
                   onClick={() => setSelectedCommentForDeletion(comment.id)}
+                  aria-expanded={showDeleteModal}
+                  bannedMessage="You are banned. You cannot delete your comment."
                 />
-                {selectedCommentForDeletion === comment.id && (
+                {showDeleteModal && (
                   <DeleteConfirmModal
                     error={deletionError}
                     isPending={isPending}
@@ -294,12 +291,15 @@ export function CommentThread({
 
             {isAuthenticated && user && canReport(comment) && (
               <>
-                <ReportButton
+                <CommentActionButton
+                  label={'Report'}
                   disabled={user.isBanned}
-                  isOpen={false}
+                  isOpen={showReportModal}
                   onClick={() => setSelectedCommentForReporting(comment.id)}
+                  aria-expanded={showReportModal}
+                  bannedMessage="You are banned. You cannot issue reports."
                 />
-                {selectedCommentForReporting === comment.id && (
+                {showReportModal && (
                   <ReportCommentModal
                     isSubmitting={isSubmittingReport}
                     onClose={() => setSelectedCommentForReporting(null)}
@@ -365,115 +365,6 @@ export function CommentThread({
     </StyledCommentList>
   );
 }
-
-function DeleteButton({
-  isOpen,
-  onClick,
-  disabled,
-}: {
-  isOpen: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <ActionButton
-      disabled={disabled}
-      aria-label={
-        disabled ? 'You are banned. You cannot delete your comments' : undefined
-      }
-      $isOpen={isOpen}
-      onClick={onClick}
-    >
-      Delete
-    </ActionButton>
-  );
-}
-
-function ReportButton({
-  isOpen,
-  onClick,
-  disabled,
-}: {
-  isOpen: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <ActionButton
-      disabled={disabled}
-      aria-label={disabled ? 'You are banned. You cannot report' : undefined}
-      $isOpen={isOpen}
-      onClick={onClick}
-    >
-      Report
-    </ActionButton>
-  );
-}
-
-function ReplyButton({
-  isOpen,
-  onClick,
-  disabled,
-}: {
-  isOpen: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <ActionButton
-      disabled={disabled}
-      aria-label={disabled ? 'You are banned. You cannot reply' : undefined}
-      $isOpen={isOpen}
-      onClick={onClick}
-    >
-      Reply
-    </ActionButton>
-  );
-}
-
-function EditButton({
-  isOpen,
-  onClick,
-  disabled,
-}: {
-  isOpen: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <ActionButton
-      disabled={disabled}
-      aria-label={disabled ? 'You are banned. You cannot edit' : undefined}
-      $isOpen={isOpen}
-      onClick={onClick}
-    >
-      Edit
-    </ActionButton>
-  );
-}
-
-function ExpandRepliesButton({
-  comment,
-  isExpanded,
-  onClick,
-}: {
-  comment: CommentWithReplies;
-  isExpanded: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <ActionButton
-      $isOpen={isExpanded}
-      onClick={onClick}
-      aria-expanded={isExpanded}
-      aria-label={`${isExpanded ? 'Hide' : 'View'} replies`}
-    >
-      <i className="fa fa-caret-down" />
-      {isExpanded ? 'Hide Replies' : `View Replies (${comment.replyCount})`}
-    </ActionButton>
-  );
-}
-
 function toggleId(ids: number[], id: number): number[] {
   return ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id];
 }
