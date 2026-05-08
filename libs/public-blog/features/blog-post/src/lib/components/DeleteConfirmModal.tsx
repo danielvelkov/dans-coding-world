@@ -10,7 +10,14 @@ const StyledModalContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2em;
+  gap: 0.5em;
+
+  span {
+    margin-top: -1em;
+    font-size: 0.85rem;
+    align-self: start;
+    color: ${({ theme }) => theme.text.secondary};
+  }
 `;
 
 interface DeleteConfirmModalProps {
@@ -30,6 +37,10 @@ export function DeleteConfirmModal({
     <Modal open modalTitle="Confirm Delete" onClose={onCancel}>
       <StyledModalContent>
         <p>Are you sure you want to delete this comment?</p>
+        <span>
+          All replies will also be deleted.
+          <em> This action cannot be undone</em>
+        </span>
 
         {error && (
           <FieldErrorText>
@@ -37,7 +48,7 @@ export function DeleteConfirmModal({
           </FieldErrorText>
         )}
 
-        <div style={{ display: 'flex', gap: '1em' }}>
+        <div style={{ display: 'flex', gap: '1em', marginTop: '1.5em' }}>
           <Button onClick={onConfirm} disabled={isPending}>
             {isPending ? <LoadingSpinner /> : 'Yes'}
           </Button>
