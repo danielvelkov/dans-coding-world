@@ -443,6 +443,65 @@ describe('CommentThread', () => {
         ).not.toBeInTheDocument();
       });
     });
+
+    describe('Reporting comments', () => {
+      it('should display "Report" button on comments if logged-in', () => {
+        const testComment = testComments[0];
+        mockAuth({
+          isAuthenticated: true,
+          user: {
+            ...currentTestUser,
+            id: 9999,
+          },
+        });
+        renderFeature();
+        const comment = screen.getByTestId(`comment-${testComment.id}`);
+        expect(
+          within(comment).getByRole('button', {
+            name: /report/i,
+          })
+        ).toBeInTheDocument();
+      });
+
+      it(`should not display "Report" button on user's comments`, () => {
+        const userComment = testComments[0];
+        mockAuth({
+          isAuthenticated: true,
+          user: {
+            ...currentTestUser,
+            role: 'USER',
+            id: userComment.userId,
+          },
+        });
+        renderFeature();
+        const userCommentElement = screen.getByTestId(
+          `comment-${userComment.id}`
+        );
+        expect(
+          within(userCommentElement).queryByRole('button', { name: /report/i })
+        ).not.toBeInTheDocument();
+      });
+
+      it('should open modal on clicking "Report" comment', async () => {
+        const user = userEvent.setup();
+        mockAuth({
+          isAuthenticated: true,
+          user: { ...currentTestUser, id: 999 },
+        });
+        renderFeature();
+        const commentElement = screen.getByTestId(
+          `comment-${testComments[0].id}`
+        );
+        await act(async () => {
+          await user.click(
+            within(commentElement).getByRole('button', { name: /report/i })
+          );
+        });
+        await waitFor(() => {
+          expect(screen.getByText(/select report reason/i)).toBeInTheDocument();
+        });
+      });
+    });
   });
 
   describe('Unauthenticated users', () => {
@@ -450,6 +509,20 @@ describe('CommentThread', () => {
       renderFeature();
 
       expect(screen.queryAllByRole('button', { name: 'Reply' }).length).toBe(0);
+    });
+
+    it('should not display "Edit" button next to comments', () => {
+      renderFeature();
+
+      expect(screen.queryAllByRole('button', { name: 'Edit' }).length).toBe(0);
+    });
+
+    it('should not display "Report" button next to comments', () => {
+      renderFeature();
+
+      expect(screen.queryAllByRole('button', { name: 'Report' }).length).toBe(
+        0
+      );
     });
   });
 });
