@@ -6,6 +6,7 @@ import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import {
   useAuth,
   useDeleteComment,
+  useReportComment,
 } from '@dans-coding-world/public-blog-shared-hooks';
 import CommentForm from './CommentForm';
 import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
@@ -155,10 +156,18 @@ export function CommentThread({
   } = useCommentContext();
 
   const { deleteComment, isPending, error: deletionError } = useDeleteComment();
+  const {
+    reportComment,
+    isSubmitting: isSubmittingReport,
+    error: reportingError,
+    isSuccess: isReportSuccess,
+  } = useReportComment();
 
   const [selectedCommentForDeletion, setSelectedCommentForDeletion] = useState<
     null | number
   >(null);
+  const [selectedCommentForReporting, setSelectedCommentForReporting] =
+    useState<null | number>(null);
 
   useEffect(() => {
     if (isEditSuccess) setSelectedCommentForEditId(null);
@@ -175,6 +184,10 @@ export function CommentThread({
     setSelectedCommentForReplyId,
     selectedCommentForReplyId,
   ]);
+
+  useEffect(() => {
+    if (isReportSuccess) setSelectedCommentForReporting(null);
+  }, [isReportSuccess, setSelectedCommentForReporting]);
 
   const depth = comments[0]?.depth ?? 0;
   const hasComments = comments.length > 0;
@@ -196,6 +209,8 @@ export function CommentThread({
     user?.role === 'ADMIN' ||
     user?.role === 'MOD';
   const canEdit = (comment: CommentWithReplies) => comment.userId === user?.id;
+  const canReport = (comment: CommentWithReplies) =>
+    comment.userId !== user?.id;
 
   const handleReplyClick = (comment: CommentWithReplies) => {
     setSelectedCommentForReplyId(isReplyingTo(comment.id) ? null : comment.id);
@@ -313,6 +328,32 @@ export function CommentThread({
               </>
             )}
 
+            {isAuthenticated && user && canReport(comment) && (
+              <>
+                <ReportButton
+                  disabled={user.isBanned}
+                  isOpen={false}
+                  onClick={() => setSelectedCommentForReporting(comment.id)}
+                />
+                {selectedCommentForReporting === comment.id && (
+                  <Modal
+                    open
+                    modalTitle="Report Comment"
+                    onClose={() => setSelectedCommentForReporting(null)}
+                  >
+                    <CommentReportForm
+                      error={reportingError ?? undefined}
+                      isSubmitting={isSubmittingReport}
+                      onCancel={() => setSelectedCommentForReporting(null)}
+                      onSubmit={(val) =>
+                        reportComment({ commentId: comment.id, reason: val })
+                      }
+                    ></CommentReportForm>
+                  </Modal>
+                )}
+              </>
+            )}
+
             {showReplyForm && (
               <>
                 <StyledReplyForm
@@ -390,6 +431,27 @@ function DeleteButton({
   );
 }
 
+function ReportButton({
+  isOpen,
+  onClick,
+  disabled,
+}: {
+  isOpen: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionButton
+      disabled={disabled}
+      aria-label={disabled ? 'You are banned. You cannot report' : undefined}
+      $isOpen={isOpen}
+      onClick={onClick}
+    >
+      Report
+    </ActionButton>
+  );
+}
+
 function ReplyButton({
   isOpen,
   onClick,
@@ -451,6 +513,68 @@ function ExpandRepliesButton({
       <i className="fa fa-caret-down" />
       {isExpanded ? 'Hide Replies' : `View Replies (${comment.replyCount})`}
     </ActionButton>
+  );
+}
+
+function CommentReportForm({
+  onSubmit,
+  error,
+  isSubmitting,
+  onCancel,
+}: {
+  onSubmit: (val: string) => void;
+  error?: Error;
+  isSubmitting: boolean;
+  onCancel: () => void;
+}) {
+  const [reason, setReason] = useState<string | null>(null);
+  const REPORT_REASONS = [
+    'Inappropriate comment',
+    'Spam',
+    'Harassment or abusive behavior',
+    'Misinformation or misleading content',
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <h3 style={{ margin: '.5em 0em' }}>Select report reason:</h3>
+      {REPORT_REASONS.map((r) => (
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <input
+            type="checkbox"
+            checked={reason === r}
+            onChange={(e) => {
+              const checked = (e.target as HTMLInputElement).checked;
+              setReason(checked ? r : null);
+            }}
+          ></input>
+          <span>{r}</span>
+        </div>
+      ))}
+      {error && (
+        <FieldErrorText>
+          <span data-testid="error-message">{error.message}</span>
+        </FieldErrorText>
+      )}
+      <div
+        style={{
+          display: 'flex',
+          gap: '1em',
+          alignSelf: 'center',
+          marginTop: '1em',
+        }}
+      >
+        <Button
+          disabled={!reason}
+          onClick={() => {
+            if (reason) onSubmit(reason);
+          }}
+        >
+          {isSubmitting ? <LoadingSpinner></LoadingSpinner> : 'Submit'}
+        </Button>
+        <Button onClick={onCancel}>Cancel</Button>
+      </div>
+    </div>
   );
 }
 
