@@ -11,12 +11,8 @@ import {
 import CommentForm from './CommentForm';
 import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
 import { useCommentContext } from '../hooks/useCommentContext';
-import {
-  Button,
-  LoadingSpinner,
-  Modal,
-} from '@dans-coding-world/public-blog-ui-common';
 import { ReportCommentModal } from './ReportCommentModal';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 
 const StyledCommentList = styled.ul<
   React.ComponentPropsWithoutRef<'ul'> & { $depth: number }
@@ -69,13 +65,6 @@ const ActionButton = styled.button<
     transform: ${({ $isOpen }) =>
       $isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
   }
-`;
-
-const StyledModalContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2em;
 `;
 
 const CommentListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
@@ -287,44 +276,18 @@ export function CommentThread({
                   onClick={() => setSelectedCommentForDeletion(comment.id)}
                 />
                 {selectedCommentForDeletion === comment.id && (
-                  <Modal
-                    open
-                    modalTitle="Confirm Delete"
-                    onClose={() => setSelectedCommentForDeletion(null)}
-                  >
-                    <StyledModalContent>
-                      Are you sure you want to delete comment?
-                      {deletionError && (
-                        <FieldErrorText>
-                          <span data-testid="error-message">
-                            {deletionError.message}
-                          </span>
-                        </FieldErrorText>
-                      )}
-                      <div style={{ display: 'flex', gap: '1em' }}>
-                        <Button
-                          onClick={() => {
-                            deleteComment({
-                              authorId: user.id,
-                              commentId: comment.id,
-                              postId: comment.postId,
-                            });
-                          }}
-                        >
-                          {isPending ? (
-                            <LoadingSpinner></LoadingSpinner>
-                          ) : (
-                            'Yes'
-                          )}
-                        </Button>
-                        <Button
-                          onClick={() => setSelectedCommentForDeletion(null)}
-                        >
-                          No
-                        </Button>
-                      </div>
-                    </StyledModalContent>
-                  </Modal>
+                  <DeleteConfirmModal
+                    error={deletionError}
+                    isPending={isPending}
+                    onCancel={() => setSelectedCommentForDeletion(null)}
+                    onConfirm={() => {
+                      deleteComment({
+                        authorId: user.id,
+                        commentId: comment.id,
+                        postId: comment.postId,
+                      });
+                    }}
+                  ></DeleteConfirmModal>
                 )}
               </>
             )}
