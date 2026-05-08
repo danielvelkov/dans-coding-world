@@ -12,6 +12,7 @@ const StyledDialog = styled.dialog<React.ComponentPropsWithRef<'dialog'>>`
   background: transparent;
   display: grid;
   place-items: center;
+  z-index: 99;
 
   &::backdrop {
     display: none;
