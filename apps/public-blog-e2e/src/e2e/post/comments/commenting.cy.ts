@@ -60,6 +60,7 @@ describe('Comments - commenting', () => {
     cy.wait('@getPostResponse').then(() => {
       cy.wait('@getPostCommentsResponse');
     });
+    return testPostId;
   }
 
   it('should include text area for adding comments', () => {
@@ -102,7 +103,7 @@ describe('Comments - commenting', () => {
 
   context('Authenticated users', () => {
     const getEnabledCommentTextarea = () =>
-      cy.getByTestId('comment-textarea').should('not.be.disabled');
+      cy.getByTestId('comment-add-textarea').should('not.be.disabled');
 
     beforeEach(() => {
       const randomUser = Cypress._.sample(testUsers) as UserDetail;
