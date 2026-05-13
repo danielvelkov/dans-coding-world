@@ -18,6 +18,7 @@ import Register from '../routes/user/Register';
 import Profile from '../routes/user/Profile';
 import RootLayout from './RootLayout';
 import Settings from '../routes/user/Settings';
+import useThemeDetector from '../styles/useThemeDetector';
 
 const StyledApp = styled.div`
   padding: 0 clamp(5vmin, 5vw, 15vmax);
@@ -34,8 +35,8 @@ const showDevTools =
 const queryClient = new QueryClient();
 
 export function App() {
-  //TODO - get mode from user theme system settings
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const userDarkMode = useThemeDetector();
+  const [isDarkMode, setIsDarkMode] = useState(userDarkMode);
 
   return (
     <QueryClientProvider client={queryClient}>

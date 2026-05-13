@@ -1,7 +1,10 @@
 import { render } from '@dans-coding-world/public-blog-tools';
 import { BrowserRouter } from 'react-router-dom';
-
 import App from './app';
+
+vi.mock('../styles/useThemeDetector', () => ({
+  default: () => true,
+}));
 
 describe('App', () => {
   it('should render successfully', () => {
