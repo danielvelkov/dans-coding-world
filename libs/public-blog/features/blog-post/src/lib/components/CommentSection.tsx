@@ -43,6 +43,8 @@ const StyledSectionMeta = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  flex-wrap: wrap;
+  gap: 1em;
 
   h3 {
     margin: 0;
@@ -158,7 +160,9 @@ export function CommentSection({ postId }: { postId: number }) {
           ></CommentForm>
           {commentingError && (
             <FieldErrorText>
-              <span data-testid="error-message">{commentingError.message}</span>
+              <span style={{ padding: '1em' }} data-testid="error-message">
+                {commentingError.message}
+              </span>
             </FieldErrorText>
           )}
         </>
@@ -169,7 +173,10 @@ export function CommentSection({ postId }: { postId: number }) {
       </CommentContextProvider>
 
       {!isFetchingNextPage && lastPaginationDetails?.hasNext && (
-        <StyledLoadMoreButton onClick={() => fetchNextPage()}>
+        <StyledLoadMoreButton
+          aria-label="Load more comments"
+          onClick={() => fetchNextPage()}
+        >
           Load more
         </StyledLoadMoreButton>
       )}

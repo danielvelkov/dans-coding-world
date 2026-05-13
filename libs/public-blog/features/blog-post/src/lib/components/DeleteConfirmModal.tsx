@@ -10,13 +10,11 @@ const StyledModalContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5em;
 
-  span {
-    margin-top: -1em;
+  .dialog-message {
+    color: ${({ theme }) => theme.text.secondary};
     font-size: 0.85rem;
     align-self: start;
-    color: ${({ theme }) => theme.text.secondary};
   }
 `;
 
@@ -37,7 +35,7 @@ export function DeleteConfirmModal({
     <Modal open modalTitle="Confirm Delete" onClose={onCancel}>
       <StyledModalContent>
         <p>Are you sure you want to delete this comment?</p>
-        <span>
+        <span className="dialog-message">
           All replies will also be deleted.
           <em> This action cannot be undone</em>
         </span>
