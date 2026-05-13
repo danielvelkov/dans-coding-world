@@ -5,7 +5,7 @@
     "allowJs": true,
     "types": ["cypress", "node"],
     "sourceMap": false,
-    "lib": ["DOM"]
+    "lib": ["DOM", "ES2024"]
   },
   "include": [
     "**/*.ts",
