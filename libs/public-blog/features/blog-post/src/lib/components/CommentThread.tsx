@@ -46,8 +46,8 @@ const CommentActionButton = styled(ActionButton)``;
 const CommentListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
   margin-top: 1.5em;
 
-  ${CommentActionButton}:first-of-type {
-    margin-left: 3em;
+  .actions {
+    margin-left: 2.5em;
   }
 `;
 const StyledReplyForm = styled(CommentForm)`
@@ -224,93 +224,95 @@ export function CommentThread({
           >
             <Comment comment={comment} />
 
-            {isAuthenticated && canReply(comment) && (
-              <CommentActionButton
-                disabled={user?.isBanned}
-                isOpen={isReplyingTo(comment.id)}
-                onClick={() => handleReplyClick(comment)}
-                label={'Reply'}
-                showCaret={true}
-                bannedMessage="You are banned. You cannot reply"
-                aria-expanded={isReplyingTo(comment.id)}
-              ></CommentActionButton>
-            )}
-
-            {hasReplies && (
-              <CommentActionButton
-                label={
-                  isExpanded(comment.id)
-                    ? 'Hide Replies'
-                    : `View Replies (${comment.replyCount})`
-                }
-                disabled={false}
-                isOpen={isExpanded(comment.id)}
-                showCaret={true}
-                onClick={() => handleExpandClick(comment)}
-                aria-expanded={isExpanded(comment.id)}
-              />
-            )}
-
-            {isAuthenticated && user && canEdit(comment) && (
-              <CommentActionButton
-                label={'Edit'}
-                disabled={user.isBanned}
-                onClick={() => handleEditClick(comment)}
-                aria-expanded={showEditForm}
-                isOpen={showEditForm}
-                bannedMessage="You are banned. You cannot edit your comment."
-              />
-            )}
-
-            {isAuthenticated && user && canDelete(comment) && (
-              <>
+            <div className="actions">
+              {isAuthenticated && canReply(comment) && (
                 <CommentActionButton
-                  label={'Delete'}
-                  disabled={user.isBanned}
-                  isOpen={showDeleteModal}
-                  onClick={() => setSelectedCommentForDeletion(comment.id)}
-                  aria-expanded={showDeleteModal}
-                  bannedMessage="You are banned. You cannot delete your comment."
-                />
-                {showDeleteModal && (
-                  <DeleteConfirmModal
-                    error={deletionError}
-                    isPending={isPending}
-                    onCancel={() => setSelectedCommentForDeletion(null)}
-                    onConfirm={() => {
-                      deleteComment({
-                        authorId: user.id,
-                        commentId: comment.id,
-                        postId: comment.postId,
-                      });
-                    }}
-                  ></DeleteConfirmModal>
-                )}
-              </>
-            )}
+                  disabled={user?.isBanned}
+                  isOpen={isReplyingTo(comment.id)}
+                  onClick={() => handleReplyClick(comment)}
+                  label={'Reply'}
+                  showCaret={true}
+                  bannedMessage="You are banned. You cannot reply"
+                  aria-expanded={isReplyingTo(comment.id)}
+                ></CommentActionButton>
+              )}
 
-            {isAuthenticated && user && canReport(comment) && (
-              <>
+              {hasReplies && (
                 <CommentActionButton
-                  label={'Report'}
-                  disabled={user.isBanned}
-                  isOpen={showReportModal}
-                  onClick={() => setSelectedCommentForReporting(comment.id)}
-                  aria-expanded={showReportModal}
-                  bannedMessage="You are banned. You cannot issue reports."
+                  label={
+                    isExpanded(comment.id)
+                      ? 'Hide Replies'
+                      : `View Replies (${comment.replyCount})`
+                  }
+                  disabled={false}
+                  isOpen={isExpanded(comment.id)}
+                  showCaret={true}
+                  onClick={() => handleExpandClick(comment)}
+                  aria-expanded={isExpanded(comment.id)}
                 />
-                {showReportModal && (
-                  <ReportCommentModal
-                    isSubmitting={isSubmittingReport}
-                    onClose={() => setSelectedCommentForReporting(null)}
-                    onSubmit={(val) =>
-                      reportComment({ commentId: comment.id, reason: val })
-                    }
-                    error={reportingError ?? undefined}
-                  ></ReportCommentModal>
-                )}
-              </>
-            )}
+              )}
+
+              {isAuthenticated && user && canEdit(comment) && (
+                <CommentActionButton
+                  label={'Edit'}
+                  disabled={user.isBanned}
+                  onClick={() => handleEditClick(comment)}
+                  aria-expanded={showEditForm}
+                  isOpen={showEditForm}
+                  bannedMessage="You are banned. You cannot edit your comment."
+                />
+              )}
+
+              {isAuthenticated && user && canDelete(comment) && (
+                <>
+                  <CommentActionButton
+                    label={'Delete'}
+                    disabled={user.isBanned}
+                    isOpen={showDeleteModal}
+                    onClick={() => setSelectedCommentForDeletion(comment.id)}
+                    aria-expanded={showDeleteModal}
+                    bannedMessage="You are banned. You cannot delete your comment."
+                  />
+                  {showDeleteModal && (
+                    <DeleteConfirmModal
+                      error={deletionError}
+                      isPending={isPending}
+                      onCancel={() => setSelectedCommentForDeletion(null)}
+                      onConfirm={() => {
+                        deleteComment({
+                          authorId: user.id,
+                          commentId: comment.id,
+                          postId: comment.postId,
+                        });
+                      }}
+                    ></DeleteConfirmModal>
+                  )}
+                </>
+              )}
+
+              {isAuthenticated && user && canReport(comment) && (
+                <>
+                  <CommentActionButton
+                    label={'Report'}
+                    disabled={user.isBanned}
+                    isOpen={showReportModal}
+                    onClick={() => setSelectedCommentForReporting(comment.id)}
+                    aria-expanded={showReportModal}
+                    bannedMessage="You are banned. You cannot issue reports."
+                  />
+                  {showReportModal && (
+                    <ReportCommentModal
+                      isSubmitting={isSubmittingReport}
+                      onClose={() => setSelectedCommentForReporting(null)}
+                      onSubmit={(val) =>
+                        reportComment({ commentId: comment.id, reason: val })
+                      }
+                      error={reportingError ?? undefined}
+                    ></ReportCommentModal>
+                  )}
+                </>
+              )}
+            </div>
 
             {showReplyForm && (
               <>
