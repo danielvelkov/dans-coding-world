@@ -3,9 +3,8 @@ import styled from 'styled-components';
 const StyledTagButton = styled.button<
   React.ComponentPropsWithoutRef<'button'> & { $active: boolean }
 >`
-  font-size: 0.75em;
+  font-size: 0.85em;
   padding: 0.3em 0.5em;
-  font-weight: 750;
   letter-spacing: 0.04em;
   border: 1px solid ${({ theme }) => theme.border.primary};
   border-radius: 5px;
@@ -15,7 +14,9 @@ const StyledTagButton = styled.button<
 
   ${({ theme, $active }) =>
     $active
-      ? `background:${theme.accent.soft}`
+      ? `background:${theme.accent.soft}; 
+        text-decoration: underline;
+      `
       : `background:${theme.background.surface}`};
 
   ::before {
@@ -46,7 +47,7 @@ export function Tag({
       aria-pressed={isActive}
       aria-label={`${isActive ? 'Remove' : 'Add'} ${name} filter`}
     >
-      {`${name}`}
+      <code>{`${name}`}</code>
     </StyledTagButton>
   );
 }

@@ -10,6 +10,7 @@ const StyledHeader = styled.header`
   align-items: center;
   margin: 1em 0em;
   padding: 1em 0em;
+  gap: 5px;
 
   @media screen and (max-width: 660px) {
     flex-wrap: wrap;
