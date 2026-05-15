@@ -28,6 +28,10 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     font-size: 0.9em;
   }
 
+  .title {
+    word-break: break-word;
+  }
+
   .tag-list {
     gap: 5px;
   }

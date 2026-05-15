@@ -12,7 +12,10 @@ const Layout = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+
+  & > :nth-child(2) {
+    flex: 1;
+  }
 `;
 
 const StyledFooter = styled.footer`
