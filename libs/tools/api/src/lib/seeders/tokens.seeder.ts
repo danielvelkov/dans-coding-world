@@ -43,8 +43,6 @@ export const seedRefreshTokens = async (
   } catch (e) {
     console.error(e);
     process.exit(1);
-  } finally {
-    await client.$disconnect();
   }
 };
 

@@ -29,9 +29,13 @@ export const seedUsers = async (
     const seeded: User[] = [];
 
     if (options.clearExisting) {
-      await client.user.deleteMany();
-      await client.$queryRaw`ALTER SEQUENCE "User_id_seq" RESTART WITH 1;`;
-      await client.$queryRaw`ALTER SEQUENCE "Profile_id_seq" RESTART WITH 1;`;
+       await client.$transaction(async (tx) => {
+        await tx.$executeRaw`TRUNCATE TABLE "User" CASCADE`;
+        await tx.$executeRaw`ALTER SEQUENCE "User_id_seq" RESTART WITH 1`;
+        await tx.$executeRaw`ALTER SEQUENCE "Profile_id_seq" RESTART WITH 1`;
+      }, {
+        isolationLevel: 'Serializable'
+      });
     }
 
     if (options.useDefaults) {
@@ -47,21 +51,28 @@ export const seedUsers = async (
   } catch (e) {
     console.error(e);
     throw e;
-  } finally {
-    await client.$disconnect();
   }
 };
 
 const createAndReturnUsersWithId = async (users: any[]) => {
-  if(!users.length)
-    return [];
+  if (!users.length) return [];
+
   const usersWithHashedPassword = await Promise.all(
-    users.map(async (u) => ({
-      ...u,
-      role: u.role as Role,
-      password: await hashPassword(u.password),
-    }))
+    users.map(async (u) => {
+      const password = await hashPassword(u.password);
+      const data: User = {
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        password,
+        role: u.role as Role,
+        isBanned: false
+      };
+      if (typeof u.isBanned === 'boolean') data.isBanned = u.isBanned;
+      return data;
+    })
   );
+
   const createdUsers = await client.$transaction(
     usersWithHashedPassword.map((user) => client.user.create({ data: user }))
   );

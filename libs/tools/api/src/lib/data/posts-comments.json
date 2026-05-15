@@ -412,5 +412,41 @@
     "updatedAt": "2025-10-10T02:40:00Z",
     "threadParentId": 45,
     "depth": 1
+  },
+  {
+    "content": "Really appreciate the clarity in this post.",
+    "postId": 7,
+    "userId": 4,
+    "createdAt": "2025-10-11T09:00:00Z",
+    "updatedAt": "2025-10-11T09:00:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "This sparked a new idea for a project I'm working on.",
+    "postId": 7,
+    "userId": 4,
+    "createdAt": "2025-10-11T10:15:00Z",
+    "updatedAt": "2025-10-11T10:15:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "Loved the structure of this explanation, very easy to follow.",
+    "postId": 7,
+    "userId": 4,
+    "createdAt": "2025-10-11T11:30:00Z",
+    "updatedAt": "2025-10-11T11:30:00Z",
+    "threadParentId": null,
+    "depth": 0
+  },
+  {
+    "content": "This topic is becoming one of my favorites thanks to posts like this.",
+    "postId": 7,
+    "userId": 4,
+    "createdAt": "2025-10-11T12:00:00Z",
+    "updatedAt": "2025-10-11T12:00:00Z",
+    "threadParentId": null,
+    "depth": 0
   }
 ]
