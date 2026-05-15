@@ -22,16 +22,13 @@ const StyledApp = styled.div`
   height: 100vh;
 `;
 
-// dev tools do not work during e2e testing for some reason
-// also cant set node env in e2e cypress tests
-const showDevTools = process.env.NODE_ENV === 'development';
-
 const queryClient = new QueryClient();
 
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      {showDevTools && <ReactQueryDevtools initialIsOpen={false} />}
+      {/* Enable during development to see cached queries */}
+      {/*  <ReactQueryDevtools initialIsOpen={false} /> */}
       <AuthProvider>
         <StyledApp>
           <Routes>
