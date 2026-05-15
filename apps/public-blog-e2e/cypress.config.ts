@@ -17,8 +17,7 @@ const nxConfig = nxE2EPreset(__filename, {
   cypressDir: 'src',
   bundler: 'vite',
   webServerCommands: {
-    default: 'npx nx run public-blog:dev',
-    production: 'npx nx run public-blog:preview',
+    default: 'npx nx run public-blog:preview',
   },
   ciWebServerCommand: 'npx nx run public-blog:preview',
   ciBaseUrl: 'http://localhost:4200',
