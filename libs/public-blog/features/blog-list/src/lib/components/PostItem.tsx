@@ -28,6 +28,10 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
     font-size: 0.9em;
   }
 
+  .title {
+    word-break: break-word;
+  }
+
   .tag-list {
     gap: 5px;
   }
@@ -117,6 +121,12 @@ const StyledListItem = styled.li<React.ComponentPropsWithoutRef<'li'>>`
 
   .more-link:hover {
     background-color: ${({ theme }) => theme.accent.hover};
+  }
+
+  transition: all 0.2s linear;
+  &:hover {
+    border-color: ${({ theme }) => theme.accent.hover};
+    box-shadow: 0px 0px 20vw 10vh ${({ theme }) => theme.background.surface};
   }
 `;
 

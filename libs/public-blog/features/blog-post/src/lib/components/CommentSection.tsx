@@ -1,5 +1,6 @@
 import {
   useAuth,
+  useCreateComment,
   useFetchPostCommentsInfinite,
 } from '@dans-coding-world/public-blog-shared-hooks';
 import styled from 'styled-components';
@@ -11,7 +12,9 @@ import CommentThread from './CommentThread';
 import { ShimmerComments } from './ShimmerComments';
 import { Dropdown, Button } from '@dans-coding-world/public-blog-ui-common';
 import { useState } from 'react';
+import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
 import CommentForm from './CommentForm';
+import { CommentContextProvider } from '../providers/CommentContextProvider';
 
 type AllowedPageSizes =
   (typeof PAGINATION.COMMENTS.ITEMS_PER_PAGE_OPTIONS)[number];
@@ -40,6 +43,8 @@ const StyledSectionMeta = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  flex-wrap: wrap;
+  gap: 1em;
 
   h3 {
     margin: 0;
@@ -51,9 +56,32 @@ const StyledSectionMeta = styled.div`
     align-items: center;
   }
 `;
+const BannedMessage = styled.div`
+  padding: 2em 5em;
+  text-align: center;
+
+  i {
+    font-size: 2em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    background: ${({ theme }) => theme.background.inverse};
+    box-shadow: -5px 5px 8px ${({ theme }) => theme.background.inverse};
+  }
+`;
 
 export function CommentSection({ postId }: { postId: number }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const {
+    createComment,
+    isSubmitting: isCreatingComment,
+    error: commentingError,
+    isSuccess: commentPosted,
+  } = useCreateComment();
   const [commentSortOrder, setCommentSortOrder] = useState<SortOrder>('desc');
 
   const { data, isPending, isError, error, isFetchingNextPage, fetchNextPage } =
@@ -69,19 +97,12 @@ export function CommentSection({ postId }: { postId: number }) {
   const showLoading = isPending || !data;
 
   if (showLoading || isError)
-    return (
-      <div>
-        {isError ? (
-          <span
-            data-testid="error-message"
-            style={{ padding: '1em', color: 'red' }}
-          >
-            {error.message}
-          </span>
-        ) : (
-          <ShimmerComments count={3} />
-        )}
-      </div>
+    return isError ? (
+      <FieldErrorText>
+        <span data-testid="error-message">{error.message}</span>
+      </FieldErrorText>
+    ) : (
+      <ShimmerComments count={3} />
     );
 
   const comments = data.pages
@@ -117,15 +138,45 @@ export function CommentSection({ postId }: { postId: number }) {
           ></Dropdown>
         </div>
       </StyledSectionMeta>
-      {/* TODO: */}
-      <CommentForm
-        isLocked={!isAuthenticated}
-        onSubmit={(val) => console.log(val)}
-      ></CommentForm>
-      <CommentThread comments={comments}></CommentThread>
+
+      {isAuthenticated && user?.isBanned ? (
+        <BannedMessage>
+          <i className="fa fa-ban"></i>
+          <h3>You are banned</h3>
+          <p>
+            You are unable to comment or reply until a moderator unbans you.
+          </p>
+        </BannedMessage>
+      ) : (
+        <>
+          <CommentForm
+            isLocked={!isAuthenticated}
+            onSubmit={(val) => {
+              createComment({ postId: postId, content: val });
+            }}
+            isSubmitting={isCreatingComment}
+            resetValue={commentPosted ? '' : undefined}
+            type="add"
+          ></CommentForm>
+          {commentingError && (
+            <FieldErrorText>
+              <span style={{ padding: '1em' }} data-testid="error-message">
+                {commentingError.message}
+              </span>
+            </FieldErrorText>
+          )}
+        </>
+      )}
+
+      <CommentContextProvider postId={postId}>
+        <CommentThread comments={comments}></CommentThread>
+      </CommentContextProvider>
 
       {!isFetchingNextPage && lastPaginationDetails?.hasNext && (
-        <StyledLoadMoreButton onClick={() => fetchNextPage()}>
+        <StyledLoadMoreButton
+          aria-label="Load more comments"
+          onClick={() => fetchNextPage()}
+        >
           Load more
         </StyledLoadMoreButton>
       )}

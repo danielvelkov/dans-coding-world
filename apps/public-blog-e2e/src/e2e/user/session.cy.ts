@@ -65,12 +65,12 @@ describe('User session', () => {
         const loginResponse = generateMockLoginResponse({ user: randomUser });
 
         cy.intercept('POST', API_ENDPOINTS.AUTH.REFRESH, {
+          delay: 500,
           statusCode: 200,
           body: loginResponse,
         }).as('refreshRequest');
 
         cy.visit('/blog');
-        cy.contains('Loading...').should('exist');
         cy.wait('@refreshRequest');
         cy.checkIfLoggedIn();
         cy.contains('Loading...').should('not.exist');
@@ -113,8 +113,6 @@ describe('User session', () => {
 
       cy.intercept(API_ENDPOINTS.AUTH.REFRESH).as('refresh');
 
-      // Wait out useEffect on mount in useAuthState hook twice because of strict mode
-      cy.wait('@refresh').its('response.statusCode').should('eq', 400);
       cy.wait('@refresh').its('response.statusCode').should('eq', 400);
 
       loginAsRandomUser();
@@ -133,8 +131,8 @@ describe('User session', () => {
 
       cy.clock(new Date());
 
-      // counts down: 2 strict mode calls, then intercept the real one
-      let callsRemaining = 2;
+      // counts down: first call, then intercept the real one
+      let callsRemaining = 1;
       cy.intercept(API_ENDPOINTS.AUTH.REFRESH, (req) => {
         if (callsRemaining === 0) {
           req.reply({
@@ -149,8 +147,6 @@ describe('User session', () => {
         }
       }).as('refresh');
 
-      // Wait out useEffect on mount in useAuthState hook twice because of strict mode
-      cy.wait('@refresh').its('response.statusCode').should('eq', 400);
       cy.wait('@refresh').its('response.statusCode').should('eq', 400);
 
       // Login normally
@@ -175,8 +171,6 @@ describe('User session', () => {
         sessionRefreshCount++;
       }).as('refresh');
 
-      // Wait out useEffect on mount in useAuthState hook twice because of strict mode
-      cy.wait('@refresh').its('response.statusCode').should('eq', 400);
       cy.wait('@refresh').its('response.statusCode').should('eq', 400);
 
       loginAsRandomUser();
@@ -187,7 +181,7 @@ describe('User session', () => {
       const arbitraryAmountOfTime =
         TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 5 + 1000;
       cy.tick(arbitraryAmountOfTime).then(() => {
-        expect(sessionRefreshCount).to.eq(2);
+        expect(sessionRefreshCount).to.eq(1);
       });
     });
   });

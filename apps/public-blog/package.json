@@ -14,6 +14,14 @@
           "parallel": true,
           "readyWhen": "Listening at http://localhost:3000/api"
         }
+      },
+      "serve:e2e": {
+        "executor": "@nx/web:file-server",
+        "defaultConfiguration": "production",
+        "options": {
+          "buildTarget": "@dans-coding-world/public-blog:build:production",
+          "port": 4200
+        }
       }
     },
     "tags": [

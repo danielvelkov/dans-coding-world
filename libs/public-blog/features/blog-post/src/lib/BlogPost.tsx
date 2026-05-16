@@ -34,6 +34,7 @@ const StyledPost = styled.article<React.ComponentPropsWithRef<'article'>>`
 
 const StyledTitle = styled.h1`
   text-align: center;
+  word-break: break-word;
 `;
 
 const StyledContent = styled.div<React.ComponentPropsWithoutRef<'div'>>`

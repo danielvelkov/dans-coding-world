@@ -113,8 +113,10 @@ export function useAuthState() {
     refreshMutateRef.current();
   }, []);
 
+  const isAuthenticated = !!user;
+
   return {
-    user: userDataResponse?.user ?? user,
+    user: isAuthenticated ? userDataResponse?.user ?? user : null,
     isAuthenticated: !!user,
 
     login: loginMutation.mutate,

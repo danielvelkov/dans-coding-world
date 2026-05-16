@@ -10,7 +10,7 @@ import {
 import { UserDetail } from '@dans-coding-world/user-data-access';
 
 export const generateRandomUserPreview = (): UserPreview => {
-  const authorId = randNumber({ min: 1, max: 1000 });
+  const authorId = randNumber({ min: 30, max: 1000 });
   return {
     id: authorId,
     username: randFirstName() + randNumber({ min: 1, max: 1000 }),

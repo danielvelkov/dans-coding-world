@@ -1,7 +1,11 @@
 import { GetPostCommentsResponseDto } from '@dans-coding-world/shared-post-dto';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
-import { generateCommentThreads } from './comments-generator.js';
+import {
+  generateCommentThreads,
+  generateRandomComments,
+} from './comments-generator.js';
+import { Comment } from '@dans-coding-world/prisma-schema';
 
 export function generateMockPostCommentsResponse({
   postId = 1,
@@ -31,6 +35,26 @@ export function generateMockPostCommentsResponse({
         total: length,
       },
       count: length > pageSize ? pageSize : length,
+    },
+  };
+}
+
+export function generateMockCommentResponse({
+  postId,
+  comment,
+}: {
+  postId: number;
+  comment?: Partial<Comment>;
+}) {
+  const mockComment = generateRandomComments(postId, 1)[0];
+  return {
+    error: null,
+    success: true,
+    data: {
+      comment: {
+        ...mockComment,
+        ...comment,
+      },
     },
   };
 }

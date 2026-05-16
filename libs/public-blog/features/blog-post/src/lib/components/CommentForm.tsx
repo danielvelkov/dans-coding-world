@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Button, Modal } from '@dans-coding-world/public-blog-ui-common';
+import {
+  Button,
+  LoadingSpinner,
+  Modal,
+} from '@dans-coding-world/public-blog-ui-common';
 import { Link } from 'react-router-dom';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
+
+type CommentFormType = 'edit' | 'reply' | 'add';
 
 const StyledCommentForm = styled.form<React.ComponentPropsWithRef<'textarea'>>`
   position: relative;
@@ -102,14 +108,30 @@ const StyledContentLimitCounter = styled.span<
 export function CommentForm({
   isLocked,
   onSubmit,
+  isSubmitting,
+  value,
+  resetValue,
+  type,
+  className,
 }: {
   isLocked: boolean;
   onSubmit: (comment: string) => void;
+  isSubmitting?: boolean;
+  value?: string;
+  resetValue?: string;
+  type: CommentFormType;
+  className?: string;
 }) {
   const [openDialog, setOpenDialog] = useState(false);
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState(value ?? '');
+
+  useEffect(() => {
+    if (resetValue !== undefined && resetValue !== content)
+      setContent(resetValue);
+  }, [setContent, resetValue, content]);
 
   const contentPresent = (content.match(/\S+/)?.length ?? 0) > 0;
+  const placeholder = selectTextareaPlaceholder(type);
 
   return (
     <StyledCommentForm
@@ -117,13 +139,14 @@ export function CommentForm({
         e.preventDefault();
         return onSubmit(content);
       }}
+      className={className}
     >
       <StyledTextAreaWrapper title={isLocked ? 'Login to comment' : undefined}>
         <StyledTextArea
-          data-testid="comment-textarea"
+          data-testid={`comment-${type}-textarea`}
           rows={3}
           disabled={isLocked}
-          placeholder="Add comment..."
+          placeholder={placeholder}
           value={content}
           minLength={COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH}
           maxLength={COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH}
@@ -140,8 +163,11 @@ export function CommentForm({
 
         <div className="comment-actions">
           {!isLocked && (
-            <StyledSubmitButton disabled={!contentPresent} type="submit">
-              Submit
+            <StyledSubmitButton
+              disabled={!contentPresent || isSubmitting}
+              type="submit"
+            >
+              {isSubmitting ? <LoadingSpinner></LoadingSpinner> : 'Submit'}
             </StyledSubmitButton>
           )}
           <StyledContentLimitCounter
@@ -174,6 +200,22 @@ export function CommentForm({
       )}
     </StyledCommentForm>
   );
+}
+
+function selectTextareaPlaceholder(type: CommentFormType) {
+  let placeholder = '';
+  switch (type) {
+    case 'add':
+      placeholder = 'Add comment...';
+      break;
+    case 'edit':
+      placeholder = 'Edit comment...';
+      break;
+    case 'reply':
+      placeholder = 'Add reply...';
+      break;
+  }
+  return placeholder;
 }
 
 export default CommentForm;

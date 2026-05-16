@@ -13,16 +13,19 @@ import { generateRandomString } from '@dans-coding-world/helpers';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import { fireEvent } from '@testing-library/react';
 
+const validCommentFormFields: Parameters<typeof CommentForm>[0] = {
+  isLocked: false,
+  onSubmit: vi.fn(),
+  type: 'add',
+};
+
 describe('CommentForm', () => {
   const renderFeature = (
-    attrs: React.ComponentProps<typeof CommentForm> = {
-      isLocked: false,
-      onSubmit: () => null,
-    }
+    attrs?: Partial<React.ComponentProps<typeof CommentForm>>
   ) => {
     return render(
       <MemoryRouter>
-        <CommentForm {...attrs} />
+        <CommentForm {...validCommentFormFields} {...attrs} />
       </MemoryRouter>
     );
   };
@@ -70,7 +73,6 @@ describe('CommentForm', () => {
   it('should show submit button only when "isLocked" is false', async () => {
     const { baseElement } = renderFeature({
       isLocked: true,
-      onSubmit: () => null,
     });
 
     expect(
@@ -103,6 +105,17 @@ describe('CommentForm', () => {
     );
 
     expect(mockSubmitFn).toHaveBeenLastCalledWith(commentText);
+  });
+
+  it('should disable submit button when param isSubmitting is true', () => {
+    const { baseElement } = renderFeature({
+      isSubmitting: true,
+      isLocked: false,
+      onSubmit: vi.fn(),
+    });
+
+    const submitButton = within(baseElement).getByRole('button');
+    expect(submitButton).toBeDisabled();
   });
 
   it(`should show login call to action modal only when

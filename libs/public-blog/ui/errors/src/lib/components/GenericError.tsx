@@ -4,13 +4,25 @@ import React from 'react';
 const StyledGenericError = styled.main`
   display: flex;
   flex-direction: column;
-
   align-items: center;
+  justify-content: center;
+
+  min-height: 50vh;
+  padding: 2rem 1rem;
+  text-align: center;
 
   h1 {
-    font-size: 6em;
-    margin: 0;
-    padding: 0;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem;
+    color: ${({ theme }) => theme.text.primary};
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 300;
+    margin: 0 0 1.5rem;
+    color: ${({ theme }) => theme.text.secondary};
   }
 `;
 

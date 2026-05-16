@@ -1,4 +1,4 @@
-import { Prisma, Comment } from '../generated/prisma/client.js';
+import { Prisma } from '../generated/prisma/client.js';
 
 export type {
   User,

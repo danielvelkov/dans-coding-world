@@ -13,6 +13,10 @@ const StyledButton = styled.button<React.ComponentPropsWithRef<'button'>>`
   &:hover {
     background-color: ${({ theme }) => theme.accent.hover};
   }
+
+  &:disabled {
+    background-color: ${({ theme }) => theme.accent.soft};
+  }
 `;
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
