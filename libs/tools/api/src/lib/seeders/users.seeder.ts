@@ -43,14 +43,16 @@ export const seedUsers = async (
       seeded.push(...defaultUsers);
     }
 
-    if (customUsers) {
+    if (customUsers && Array.isArray(customUsers)) {
       const newUsers = await createAndReturnUsersWithId(customUsers)
       seeded.push(...newUsers);
     }
     return seeded;
   } catch (e) {
     console.error(e);
-    throw e;
+    process.exit(1);
+  } finally {
+    await client.$disconnect();
   }
 };
 

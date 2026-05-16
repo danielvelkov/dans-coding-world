@@ -34,7 +34,7 @@ export const seedTags = async (
       seeded.push(...defaultTags);
     }
 
-    if (customTags) {
+    if (customTags && Array.isArray(customTags)) {
       const newTags = await createAndReturnTagsWithId(customTags);
       seeded.push(...newTags);
     }
