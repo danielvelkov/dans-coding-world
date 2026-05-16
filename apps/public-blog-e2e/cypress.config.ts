@@ -17,9 +17,9 @@ const nxConfig = nxE2EPreset(__filename, {
   cypressDir: 'src',
   bundler: 'vite',
   webServerCommands: {
-    default: 'npx nx run public-blog:preview',
+    default: 'npx nx run public-blog:serve:e2e',
   },
-  ciWebServerCommand: 'npx nx run public-blog:preview',
+  ciWebServerCommand: 'npx nx run public-blog:serve:e2e',
   ciBaseUrl: 'http://localhost:4200',
 });
 
@@ -27,6 +27,7 @@ export default defineConfig({
   e2e: {
     ...nxConfig,
     baseUrl: 'http://localhost:4200',
+    experimentalMemoryManagement: true,
     async setupNodeEvents(on, config) {
       // IMPORTANT: Execute the Nx preset's node events first
       if (nxConfig.setupNodeEvents) {

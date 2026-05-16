@@ -16,7 +16,7 @@ import {
   mockBlogPostPage,
 } from './helpers/comments.helper';
 
-describe('Comments - commenting', () => {
+describe('Comments - deletion', () => {
   let testPosts: Post[];
   let testComments: Comment[];
   const testUsers: UserDetail[] = [];

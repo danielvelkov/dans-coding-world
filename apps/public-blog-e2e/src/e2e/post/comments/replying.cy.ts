@@ -17,7 +17,7 @@ import {
 } from './helpers/comments.helper';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
-context('Comment replying', () => {
+context('Comments - replying', () => {
   let testPosts: Post[];
   let testComments: Comment[];
   const testUsers: UserDetail[] = [];

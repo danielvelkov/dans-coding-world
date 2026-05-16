@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import Blog from '../routes/blog/Blog';
 import Post from '../routes/blog/Post';
 import Login from '../routes/user/Login';
