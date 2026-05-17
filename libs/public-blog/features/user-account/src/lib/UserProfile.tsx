@@ -16,6 +16,8 @@ const StyledUserProfile = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  max-width: 800px;
+  margin: auto;
 `;
 
 const StyledHeader = styled.div`
@@ -65,7 +67,6 @@ const StyledInfoList = styled.dl<React.ComponentPropsWithoutRef<'dl'>>`
   gap: 0.75rem;
   margin: 0;
   padding-bottom: 1.5em;
-  border-bottom: 1px solid ${({ theme }) => theme.border.primary};
 `;
 
 const StyledInfoRow = styled.div`
@@ -92,6 +93,14 @@ const StyledSection = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+`;
+
+const StyledUserActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  padding: 1em 0em;
+  border-top: 1px solid ${({ theme }) => theme.border.primary};
 `;
 
 const StyledLogoutCopy = styled.div`
@@ -162,7 +171,7 @@ export function UserProfile({ userId }: { userId: number }) {
       </StyledInfoList>
 
       {isSameUser && (
-        <>
+        <StyledUserActions>
           <StyledSection>
             <StyledLogoutCopy>
               <h3>Edit profile</h3>
@@ -196,7 +205,7 @@ export function UserProfile({ userId }: { userId: number }) {
             </StyledLogoutCopy>
             <StyledButton onClick={() => logout()}>Logout</StyledButton>
           </StyledSection>
-        </>
+        </StyledUserActions>
       )}
     </StyledUserProfile>
   );
