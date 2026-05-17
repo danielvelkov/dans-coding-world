@@ -16,6 +16,9 @@
       "path": "./apps/api"
     },
     {
+      "path": "./apps/blog-cms"
+    },
+    {
       "path": "./libs/prisma-schema"
     },
     {
