@@ -37,6 +37,13 @@ export default defineConfig(
 		}
 	},
 	{
-		rules: {}
+		rules: {
+		'@nx/enforce-module-boundaries': [
+			'error',
+			{
+			enforceBuildableLibDependency: false,
+			},
+		],
+		},
 	}
 );
