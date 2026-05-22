@@ -162,6 +162,12 @@
         "testTargetName": "test"
       },
       "exclude": ["apps/blog-admin/vite.config.ts"]
+    },
+    {
+      "plugin": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e"
+      }
     }
   ],
   "targetDefaults": {
