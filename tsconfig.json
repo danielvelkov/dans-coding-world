@@ -19,6 +19,9 @@
       "path": "./apps/blog-admin"
     },
     {
+      "path": "./apps/blog-admin-e2e"
+    },
+    {
       "path": "./libs/prisma-schema"
     },
     {
