@@ -1,5 +1,17 @@
 {
   "name": "@dans-coding-world/blog-admin-e2e",
   "version": "0.0.1",
-  "private": true
+  "private": true,
+  "nx": {
+    "targets": {
+      "e2e": {
+        "dependsOn": [
+          "@dans-coding-world/blog-admin:build"
+        ]
+      }
+    },
+    "implicitDependencies": [
+      "@dans-coding-world/blog-admin"
+    ]
+  }
 }

@@ -3,7 +3,7 @@ import { nxE2EPreset } from '@nx/playwright/preset';
 import { workspaceRoot } from '@nx/devkit';
 
 // For CI, you may want to set BASE_URL to the deployed application.
-const baseURL = process.env['BASE_URL'] || 'http://localhost:4173';
+const baseURL = process.env['BASE_URL'] || 'http://localhost:5173';
 
 /**
  * Read environment variables from file.
@@ -17,6 +17,7 @@ const baseURL = process.env['BASE_URL'] || 'http://localhost:4173';
 export default defineConfig({
   ...nxE2EPreset(__filename, { testDir: './e2e' }),
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  timeout: 3000,
   use: {
     baseURL,
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
@@ -24,8 +25,8 @@ export default defineConfig({
   },
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run preview --prefix apps/blog-admin', // if we use `nx preview blog-admin` it hangs
-    url: 'http://localhost:4173',
+    command: 'npx nx dev blog-admin',
+    url: 'http://localhost:5173',
     reuseExistingServer: true,
     cwd: workspaceRoot,
   },
