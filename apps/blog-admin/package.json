@@ -37,6 +37,14 @@
 					"passWithNoTests": true,
 					"cwd": "{projectRoot}"
 				}
+			},
+			"test:watch": {
+				"executor": "nx:run-commands",
+				"options": {
+					"command": "npm run test:unit -- --watch",
+					"passWithNoTests": true,
+					"cwd": "{projectRoot}"
+				}
 			}
 		}
 	}
