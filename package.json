@@ -12,9 +12,11 @@
     "@prisma/client": "^6.19.0",
     "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-query-devtools": "^5.91.2",
+    "@testing-library/svelte": "^5.3.1",
     "@types/compression": "^1.8.1",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
+    "@vitest/browser-playwright": "^4.0.9",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
@@ -50,6 +52,7 @@
     "reflect-metadata": "^0.2.2",
     "rollup-plugin-visualizer": "^6.0.5",
     "styled-components": "5.3.6",
+    "vitest-browser-svelte": "^2.1.1",
     "zod": "^4.3.5"
   },
   "devDependencies": {
