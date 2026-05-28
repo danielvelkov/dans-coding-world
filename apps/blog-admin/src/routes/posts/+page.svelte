@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { PostsTable } from '@dans-coding-world/blog-admin-features-posts-table';
 	import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
 	import { PAGINATION } from '@dans-coding-world/shared-constants';
+	import { PostsTable } from '$lib';
 	const { data } = generateMockPostsResponse({
 		length: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
 		pageSize: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE

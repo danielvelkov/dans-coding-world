@@ -13,5 +13,11 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {}
+  "nx": {
+    "tags": [
+      "layer:blog-admin",
+      "scope:frontend",
+      "type:lib"
+    ]
+  }
 }
