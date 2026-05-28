@@ -11,11 +11,14 @@
   const showEmptyMessage = $derived(posts.length === 0);
 </script>
 
-<table class="w-full table-auto border-collapse text-left">
+<table class="w-full table-auto text-left border border-gray-300">
   <thead class="border-b border-gray-200 bg-gray-50 text-gray-700">
     <tr>
       {#each TABLE_COLUMNS as col}
-        <th class="px-4 py-3 text-sm font-semibold">{col}</th>
+        <th
+          class={`px-4 py-3 text-sm font-semibold ${['#', 'Published/Edited Date'].includes(col) ? 'text-center' : ''}`}
+          >{col}</th
+        >
       {/each}
     </tr>
   </thead>
@@ -37,24 +40,27 @@
           new Date(post.updatedAt).getTime()}
 
         <tr class="transition-colors hover:bg-gray-50">
-          <td class="px-4 py-3 text-sm text-gray-700">{i + 1}</td>
+          <td class="px-4 py-3 text-sm text-gray-700 text-center">{i + 1}</td>
 
-          <td class="px-4 py-3 text-sm font-medium text-gray-900">
+          <td
+            class="px-4 pt-3 text-sm line-clamp-2 text-ellipsis font-medium text-gray-900"
+            title={post.title}
+          >
             {post.title}
           </td>
 
           <td class="px-4 py-3 text-sm text-gray-700">
-            <div class="flex items-center gap-1">
+            <div class="flex flex-col items-left gap-1">
               <b class="text-gray-900">{post.status.toUpperCase()}</b>
 
-              {#if post.visibility === 'MEMBERS_ONLY'}
+              {#if post.visibility !== 'MEMBERS_ONLY'}
                 <span class="text-xs text-gray-500">(Members-only)</span>
               {/if}
             </div>
           </td>
 
           <td class="px-4 py-3 text-sm text-gray-700">
-            <div class="flex items-center gap-1">
+            <div class="flex flex-col items-center gap-1">
               {#if post.publishedAt}
                 <time
                   datetime={new Date(post.publishedAt).toISOString()}

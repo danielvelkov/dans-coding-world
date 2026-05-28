@@ -10,5 +10,5 @@
 	if (!posts) throw new Error('Missing fixtures');
 </script>
 
-<h2>Posts</h2>
+<h2 class="mb-2 text-4xl">Posts</h2>
 <PostsTable {posts}></PostsTable>
