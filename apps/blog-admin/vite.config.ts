@@ -20,6 +20,8 @@ export default defineConfig({
 			{
 				extends: './vite.config.ts',
 				test: {
+					globals: true,
+					setupFiles: ['@testing-library/svelte/vitest'],
 					name: 'client',
 					browser: {
 						enabled: true,
