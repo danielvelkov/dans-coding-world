@@ -137,6 +137,9 @@
     },
     {
       "path": "./libs/public-blog/features/user-account"
+    },
+    {
+      "path": "./libs/blog-admin/features/posts-table"
     }
   ]
 }

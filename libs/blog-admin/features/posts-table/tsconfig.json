@@ -1,0 +1,28 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "files": [],
+  "include": [
+    // Added for svelte
+    "src/**/*.svelte*"
+  ],
+  "references": [
+    {
+      "path": "../../../shared/util/helpers"
+    },
+    {
+      "path": "../../../prisma-schema"
+    },
+    {
+      "path": "../../../shared/util/shared-constants"
+    },
+    {
+      "path": "../../../shared/post/testing"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}
