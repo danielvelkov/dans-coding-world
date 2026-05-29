@@ -1,8 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
+import {
+  API_ENDPOINTS,
+  handleQueryResponse,
+} from '@dans-coding-world/shared-data-access-api';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse } from '@dans-coding-world/api-types';
-import { handleQueryResponse } from '../helper/handle-query-response';
 import { FetchPostCommentsQueryParams } from '../types/fetchPostCommentsQueryParams';
 import { GetPostCommentsResponseDto } from '@dans-coding-world/shared-post-dto';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
@@ -10,7 +12,7 @@ import { PAGINATION } from '@dans-coding-world/shared-constants';
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
 export const useFetchPostCommentsInfinite = (
-  params: FetchPostCommentsQueryParams
+  params: FetchPostCommentsQueryParams,
 ) => {
   const query = useInfiniteQuery({
     staleTime: FIVE_MINUTES_IN_MS,
@@ -30,7 +32,7 @@ export const useFetchPostCommentsInfinite = (
             ...params,
             pageOffset,
           },
-        }
+        },
       );
       return handleQueryResponse(response);
     },

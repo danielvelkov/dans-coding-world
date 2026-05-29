@@ -1,8 +1,11 @@
 import { User } from '@dans-coding-world/prisma-schema';
 import { noop, useMutation } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import { handleQueryResponse } from '../helper/handle-query-response';
-import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
+import {
+  API_ENDPOINTS,
+  ApiError,
+  handleQueryResponse,
+} from '@dans-coding-world/shared-data-access-api';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { LoginDto, LoginResponseDto } from '@dans-coding-world/shared-auth-dto';
@@ -13,7 +16,6 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { useFetchUser } from './useFetchUser';
 import { useAuth } from './useAuth';
-import { ApiError } from '../types/api.error';
 import { UserDetail } from '@dans-coding-world/user-data-access';
 
 export type UserWithoutPass = Omit<User, 'password'>;
@@ -42,13 +44,13 @@ export function useAuthState() {
 
   const { data: userDataResponse, isLoading: isLoadingProfile } = useFetchUser(
     user?.id as number,
-    { enabled: !!user }
+    { enabled: !!user },
   );
 
   const refreshMutation = useMutation({
     mutationFn: async () => {
       const response = await api.post<BaseResponse<LoginResponseWithoutTokens>>(
-        API_ENDPOINTS.AUTH.REFRESH
+        API_ENDPOINTS.AUTH.REFRESH,
       );
       return handleQueryResponse(response);
     },
@@ -70,7 +72,7 @@ export function useAuthState() {
     mutationFn: async (data: LoginDto) => {
       const response = await api.post<BaseResponse<LoginResponseWithoutTokens>>(
         API_ENDPOINTS.AUTH.LOGIN,
-        { ...data }
+        { ...data },
       );
       return handleQueryResponse(response);
     },
@@ -116,7 +118,7 @@ export function useAuthState() {
   const isAuthenticated = !!user;
 
   return {
-    user: isAuthenticated ? userDataResponse?.user ?? user : null,
+    user: isAuthenticated ? (userDataResponse?.user ?? user) : null,
     isAuthenticated: !!user,
 
     login: loginMutation.mutate,

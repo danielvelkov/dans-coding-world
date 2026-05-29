@@ -24,7 +24,7 @@ import { passwordGenerator } from '@dans-coding-world/helpers';
 // TODO: somehow remove this nasty copy-paste
 // mock only "useAuth" from shared hooks module
 vi.mock('@dans-coding-world/public-blog-shared-hooks');
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 const mockUserResponse = generateMockUserResponse({});
 const testUser = mockUserResponse.data?.user as UserDetail;
@@ -34,7 +34,7 @@ describe('UserSettings', () => {
     return render(
       <MemoryRouter>
         <UserSettings />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -79,7 +79,7 @@ describe('UserSettings', () => {
       includeNumbers: true,
       includeSymbols: true,
       includeUppercase: true,
-    }
+    },
   );
   const validChangePasswordFields = {
     oldPassword: testUser.password,
@@ -119,7 +119,7 @@ describe('UserSettings', () => {
         const inputField = screen.getByLabelText(name);
         expect(inputField).toBeTruthy();
         expect(inputField.tagName).toBe('INPUT');
-      }
+      },
     );
 
     it('should render error message on useChangePassword() hook returning an error', () => {
@@ -141,7 +141,7 @@ describe('UserSettings', () => {
       expect(
         screen.queryByRole('button', {
           name: 'Change',
-        })
+        }),
       ).toBeFalsy();
       expect(screen.queryByRole('status')).toBeTruthy();
     });
@@ -212,7 +212,7 @@ describe('UserSettings', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(/are you sure you want to delete your account/i)
+          screen.getByText(/are you sure you want to delete your account/i),
         ).toBeInTheDocument();
       });
     });
@@ -246,7 +246,7 @@ describe('UserSettings', () => {
   async function updateField(
     user: ReturnType<typeof userEvent.setup>,
     label: string,
-    newValue: string
+    newValue: string,
   ) {
     const input = screen.getByLabelText(label);
     await user.clear(input);

@@ -15,7 +15,7 @@ import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import { mockCreateCommentHook } from './helpers/mockCreateCommentHook';
 import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 // TODO: somehow remove this nasty copy-paste
 // mock only "useAuth" from shared hooks module
 vi.mock(
@@ -26,7 +26,7 @@ vi.mock(
       useAuth: vi.fn(),
       useCreateComment: vi.fn(),
     };
-  }
+  },
 );
 
 const TEST_POST_ID = 1;
@@ -42,7 +42,7 @@ describe('CommentSection', () => {
     render(
       <MemoryRouter>
         <CommentSection postId={TEST_POST_ID} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
   beforeEach(() => {
@@ -63,9 +63,9 @@ describe('CommentSection', () => {
       expect(
         screen.getByText(
           new RegExp(
-            `Comments \\(${mockCommentsResponse.data?.pagination.total}\\)`
-          )
-        )
+            `Comments \\(${mockCommentsResponse.data?.pagination.total}\\)`,
+          ),
+        ),
       ).toBeInTheDocument();
     });
   });
@@ -79,7 +79,7 @@ describe('CommentSection', () => {
       const commentItems = Array.from(commentList.children);
 
       const topLevelComments = mockCommentsResponse.data?.items.map(
-        (c) => c.content
+        (c) => c.content,
       );
       if (!topLevelComments) throw new Error('Missing test data');
 
@@ -87,7 +87,7 @@ describe('CommentSection', () => {
         const firstParagraphInListItem =
           listItemElement.querySelectorAll('p')[0];
         expect(
-          topLevelComments.includes(firstParagraphInListItem.textContent)
+          topLevelComments.includes(firstParagraphInListItem.textContent),
         ).toBe(true);
       });
     });
@@ -103,7 +103,7 @@ describe('CommentSection', () => {
     });
 
     const topLevelItems = Array.from(
-      topLevelList.querySelectorAll(':scope > li')
+      topLevelList.querySelectorAll(':scope > li'),
     );
     expect(topLevelItems.length).toBe(comments.length);
 
@@ -129,7 +129,7 @@ describe('CommentSection', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: /load more/i })
+        screen.getByRole('button', { name: /load more/i }),
       ).toBeInTheDocument();
     });
   });
@@ -151,7 +151,7 @@ describe('CommentSection', () => {
     await waitFor(() => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
       expect(
-        screen.queryByRole('button', { name: /load more/i })
+        screen.queryByRole('button', { name: /load more/i }),
       ).not.toBeInTheDocument();
     });
   });
@@ -232,7 +232,7 @@ describe('CommentSection', () => {
 
 async function checkRepliesForComment(
   listItemElement: Element,
-  comment: CommentWithReplies
+  comment: CommentWithReplies,
 ) {
   if (!comment.replyCount) return;
 
@@ -247,7 +247,7 @@ async function checkRepliesForComment(
 
   const escapedUsername = comment.user.username.replace(
     /[.*+?^${}()|[\]\\]/g,
-    '\\$&'
+    '\\$&',
   );
 
   const replyList = await screen.findByRole(
@@ -255,7 +255,7 @@ async function checkRepliesForComment(
     {
       name: new RegExp(`Replies to ${escapedUsername}`),
     },
-    { timeout: 5000 }
+    { timeout: 5000 },
   );
 
   // wait for all items to render before asserting count

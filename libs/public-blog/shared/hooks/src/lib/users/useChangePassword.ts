@@ -2,8 +2,10 @@ import { BaseResponse } from '@dans-coding-world/api-types';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { useMutation } from '@tanstack/react-query';
 import { UserWithoutPass } from './useAuthState';
-import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
-import { handleQueryResponse } from '../helper/handle-query-response';
+import {
+  API_ENDPOINTS,
+  handleQueryResponse,
+} from '@dans-coding-world/shared-data-access-api';
 import { ChangePasswordDto } from '@dans-coding-world/shared-user-dto';
 
 export function useChangePassword() {
@@ -11,7 +13,7 @@ export function useChangePassword() {
     mutationFn: async (data: Omit<ChangePasswordDto, 'userId'>) => {
       const response = await api.patch<BaseResponse<{ user: UserWithoutPass }>>(
         API_ENDPOINTS.USERS.PASSWORD,
-        data
+        data,
       );
       return handleQueryResponse(response);
     },

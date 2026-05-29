@@ -23,14 +23,14 @@ const commentsWithNoReplies = generateCommentThreads(TEST_POST_ID, 3, 0);
 const commentsWithDeeplyNestedReplies = generateCommentThreads(
   TEST_POST_ID,
   2,
-  2
+  2,
 );
 const testComments: CommentWithReplies[] = [
   ...commentsWithDeeplyNestedReplies,
   ...commentsWithNoReplies,
 ];
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 // TODO: somehow remove this nasty copy-paste
 // mock only "useAuth" from shared hooks module
 vi.mock(
@@ -42,7 +42,7 @@ vi.mock(
       useCreateComment: vi.fn(),
       useEditComment: vi.fn(),
     };
-  }
+  },
 );
 
 describe('CommentThread', () => {
@@ -52,7 +52,7 @@ describe('CommentThread', () => {
         <CommentContextProvider postId={TEST_POST_ID}>
           <CommentThread comments={comments} />
         </CommentContextProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -79,8 +79,8 @@ describe('CommentThread', () => {
       expect(buttons[i].textContent).toMatch(
         new RegExp(
           `view replies \\(${commentsWithReplies[i].replyCount}\\)`,
-          'i'
-        )
+          'i',
+        ),
       );
   });
 
@@ -113,7 +113,7 @@ describe('CommentThread', () => {
         renderFeature();
 
         expect(screen.getAllByRole('button', { name: 'Reply' }).length).toBe(
-          testComments.length
+          testComments.length,
         );
       });
 
@@ -131,7 +131,7 @@ describe('CommentThread', () => {
         await user.click(replyButton);
         await user.type(within(comment).getByRole('textbox'), commentContent);
         await user.click(
-          within(comment).getByRole('button', { name: /submit/i })
+          within(comment).getByRole('button', { name: /submit/i }),
         );
         expect(mockCreateComment).toHaveBeenLastCalledWith({
           postId: TEST_POST_ID,
@@ -184,28 +184,28 @@ describe('CommentThread', () => {
         renderFeature();
 
         const firstComment = screen.getByTestId(
-          `comment-${testComments[0].id}`
+          `comment-${testComments[0].id}`,
         );
         const secondComment = screen.getByTestId(
-          `comment-${testComments[1].id}`
+          `comment-${testComments[1].id}`,
         );
 
         // Select first comment "Reply" button
         await user.click(
-          within(firstComment).getByRole('button', { name: 'Reply' })
+          within(firstComment).getByRole('button', { name: 'Reply' }),
         );
         expect(within(firstComment).getByRole('textbox')).toBeInTheDocument();
         expect(
-          within(secondComment).queryByRole('textbox')
+          within(secondComment).queryByRole('textbox'),
         ).not.toBeInTheDocument();
 
         // Select second comment "Reply" button, hiding the first form
         await user.click(
-          within(secondComment).getByRole('button', { name: 'Reply' })
+          within(secondComment).getByRole('button', { name: 'Reply' }),
         );
         expect(within(secondComment).getByRole('textbox')).toBeInTheDocument();
         expect(
-          within(firstComment).queryByRole('textbox')
+          within(firstComment).queryByRole('textbox'),
         ).not.toBeInTheDocument();
       });
 
@@ -215,27 +215,27 @@ describe('CommentThread', () => {
         renderFeature();
 
         const firstComment = screen.getByTestId(
-          `comment-${commentsWithDeeplyNestedReplies[0].id}`
+          `comment-${commentsWithDeeplyNestedReplies[0].id}`,
         );
         const secondComment = screen.getByTestId(
-          `comment-${commentsWithDeeplyNestedReplies[1].id}`
+          `comment-${commentsWithDeeplyNestedReplies[1].id}`,
         );
 
         // Select first comment "Reply" button
         await user.click(
-          within(firstComment).getByRole('button', { name: 'Reply' })
+          within(firstComment).getByRole('button', { name: 'Reply' }),
         );
         expect(within(firstComment).getByRole('textbox')).toBeInTheDocument();
         expect(
-          within(secondComment).queryByRole('textbox')
+          within(secondComment).queryByRole('textbox'),
         ).not.toBeInTheDocument();
 
         // Select second comment's "View replies" button, hiding the first form
         await user.click(
-          within(secondComment).getByRole('button', { name: /view replies/i })
+          within(secondComment).getByRole('button', { name: /view replies/i }),
         );
         expect(
-          within(firstComment).queryByRole('textbox')
+          within(firstComment).queryByRole('textbox'),
         ).not.toBeInTheDocument();
       });
 
@@ -282,21 +282,21 @@ describe('CommentThread', () => {
         });
         renderFeature();
         const userComment = screen.getByTestId(
-          `comment-${userCommentForDeletion.id}`
+          `comment-${userCommentForDeletion.id}`,
         );
         expect(
-          within(userComment).getByRole('button', { name: /delete/i })
+          within(userComment).getByRole('button', { name: /delete/i }),
         ).toBeInTheDocument();
 
         // Check comments not made by user
         const commentNotMadeByUser = testComments.find(
-          (c) => c.userId !== userCommentForDeletion.userId
+          (c) => c.userId !== userCommentForDeletion.userId,
         ) as CommentWithReplies;
         const otherUserComment = screen.getByTestId(
-          `comment-${commentNotMadeByUser.id}`
+          `comment-${commentNotMadeByUser.id}`,
         );
         expect(
-          within(otherUserComment).queryByRole('button', { name: /delete/i })
+          within(otherUserComment).queryByRole('button', { name: /delete/i }),
         ).not.toBeInTheDocument();
       });
 
@@ -311,10 +311,10 @@ describe('CommentThread', () => {
           for (const comment of testComments) {
             const commentElement = screen.getByTestId(`comment-${comment.id}`);
             expect(
-              within(commentElement).getByRole('button', { name: /delete/i })
+              within(commentElement).getByRole('button', { name: /delete/i }),
             ).toBeInTheDocument();
           }
-        }
+        },
       );
 
       it('should open modal on clicking "Delete" comment', async () => {
@@ -325,11 +325,11 @@ describe('CommentThread', () => {
         });
         renderFeature();
         const commentElement = screen.getByTestId(
-          `comment-${testComments[0].id}`
+          `comment-${testComments[0].id}`,
         );
         await act(async () => {
           await user.click(
-            within(commentElement).getByRole('button', { name: /delete/i })
+            within(commentElement).getByRole('button', { name: /delete/i }),
           );
         });
         await waitFor(() => {
@@ -342,7 +342,7 @@ describe('CommentThread', () => {
       it('should display "Edit" button next to comments if logged in and author of comments', () => {
         const userComment = testComments[0];
         const otherComment = testComments.find(
-          (c) => c.userId !== userComment.userId
+          (c) => c.userId !== userComment.userId,
         ) as CommentWithReplies;
         mockAuth({
           isAuthenticated: true,
@@ -354,18 +354,18 @@ describe('CommentThread', () => {
         });
         renderFeature();
         const userCommentElement = screen.getByTestId(
-          `comment-${userComment.id}`
+          `comment-${userComment.id}`,
         );
         expect(
-          within(userCommentElement).getByRole('button', { name: /Edit/i })
+          within(userCommentElement).getByRole('button', { name: /Edit/i }),
         ).toBeInTheDocument();
         const otherUserCommentElement = screen.getByTestId(
-          `comment-${otherComment.id}`
+          `comment-${otherComment.id}`,
         );
         expect(
           within(otherUserCommentElement).queryByRole('button', {
             name: /Edit/i,
-          })
+          }),
         ).not.toBeInTheDocument();
       });
 
@@ -394,7 +394,7 @@ describe('CommentThread', () => {
         await user.clear(within(comment).getByRole('textbox'));
         await user.type(within(comment).getByRole('textbox'), commentContent);
         await user.click(
-          within(comment).getByRole('button', { name: /submit/i })
+          within(comment).getByRole('button', { name: /submit/i }),
         );
         expect(mockEditComment).toHaveBeenLastCalledWith({
           commentId: userComment.id,
@@ -422,24 +422,24 @@ describe('CommentThread', () => {
           `comment-${
             (
               commentsWithDeeplyNestedReplies.find(
-                (c) => c.id !== userComment.id
+                (c) => c.id !== userComment.id,
               ) as CommentWithReplies
             ).id
-          }`
+          }`,
         );
 
         // Select user comment "Edit" button
         await user.click(
-          within(firstComment).getByRole('button', { name: 'Edit' })
+          within(firstComment).getByRole('button', { name: 'Edit' }),
         );
         expect(within(firstComment).getByRole('textbox')).toBeInTheDocument();
 
         // Select second comment's "View replies" button, hiding the first edit form
         await user.click(
-          within(secondComment).getByRole('button', { name: /view replies/i })
+          within(secondComment).getByRole('button', { name: /view replies/i }),
         );
         expect(
-          within(firstComment).queryByRole('textbox')
+          within(firstComment).queryByRole('textbox'),
         ).not.toBeInTheDocument();
       });
     });
@@ -459,7 +459,7 @@ describe('CommentThread', () => {
         expect(
           within(comment).getByRole('button', {
             name: /report/i,
-          })
+          }),
         ).toBeInTheDocument();
       });
 
@@ -475,10 +475,10 @@ describe('CommentThread', () => {
         });
         renderFeature();
         const userCommentElement = screen.getByTestId(
-          `comment-${userComment.id}`
+          `comment-${userComment.id}`,
         );
         expect(
-          within(userCommentElement).queryByRole('button', { name: /report/i })
+          within(userCommentElement).queryByRole('button', { name: /report/i }),
         ).not.toBeInTheDocument();
       });
 
@@ -490,11 +490,11 @@ describe('CommentThread', () => {
         });
         renderFeature();
         const commentElement = screen.getByTestId(
-          `comment-${testComments[0].id}`
+          `comment-${testComments[0].id}`,
         );
         await act(async () => {
           await user.click(
-            within(commentElement).getByRole('button', { name: /report/i })
+            within(commentElement).getByRole('button', { name: /report/i }),
           );
         });
         await waitFor(() => {
@@ -521,7 +521,7 @@ describe('CommentThread', () => {
       renderFeature();
 
       expect(screen.queryAllByRole('button', { name: 'Report' }).length).toBe(
-        0
+        0,
       );
     });
   });
