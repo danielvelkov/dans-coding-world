@@ -16,7 +16,7 @@ const mockUserResponse = generateMockUserResponse({
   user: mockLoginResponse.data?.user,
 });
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useUpdateProfile', () => {
   if (!mockUserResponse.data?.user) throw new Error('Missing mock user');
@@ -28,7 +28,7 @@ describe('useUpdateProfile', () => {
     renderReactQueryHook(
       useUpdateProfile,
       ({ children }) => <AuthProvider>{children}</AuthProvider>,
-      queryClient
+      queryClient,
     );
 
   beforeEach(() => {
@@ -85,7 +85,7 @@ describe('useUpdateProfile', () => {
 
   it('does not call invalidateQueries after failed update', async () => {
     vi.mocked(api.patch).mockRejectedValue(
-      generateErrorResponseByErrorCode(ERROR_CODES.VALIDATION.USER_EXISTS)
+      generateErrorResponseByErrorCode(ERROR_CODES.VALIDATION.USER_EXISTS),
     );
 
     const queryClient = new QueryClient();

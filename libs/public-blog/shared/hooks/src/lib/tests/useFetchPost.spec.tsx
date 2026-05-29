@@ -15,7 +15,7 @@ import {
 } from '@dans-coding-world/shared-constants';
 
 const mockPostResponse = generateMockPostResponse({});
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useFetchPost', () => {
   const renderUseFetchPostsHook = () =>

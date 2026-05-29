@@ -8,14 +8,14 @@ import { QueryClient } from '@tanstack/react-query';
 import { AuthProvider } from '../users/providers/AuthProvider';
 import { generateMockCommentResponse } from '@dans-coding-world/shared-post-testing';
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useCreateComment', () => {
   const renderUseCreateCommentHook = (queryClient?: QueryClient) =>
     renderReactQueryHook(
       useCreateComment,
       ({ children }) => <AuthProvider>{children}</AuthProvider>,
-      queryClient
+      queryClient,
     );
 
   beforeEach(() => {
@@ -51,7 +51,7 @@ describe('useCreateComment', () => {
           expect.objectContaining({ postId: testId }),
         ],
         exact: false,
-      })
+      }),
     );
   });
 
@@ -81,8 +81,8 @@ describe('useCreateComment', () => {
     const testId = 999;
     vi.mocked(api.post).mockRejectedValue(
       generateErrorResponseByErrorCode(
-        ERROR_CODES.VALIDATION.MAX_REPLY_DEPTH_REACHED
-      )
+        ERROR_CODES.VALIDATION.MAX_REPLY_DEPTH_REACHED,
+      ),
     );
 
     const queryClient = new QueryClient();

@@ -17,7 +17,7 @@ import {
 const mockPostMetadataResponse = generateMockPostMetadataResponse({
   length: 5,
 });
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useFetchPostsMetadata', () => {
   const renderUseFetchPostsHook = () =>

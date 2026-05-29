@@ -15,11 +15,11 @@ import {
 } from '@dans-coding-world/shared-constants';
 
 const mockUserResponse = generateMockUserResponse({});
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useFetchUser', () => {
   const renderUseFetchUserHook = (
-    options?: Parameters<typeof useFetchUser>['1']
+    options?: Parameters<typeof useFetchUser>['1'],
   ) =>
     renderReactQueryHook(() => {
       if (!mockUserResponse.data) throw new Error('Missing data');

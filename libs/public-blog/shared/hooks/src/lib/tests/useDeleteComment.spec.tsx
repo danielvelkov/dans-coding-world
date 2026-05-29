@@ -8,14 +8,14 @@ import { QueryClient } from '@tanstack/react-query';
 import { AuthProvider } from '../users/providers/AuthProvider';
 import { generateMockCommentResponse } from '@dans-coding-world/shared-post-testing';
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useDeleteComment', () => {
   const renderUseDeleteCommentHook = (queryClient?: QueryClient) =>
     renderReactQueryHook(
       useDeleteComment,
       ({ children }) => <AuthProvider>{children}</AuthProvider>,
-      queryClient
+      queryClient,
     );
 
   beforeEach(() => {
@@ -52,7 +52,7 @@ describe('useDeleteComment', () => {
           expect.objectContaining({ postId: testId }),
         ],
         exact: false,
-      })
+      }),
     );
   });
 
@@ -83,8 +83,8 @@ describe('useDeleteComment', () => {
     const testId = 999;
     vi.mocked(api.delete).mockRejectedValue(
       generateErrorResponseByErrorCode(
-        ERROR_CODES.VALIDATION.MAX_REPLY_DEPTH_REACHED
-      )
+        ERROR_CODES.VALIDATION.MAX_REPLY_DEPTH_REACHED,
+      ),
     );
 
     const queryClient = new QueryClient();
