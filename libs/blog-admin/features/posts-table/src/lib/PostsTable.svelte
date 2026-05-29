@@ -4,9 +4,9 @@
   import { formatDateTo_DD_MM_YYYY } from '@dans-coding-world/helpers';
 
   interface Props {
-    posts: PostFull[];
+    posts?: PostFull[];
   }
-  let { posts = [] }: Props = $props();
+  const { posts = [] }: Props = $props();
 
   const showEmptyMessage = $derived(posts.length === 0);
 </script>
