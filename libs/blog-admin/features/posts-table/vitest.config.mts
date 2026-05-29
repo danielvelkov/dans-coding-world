@@ -12,6 +12,7 @@ export default defineConfig(() => ({
     globals: true,
     setupFiles: ['@testing-library/svelte/vitest'],
     name: 'client',
+    watch: false,
     browser: {
       enabled: true,
       provider: playwright(),
