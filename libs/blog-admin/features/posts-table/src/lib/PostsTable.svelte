@@ -53,7 +53,7 @@
             <div class="flex flex-col items-left gap-1">
               <b class="text-gray-900">{post.status.toUpperCase()}</b>
 
-              {#if post.visibility !== 'MEMBERS_ONLY'}
+              {#if post.visibility === 'MEMBERS_ONLY'}
                 <span class="text-xs text-gray-500">(Members-only)</span>
               {/if}
             </div>
