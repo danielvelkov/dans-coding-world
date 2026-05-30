@@ -31,8 +31,17 @@
 	],
 	"include": ["src/**/*.js", "src/**/*.svelte", "src/**/*.ts"],
 	"references": [
-		{
-			"path": "../../libs/blog-admin/features/posts-table/tsconfig.lib.json"
-		}
-	]
+    {
+      "path": "../../libs/shared/post/dtos/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/data-access/api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/public-blog/data-access/blog-api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/util/api-types/tsconfig.lib.json"
+    }
+  ]
 }
