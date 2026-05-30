@@ -6,6 +6,9 @@ import { playwright } from '@vitest/browser-playwright';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
+	ssr: {
+		noExternal: ['@tanstack/svelte-query']
+	},
 	server: {
 		port: 5173,
 		strictPort: true
