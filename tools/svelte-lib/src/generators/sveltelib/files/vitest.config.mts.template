@@ -5,8 +5,7 @@ import { playwright } from '@vitest/browser-playwright';
 export default defineConfig(() => ({
   plugins: [svelte({ compilerOptions: { hmr: false } })],
   root: __dirname,
-  cacheDir:
-    '../../../../node_modules/.vite/libs/blog-admin/features/posts-table',
+  cacheDir: '<%= cacheDir %>',
   // Configured for svelte
   test: {
     globals: true,

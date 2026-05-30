@@ -1,5 +1,5 @@
 {
-  "extends": "../../../../tsconfig.base.json",
+  "extends": "<%= relativeToRoot %>tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
@@ -34,5 +34,5 @@
     "src/**/*.svelte.test.ts",
     "src/**/*.svelte.spec.js",
     "src/**/*.svelte.spec.ts"
-  ],
+  ]
 }

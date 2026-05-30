@@ -12,7 +12,16 @@
         "index": 0
       },
       "x-prompt": "What name would you like to use?"
+    },
+    "directory": {
+      "type": "string",
+      "description": "Directory inside libs/ (e.g. blog-admin/features)",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "x-prompt": "Where should the library be created? (e.g. blog-admin/features)"
     }
   },
-  "required": ["name"]
+  "required": ["name", "directory"]
 }

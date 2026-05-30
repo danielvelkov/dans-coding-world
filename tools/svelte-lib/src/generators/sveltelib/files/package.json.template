@@ -1,5 +1,5 @@
 {
-  "name": "@<%= scope %>/<%= name %>",
+  "name": "@dans-coding-world/<%= name %>",
   "version": "0.0.1",
   "private": true,
   "type": "module",

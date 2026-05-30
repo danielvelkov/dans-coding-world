@@ -1,5 +1,5 @@
 {
-  "extends": "../../../../tsconfig.base.json",
+  "extends": "<%= relativeToRoot %>tsconfig.base.json",
   "files": [],
   "include": [
     // Added for svelte
