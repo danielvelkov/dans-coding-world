@@ -165,6 +165,7 @@
     "libs/public-blog/shared/*",
     "libs/public-blog/shared/ui/*",
     "libs/public-blog/shared/util/*",
-    "libs/blog-admin/features/*"
+    "libs/blog-admin/features/*",
+    "tools/*"
   ]
 }

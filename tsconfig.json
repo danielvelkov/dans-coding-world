@@ -140,6 +140,9 @@
     },
     {
       "path": "./libs/blog-admin/features/posts-table"
+    },
+    {
+      "path": "./tools/svelte-lib"
     }
   ]
 }

@@ -14,5 +14,6 @@
     "**/.git/subtree-cache/**": true,
     "**/.hg/store/**": true,
     "**/node_modules/**": true
-  }
+  },
+  "eslint.validate": ["json"]
 }
