@@ -144,28 +144,9 @@
     "webpack-cli": "^5.1.4"
   },
   "workspaces": [
-    "apps/*",
-    "libs/*",
-    "libs/shared/data-access/*",
-    "libs/tools/*",
-    "libs/shared/util/*",
-    "libs/api/*",
-    "api/*",
-    "libs/shared/auth/*",
     "@dans-coding-world/*",
-    "lib/*",
-    "libs/api/data-access/*",
-    "libs/shared/post/*",
-    "libs/shared/report/*",
-    "libs/shared/user/*",
-    "libs/shared/*",
-    "libs/public-blog/features/*",
-    "libs/public-blog/ui/*",
-    "libs/public-blog/data-access/*",
-    "libs/public-blog/shared/*",
-    "libs/public-blog/shared/ui/*",
-    "libs/public-blog/shared/util/*",
-    "libs/blog-admin/features/*",
+    "apps/*",
+    "libs/**",
     "tools/*"
   ]
 }
