@@ -12,5 +12,14 @@
       "default": "./src/index.ts"
     },
     "./package.json": "./package.json"
+  },
+  "nx": {
+    "targets": {
+      "test": {
+        "options": {
+          "passWithNoTests": true
+        }
+      }
+    }
   }
 }
