@@ -143,6 +143,9 @@
     },
     {
       "path": "./tools/svelte-lib"
+    },
+    {
+      "path": "./libs/blog-admin/ui/common"
     }
   ]
 }

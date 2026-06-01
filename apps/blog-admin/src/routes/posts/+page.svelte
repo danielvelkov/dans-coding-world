@@ -5,6 +5,7 @@
 	import { PostsTable } from '@dans-coding-world/blog-admin-features-posts-table';
 	import { API_ENDPOINTS, handleQueryResponse } from '@dans-coding-world/shared-data-access-api';
 	import { createQuery } from '@tanstack/svelte-query';
+	import { Button } from '@dans-coding-world/blog-admin-ui-common';
 
 	const { data } = $props();
 
@@ -32,3 +33,5 @@
 {:else}
 	<PostsTable posts={postsQuery.data?.items}></PostsTable>
 {/if}
+
+<Button></Button>

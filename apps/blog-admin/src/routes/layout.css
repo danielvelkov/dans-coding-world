@@ -1,3 +1,4 @@
 @import 'tailwindcss';
 /* You have to do this for every lib... */
 @source '../../../../libs/blog-admin/features/posts-table/src';
+@source '../../../../libs/blog-admin/ui/common/src';
