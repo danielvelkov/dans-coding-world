@@ -62,7 +62,7 @@ describe('Post - error state', () => {
     const testPostId = 1;
     cy.intercept(
       `${API_ENDPOINTS.POSTS.BY_ID(testPostId)}*`,
-      mockPostResponse
+      mockPostResponse,
     ).as('getPostResponse');
 
     cy.visit(`/blog/${testPostId}`);
@@ -85,7 +85,7 @@ describe('Post - error state', () => {
 
     it('navigates to login page if post is members-only', () => {
       const membersOnlyPost = testPosts.find(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'MEMBERS_ONLY'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'MEMBERS_ONLY',
       );
       if (!membersOnlyPost) throw new Error('Missing post fixture');
 
@@ -101,8 +101,8 @@ describe('Post - error state', () => {
 
       const randomUser = Cypress._.sample(
         testUsers.filter(
-          (u) => u.id !== privatePost.authorId && u.role === 'AUTHOR'
-        )
+          (u) => u.id !== privatePost.authorId && u.role === 'AUTHOR',
+        ),
       ) as UserDetail;
       cy.visit('/login');
       cy.login(randomUser.email, randomUser.password);
@@ -111,23 +111,6 @@ describe('Post - error state', () => {
       cy.visit(`/blog/${privatePost.id}`);
       cy.contains('h1', '403');
       cy.contains(/you do not have permissions/i);
-    });
-
-    // TODO: im not sure about this feature, maybe hide all private posts
-    it('shows post if its private and user is the author', () => {
-      const privatePost = testPosts.find((p) => p.status !== 'PUBLISHED');
-      if (!privatePost) throw new Error('Missing post fixture');
-
-      const author = testUsers.find(
-        (u) => u.id === privatePost.authorId
-      ) as UserDetail;
-      cy.visit('/login');
-      cy.login(author.email, author.password);
-      cy.contains('h1', 'Login').should('not.exist');
-
-      cy.visit(`/blog/${privatePost.id}`);
-      cy.contains('h1', '403').should('not.exist');
-      cy.contains('h1', privatePost.title).should('exist');
     });
   });
 });

@@ -74,6 +74,23 @@ const StyledHeader = styled.header`
   }
 `;
 
+const PrivateBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  padding: 0.5rem;
+  border-radius: 6px;
+
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  background-color: ${({ theme }) => theme.accent.muted}; /* soft amber */
+  color: ${({ theme }) => theme.text.warning};
+
+  border: 1px solid ${({ theme }) => theme.border.secondary};
+`;
+
 export function BlogPost({
   postId,
   className,
@@ -116,6 +133,11 @@ export function BlogPost({
   return (
     <StyledPost className={className}>
       <StyledHeader>
+        {post.status !== 'PUBLISHED' && (
+          <PrivateBadge>
+            [ {post.status} — Visible only to you and admins ]
+          </PrivateBadge>
+        )}
         <StyledTitle>{data.post.title}</StyledTitle>
 
         <div className="post-details">
@@ -188,7 +210,7 @@ export function BlogPost({
                     filterBy: {
                       tags: [tagName],
                     },
-                  } as FetchPostsQueryParams)}`
+                  } as FetchPostsQueryParams)}`,
                 )
               }
             ></Tag>

@@ -4,12 +4,14 @@ import { Post, Profile, User } from '@dans-coding-world/prisma-schema';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateMockPostResponse } from '@dans-coding-world/shared-post-testing';
 import { randNumber, randWord } from '@ngneat/falso';
+import { UserDetail } from '@dans-coding-world/user-data-access';
 
 describe('BlogPost', () => {
   const testPostId = 1;
   let testPost: PostFull;
   let testPosts: Post[];
-  const testUsers: PostFull['author'][] = [];
+  let allTestPosts: Post[];
+  const testUsers: UserDetail[] = [];
 
   before(() => {
     cy.task('db:seed-users', {
@@ -36,8 +38,9 @@ describe('BlogPost', () => {
     cy.task('db:seed-posts', {
       options: { useDefaults: true, clearExisting: true },
     }).then((posts) => {
+      allTestPosts = posts as Post[];
       testPosts = (posts as Post[]).filter(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!testPosts || !testPosts.length)
         throw new Error('Missing post fixtures');
@@ -61,13 +64,13 @@ describe('BlogPost', () => {
 
     cy.get('[aria-label^="Posted on"]').should(
       'have.text',
-      `${day} ${month} ${publishedDate.getFullYear()}`
+      `${day} ${month} ${publishedDate.getFullYear()}`,
     );
   });
 
   it('shows modified date, if updated date is after published date', () => {
     const testPost = testPosts.find(
-      (p) => new Date(p.publishedAt as Date) < new Date(p.updatedAt)
+      (p) => new Date(p.publishedAt as Date) < new Date(p.updatedAt),
     ) as Post;
 
     const updatedAt = new Date(testPost.updatedAt);
@@ -79,7 +82,7 @@ describe('BlogPost', () => {
 
     cy.get('[aria-label^="Last edited on"]').should(
       'have.text',
-      `${day} ${month} ${updatedAt.getFullYear()}`
+      `${day} ${month} ${updatedAt.getFullYear()}`,
     );
   });
 
@@ -135,7 +138,7 @@ describe('BlogPost', () => {
   it('displays reading time estimate depending on content length', () => {
     testPost = initMockBlogPost({
       content: randWord({ length: randNumber({ min: 10, max: 10000 }) }).join(
-        ' '
+        ' ',
       ),
     });
     const AVERAGE_READING_WPM = 200;
@@ -170,20 +173,52 @@ describe('BlogPost', () => {
         filterBy: {
           tags: [randomTag],
         },
-      })}`
+      })}`,
     );
+  });
+
+  it('shows post if its private and user is the author', () => {
+    const privatePost = allTestPosts.find((p) => p.status !== 'PUBLISHED');
+    if (!privatePost) throw new Error('Missing post fixture');
+
+    const author = testUsers.find(
+      (u) => u.id === privatePost.authorId,
+    ) as UserDetail;
+    cy.visit('/login');
+    cy.login(author.email, author.password);
+    cy.checkIfLoggedIn();
+
+    cy.visit(`/blog/${privatePost.id}`);
+    cy.contains('h1', '403').should('not.exist');
+    cy.contains('h1', privatePost.title).should('exist');
+    cy.contains(`[ ${privatePost.status} — Visible only to you and admins ]`);
+  });
+
+  it('shows post if its private and user is admin', () => {
+    const privatePost = allTestPosts.find((p) => p.status !== 'PUBLISHED');
+    if (!privatePost) throw new Error('Missing post fixture');
+
+    const admin = testUsers.find((u) => u.role === 'ADMIN') as UserDetail;
+    cy.visit('/login');
+    cy.login(admin.email, admin.password);
+    cy.checkIfLoggedIn();
+
+    cy.visit(`/blog/${privatePost.id}`);
+    cy.contains('h1', '403').should('not.exist');
+    cy.contains('h1', privatePost.title).should('exist');
+    cy.contains(`[ ${privatePost.status} — Visible only to you and admins ]`);
   });
 
   function checkReadingTimeEstimate(readingTimeInMinutes: number) {
     if (readingTimeInMinutes <= 1)
       cy.get('[aria-label^="Reading time"]').should(
         'have.text',
-        'Less than a minute read'
+        'Less than a minute read',
       );
     else
       cy.get('[aria-label^="Reading time"]').should(
         'have.text',
-        `${readingTimeInMinutes} minutes read`
+        `${readingTimeInMinutes} minutes read`,
       );
   }
 
@@ -213,7 +248,7 @@ describe('BlogPost', () => {
     mockResponse.data.post.id = testPostId;
 
     cy.intercept(`${API_ENDPOINTS.POSTS.BY_ID(testPostId)}*`, mockResponse).as(
-      'getPostResponse'
+      'getPostResponse',
     );
 
     cy.visit(`/blog/${testPostId}`);
