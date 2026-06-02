@@ -19,15 +19,14 @@ This is a monorepo containing:
 ## Data-model
 
 - User - can have one of these roles:
-
   - `ADMIN` can:
-    - create/edit/delete all posts
+    - get/create/edit/delete all posts
     - create/delete all comments
-    - delete users (except other admins)
-    - get/edit/delete reports on comments
+    - get/delete all users (except other admins)
+    - get/edit/delete all reports on comments
     - revoke all refresh tokens
-    - ban users except other admins
-    - change user role
+    - ban users (except other admins)
+    - change user role (except other admins)
     - create/edit/delete all tags
   - `MOD` can:
     - create/delete all comments
@@ -47,12 +46,10 @@ This is a monorepo containing:
 - RefreshToken - used in JWT authentication
 
 - Post - depending on visibility can be:
-
   - `PUBLIC`: available for everyone, even guest users
   - `MEMBERS_ONLY`: available only for registered users
 
   Depending on status can be:
-
   - `DRAFT`: can be accessed only by the author (_\*and admins_)
   - `PUBLISHED`: can be accessed by everyone (\*_depends on visibility_)
   - `ARCHIVED`: can be access only by the author (_\*and admins_)
