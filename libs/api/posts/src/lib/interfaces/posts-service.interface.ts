@@ -61,6 +61,7 @@ export interface IPostsService {
    * - By visibility (PUBLIC, MEMBERS_ONLY)
    * - By tags
    * - By published date year
+   * - By userId
    *
    * **Sorting options:**
    * - By creation date (createdAt)
