@@ -74,76 +74,62 @@ describe('Row details', async () => {
       );
   });
 
-  it(`displays each post's visibility in "Status/Visibility" col,
-	if value different that PUBLIC`, async () => {
-    const temp = [...posts];
-    const postsWithAlternatingVisibility = temp.map((post, i) => ({
+  it('renders "(Members-only)" only for MEMBERS_ONLY posts', async () => {
+    const postsWithAlternatingVisibility = posts.map((post, i) => ({
       ...post,
-      visibility: (i % 2 === 0 ? 'PUBLIC' : 'MEMBERS_ONLY') as PostVisibility,
+      visibility: i % 2 === 0 ? 'PUBLIC' : ('MEMBERS_ONLY' as PostVisibility),
     }));
+
     await render(PostsTable, { posts: postsWithAlternatingVisibility });
 
-    for (let i = 0; i < postsWithAlternatingVisibility?.length; i++)
-      if (postsWithAlternatingVisibility[i].visibility === 'MEMBERS_ONLY')
-        expect(
-          within(
-            getTableDataCell(i, TABLE_COLUMNS.indexOf('Status/Visibility')),
-          ).getByText('(Members-only)'),
-        ).toBeInTheDocument();
-      else
-        expect(
-          within(
-            getTableDataCell(i, TABLE_COLUMNS.indexOf('Status/Visibility')),
-          ).queryByText('(Members-only)'),
-        ).not.toBeInTheDocument();
+    const colIndex = TABLE_COLUMNS.indexOf('Status/Visibility');
+
+    postsWithAlternatingVisibility.forEach((post, rowIndex) => {
+      const cell = within(getTableDataCell(rowIndex, colIndex));
+
+      if (post.visibility === 'MEMBERS_ONLY') {
+        expect(cell.getByText('(Members-only)')).toBeInTheDocument();
+      } else {
+        expect(cell.queryByText('(Members-only)')).not.toBeInTheDocument();
+      }
+    });
   });
 
   it(`displays each post's published date in DD/MM/YYYY format (if present)`, async () => {
     await render(PostsTable, { posts });
 
-    for (let i = 0; i < posts?.length; i++)
-      if (posts[i].publishedAt)
+    const colIndex = TABLE_COLUMNS.indexOf('Published/Edited Date');
+
+    posts.forEach((post, rowIndex) => {
+      const cell = within(getTableDataCell(rowIndex, colIndex));
+      if (post.publishedAt)
         expect(
-          within(
-            getTableDataCell(i, TABLE_COLUMNS.indexOf('Published/Edited Date')),
-          ).getByText(
-            formatDateTo_DD_MM_YYYY(new Date(posts[i].publishedAt as Date)),
-          ),
+          cell.getByText(formatDateTo_DD_MM_YYYY(new Date(post.publishedAt))),
         ).toBeInTheDocument();
-      else
-        expect(
-          within(
-            getTableDataCell(i, TABLE_COLUMNS.indexOf('Published/Edited Date')),
-          ).queryByText(
-            formatDateTo_DD_MM_YYYY(new Date(posts[i].publishedAt as Date)),
-          ),
-        ).not.toBeInTheDocument();
+    });
   });
 
   it(`displays each post's updated date in DD/MM/YYYY format 
 		only if different than createdAt date`, async () => {
     await render(PostsTable, { posts });
 
-    for (let i = 0; i < posts?.length; i++)
-      if (
-        new Date(posts[i].createdAt).getTime() !==
-        new Date(posts[i].updatedAt).getTime()
-      )
+    const colIndex = TABLE_COLUMNS.indexOf('Published/Edited Date');
+
+    posts.forEach((post, rowIndex) => {
+      const cell = within(getTableDataCell(rowIndex, colIndex));
+      const differentDates =
+        new Date(post.createdAt).getTime() !==
+        new Date(post.updatedAt).getTime();
+
+      if (differentDates)
         expect(
-          within(
-            getTableDataCell(i, TABLE_COLUMNS.indexOf('Published/Edited Date')),
-          ).getByText(
-            formatDateTo_DD_MM_YYYY(new Date(posts[i].updatedAt as Date)),
-          ),
+          cell.getByText(formatDateTo_DD_MM_YYYY(new Date(post.updatedAt))),
         ).toBeInTheDocument();
       else
         expect(
-          within(
-            getTableDataCell(i, TABLE_COLUMNS.indexOf('Published/Edited Date')),
-          ).queryByText(
-            formatDateTo_DD_MM_YYYY(new Date(posts[i].updatedAt as Date)),
-          ),
+          cell.getByText(formatDateTo_DD_MM_YYYY(new Date(post.updatedAt))),
         ).not.toBeInTheDocument();
+    });
   });
 });
 
