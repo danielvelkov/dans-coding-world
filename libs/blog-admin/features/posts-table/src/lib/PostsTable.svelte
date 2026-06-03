@@ -1,26 +1,38 @@
 <script lang="ts">
-  import { TABLE_COLUMNS } from './shared.constants.js';
+  import { ADMIN_ONLY_COLUMN, TABLE_COLUMNS } from './shared.constants.js';
   import type { PostFull } from '@dans-coding-world/post-data-access';
   import { formatDateTo_DD_MM_YYYY } from '@dans-coding-world/helpers';
+  import type { UserDetail } from '@dans-coding-world/user-data-access';
 
   export interface Props {
     posts?: PostFull[];
     isLoading?: boolean;
     error?: Error;
+    viewer?: UserDetail;
   }
-  const { posts = [], isLoading = false, error } = $props<Props>();
+  const {
+    posts = [],
+    isLoading = false,
+    error,
+    viewer,
+  }: Props = $props<Props>();
 
   const showEmptyMessage = $derived(posts.length === 0);
+
+  const isAdmin = $derived(viewer?.role === 'ADMIN');
 </script>
 
 <table class="w-full table-auto text-left border border-gray-300">
   <thead class="border-b border-gray-200 bg-gray-50 text-gray-700">
     <tr>
       {#each TABLE_COLUMNS as col}
-        <th
-          class={`px-4 py-3 text-sm font-semibold ${['#', 'Published/Edited Date'].includes(col) ? 'text-center' : ''}`}
-          >{col}</th
-        >
+        {@const isAdminCol = col === ADMIN_ONLY_COLUMN}
+        {#if !isAdminCol || (isAdminCol && isAdmin)}
+          <th
+            class={`px-4 py-3 text-sm font-semibold ${['#', 'Published/Edited Date'].includes(col) ? 'text-center' : ''}`}
+            >{col}</th
+          >
+        {/if}
       {/each}
     </tr>
   </thead>
