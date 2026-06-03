@@ -27,10 +27,21 @@ it.each(TABLE_COLUMNS)('table contains "%s" column', async (col) => {
 });
 
 it('table displays empty message on no posts passed', async () => {
-  await render(PostsTable, { props: { posts: [] } });
+  await render(PostsTable, { posts: [] });
   expect(
     screen.getByText('No posts yet - Create your first post'),
   ).toBeInTheDocument();
+});
+
+it('table displays "loading" message on `isLoading` prop set to "true"', async () => {
+  await render(PostsTable, { isLoading: true });
+  expect(screen.getByText('Loading...')).toBeInTheDocument();
+});
+
+it('table displays error message on `error` prop populated', async () => {
+  const error = new Error('Something went wrong');
+  await render(PostsTable, { error });
+  expect(screen.getByText(new RegExp(error.message))).toBeInTheDocument();
 });
 
 describe('Row details', async () => {
@@ -42,7 +53,7 @@ describe('Row details', async () => {
   if (!posts) throw new Error('Missing fixtures');
 
   it(`displays each post's title in "Title" column`, async () => {
-    await render(PostsTable, { props: { posts } });
+    await render(PostsTable, { posts });
 
     for (let i = 0; i < posts?.length; i++)
       expect(
@@ -53,7 +64,7 @@ describe('Row details', async () => {
   });
 
   it(`displays each post's status in uppercase "Status/Visibility" column`, async () => {
-    await render(PostsTable, { props: { posts } });
+    await render(PostsTable, { posts });
 
     for (let i = 0; i < posts?.length; i++)
       expect(
@@ -70,9 +81,7 @@ describe('Row details', async () => {
       ...post,
       visibility: (i % 2 === 0 ? 'PUBLIC' : 'MEMBERS_ONLY') as PostVisibility,
     }));
-    await render(PostsTable, {
-      props: { posts: postsWithAlternatingVisibility },
-    });
+    await render(PostsTable, { posts: postsWithAlternatingVisibility });
 
     for (let i = 0; i < postsWithAlternatingVisibility?.length; i++)
       if (postsWithAlternatingVisibility[i].visibility === 'MEMBERS_ONLY')
@@ -90,7 +99,7 @@ describe('Row details', async () => {
   });
 
   it(`displays each post's published date in DD/MM/YYYY format (if present)`, async () => {
-    await render(PostsTable, { props: { posts } });
+    await render(PostsTable, { posts });
 
     for (let i = 0; i < posts?.length; i++)
       if (posts[i].publishedAt)
@@ -113,7 +122,7 @@ describe('Row details', async () => {
 
   it(`displays each post's updated date in DD/MM/YYYY format 
 		only if different than createdAt date`, async () => {
-    await render(PostsTable, { props: { posts } });
+    await render(PostsTable, { posts });
 
     for (let i = 0; i < posts?.length; i++)
       if (
