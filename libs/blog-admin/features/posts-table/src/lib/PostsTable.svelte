@@ -3,10 +3,12 @@
   import type { PostFull } from '@dans-coding-world/post-data-access';
   import { formatDateTo_DD_MM_YYYY } from '@dans-coding-world/helpers';
 
-  interface Props {
+  export interface Props {
     posts?: PostFull[];
+    isLoading?: boolean;
+    error?: Error;
   }
-  const { posts = [] }: Props = $props();
+  const { posts = [], isLoading = false, error } = $props<Props>();
 
   const showEmptyMessage = $derived(posts.length === 0);
 </script>
@@ -24,7 +26,25 @@
   </thead>
 
   <tbody class="divide-y divide-gray-200">
-    {#if showEmptyMessage}
+    {#if isLoading}
+      <tr>
+        <td
+          colspan={TABLE_COLUMNS.length}
+          class="px-4 py-6 text-center text-gray-500 italic"
+        >
+          Loading...
+        </td>
+      </tr>
+    {:else if error}
+      <tr>
+        <td
+          colspan={TABLE_COLUMNS.length}
+          class="px-4 py-6 text-center text-red-500 italic"
+        >
+          {error}
+        </td>
+      </tr>
+    {:else if showEmptyMessage}
       <tr>
         <td
           colspan={TABLE_COLUMNS.length}
