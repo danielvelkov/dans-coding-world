@@ -72,8 +72,10 @@
           new Date(post.updatedAt).getTime()}
 
         <tr class="transition-colors hover:bg-gray-50">
+          <!-- Index col -->
           <td class="px-4 py-3 text-sm text-gray-700 text-center">{i + 1}</td>
 
+          <!-- Title col -->
           <td
             class="px-4 pt-3 text-sm line-clamp-2 text-ellipsis font-medium text-gray-900"
             title={post.title}
@@ -81,6 +83,7 @@
             {post.title}
           </td>
 
+          <!-- Status/Visibility col -->
           <td class="px-4 py-3 text-sm text-gray-700">
             <div class="flex flex-col items-left gap-1">
               <b class="text-gray-900">{post.status.toUpperCase()}</b>
@@ -91,6 +94,7 @@
             </div>
           </td>
 
+          <!-- Published/Updated date col -->
           <td class="px-4 py-3 text-sm text-gray-700">
             <div class="flex flex-col items-center gap-1">
               {#if post.publishedAt}
@@ -110,6 +114,15 @@
               {/if}
             </div>
           </td>
+
+          <!-- Author col (admin-only) -->
+          {#if isAdmin}
+            <td class="px-4 py-3 text-sm text-gray-700">
+              <a href={`/users?search=${post.authorId}`}>
+                <b class="text-gray-900">{post.author.username}</b>
+              </a>
+            </td>
+          {/if}
         </tr>
       {/each}
     {/if}

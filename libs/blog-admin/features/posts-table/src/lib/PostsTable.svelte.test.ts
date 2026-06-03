@@ -10,6 +10,8 @@ import type { PostVisibility } from '@dans-coding-world/prisma-schema';
 import { formatDateTo_DD_MM_YYYY } from '@dans-coding-world/helpers';
 import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
 
+const admin = generateRandomUser({ role: 'ADMIN' });
+
 it('renders successfully', async () => {
   const screen = await render(PostsTable);
   expect(screen).toBeDefined();
@@ -40,7 +42,6 @@ it('renders additional "Author" column if admin viewer', async () => {
   ).toBeFalsy();
 
   // admin viewer
-  const admin = generateRandomUser({ role: 'ADMIN' });
   const { baseElement: baseElement_AdminViewer } = await render(PostsTable, {
     viewer: admin,
   });
@@ -154,6 +155,23 @@ describe('Row details', async () => {
         expect(
           cell.getByText(formatDateTo_DD_MM_YYYY(new Date(post.updatedAt))),
         ).not.toBeInTheDocument();
+    });
+  });
+
+  it(`displays author username as link in "Author" column,
+     if viewer has role ADMIN`, async () => {
+    await render(PostsTable, { posts, viewer: admin });
+
+    const colIndex = TABLE_COLUMNS.indexOf('Author');
+
+    posts.forEach((post, rowIndex) => {
+      const cell = within(getTableDataCell(rowIndex, colIndex));
+      const usernameLink = cell.getByRole('link');
+      expect(usernameLink.textContent).toBe(post.author.username);
+      expect(usernameLink).toHaveAttribute(
+        'href',
+        `/users?search=${post.authorId}`,
+      );
     });
   });
 });
