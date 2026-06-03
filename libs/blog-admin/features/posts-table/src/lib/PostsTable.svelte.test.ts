@@ -3,11 +3,12 @@ import { expect, it, describe } from 'vitest';
 import { screen, within } from '@testing-library/svelte';
 
 import PostsTable from './PostsTable.svelte';
-import { TABLE_COLUMNS } from './shared.constants.js';
+import { ADMIN_ONLY_COLUMN, TABLE_COLUMNS } from './shared.constants.js';
 import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import type { PostVisibility } from '@dans-coding-world/prisma-schema';
 import { formatDateTo_DD_MM_YYYY } from '@dans-coding-world/helpers';
+import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
 
 it('renders successfully', async () => {
   const screen = await render(PostsTable);
@@ -19,11 +20,35 @@ it('renders as <table> element', async () => {
   expect((container.firstChild as HTMLElement).tagName).toBe('TABLE');
 });
 
-it.each(TABLE_COLUMNS)('table contains "%s" column', async (col) => {
-  await render(PostsTable);
-  const thead = screen.getByRole('columnheader', { name: col });
+it.each(TABLE_COLUMNS.filter((c) => c !== ADMIN_ONLY_COLUMN))(
+  `table contains "%s" column (non-admin viewer)`,
+  async (col) => {
+    await render(PostsTable);
+    const thead = screen.getByRole('columnheader', { name: col });
 
-  expect(thead).toBeInTheDocument();
+    expect(thead).toBeInTheDocument();
+  },
+);
+
+it('renders additional "Author" column if admin viewer', async () => {
+  // non-admin viewer
+  const { baseElement: baseElement_NonAdminViewer } = await render(PostsTable);
+  expect(
+    within(baseElement_NonAdminViewer).queryByRole('columnheader', {
+      name: ADMIN_ONLY_COLUMN,
+    }),
+  ).toBeFalsy();
+
+  // admin viewer
+  const admin = generateRandomUser({ role: 'ADMIN' });
+  const { baseElement: baseElement_AdminViewer } = await render(PostsTable, {
+    viewer: admin,
+  });
+  expect(
+    within(baseElement_AdminViewer).getByRole('columnheader', {
+      name: ADMIN_ONLY_COLUMN,
+    }),
+  ).toBeTruthy();
 });
 
 it('table displays empty message on no posts passed', async () => {
