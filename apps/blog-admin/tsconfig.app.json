@@ -31,17 +31,11 @@
 	],
 	"include": ["src/**/*.js", "src/**/*.svelte", "src/**/*.ts"],
 	"references": [
-    {
-      "path": "../../libs/shared/post/dtos/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/shared/data-access/api/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/public-blog/data-access/blog-api/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/shared/util/api-types/tsconfig.lib.json"
-    }
-  ]
+		{
+			"path": "../../libs/api/data-access/user/tsconfig.lib.json"
+		},
+		{
+			"path": "../../libs/shared/user/testing/tsconfig.lib.json"
+		}
+	]
 }

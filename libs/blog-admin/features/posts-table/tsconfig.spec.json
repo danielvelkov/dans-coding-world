@@ -14,7 +14,6 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/**/*.svelte",
     "vite.config.ts",
     "vite.config.mts",
     "vitest.config.ts",
@@ -23,7 +22,9 @@
     "src/**/*.spec.ts",
     "src/**/*.test.js",
     "src/**/*.spec.js",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    // Added for svelte
+    "src/**/*.svelte"
   ],
   "references": [
     {

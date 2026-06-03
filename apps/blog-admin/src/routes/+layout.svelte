@@ -16,11 +16,15 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 <QueryClientProvider client={data.queryClient}>
-	<header>
-		<nav>
-			<a href="/posts">Posts</a>
+	<header class="border-b border-gray-200 bg-white shadow-sm">
+		<nav
+			class="mx-auto flex max-w-7xl items-center gap-6 px-6 py-4 text-sm font-medium text-gray-700"
+		>
+			<a href="/" class="transition-colors hover:text-gray-900">Home</a>
+			<a href="/posts" class="transition-colors hover:text-gray-900">Posts</a>
 		</nav>
 	</header>
+
 	<main class="m-auto flex max-w-2xl flex-col">
 		{@render children()}
 	</main>
