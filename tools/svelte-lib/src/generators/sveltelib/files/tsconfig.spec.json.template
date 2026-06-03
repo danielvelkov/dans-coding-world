@@ -24,11 +24,6 @@
     "src/**/*.test.js",
     "src/**/*.spec.js",
     "src/**/*.d.ts",
-    // Added for svelte
-    "src/**/*.svelte.test.js",
-    "src/**/*.svelte.test.ts",
-    "src/**/*.svelte.spec.js",
-    "src/**/*.svelte.spec.ts"
   ],
   "references": [
     {
