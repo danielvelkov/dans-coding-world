@@ -25,7 +25,9 @@ export const generateRandomUserPreview = (): UserPreview => {
   };
 };
 
-export const generateRandomUser = (): UserDetail => {
+export const generateRandomUser = (
+  userOverrides?: Partial<UserDetail>,
+): UserDetail => {
   const authorId = randNumber({ min: 1, max: 1000 });
   return {
     id: authorId,
@@ -42,5 +44,6 @@ export const generateRandomUser = (): UserDetail => {
       bio: randSentence(),
       userId: authorId,
     },
+    ...userOverrides,
   };
 };
