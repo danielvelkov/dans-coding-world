@@ -3,7 +3,12 @@ import { expect, it, describe } from 'vitest';
 import { screen, within } from '@testing-library/svelte';
 
 import PostsTable from './PostsTable.svelte';
-import { ADMIN_ONLY_COLUMN, TABLE_COLUMNS } from './shared.constants.js';
+import {
+  ADMIN_ONLY_COLUMN,
+  POSTS_EMPTY_MESSAGE,
+  POSTS_LOADING_MESSAGE,
+  TABLE_COLUMNS,
+} from './shared.constants.js';
 import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import type { PostVisibility } from '@dans-coding-world/prisma-schema';
@@ -54,14 +59,12 @@ it('renders additional "Author" column if admin viewer', async () => {
 
 it('table displays empty message on no posts passed', async () => {
   await render(PostsTable, { posts: [] });
-  expect(
-    screen.getByText('No posts yet - Create your first post'),
-  ).toBeInTheDocument();
+  expect(screen.getByText(POSTS_EMPTY_MESSAGE)).toBeInTheDocument();
 });
 
 it('table displays "loading" message on `isLoading` prop set to "true"', async () => {
   await render(PostsTable, { isLoading: true });
-  expect(screen.getByText('Loading...')).toBeInTheDocument();
+  expect(screen.getByText(POSTS_LOADING_MESSAGE)).toBeInTheDocument();
 });
 
 it('table displays error message on `error` prop populated', async () => {
@@ -100,7 +103,7 @@ describe('Row details', async () => {
       );
   });
 
-  it('renders "(Members-only)" only for MEMBERS_ONLY posts', async () => {
+  it('renders "(Members-only)" in "Status/Visibility" column, for MEMBERS_ONLY posts', async () => {
     const postsWithAlternatingVisibility = posts.map((post, i) => ({
       ...post,
       visibility: i % 2 === 0 ? 'PUBLIC' : ('MEMBERS_ONLY' as PostVisibility),
@@ -158,7 +161,7 @@ describe('Row details', async () => {
     });
   });
 
-  it(`displays author username as link in "Author" column,
+  it(`displays post author's username as link in "Author" column,
      if viewer has role ADMIN`, async () => {
     await render(PostsTable, { posts, viewer: admin });
 
@@ -167,6 +170,7 @@ describe('Row details', async () => {
     posts.forEach((post, rowIndex) => {
       const cell = within(getTableDataCell(rowIndex, colIndex));
       const usernameLink = cell.getByRole('link');
+
       expect(usernameLink.textContent).toBe(post.author.username);
       expect(usernameLink).toHaveAttribute(
         'href',

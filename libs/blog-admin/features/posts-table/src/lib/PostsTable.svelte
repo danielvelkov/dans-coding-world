@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { ADMIN_ONLY_COLUMN, TABLE_COLUMNS } from './shared.constants.js';
+  import {
+    ADMIN_ONLY_COLUMN,
+    POSTS_EMPTY_MESSAGE,
+    POSTS_LOADING_MESSAGE,
+    TABLE_COLUMNS,
+  } from './shared.constants.js';
   import type { PostFull } from '@dans-coding-world/post-data-access';
   import { formatDateTo_DD_MM_YYYY } from '@dans-coding-world/helpers';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
@@ -33,14 +38,11 @@
 
   <!-- children() -->
   {#if isLoading}
-    {@render MessageRow('Loading...', 'text-gray-500 italic')}
+    {@render MessageRow(POSTS_LOADING_MESSAGE, 'text-gray-500 italic')}
   {:else if error}
     {@render MessageRow(error.message, 'text-red-500 italic')}
   {:else if showEmptyMessage}
-    {@render MessageRow(
-      'No posts yet - Create your first post',
-      'text-gray-500 italic',
-    )}
+    {@render MessageRow(POSTS_EMPTY_MESSAGE, 'text-gray-500 italic')}
   {/if}
 
   <!-- Table Rows -->
