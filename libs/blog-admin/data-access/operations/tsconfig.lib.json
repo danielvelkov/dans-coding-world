@@ -11,7 +11,20 @@
     "types": ["node"]
   },
   "include": ["src/**/*.ts"],
-  "references": [],
+  "references": [
+    {
+      "path": "../../../shared/data-access/api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/api-types/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../public-blog/data-access/blog-api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/post/dtos/tsconfig.lib.json"
+    }
+  ],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",

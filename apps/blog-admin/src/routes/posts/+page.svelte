@@ -1,20 +1,11 @@
 <script lang="ts">
-	import type { GetPostsResponseDto } from '@dans-coding-world/shared-post-dto';
-	import { api } from '@dans-coding-world/public-blog-data-access-api';
-	import type { BaseResponse } from '@dans-coding-world/api-types';
 	import { PostsTable } from '@dans-coding-world/blog-admin-features-posts-table';
-	import { API_ENDPOINTS, handleQueryResponse } from '@dans-coding-world/shared-data-access-api';
-	import { createQuery } from '@tanstack/svelte-query';
+	import { createPostsQuery } from '@dans-coding-world/blog-admin-data-access-operations';
 
-	const TEN_MINUTES_IN_MS = 10 * 60 * 1000;
-	const postsQuery = createQuery<GetPostsResponseDto | null, Error>(() => ({
-		staleTime: TEN_MINUTES_IN_MS,
-		queryKey: ['posts'],
-		queryFn: async () => {
-			const response = await api.get<BaseResponse<GetPostsResponseDto>>(API_ENDPOINTS.POSTS.LIST);
-			return handleQueryResponse(response);
-		}
-	}));
+	const postsQuery = createPostsQuery();
+	const isLoading = $derived(postsQuery.isLoading);
+	const posts = $derived(postsQuery.data?.items ?? []);
+	const error = $derived(postsQuery.error);
 </script>
 
 <svelte:head>
@@ -22,8 +13,4 @@
 </svelte:head>
 
 <h2 class="mb-2 text-4xl">Posts</h2>
-<PostsTable
-	posts={postsQuery.data?.items}
-	isLoading={postsQuery.status === 'pending'}
-	error={postsQuery.error ?? undefined}
-></PostsTable>
+<PostsTable {posts} {isLoading} error={error ?? undefined}></PostsTable>
