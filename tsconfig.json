@@ -146,6 +146,9 @@
     },
     {
       "path": "./libs/blog-admin/ui/common"
+    },
+    {
+      "path": "./libs/blog-admin/data-access/operations"
     }
   ]
 }
