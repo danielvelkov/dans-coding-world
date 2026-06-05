@@ -14,6 +14,7 @@ import { useCommentContext } from '../hooks/useCommentContext';
 import { ReportCommentModal } from './ReportCommentModal';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { ActionButton } from './ActionButton';
+import { toggleValue } from '@dans-coding-world/helpers';
 
 const StyledCommentList = styled.ul<
   React.ComponentPropsWithoutRef<'ul'> & { $depth: number }
@@ -198,7 +199,7 @@ export function CommentThread({
 
   const handleExpandClick = (comment: CommentWithReplies) => {
     setSelectedCommentForReplyId(null);
-    setExpandedThreads((prev) => toggleId(prev, comment.id));
+    setExpandedThreads((prev) => toggleValue(prev, comment.id));
   };
 
   return (
@@ -367,8 +368,4 @@ export function CommentThread({
     </StyledCommentList>
   );
 }
-function toggleId(ids: number[], id: number): number[] {
-  return ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id];
-}
-
 export default CommentThread;
