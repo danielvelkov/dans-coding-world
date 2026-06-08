@@ -30,6 +30,17 @@
 	},
 	"nx": {
 		"targets": {
+			"serve-all": {
+				"executor": "nx:run-commands",
+				"options": {
+					"commands": [
+						"nx run @dans-coding-world/blog-admin:dev",
+						"nx run @dans-coding-world/api:serve:e2e"
+					],
+					"parallel": true,
+					"readyWhen": "Listening at http://localhost:3000/api"
+				}
+			},
 			"test": {
 				"executor": "nx:run-commands",
 				"options": {
