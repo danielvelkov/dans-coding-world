@@ -1,4 +1,5 @@
 export const TABLE_COLUMNS = [
+  'Show Row Details',
   '#',
   'Title',
   'Status/Visibility',
@@ -8,6 +9,11 @@ export const TABLE_COLUMNS = [
 ] as const;
 
 export const ADMIN_ONLY_COLUMN: (typeof TABLE_COLUMNS)[number] = 'Author';
+
+/** Columns that will exist but will not have their column name visible */
+export const OMITTED_COLUMN_NAMES: (typeof TABLE_COLUMNS)[number][] = [
+  'Show Row Details',
+];
 
 export const POSTS_LOADING_MESSAGE = 'Loading posts...';
 export const POSTS_EMPTY_MESSAGE = 'No posts yet - Create your first post';
