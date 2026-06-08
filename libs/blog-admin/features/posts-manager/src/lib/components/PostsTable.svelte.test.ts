@@ -9,7 +9,7 @@ import {
   POSTS_EMPTY_MESSAGE,
   POSTS_LOADING_MESSAGE,
   TABLE_COLUMNS,
-} from './shared.constants.js';
+} from '../shared/constants.js';
 import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import type { PostVisibility } from '@dans-coding-world/prisma-schema';

@@ -6,7 +6,7 @@
     POSTS_EMPTY_MESSAGE,
     POSTS_LOADING_MESSAGE,
     TABLE_COLUMNS,
-  } from './shared.constants.js';
+  } from '../shared/constants.js';
   import type { PostFull } from '@dans-coding-world/post-data-access';
   import {
     formatDateTo_DD_MM_YYYY,
