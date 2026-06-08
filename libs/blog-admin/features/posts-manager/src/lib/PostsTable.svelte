@@ -94,7 +94,7 @@
     <!-- Expand/Collapse Button -->
     <td class="px-4 py-4 text-sm text-gray-500">
       <button
-        class="p-1 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="p-1 w-5 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
         aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
         onclick={() => {
           expandedRows = toggleValue(expandedRows, post.id);

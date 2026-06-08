@@ -139,7 +139,7 @@
       "path": "./libs/public-blog/features/user-account"
     },
     {
-      "path": "./libs/blog-admin/features/posts-table"
+      "path": "./libs/blog-admin/features/posts-manager"
     },
     {
       "path": "./tools/svelte-lib"

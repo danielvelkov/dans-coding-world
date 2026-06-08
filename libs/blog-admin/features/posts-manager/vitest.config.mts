@@ -6,7 +6,7 @@ export default defineConfig(() => ({
   plugins: [svelte()],
   root: __dirname,
   cacheDir:
-    '../../../../node_modules/.vite/libs/blog-admin/features/posts-table',
+    '../../../../node_modules/.vite/libs/blog-admin/features/posts-manager',
   // Configured for svelte
   test: {
     globals: true,

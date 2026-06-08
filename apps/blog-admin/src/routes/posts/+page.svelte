@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PostsTable } from '@dans-coding-world/blog-admin-features-posts-table';
+	import { PostsTable } from '@dans-coding-world/blog-admin-features-posts-manager';
 	import { createPostsQuery } from '@dans-coding-world/blog-admin-data-access-operations';
 
 	const postsQuery = createPostsQuery();
