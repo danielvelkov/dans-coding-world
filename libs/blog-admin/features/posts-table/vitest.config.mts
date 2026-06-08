@@ -3,7 +3,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { playwright } from '@vitest/browser-playwright';
 
 export default defineConfig(() => ({
-  plugins: [svelte({ compilerOptions: { hmr: false } })],
+  plugins: [svelte()],
   root: __dirname,
   cacheDir:
     '../../../../node_modules/.vite/libs/blog-admin/features/posts-table',
@@ -25,8 +25,5 @@ export default defineConfig(() => ({
     },
     include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
     exclude: ['src/lib/server/**'],
-  },
-  optimizeDeps: {
-    force: true,
   },
 }));
