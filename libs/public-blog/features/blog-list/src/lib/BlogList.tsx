@@ -8,7 +8,10 @@ import {
   PAGINATION,
   POST_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
-import { calculatePageOffset } from '@dans-coding-world/helpers';
+import {
+  calculatePageOffset,
+  floorToNearestMultiple,
+} from '@dans-coding-world/helpers';
 import { PostList, StyledUnorderedList } from './components/PostList';
 import { PostItem } from './components/PostItem';
 import { ShimmerList } from './components/ShimmerList';
@@ -96,7 +99,7 @@ export function BlogList({
   const handlePageSelect = (page: number) => {
     const pageOffset = calculatePageOffset(
       page,
-      params.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+      params.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
     );
     setParams({
       ...params,
@@ -118,9 +121,9 @@ export function BlogList({
       // if page offset smaller than page size
       // or not divisible
       // round down to the closest smaller number
-      const pageOffset = roundDownToMakeItDivisible(
+      const pageOffset = floorToNearestMultiple(
         params.pageOffset,
-        normalizedValue
+        normalizedValue,
       );
       setParams({
         ...params,
@@ -207,11 +210,3 @@ export function BlogList({
 }
 
 export default BlogList;
-
-function roundDownToMakeItDivisible(
-  value: number | undefined,
-  divisor: number
-) {
-  if (!value || value < divisor) return 0;
-  else return value - (value % divisor);
-}

@@ -5,3 +5,4 @@ export * from './lib/object.helper.js';
 export * from './lib/query-string.helper.js';
 export * from './lib/password.helper.js';
 export * from './lib/date.helper.js';
+export * from './lib/calculation.helper.js';
