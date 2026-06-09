@@ -2,8 +2,22 @@
   import { createPostsQuery } from '@dans-coding-world/blog-admin-data-access-operations';
   import PostsTable from './components/PostsTable.svelte';
   import { TablePagination } from '@dans-coding-world/blog-admin-ui-common';
+  import { createPaginationHandlers } from '@dans-coding-world/helpers';
+  import { PAGINATION } from '@dans-coding-world/shared-constants';
+  import { UserDetail } from '@dans-coding-world/user-data-access';
 
-  const postsQuery = createPostsQuery();
+  export type PostsManagerParams = Parameters<typeof createPostsQuery>[0];
+
+  const {
+    params,
+    onParamsChange = () => {},
+  }: {
+    params?: PostsManagerParams;
+    onParamsChange?: (value: PostsManagerParams) => void;
+    loggedInUser?: UserDetail;
+  } = $props();
+
+  const postsQuery = $derived(createPostsQuery(params)); // closure needed for the query to update
 
   const isLoading = $derived(postsQuery.isLoading);
   const posts = $derived(postsQuery.data?.items ?? []);
