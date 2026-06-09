@@ -8,10 +8,7 @@ import {
   PAGINATION,
   POST_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
-import {
-  calculatePageOffset,
-  floorToNearestMultiple,
-} from '@dans-coding-world/helpers';
+import { createPaginationHandlers } from '@dans-coding-world/helpers';
 import { PostList, StyledUnorderedList } from './components/PostList';
 import { PostItem } from './components/PostItem';
 import { ShimmerList } from './components/ShimmerList';
@@ -24,10 +21,7 @@ import {
 } from '@dans-coding-world/public-blog-shared-hooks';
 import { PostVisibilityFilter } from './components/PostVisibilityFilter';
 import { PostSortingDropdown } from './components/PostSortingDropdown';
-import {
-  PostItemOption,
-  PostItemsPerPage,
-} from './components/PostItemsPerPage';
+import { PostItemsPerPage } from './components/PostItemsPerPage';
 import { BlogPostItem } from './types/post-item-data.type';
 import { FieldErrorText } from '@dans-coding-world/public-blog-ui-form';
 import React from 'react';
@@ -96,42 +90,16 @@ export function BlogList({
     });
   };
 
-  const handlePageSelect = (page: number) => {
-    const pageOffset = calculatePageOffset(
-      page,
-      params.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
+  const { handlePageSelect, handleItemsPerPageSelect } =
+    createPaginationHandlers(
+      {
+        ...params,
+        pageOffset: params.pageOffset,
+        pageSize: params.pageSize,
+      },
+      setParams,
+      { defaultPageSize: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE },
     );
-    setParams({
-      ...params,
-      pageOffset: pageOffset === 0 ? undefined : pageOffset,
-    });
-  };
-
-  const handleItemsPerPageSelect = (itemsPerPage: PostItemOption) => {
-    const normalizedValue = itemsPerPage ? Number(itemsPerPage) : undefined;
-    if (
-      !normalizedValue ||
-      normalizedValue === PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
-    )
-      setParams({
-        ...params,
-        pageSize: undefined,
-      });
-    else {
-      // if page offset smaller than page size
-      // or not divisible
-      // round down to the closest smaller number
-      const pageOffset = floorToNearestMultiple(
-        params.pageOffset,
-        normalizedValue,
-      );
-      setParams({
-        ...params,
-        pageOffset: pageOffset === 0 ? undefined : pageOffset,
-        pageSize: normalizedValue as PostItemOption,
-      });
-    }
-  };
 
   const showLoading = useDelayedLoading(isPending || isLoading || !data, 200);
 
