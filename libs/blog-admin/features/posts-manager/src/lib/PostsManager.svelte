@@ -4,7 +4,7 @@
   import { TablePagination } from '@dans-coding-world/blog-admin-ui-common';
   import { createPaginationHandlers } from '@dans-coding-world/helpers';
   import { PAGINATION } from '@dans-coding-world/shared-constants';
-  import { UserDetail } from '@dans-coding-world/user-data-access';
+  import type { UserDetail } from '@dans-coding-world/user-data-access';
 
   export type PostsManagerParams = Parameters<typeof createPostsQuery>[0];
 

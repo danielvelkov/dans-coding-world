@@ -4,8 +4,8 @@ import {
   joinPathFragments,
   names,
   offsetFromRoot,
-  Tree,
 } from '@nx/devkit';
+import type { Tree } from '@nx/devkit';
 import * as path from 'path';
 import { SveltelibGeneratorSchema } from './schema';
 
