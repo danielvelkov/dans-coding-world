@@ -16,5 +16,5 @@
 </script>
 
 <span class="text-gray-600">
-  {`Showing ${start} to ${end} of ${total} entries`}
+  {`Showing ${start} - ${end} of ${total} entries`}
 </span>

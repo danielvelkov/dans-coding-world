@@ -168,7 +168,7 @@
 
     <!-- Actions -->
     <td class="px-4 py-4 text-sm font-medium">
-      <div class="flex space-x-3">
+      <div class="flex space-x-3 flex-wrap">
         <a
           href={`/posts/${post.id}/edit`}
           class="text-blue-600 hover:text-blue-800"

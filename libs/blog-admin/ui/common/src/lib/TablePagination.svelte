@@ -10,7 +10,7 @@
   } = $props();
 </script>
 
-<nav aria-label="pagination" class="flex justify-center mt-4">
+<nav aria-label="pagination" class="flex justify-center">
   <ul class="flex gap-1">
     <li>
       <button
