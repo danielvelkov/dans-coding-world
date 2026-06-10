@@ -1,17 +1,35 @@
 <script lang="ts">
 	import { PostsManager } from '@dans-coding-world/blog-admin-features-posts-manager';
+	import { mergePostQueryDefaults } from './util/merge-post-query-defaults';
+	import { getPostQueryParamsParser } from './util/get-post-query-params-parser';
+	import { omitDefaultPostQueryParams } from './util/omit-default-post-query-params';
 	import type { PostsManagerParams } from '@dans-coding-world/blog-admin-features-posts-manager';
+	import { parseQueryString, stringifyToQueryString } from '@dans-coding-world/helpers';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 
-	let params: PostsManagerParams = $state({});
+	// TODO
+	const isAdmin = false;
+
+	const searchParams = $derived(page.url.searchParams);
+	const rawParams = $derived(parseQueryString(searchParams.toString()));
+
+	const params: PostsManagerParams = $derived.by(() => {
+		const { success, error, data } = getPostQueryParamsParser().safeParse(rawParams);
+		if (success) return mergePostQueryDefaults((data as PostsManagerParams) || {}, isAdmin);
+		// TODO: handle errors
+		if (error) console.error(error);
+		return;
+	});
+
+	const onParamsChange = async (newParams?: PostsManagerParams) => {
+		const filteredValues = omitDefaultPostQueryParams(newParams ?? {}, isAdmin);
+		await goto(`?${stringifyToQueryString(filteredValues)}`);
+	};
 </script>
 
 <svelte:head>
 	<title>Your Posts</title>
 </svelte:head>
 
-<PostsManager
-	{params}
-	onParamsChange={(newParams) => {
-		params = newParams;
-	}}
-/>
+<PostsManager {params} {onParamsChange} />
