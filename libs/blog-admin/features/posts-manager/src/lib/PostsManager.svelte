@@ -1,7 +1,10 @@
 <script lang="ts">
   import { createPostsQuery } from '@dans-coding-world/blog-admin-data-access-operations';
   import PostsTable from './components/PostsTable.svelte';
-  import { TablePagination } from '@dans-coding-world/blog-admin-ui-common';
+  import {
+    TablePaginationInfo,
+    TablePagination,
+  } from '@dans-coding-world/blog-admin-ui-common';
   import { createPaginationHandlers } from '@dans-coding-world/helpers';
   import { PAGINATION } from '@dans-coding-world/shared-constants';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
@@ -46,10 +49,14 @@
   <PostsTable {posts} {isLoading} error={error ?? undefined} />
 
   {#if total > itemsPerPage}
-    <TablePagination
-      {currentPage}
-      {totalPages}
-      onPageSelect={handlePageSelect}
-    />
+    <div class="flex justify-between items-center flex-wrap">
+      <TablePaginationInfo {currentPage} {total} {itemsPerPage}
+      ></TablePaginationInfo>
+      <TablePagination
+        {currentPage}
+        {totalPages}
+        onPageSelect={handlePageSelect}
+      />
+    </div>
   {/if}
 </div>
