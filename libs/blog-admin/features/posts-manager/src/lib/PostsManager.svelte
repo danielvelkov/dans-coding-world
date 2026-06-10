@@ -4,6 +4,7 @@
   import {
     TablePaginationInfo,
     TablePagination,
+    TableItemsPerPageSelect,
   } from '@dans-coding-world/blog-admin-ui-common';
   import { createPaginationHandlers } from '@dans-coding-world/helpers';
   import { PAGINATION } from '@dans-coding-world/shared-constants';
@@ -33,7 +34,7 @@
   );
   const totalPages = $derived(Math.ceil(total / itemsPerPage));
 
-  const { handlePageSelect } = $derived.by(() => {
+  const { handlePageSelect, handleItemsPerPageSelect } = $derived.by(() => {
     return createPaginationHandlers(params ?? {}, onParamsChange, {
       defaultPageSize: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
     });
@@ -49,9 +50,19 @@
   <PostsTable {posts} {isLoading} error={error ?? undefined} />
 
   {#if total > itemsPerPage}
-    <div class="flex justify-between items-center flex-wrap">
-      <TablePaginationInfo {currentPage} {total} {itemsPerPage}
-      ></TablePaginationInfo>
+    <div class="flex justify-between items-center-safe flex-wrap gap-5">
+      <div class="flex flex-col gap-2">
+        <TablePaginationInfo {currentPage} {total} {itemsPerPage}
+        ></TablePaginationInfo>
+
+        <TableItemsPerPageSelect
+          currentValue={params?.pageSize ??
+            PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE}
+          values={[...PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS]}
+          onChange={handleItemsPerPageSelect}
+        ></TableItemsPerPageSelect>
+      </div>
+
       <TablePagination
         {currentPage}
         {totalPages}
