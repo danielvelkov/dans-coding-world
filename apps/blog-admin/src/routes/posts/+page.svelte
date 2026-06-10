@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { PostsManager } from '@dans-coding-world/blog-admin-features-posts-manager';
 	import { mergePostQueryDefaults } from './util/merge-post-query-defaults';
-	import { getPostQueryParamsParser } from './util/get-post-query-params-parser';
+	import { PostQueryParamsParser } from './util/post-query-param-parser';
 	import { omitDefaultPostQueryParams } from './util/omit-default-post-query-params';
 	import type { PostsManagerParams } from '@dans-coding-world/blog-admin-features-posts-manager';
 	import { parseQueryString, stringifyToQueryString } from '@dans-coding-world/helpers';
@@ -15,7 +15,7 @@
 	const rawParams = $derived(parseQueryString(searchParams.toString()));
 
 	const params: PostsManagerParams = $derived.by(() => {
-		const { success, error, data } = getPostQueryParamsParser().safeParse(rawParams);
+		const { success, error, data } = PostQueryParamsParser().safeParse(rawParams);
 		if (success) return mergePostQueryDefaults((data as PostsManagerParams) || {}, isAdmin);
 		// TODO: handle errors
 		if (error) console.error(error);

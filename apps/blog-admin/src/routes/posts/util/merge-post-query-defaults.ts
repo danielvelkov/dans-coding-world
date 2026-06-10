@@ -1,4 +1,4 @@
-import { defaultParams } from './get-post-query-params-parser.js';
+import { defaultParams } from './post-query-param-parser.js';
 import type { PostsManagerParams } from '@dans-coding-world/blog-admin-features-posts-manager';
 
 export function mergePostQueryDefaults(

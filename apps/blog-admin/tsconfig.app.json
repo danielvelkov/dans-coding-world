@@ -39,12 +39,6 @@
     },
     {
       "path": "../../libs/shared/util/shared-constants/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/api/data-access/user/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/shared/user/testing/tsconfig.lib.json"
     }
   ]
 }

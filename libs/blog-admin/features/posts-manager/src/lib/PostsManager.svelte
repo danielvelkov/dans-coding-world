@@ -9,8 +9,7 @@
   import { createPaginationHandlers } from '@dans-coding-world/helpers';
   import { PAGINATION } from '@dans-coding-world/shared-constants';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
-
-  export type PostsManagerParams = Parameters<typeof createPostsQuery>[0];
+  import type { PostsManagerParams } from './types/postsManagerParams.js';
 
   const {
     params,

@@ -11,7 +11,7 @@ export const defaultParams: PostsManagerParams = {
 	sortBy: { publishedAt: 'desc' }
 } as const;
 
-export const getPostQueryParamsParser = (isAdmin?: boolean, userId?: number) =>
+export const PostQueryParamsParser = (isAdmin?: boolean, userId?: number) =>
 	z
 		.object({
 			filterBy: z.optional(
@@ -88,4 +88,4 @@ export const getPostQueryParamsParser = (isAdmin?: boolean, userId?: number) =>
 			}
 		}));
 
-export default getPostQueryParamsParser;
+export default PostQueryParamsParser;
