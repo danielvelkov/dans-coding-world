@@ -5,24 +5,36 @@
     OMITTED_COLUMN_NAMES,
     POSTS_EMPTY_MESSAGE,
     POSTS_LOADING_MESSAGE,
+    SORT_OPTIONS,
     TABLE_COLUMNS,
   } from '../shared/constants.js';
+  import type { PostSorting } from '../shared/constants.js';
   import type { PostFull } from '@dans-coding-world/post-data-access';
   import {
     formatDateTo_DD_MM_YYYY,
     toggleValue,
   } from '@dans-coding-world/helpers';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
-  import { Table } from '@dans-coding-world/blog-admin-ui-common';
+  import { Dropdown, Table } from '@dans-coding-world/blog-admin-ui-common';
+  import type { PostsManagerParams } from '../types/postsManagerParams.js';
 
   interface Props {
     posts?: PostFull[];
     isLoading?: boolean;
     error?: Error;
     viewer?: UserDetail;
+    params?: PostsManagerParams;
+    onParamsChange?: (value: PostsManagerParams) => void;
   }
 
-  const { posts = [], isLoading = false, error, viewer }: Props = $props();
+  const {
+    posts = [],
+    isLoading = false,
+    error,
+    viewer,
+    params,
+    onParamsChange,
+  }: Props = $props();
 
   let expandedRows = $state<PostFull['id'][]>([]);
 
@@ -32,9 +44,13 @@
 
 <Table data={posts.map((post, rowIndex) => ({ post, rowIndex }))}>
   {#snippet header()}
-    {#each TABLE_COLUMNS as col}
-      {@render ColumnHeader(col)}
-    {/each}
+    <tr>
+      {#each TABLE_COLUMNS as col}
+        {@render ColumnHeader(col)}
+      {/each}
+    </tr>
+
+    {@render ControlRow()}
   {/snippet}
 
   {#if isLoading}
@@ -57,7 +73,7 @@
 
   {#if !isAdminCol || isAdmin}
     <th
-      class={`px-6 py-4 text-xs font-medium tracking-wider text-gray-500 uppercase border-b border-gray-200 bg-gray-50 ${
+      class={`px-6 py-4 text-xs font-medium tracking-wider text-gray-500 uppercase border-b border-gray-200 bg-gray-200 ${
         isCenterAligned ? 'text-center' : 'text-left'
       }`}
     >
@@ -270,4 +286,29 @@
       </div>
     </div>
   </div>
+{/snippet}
+
+{#snippet ControlRow()}
+  <tr class="bg-gray-50">
+    <th class="text-xs font-medium" scope="col"></th>
+    <th class="text-xs font-medium m-2" scope="col" colspan="2">
+      <!-- TODO -->
+      <input class="p-2 border border-gray-300" placeholder="Search..." />
+    </th>
+    <th class="text-xs font-medium" scope="col">
+      <!-- TODO -->
+    </th>
+    <th class="text-xs font-medium" scope="col">
+      <Dropdown
+        class="p-2 m-2 w-30 border border-gray-300"
+        value={JSON.stringify(params?.sortBy)}
+        onchange={(e) => {
+          const value = e.currentTarget.value;
+          const postSorting = JSON.parse(value) as PostSorting;
+          onParamsChange?.({ ...params, sortBy: postSorting });
+        }}
+        items={SORT_OPTIONS}
+      ></Dropdown>
+    </th>
+  </tr>
 {/snippet}

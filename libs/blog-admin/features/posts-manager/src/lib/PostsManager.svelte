@@ -46,7 +46,7 @@
     <!-- <CreatePostButton /> -->
   </div>
 
-  <PostsTable {posts} {isLoading} error={error ?? undefined} />
+  <PostsTable {posts} {isLoading} error={error ?? undefined} {params} {onParamsChange} />
 
   {#if total > itemsPerPage}
     <div class="flex justify-between items-center-safe flex-wrap gap-5">

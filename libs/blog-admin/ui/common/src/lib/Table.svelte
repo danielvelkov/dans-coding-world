@@ -17,9 +17,7 @@
 <table class="w-full table-auto text-left border border-gray-300">
   {#if header}
     <thead class="border-b border-gray-200 bg-gray-50 text-gray-700">
-      <tr>
-        {@render header()}
-      </tr>
+      {@render header()}
     </thead>
   {/if}
 
