@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Dropdown from './Dropdown.svelte';
+  import Select from './Select.svelte';
 
   let {
     values = [10, 20, 50, 100],
@@ -17,11 +17,11 @@
   }
 </script>
 
-<Dropdown
+<Select
   value={currentValue}
   items={values.map((v) => ({ label: `${v} rows`, value: v }))}
   aria-label="Rows per page"
   class="px-3 py-2 border border-gray-300 rounded-sm bg-white text-sm
          focus:outline-none focus:ring-2 focus:ring-blue-500"
   onchange={handleChange}
-></Dropdown>
+></Select>

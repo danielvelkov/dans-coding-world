@@ -15,7 +15,9 @@
     toggleValue,
   } from '@dans-coding-world/helpers';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
-  import { Dropdown, Table } from '@dans-coding-world/blog-admin-ui-common';
+    Select,
+    Table,
+  } from '@dans-coding-world/blog-admin-ui-common';
   import type { PostsManagerParams } from '../types/postsManagerParams.js';
 
   interface Props {
@@ -298,8 +300,11 @@
     <th class="text-xs font-medium" scope="col">
       <!-- TODO -->
     </th>
+
     <th class="text-xs font-medium" scope="col">
-      <Dropdown
+      <label class="sr-only" for="sort-by">Sort by:</label>
+      <Select
+        id="sort-by"
         class="p-2 m-2 w-30 border border-gray-300"
         value={JSON.stringify(params?.sortBy)}
         onchange={(e) => {
@@ -308,7 +313,7 @@
           onParamsChange?.({ ...params, sortBy: postSorting });
         }}
         items={SORT_OPTIONS}
-      ></Dropdown>
+      ></Select>
     </th>
   </tr>
 {/snippet}
