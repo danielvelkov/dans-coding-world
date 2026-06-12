@@ -2,19 +2,26 @@
   import { slide } from 'svelte/transition';
   import {
     ADMIN_ONLY_COLUMN,
+    FILTER_OPTIONS,
     OMITTED_COLUMN_NAMES,
     POSTS_EMPTY_MESSAGE,
     POSTS_LOADING_MESSAGE,
     SORT_OPTIONS,
     TABLE_COLUMNS,
   } from '../shared/constants.js';
-  import type { PostSorting } from '../shared/constants.js';
+  import type {
+    PostSorting,
+    PostStatus,
+    PostVisibility,
+  } from '../shared/constants.js';
   import type { PostFull } from '@dans-coding-world/post-data-access';
   import {
     formatDateTo_DD_MM_YYYY,
     toggleValue,
   } from '@dans-coding-world/helpers';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
+  import {
+    MultiSelect,
     Select,
     Table,
   } from '@dans-coding-world/blog-admin-ui-common';
@@ -298,7 +305,55 @@
       <input class="p-2 border border-gray-300" placeholder="Search..." />
     </th>
     <th class="text-xs font-medium" scope="col">
-      <!-- TODO -->
+      <label class="sr-only" for="filter-by">Filter by:</label>
+      <MultiSelect
+        collapsedHeight="3em"
+        onchange={(e) => {
+          const selected = Array.from(e.currentTarget.selectedOptions).map(
+            (o) => o.value,
+          );
+
+          const statusFilters = selected.filter((v) =>
+            Object.values([
+              'ARCHIVED',
+              'DRAFT',
+              'PUBLISHED',
+            ] as PostStatus[]).includes(v as PostStatus),
+          ) as PostStatus[];
+
+          const visibilityFilters = selected.filter((v) =>
+            (['PUBLIC', 'MEMBERS_ONLY'] as PostVisibility[]).includes(
+              v as PostVisibility,
+            ),
+          ) as PostVisibility[];
+
+          onParamsChange?.({
+            ...params,
+            filterBy: {
+              ...params?.filterBy,
+              status: statusFilters,
+              visibility: visibilityFilters,
+            },
+          });
+        }}
+        items={FILTER_OPTIONS}
+      >
+        {#snippet option(label, value)}
+          {@const selected =
+            params?.filterBy?.status?.includes(value as PostStatus) ||
+            params?.filterBy?.visibility?.includes(value as PostVisibility)}
+          <option
+            class="px-3 p-2 mb-2 cursor-pointer text-gray-700
+             checked:bg-blue-50 checked:text-blue-700"
+            {selected}
+            {value}
+          >
+            <span>
+              {label}
+            </span>
+          </option>
+        {/snippet}
+      </MultiSelect>
     </th>
 
     <th class="text-xs font-medium" scope="col">

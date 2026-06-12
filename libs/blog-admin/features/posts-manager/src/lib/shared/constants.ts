@@ -23,6 +23,19 @@ export const POSTS_NO_RESULTS_MESSAGE = 'No posts match your criteria';
 
 export type PostSorting = GetPostsDto['sortBy'];
 type SortOption = { value: PostSorting; label: string };
+
+export type PostVisibilityFilter = NonNullable<
+  GetPostsDto['filterBy']
+>['visibility'];
+export type PostStatusFilter = NonNullable<GetPostsDto['filterBy']>['status'];
+
+export type PostVisibility = NonNullable<PostVisibilityFilter>[number];
+export type PostStatus = NonNullable<PostStatusFilter>[number];
+
+type FilterOption = {
+  value: PostVisibility | PostStatus;
+  label: string;
+};
 export const SORT_OPTIONS: SortOption[] = [
   {
     label: 'Published (desc)',
@@ -49,3 +62,26 @@ export const SORT_OPTIONS: SortOption[] = [
     },
   },
 ] as const;
+
+export const FILTER_OPTIONS: FilterOption[] = [
+  {
+    value: 'PUBLIC',
+    label: 'Public (visibility)',
+  },
+  {
+    value: 'MEMBERS_ONLY',
+    label: 'Members-only (visibility)',
+  },
+  {
+    value: 'PUBLISHED',
+    label: 'Published',
+  },
+  {
+    value: 'DRAFT',
+    label: 'Draft',
+  },
+  {
+    value: 'ARCHIVED',
+    label: 'Archived',
+  },
+];
