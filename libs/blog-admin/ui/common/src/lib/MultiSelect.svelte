@@ -12,12 +12,12 @@
     items,
     option,
     class: className,
-    collapsedHeight = '2em',
+    collapsedHeight = '3em',
     ...restProps
   }: Props<T> = $props();
 
-  let wrapper: HTMLDivElement;
-  let selectEl: HTMLSelectElement;
+  let wrapper: HTMLDivElement | undefined = $state();
+  let selectEl: HTMLSelectElement | undefined = $state();
 
   let expandedHeight = $state('auto');
   let isOpen = $state(false);
@@ -25,7 +25,7 @@
 
   function measure() {
     const first = selectEl?.querySelector('option');
-    if (!first) return;
+    if (!wrapper || !first) return;
 
     const rect = first.getBoundingClientRect();
     const style = getComputedStyle(first);
@@ -61,7 +61,7 @@
   }
 </script>
 
-<div class="relative">
+<div class="relative w-fit {className ?? ''}">
   <div
     bind:this={wrapper}
     class="select-wrapper {isOpen ? 'open' : ''} {isClosing ? 'closing' : ''}"
@@ -79,11 +79,11 @@
       id={`multi-select-${Math.random() * 10000}`}
       {...restProps}
       multiple
-      class="native-select w-full font-medium text-gray-700
+      title="Hold Ctrl (Cmd on Mac) to select multiple"
+      class="native-select font-medium text-gray-700
        disabled:cursor-not-allowed border border-gray-200
         bg-white shadow-sm transition-all duration-200 focus:ring-2
-         focus:ring-blue-500 focus:outline-none
-     {className ?? ''}"
+         focus:ring-blue-500 focus:outline-none"
     >
       {#each items as { value, label }}
         {#if option}
@@ -108,7 +108,7 @@
     position: relative;
     overflow: hidden;
     height: var(--collapsed-height);
-    transition: height 180ms ease;
+    transition: 0.4s height;
   }
 
   /* OPEN state */
@@ -139,5 +139,10 @@
 
   .option-row:hover {
     background: #f3e8ff;
+  }
+  option::checkmark {
+    order: 1;
+    margin-left: auto;
+    content: '✓';
   }
 </style>

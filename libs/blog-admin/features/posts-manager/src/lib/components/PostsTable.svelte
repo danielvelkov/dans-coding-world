@@ -300,14 +300,13 @@
 {#snippet ControlRow()}
   <tr class="bg-gray-50">
     <th class="text-xs font-medium" scope="col"></th>
-    <th class="text-xs font-medium m-2" scope="col" colspan="2">
+    <th class="text-xs font-medium" scope="col" colspan="2">
       <!-- TODO -->
-      <input class="p-2 border border-gray-300" placeholder="Search..." />
+      <input class="p-2 mr-2 border border-gray-300" placeholder="Search..." />
     </th>
     <th class="text-xs font-medium" scope="col">
       <label class="sr-only" for="filter-by">Filter by:</label>
       <MultiSelect
-        collapsedHeight="3em"
         onchange={(e) => {
           const selected = Array.from(e.currentTarget.selectedOptions).map(
             (o) => o.value,
@@ -337,14 +336,15 @@
           });
         }}
         items={FILTER_OPTIONS}
+        class="shadow"
       >
         {#snippet option(label, value)}
           {@const selected =
             params?.filterBy?.status?.includes(value as PostStatus) ||
             params?.filterBy?.visibility?.includes(value as PostVisibility)}
           <option
-            class="px-3 p-2 mb-2 cursor-pointer text-gray-700
-             checked:bg-blue-50 checked:text-blue-700"
+            class="p-2 mb-2 cursor-pointer text-gray-700
+             checked:bg-blue-50 checked:text-blue-700 checked:font-bold"
             {selected}
             {value}
           >

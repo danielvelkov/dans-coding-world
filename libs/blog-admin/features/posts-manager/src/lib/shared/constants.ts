@@ -66,11 +66,11 @@ export const SORT_OPTIONS: SortOption[] = [
 export const FILTER_OPTIONS: FilterOption[] = [
   {
     value: 'PUBLIC',
-    label: 'Public (visibility)',
+    label: 'Public',
   },
   {
     value: 'MEMBERS_ONLY',
-    label: 'Members-only (visibility)',
+    label: 'Members-only',
   },
   {
     value: 'PUBLISHED',
