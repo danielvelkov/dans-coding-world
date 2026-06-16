@@ -20,6 +20,9 @@
       "path": "../../data-access/operations/tsconfig.lib.json"
     },
     {
+      "path": "../../../shared/post/dtos/tsconfig.lib.json"
+    },
+    {
       "path": "../../../shared/user/testing/tsconfig.lib.json"
     },
     {
