@@ -2,7 +2,6 @@ import { GetPostsDto } from '@dans-coding-world/shared-post-dto';
 
 export const TABLE_COLUMNS = [
   'Show Row Details',
-  '#',
   'Title',
   'Status/Visibility',
   'Published/Edited Date',

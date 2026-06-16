@@ -83,7 +83,10 @@
       class="native-select font-medium text-gray-700
        disabled:cursor-not-allowed border border-gray-200
         bg-white shadow-sm transition-all duration-200 focus:ring-2
-         focus:ring-blue-500 focus:outline-none"
+                   hover:bg-gray-100
+                   focus:bg-blue-600 focus:text-white
+                   checked:bg-blue-50 checked:text-blue-700
+"
     >
       {#each items as { value, label }}
         {#if option}
@@ -113,6 +116,7 @@
 
   /* OPEN state */
   .select-wrapper.open {
+    width: 100%;
     position: absolute;
     z-index: 20;
     top: calc(var(--collapsed-height) * -0.5);
@@ -127,6 +131,8 @@
   }
 
   .native-select {
+    appearance: base-select;
+    width: 100%;
     height: 100%;
     border: 1px solid #d1d5db;
     background: white;

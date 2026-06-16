@@ -51,7 +51,12 @@
   const isAdmin = $derived(viewer?.role === 'ADMIN');
 </script>
 
-<Table data={posts.map((post, rowIndex) => ({ post, rowIndex }))}>
+<Table
+  data={posts.map((post, rowIndex) => ({
+    post,
+    rowIndex: (params?.pageOffset ?? 0) + rowIndex,
+  }))}
+>
   {#snippet header()}
     <tr>
       {#each TABLE_COLUMNS as col}
@@ -78,7 +83,7 @@
 {#snippet ColumnHeader(col: (typeof TABLE_COLUMNS)[number])}
   {@const isAdminCol = col === ADMIN_ONLY_COLUMN}
   {@const isVisible = !OMITTED_COLUMN_NAMES.includes(col)}
-  {@const isCenterAligned = ['#', 'Published/Edited Date'].includes(col)}
+  {@const isCenterAligned = ['Published/Edited Date'].includes(col)}
 
   {#if !isAdminCol || isAdmin}
     <th
@@ -112,6 +117,7 @@
   {@const isExpanded = expandedRows.includes(post.id)}
 
   <tr
+    aria-label={`Row entry #${rowIndex + 1}`}
     class=" bg-white border-b border-gray-200 hover:bg-gray-50 group"
     aria-expanded={isExpanded}
     aria-controls={`row-details-${post.id}`}
@@ -127,11 +133,6 @@
       >
         <i class={`fa fa-chevron-${isExpanded ? 'down' : 'right'}`}></i>
       </button>
-    </td>
-
-    <!-- Index -->
-    <td class="px-4 py-4 text-sm text-center text-gray-500">
-      {rowIndex + 1}
     </td>
 
     <!-- Title -->
@@ -299,14 +300,16 @@
 
 {#snippet ControlRow()}
   <tr class="bg-gray-50">
-    <th class="text-xs font-medium" scope="col"></th>
     <th class="text-xs font-medium" scope="col" colspan="2">
       <!-- TODO -->
-      <input class="p-2 mr-2 border border-gray-300" placeholder="Search..." />
+      <input class="p-2 m-2 border border-gray-300" placeholder="Search..." />
     </th>
     <th class="text-xs font-medium" scope="col">
       <label class="sr-only" for="filter-by">Filter by:</label>
       <MultiSelect
+        placeholder={'Select filtering by Status/Visibility'}
+        class="shadow rounded-md w-full"
+        items={FILTER_OPTIONS}
         onchange={(e) => {
           const selected = Array.from(e.currentTarget.selectedOptions).map(
             (o) => o.value,
@@ -335,15 +338,13 @@
             },
           });
         }}
-        items={FILTER_OPTIONS}
-        class="shadow"
       >
         {#snippet option(label, value)}
           {@const selected =
             params?.filterBy?.status?.includes(value as PostStatus) ||
             params?.filterBy?.visibility?.includes(value as PostVisibility)}
           <option
-            class="p-2 mb-2 cursor-pointer text-gray-700
+            class="p-2 mb-2 cursor-pointer text-gray-700 hover:bg-gray-100
              checked:bg-blue-50 checked:text-blue-700 checked:font-bold"
             {selected}
             {value}
