@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 export async function goToPage(page: Page, pageNum: number) {
   await page.getByLabel(`page ${pageNum}`, { exact: true }).click();
