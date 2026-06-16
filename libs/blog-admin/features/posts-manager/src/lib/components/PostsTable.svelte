@@ -302,12 +302,22 @@
   <tr class="bg-gray-50">
     <th class="text-xs font-medium" scope="col" colspan="2">
       <!-- TODO -->
-      <input class="p-2 m-2 border border-gray-300" placeholder="Search..." />
+      <search>
+        <label class="sr-only" for="search-posts"
+          >Search by title or content:</label
+        >
+        <input
+          id="search-posts"
+          class="p-2 m-2 border border-gray-300"
+          placeholder="Search..."
+        />
+      </search>
     </th>
     <th class="text-xs font-medium" scope="col">
-      <label class="sr-only" for="filter-by">Filter by:</label>
+      <label class="sr-only" for="filter-posts">Filter by:</label>
       <MultiSelect
-        placeholder={'Select filtering by Status/Visibility'}
+        id="filter-posts"
+        placeholder={'Select filtering by post status/visibility'}
         class="shadow rounded-md w-full"
         items={FILTER_OPTIONS}
         onchange={(e) => {
@@ -358,9 +368,9 @@
     </th>
 
     <th class="text-xs font-medium" scope="col">
-      <label class="sr-only" for="sort-by">Sort by:</label>
+      <label class="sr-only" for="sort-posts">Sort by:</label>
       <Select
-        id="sort-by"
+        id="sort-posts"
         class="p-2 m-2 w-30 border border-gray-300"
         value={JSON.stringify(params?.sortBy)}
         onchange={(e) => {

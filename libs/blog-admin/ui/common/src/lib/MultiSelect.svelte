@@ -104,6 +104,12 @@
       {/each}
     </select>
   </div>
+  <i
+    class="fa fa-caret-down chevron-hint text-gray-400"
+    // you can toggle class like this
+    class:hidden={isOpen || isClosing}
+    aria-hidden="true"
+  ></i>
 </div>
 
 <style>
@@ -150,5 +156,17 @@
     order: 1;
     margin-left: auto;
     content: '✓';
+  }
+
+  .chevron-hint {
+    position: absolute;
+    bottom: 30%;
+    right: 6px;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .chevron-hint.hidden {
+    opacity: 0;
   }
 </style>

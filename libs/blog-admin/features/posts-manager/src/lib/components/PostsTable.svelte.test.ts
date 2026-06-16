@@ -40,6 +40,15 @@ it.each(TABLE_COLUMNS.filter((c) => c !== ADMIN_ONLY_COLUMN))(
   },
 );
 
+it('table has additional thead row containing filtering and search', async () => {
+  await render(PostsTable, { posts: [] });
+  const table = page.getByRole('table');
+  const controlRow = table.getByRole('row').all().slice(1)[0]; // skip thead row
+  expect(controlRow.getByLabelText('search')).toBeInTheDocument();
+  expect(controlRow.getByLabelText(/filter by/i)).toBeInTheDocument();
+  expect(controlRow.getByLabelText(/sort by/i)).toBeInTheDocument();
+});
+
 it('renders additional "Author" column if admin viewer', async () => {
   await render(PostsTable, { viewer: admin });
   expect(
@@ -187,6 +196,32 @@ describe('Rows', () => {
         );
       });
     });
+
+    it(`displays actions "Edit" and "Delete" regardless of logged in user's role`, async () => {
+      await render(PostsTable, { posts, viewer: admin });
+
+      const colIndex = TABLE_COLUMNS.indexOf('Actions');
+      const cell = getTableDataCell(1, colIndex);
+      const editLink = cell.getByRole('link', { name: /edit/i });
+      const deleteButton = cell.getByRole('button', { name: /delete/i });
+
+      expect(editLink).toBeInTheDocument();
+      expect(deleteButton).toBeInTheDocument();
+    });
+
+    // you can't do that here:
+    // - Any navigation that changes window.location or history.pushState to a URL outside the iframe breaks the test environment.
+    it.skip(`on selecting "Edit" action it navigates to that post's edit page`, async () => {
+      await render(PostsTable, { posts, viewer: admin });
+      const postUAT = posts[0];
+      const colIndex = TABLE_COLUMNS.indexOf('Actions');
+      const cell = getTableDataCell(0, colIndex);
+      await cell.getByRole('link', { name: /edit/i }).click();
+      expect(window.location.pathname).toBe(`/posts/${postUAT.id}/edit`);
+    });
+
+    // TODO
+    it.todo('on selecting "Delete" action it opens confirmation dialog');
   });
 
   describe('Expanded Row details', async () => {
@@ -293,7 +328,7 @@ describe('Rows', () => {
 
   function getTableRow(rowIndex: number) {
     const table = page.getByRole('table');
-    const rows = table.getByRole('row').all().slice(1); // skip thead row
+    const rows = table.getByRole('row').all().slice(2); // skip thead row + control row
     if (rowIndex > rows.length)
       throw new Error(
         `Row index bigger than available rows (${rowIndex} > ${rows.length})`,
