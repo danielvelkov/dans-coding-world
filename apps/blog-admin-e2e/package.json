@@ -6,6 +6,8 @@
     "targets": {
       "e2e": {
         "dependsOn": [
+          "@dans-coding-world/api:build",
+          "@dans-coding-world/api:serve:e2e",
           "@dans-coding-world/blog-admin:build"
         ]
       }
