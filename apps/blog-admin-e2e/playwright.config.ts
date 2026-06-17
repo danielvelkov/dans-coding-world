@@ -23,6 +23,8 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
+  // (DO NOT CHANGE) Specify workers to 1 to provide stability and reproductivity
+  workers: 1,
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'npx nx dev blog-admin',
@@ -55,7 +57,6 @@ export default defineConfig({
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
     }, */
-
     // Uncomment for branded browsers
     /* {
       name: 'Microsoft Edge',
