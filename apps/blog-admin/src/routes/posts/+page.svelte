@@ -24,7 +24,7 @@
 
 	const onParamsChange = async (newParams?: PostsManagerParams) => {
 		const filteredValues = omitDefaultPostQueryParams(newParams ?? {}, isAdmin);
-		await goto(`?${stringifyToQueryString(filteredValues)}`);
+		await goto(`?${stringifyToQueryString(filteredValues)}`, { keepFocus: true });
 	};
 </script>
 
