@@ -290,7 +290,9 @@ describe('Rows', () => {
       await expandRow(0);
       const expandedRow = page.getByTestId(`row-details-${postUAT.id}`);
       for (const tag of postUAT.tags ?? [])
-        expect(expandedRow.getByText(`#${tag}`)).toBeInTheDocument();
+        expect(
+          expandedRow.getByText(`#${tag}`, { exact: true }),
+        ).toBeInTheDocument();
     });
 
     it('contains created date', async () => {
