@@ -5,6 +5,7 @@
     OMITTED_COLUMN_NAMES,
     POSTS_EMPTY_MESSAGE,
     POSTS_LOADING_MESSAGE,
+    POSTS_NO_RESULTS_MESSAGE,
     SORT_OPTIONS,
     TABLE_COLUMNS,
   } from '../shared/constants.js';
@@ -17,6 +18,7 @@
   import type { UserDetail } from '@dans-coding-world/user-data-access';
   import { Select, Table } from '@dans-coding-world/blog-admin-ui-common';
   import type { PostsManagerParams } from '../types/postsManagerParams.js';
+  import { debounceCallback } from '@dans-coding-world/blog-admin-data-access-operations';
   import PostsFilter from './PostsFilter.svelte';
 
   interface Props {
@@ -41,6 +43,13 @@
 
   const showEmptyMessage = $derived(posts.length === 0);
   const isAdmin = $derived(viewer?.role === 'ADMIN');
+
+  const handleSearchDebounced = debounceCallback(async (value: string) => {
+    onParamsChange?.({
+      ...params,
+      searchQuery: value === '' ? undefined : value,
+    });
+  }, 500);
 </script>
 
 <Table
@@ -64,7 +73,10 @@
   {:else if error}
     {@render MessageRow(error.message, 'text-red-500 italic')}
   {:else if showEmptyMessage}
-    {@render MessageRow(POSTS_EMPTY_MESSAGE, 'text-gray-500 italic')}
+    {@render MessageRow(
+      params?.searchQuery ? POSTS_NO_RESULTS_MESSAGE : POSTS_EMPTY_MESSAGE,
+      'text-gray-500 italic',
+    )}
   {/if}
 
   {#snippet row({ post, rowIndex })}
@@ -300,8 +312,12 @@
         >
         <input
           id="search-posts"
-          class="p-2 m-2 border border-gray-300"
+          type="text"
+          class="p-2 m-2 border border-gray-300 bg-white"
           placeholder="Search..."
+          value={params?.searchQuery ?? ''}
+          oninput={(e: Event & { currentTarget: HTMLInputElement }) =>
+            handleSearchDebounced(e.currentTarget.value)}
         />
       </search>
     </th>
