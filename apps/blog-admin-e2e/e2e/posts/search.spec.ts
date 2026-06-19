@@ -89,7 +89,7 @@ test.describe.skip('Posts - search', () => {
     );
   });
 
-  describe('Logged in as ADMIN', () => {
+  test.describe('Logged in as ADMIN', () => {
     test.beforeEach(async ({ page }) => {
       // log in as ADMIN
       await page.goto('/posts');
@@ -110,7 +110,7 @@ test.describe.skip('Posts - search', () => {
       }
     });
 
-    test.skip("search applies to all users posts", () => {});
+    test.skip('search applies to all users posts', () => {});
     test('applies search when navigating to page through URL', async ({
       page,
     }) => {
@@ -131,7 +131,7 @@ test.describe.skip('Posts - search', () => {
     });
   });
 
-  describe('Logged in as AUTHOR/MOD', () => {
+  test.describe('Logged in as AUTHOR/MOD', () => {
     test.beforeEach(async ({ page }) => {
       // log in as AUTHOR/MOD
       await page.goto('/posts');

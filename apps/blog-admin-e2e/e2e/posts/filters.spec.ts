@@ -56,9 +56,9 @@ test.describe.skip('Posts - filtering', () => {
     }
   });
 
-  describe('by Status/Visibility', () => {
+  test.describe('by Status/Visibility', () => {
     // TODO
-    describe('Logged in as ADMIN', () => {
+    test.describe('Logged in as ADMIN', () => {
       test.beforeEach(async ({ page }) => {
         await page.goto('/posts');
         // TODO - login as admin
@@ -82,7 +82,7 @@ test.describe.skip('Posts - filtering', () => {
       test.skip('filters all user posts correctly', async ({ page }) => {});
       test.skip('shows DRAFT/ARCHIVED posts by other users when filtering', async () => {});
     });
-    describe('Logged in as AUTHOR/MOD', () => {
+    test.describe('Logged in as AUTHOR/MOD', () => {
       test.beforeEach(async ({ page }) => {
         await page.goto('/posts');
         // TODO - login as mod
@@ -93,13 +93,15 @@ test.describe.skip('Posts - filtering', () => {
   });
 
   // TODO
-  describe('by user', () => {
-    describe('Logged in as AUTHOR/MOD', () => {
+  test.describe('by user', () => {
+    test.describe('Logged in as AUTHOR/MOD', () => {
       test.skip('does not show "filter by user" combobox', async ({
         page,
       }) => {});
+      test(`shows FORBIDDEN page and message when trying to apply 
+      filtering by user when logged in as AUTHOR`, async () => {});
     });
-    describe('Logged in as ADMIN', () => {
+    test.describe('Logged in as ADMIN', () => {
       test.skip('shows "filter by user" combobox field in control row of "Author" column', async () => {});
       test.skip('clicking combobox loads all users and shows searchbox', async () => {});
       test.skip('searching and selecting user through searchbox filters posts by this author', async () => {});
