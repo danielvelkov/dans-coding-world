@@ -11,6 +11,7 @@
   } from '../shared/constants.js';
   import type { PostSorting } from '../shared/constants.js';
   import type { PostFull } from '@dans-coding-world/post-data-access';
+  import { POST_CONSTRAINTS } from '@dans-coding-world/shared-constants';
   import {
     formatDateTo_DD_MM_YYYY,
     toggleValue,
@@ -304,8 +305,7 @@
 
 {#snippet ControlRow()}
   <tr class="bg-gray-50">
-    <th class="text-xs font-medium" align="right" scope="col" colspan="2">
-      <!-- TODO -->
+    <th class="text-xs font-medium" align="center" scope="col" colspan="2">
       <search>
         <label class="sr-only" for="search-posts"
           >Search by title or content:</label
@@ -315,6 +315,7 @@
           type="text"
           class="p-2 m-2 border border-gray-300 bg-white"
           placeholder="Search..."
+          maxlength={POST_CONSTRAINTS.MAX_TITLE_LENGTH}
           value={params?.searchQuery ?? ''}
           oninput={(e: Event & { currentTarget: HTMLInputElement }) =>
             handleSearchDebounced(e.currentTarget.value)}
