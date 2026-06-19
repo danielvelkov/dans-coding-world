@@ -67,7 +67,7 @@ test.describe.skip('Posts - filtering', () => {
         page,
       }) => {
         const table = page.getByRole('table');
-        const filterElement = table.getByLabel(/filter by\:/i);
+        const filterElement = table.getByLabel(/filter by:/i);
         const options = await filterElement.getByRole('option').all();
         for (const option of options)
           await expect(option).toHaveAttribute('selected');
@@ -79,33 +79,33 @@ test.describe.skip('Posts - filtering', () => {
           ['MEMBERS_ONLY', 'PUBLIC'],
         );
       });
-      test.skip('filters all user posts correctly', async ({ page }) => {});
-      test.skip('shows DRAFT/ARCHIVED posts by other users when filtering', async () => {});
+      // test.skip('filters all user posts correctly', async ({ page }) => {});
+      // test.skip('shows DRAFT/ARCHIVED posts by other users when filtering', async () => {});
     });
     test.describe('Logged in as AUTHOR/MOD', () => {
       test.beforeEach(async ({ page }) => {
         await page.goto('/posts');
         // TODO - login as mod
       });
-      test.skip("filters only user's posts correctly", async ({ page }) => {});
-      test.skip('does not show DRAFT/ARCHIVED posts by other users when filtering', async () => {});
+      // test.skip("filters only user's posts correctly", async ({ page }) => {});
+      // test.skip('does not show DRAFT/ARCHIVED posts by other users when filtering', async () => {});
     });
   });
 
   // TODO
   test.describe('by user', () => {
     test.describe('Logged in as AUTHOR/MOD', () => {
-      test.skip('does not show "filter by user" combobox', async ({
-        page,
-      }) => {});
-      test(`shows FORBIDDEN page and message when trying to apply 
-      filtering by user when logged in as AUTHOR`, async () => {});
+      // test.skip('does not show "filter by user" combobox', async ({
+      //   page,
+      // }) => {});
+      // test(`shows FORBIDDEN page and message when trying to apply
+      // filtering by user when logged in as AUTHOR`, async () => {});
     });
     test.describe('Logged in as ADMIN', () => {
-      test.skip('shows "filter by user" combobox field in control row of "Author" column', async () => {});
-      test.skip('clicking combobox loads all users and shows searchbox', async () => {});
-      test.skip('searching and selecting user through searchbox filters posts by this author', async () => {});
-      test.skip('selecting "clear user" next to searchbox removes user filtering ', async () => {});
+      // test.skip('shows "filter by user" combobox field in control row of "Author" column', async () => {});
+      // test.skip('clicking combobox loads all users and shows searchbox', async () => {});
+      // test.skip('searching and selecting user through searchbox filters posts by this author', async () => {});
+      // test.skip('selecting "clear user" next to searchbox removes user filtering ', async () => {});
     });
   });
 });

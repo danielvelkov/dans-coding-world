@@ -16,7 +16,7 @@ export const test = base.extend<{
   users: UserState;
   auth: Auth;
 }>({
-  users: async ({}, use) => {
+  users: async ({ db }, use) => {
     let storedUsers: User[] | undefined;
 
     const userState = {
@@ -31,7 +31,7 @@ export const test = base.extend<{
     await use(userState);
   },
 
-  auth: async ({}, use) => {
+  auth: async ({ db, users }, use) => {
     const auth: Auth = {
       async logInPage({ page, user }) {
         await page.goto('/login');

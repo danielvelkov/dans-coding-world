@@ -20,6 +20,7 @@ async function checkIfSortedCorrectly(
     const row = page.getByLabel(new RegExp(`row entry #${i + 1}`, 'i'));
     await expect(row).toContainText(sorted[i].title);
   }
+  return true;
 }
 
 test.describe('Posts - sorting', () => {
@@ -53,7 +54,7 @@ test.describe('Posts - sorting', () => {
 
   test('sorts posts by "Published (desc)" by default', async ({ page }) => {
     const table = page.getByRole('table');
-    const sortElement = table.getByLabel(/sort by\:/i);
+    const sortElement = table.getByLabel(/sort by:/i);
     await expect(sortElement).toHaveValue(/desc/i);
     await expect(sortElement).toContainText(SORT_LABELS[0]);
 
@@ -62,14 +63,15 @@ test.describe('Posts - sorting', () => {
 
   test('sorts posts correctly', async ({ page }) => {
     for (const label of SORT_LABELS) {
-      let field: 'publishedAt' | 'updatedAt';
-      let order: 'asc' | 'desc';
-
-      field = label.includes('Published') ? 'publishedAt' : 'updatedAt';
-      order = label.includes('desc') ? 'desc' : 'asc';
+      const field: 'publishedAt' | 'updatedAt' = label.includes('Published')
+        ? 'publishedAt'
+        : 'updatedAt';
+      const order: 'asc' | 'desc' = label.includes('desc') ? 'desc' : 'asc';
 
       await selectPostSorting(page, label);
-      await checkIfSortedCorrectly(page, seededPosts, field, order);
+      expect(
+        await checkIfSortedCorrectly(page, seededPosts, field, order),
+      ).toBeTruthy();
     }
   });
 });

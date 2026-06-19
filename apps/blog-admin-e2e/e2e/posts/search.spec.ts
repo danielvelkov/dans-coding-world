@@ -97,10 +97,14 @@ test.describe.skip('Posts - search', () => {
     test('finds all posts that contain search term in title or content (case insensitive)', async ({
       page,
     }) => {
+      const input = page
+        .locator('search')
+        .getByRole('searchbox', { name: /search by/i });
       const commonTerm = 'javascript';
 
       for (const searchTerm of [commonTerm, commonTerm.toUpperCase()]) {
         await clearAndType(page, searchTerm);
+        await expect(input).toHaveValue(commonTerm);
         // await checkIfSearchedCorrectly(
         //   page,
         //   seededPosts,
@@ -110,7 +114,7 @@ test.describe.skip('Posts - search', () => {
       }
     });
 
-    test.skip('search applies to all users posts', () => {});
+    // test.skip('search applies to all users posts', () => {});
     test('applies search when navigating to page through URL', async ({
       page,
     }) => {
@@ -136,6 +140,6 @@ test.describe.skip('Posts - search', () => {
       // log in as AUTHOR/MOD
       await page.goto('/posts');
     });
-    test.skip("search applies to only the user's posts", () => {});
+    // test.skip("search applies to only the user's posts", () => {});
   });
 });

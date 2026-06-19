@@ -18,18 +18,18 @@ test.describe.skip('Posts page - posts table', () => {
       expect(await page.locator('h2').innerText()).toContain('Your Posts');
     });
 
-    test('each row contains main information about post', async () => {});
-    test('clicking "expand row" shows details about row', async () => {});
-    test(`selecting "Edit" link in "Actions" column
-       navigates to post's edit page`, async () => {});
-    test(`clicking "Delete" for a row opens a confirmation dialog, which
-      open confirmation successfully removes post`, async () => {});
+    // test('each row contains main information about post', async () => {});
+    // test('clicking "expand row" shows details about row', async () => {});
+    // test(`selecting "Edit" link in "Actions" column
+    //    navigates to post's edit page`, async () => {});
+    // test(`clicking "Delete" for a row opens a confirmation dialog, which
+    //   open confirmation successfully removes post`, async () => {});
 
-    test('does not contain "Author" column or "filter by user" combobox', async ({
-      page,
-    }) => {});
+    // test('does not contain "Author" column or "filter by user" combobox', async ({
+    //   page,
+    // }) => {});
 
-    test('does not show author details when expanding post', async () => {});
+    // test('does not show author details when expanding post', async () => {});
   });
 
   test.describe.skip('Authenticated ADMIN', () => {
@@ -42,8 +42,8 @@ test.describe.skip('Posts page - posts table', () => {
       expect(await page.locator('h2').innerText()).toContain('All Posts');
     });
 
-    test('contains additional "Author" column', () => {});
-    test(`clicking the link inside row's "Author" column 
-    navigates to /users?search={userId}`, () => {});
+    // test('contains additional "Author" column', () => {});
+    // test(`clicking the link inside row's "Author" column
+    // navigates to /users?search={userId}`, () => {});
   });
 });

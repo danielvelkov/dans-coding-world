@@ -9,5 +9,5 @@ export const SORT_LABELS = [
 export type SortLabel = (typeof SORT_LABELS)[number];
 
 export async function selectPostSorting(page: Page, label: SortLabel) {
-  await page.getByLabel(/sort by\:/i).selectOption({ label });
+  await page.getByLabel(/sort by:/i).selectOption({ label });
 }
