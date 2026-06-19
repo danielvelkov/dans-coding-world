@@ -16,7 +16,7 @@ const mockUserResponse = generateMockUserResponse({
   user: mockLoginResponse.data?.user,
 });
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useRegister', () => {
   if (!mockUserResponse.data?.user) throw new Error('Missing mock user');
@@ -83,7 +83,7 @@ describe('useRegister', () => {
 
   it('does not try to login after failed registration', async () => {
     vi.mocked(api.post).mockRejectedValue(
-      generateErrorResponseByErrorCode(ERROR_CODES.VALIDATION.USER_EXISTS)
+      generateErrorResponseByErrorCode(ERROR_CODES.VALIDATION.USER_EXISTS),
     );
 
     const { result } = renderUseRegisterHook();

@@ -20,7 +20,7 @@ import type { Profile } from '@dans-coding-world/prisma-schema';
 // TODO: somehow remove this nasty copy-paste
 // mock only "useAuth" from shared hooks module
 vi.mock('@dans-coding-world/public-blog-shared-hooks');
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 const mockUserResponse = generateMockUserResponse({});
 const testUser = mockUserResponse.data?.user as UserDetail;
@@ -30,7 +30,7 @@ describe('EditUserProfile', () => {
     return render(
       <MemoryRouter>
         <EditUserProfile userId={user.id} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -87,7 +87,7 @@ describe('EditUserProfile', () => {
       const inputField = screen.getByLabelText(name);
       expect(inputField).toBeTruthy();
       expect(inputField.tagName).toBe('INPUT');
-    }
+    },
   );
 
   it('contains "Bio" textarea field', () => {
@@ -124,7 +124,7 @@ describe('EditUserProfile', () => {
       await waitFor(async () => {
         if (!testUser.profile) throw new Error('Missing profile mock');
         await screen.findByDisplayValue(
-          testUser.profile[prop as keyof Profile]
+          testUser.profile[prop as keyof Profile],
         );
       });
 
@@ -135,11 +135,11 @@ describe('EditUserProfile', () => {
       await waitFor(() => {
         expect(
           within(screen.getByTestId(warningTestId)).getByText(
-            'Field will be cleared'
-          )
+            'Field will be cleared',
+          ),
         ).toBeInTheDocument();
       });
-    }
+    },
   );
 
   it('calls "updateProfile()" on submit with valid form fields', async () => {
@@ -220,11 +220,11 @@ describe('EditUserProfile', () => {
         expect(
           screen.getByRole('img', {
             name: `${testUser.username}'s avatar`,
-          })
+          }),
         ).toBeInTheDocument();
       } else
         expect(
-          screen.getByLabelText(`Default user avatar`)
+          screen.getByLabelText(`Default user avatar`),
         ).toBeInTheDocument();
     });
   });
@@ -288,7 +288,7 @@ describe('EditUserProfile', () => {
   async function updateField(
     user: ReturnType<typeof userEvent.setup>,
     label: string,
-    newValue: string
+    newValue: string,
   ) {
     const input = screen.getByLabelText(label);
     await user.clear(input);

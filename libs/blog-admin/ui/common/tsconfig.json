@@ -1,0 +1,9 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "files": [],
+  "include": [
+    // Added for svelte
+    "src/**/*.svelte*"
+  ],
+  "references": []
+}

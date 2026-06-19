@@ -1,0 +1,8 @@
+import baseConfig from '<%= relativeToRoot %>eslint.config.mjs';
+
+export default [
+  ...baseConfig,
+  {
+    ignores: ['**/out-tsc'],
+  },
+];

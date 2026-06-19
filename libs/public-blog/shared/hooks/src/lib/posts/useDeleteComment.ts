@@ -1,8 +1,10 @@
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
-import { handleQueryResponse } from '../helper/handle-query-response';
+import {
+  API_ENDPOINTS,
+  handleQueryResponse,
+} from '@dans-coding-world/shared-data-access-api';
 import {
   DeleteCommentDto,
   GetPostCommentsDto,
@@ -14,7 +16,7 @@ export function useDeleteComment() {
   const deleteComment = useMutation({
     mutationFn: async (data: DeleteCommentDto) => {
       const response = await api.delete<BaseResponse<{ comment: Comment }>>(
-        API_ENDPOINTS.COMMENTS.BY_ID(data.postId, data.commentId)
+        API_ENDPOINTS.COMMENTS.BY_ID(data.postId, data.commentId),
       );
       return handleQueryResponse(response);
     },

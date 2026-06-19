@@ -22,10 +22,10 @@ vi.mock(
       ...(await importOriginal()),
       useAuth: vi.fn(),
     };
-  }
+  },
 );
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 const mockPostResponse = generateMockPostsResponse({
   length: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
@@ -37,7 +37,7 @@ describe('BlogList', () => {
     return render(
       <MemoryRouter>
         <BlogList />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -62,7 +62,7 @@ describe('BlogList', () => {
         const message = screen.getByTestId('error-message');
         expect(message.textContent).toMatch(error.message);
       },
-      { timeout: 3000 }
+      { timeout: 3000 },
     );
   });
 
@@ -87,7 +87,7 @@ describe('BlogList', () => {
     renderFeature();
     await waitFor(() => {
       expect(
-        screen.queryByRole('navigation', { name: 'pagination' })
+        screen.queryByRole('navigation', { name: 'pagination' }),
       ).toBeTruthy();
     });
   });
@@ -106,7 +106,7 @@ describe('BlogList', () => {
     renderFeature();
     await waitFor(() => {
       expect(
-        screen.queryByRole('navigation', { name: 'pagination' })
+        screen.queryByRole('navigation', { name: 'pagination' }),
       ).toBeFalsy();
     });
   });
@@ -141,7 +141,7 @@ describe('BlogList', () => {
 
     renderFeature();
     expect(
-      screen.queryByRole('navigation', { name: 'pagination' })
+      screen.queryByRole('navigation', { name: 'pagination' }),
     ).toBeFalsy();
   });
 
@@ -173,7 +173,7 @@ describe('BlogList', () => {
         await waitFor(() => {
           const posts = screen.getAllByRole('article');
           const lockedPosts = screen.queryAllByLabelText(
-            'This post is members only'
+            'This post is members only',
           );
           expect(posts.length).not.toEqual(lockedPosts.length);
           expect(lockedPosts.length).toBe(0);
@@ -189,7 +189,7 @@ describe('BlogList', () => {
             expect(
               Array.from(postLinks)
                 .map((link) => link.textContent)
-                .includes('Continue reading')
+                .includes('Continue reading'),
             ).toBeTruthy();
           }
         });
@@ -208,7 +208,7 @@ describe('BlogList', () => {
         await waitFor(() => {
           const posts = screen.getAllByRole('article');
           const lockedPosts = screen.queryAllByLabelText(
-            'This post is members only'
+            'This post is members only',
           );
           expect(posts.length).toEqual(lockedPosts.length);
         });
@@ -223,7 +223,7 @@ describe('BlogList', () => {
             expect(
               Array.from(postLinks)
                 .map((link) => link.textContent)
-                .includes('Continue reading')
+                .includes('Continue reading'),
             ).toBeFalsy();
           }
         });

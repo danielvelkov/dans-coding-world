@@ -8,6 +8,7 @@ import {
   ArrayNotEmpty,
   IsInt,
   IsPositive,
+  Min,
 } from 'class-validator';
 import {
   PostStatus,
@@ -33,7 +34,7 @@ export class FilterPostsByDto {
   @IsEnum(PostStatusEnum, {
     each: true,
     message: `Post status must be one of:${Object.values(PostStatusEnum).join(
-      ''
+      '',
     )}`,
   })
   status?: PostStatus[];
@@ -48,7 +49,7 @@ export class FilterPostsByDto {
   @IsEnum(PostVisibilityEnum, {
     each: true,
     message: `Post visibility must be one of:${Object.values(
-      PostVisibilityEnum
+      PostVisibilityEnum,
     ).join('')}`,
   })
   visibility?: PostVisibility[];
@@ -75,4 +76,10 @@ export class FilterPostsByDto {
   @IsInt()
   @IsPositive()
   year?: number;
+
+  @IsOptional()
+  @ToInteger()
+  @IsInt()
+  @Min(0)
+  userId?: number;
 }

@@ -26,7 +26,7 @@ const mockLogoutResponse = {
   },
 };
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useAuthState', () => {
   if (!mockLoginResponse.data?.user) throw new Error('Missing mock user');
@@ -167,7 +167,7 @@ describe('useAuthState', () => {
           expect(result.current.user).toHaveProperty('profile');
         });
         expect((result.current.user as UserDetail).profile).toBe(
-          mockUserResponse.data?.user.profile
+          mockUserResponse.data?.user.profile,
         );
       });
     });
@@ -294,7 +294,7 @@ describe('useAuthState', () => {
             expect(result.current.isLoading).toBeFalsy();
           });
           expect(result.current.error).toMatchObject(error);
-        }
+        },
       );
 
       it('keeps user if error is anything but 401-Unauthorized', async () => {
@@ -361,15 +361,15 @@ describe('useAuthState', () => {
 
           await act(async () => {
             vi.advanceTimersByTime(
-              TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 2
+              TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 2,
             );
           });
 
           expect(apiSpy).not.toHaveBeenLastCalledWith(
-            API_ENDPOINTS.AUTH.REFRESH
+            API_ENDPOINTS.AUTH.REFRESH,
           );
           vi.useRealTimers();
-        }
+        },
       );
     });
   });

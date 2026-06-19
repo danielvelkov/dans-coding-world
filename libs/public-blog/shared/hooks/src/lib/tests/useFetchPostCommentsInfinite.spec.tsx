@@ -21,7 +21,7 @@ const mockPostCommentsResponse = generateMockPostCommentsResponse({
   pageSize: 5,
   replyLevels: 0,
 });
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useFetchPostsCommentsInfinite', () => {
   const renderUseFetchPostCommentsHook = () =>
@@ -53,17 +53,17 @@ describe('useFetchPostsCommentsInfinite', () => {
     const firstPageResult = data.pages[0] as GetPostCommentsResponseDto;
 
     expect(firstPageResult.pagination).toBe(
-      mockPostCommentsResponse.data?.pagination
+      mockPostCommentsResponse.data?.pagination,
     );
     expect(firstPageResult.items.length).toBe(
-      mockPostCommentsResponse.data?.count
+      mockPostCommentsResponse.data?.count,
     );
 
     for (const comment of firstPageResult.items)
       expect(
         mockPostCommentsResponse.data?.items
           .map((i) => i.id)
-          .includes(comment.id)
+          .includes(comment.id),
       ).toBe(true);
   });
 

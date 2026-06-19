@@ -15,7 +15,7 @@ import {
 } from '@dans-coding-world/shared-constants';
 
 const mockPostResponse = generateMockPostsResponse({ length: 5, pageSize: 5 });
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useFetchPosts', () => {
   const renderUseFetchPostsHook = () => renderReactQueryHook(useFetchPosts);
@@ -42,7 +42,7 @@ describe('useFetchPosts', () => {
 
     for (const post of data.items)
       expect(
-        mockPostResponse.data?.items.map((i) => i.id).includes(post.id)
+        mockPostResponse.data?.items.map((i) => i.id).includes(post.id),
       ).toBe(true);
   });
 

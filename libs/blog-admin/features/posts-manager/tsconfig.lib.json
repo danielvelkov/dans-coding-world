@@ -1,0 +1,60 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "../posts-manager/src",
+    "outDir": "../posts-manager/dist",
+    "tsBuildInfoFile": "../posts-manager/dist/tsconfig.lib.tsbuildinfo",
+    "emitDeclarationOnly": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
+  },
+  "include": [
+    "../posts-manager/src/**/*.ts",
+    // Added for svelte
+    "../posts-manager/src/**/*.svelte"
+  ],
+  "references": [
+    {
+      "path": "../../data-access/operations/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/post/dtos/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/user/testing/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/helpers/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../prisma-schema/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/shared-constants/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/post/testing/tsconfig.lib.json"
+    }
+  ],
+  "exclude": [
+    "../posts-manager/vite.config.ts",
+    "../posts-manager/vite.config.mts",
+    "../posts-manager/vitest.config.ts",
+    "../posts-manager/vitest.config.mts",
+    "../posts-manager/src/**/*.test.ts",
+    "../posts-manager/src/**/*.spec.ts",
+    "../posts-manager/src/**/*.test.tsx",
+    "../posts-manager/src/**/*.spec.tsx",
+    "../posts-manager/src/**/*.test.js",
+    "../posts-manager/src/**/*.spec.js",
+    "../posts-manager/src/**/*.test.jsx",
+    "../posts-manager/src/**/*.spec.jsx",
+    // Added for svelte
+    "../posts-manager/src/**/*.svelte.test.js",
+    "../posts-manager/src/**/*.svelte.test.ts",
+    "../posts-manager/src/**/*.svelte.spec.js",
+    "../posts-manager/src/**/*.svelte.spec.ts"
+  ]
+}

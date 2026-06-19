@@ -1,8 +1,10 @@
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
-import { handleQueryResponse } from '../helper/handle-query-response';
+import {
+  API_ENDPOINTS,
+  handleQueryResponse,
+} from '@dans-coding-world/shared-data-access-api';
 import {
   GetPostCommentsDto,
   UpdateCommentDto,
@@ -15,7 +17,7 @@ export function useEditComment() {
     mutationFn: async (data: Omit<UpdateCommentDto, 'userId'>) => {
       const response = await api.patch<BaseResponse<{ comment: Comment }>>(
         API_ENDPOINTS.COMMENTS.BY_ID(data.postId, data.commentId),
-        data
+        data,
       );
       return handleQueryResponse(response);
     },

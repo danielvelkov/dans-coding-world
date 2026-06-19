@@ -14,7 +14,7 @@ import {
   ERROR_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useFetchTags', () => {
   const renderUseFetchTagsHook = () => renderReactQueryHook(useFetchTags);
@@ -39,7 +39,7 @@ describe('useFetchTags', () => {
 
     for (const tag of data.items)
       expect(mockResponse.data?.items.map((i) => i.id).includes(tag.id)).toBe(
-        true
+        true,
       );
   });
 

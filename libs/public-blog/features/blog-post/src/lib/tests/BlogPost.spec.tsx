@@ -23,9 +23,9 @@ vi.mock(
       ...(await importOriginal()),
       useAuth: vi.fn(),
     };
-  }
+  },
 );
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 const mockPostResponse = generateMockPostResponse({});
 const testPost = mockPostResponse.data?.post as PostFull;
@@ -35,7 +35,7 @@ describe('BlogPost', () => {
     return render(
       <MemoryRouter>
         <BlogPost postId={post.id} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -81,7 +81,7 @@ describe('BlogPost', () => {
       const article = screen.getByRole('article');
       const publishedDate = within(article).getByLabelText(/posted on/i);
       expect(publishedDate.textContent).toBe(
-        formatDateTo_Month_DD_YYYY(new Date(testPost.publishedAt as Date))
+        formatDateTo_Month_DD_YYYY(new Date(testPost.publishedAt as Date)),
       );
     });
   });
@@ -107,7 +107,7 @@ describe('BlogPost', () => {
       const article = screen.getByRole('article');
       const modifiedDate = within(article).getByLabelText(/last edited on/i);
       expect(modifiedDate.textContent).toContain(
-        formatDateTo_Month_DD_YYYY(new Date(editedDate))
+        formatDateTo_Month_DD_YYYY(new Date(editedDate)),
       );
     });
   });

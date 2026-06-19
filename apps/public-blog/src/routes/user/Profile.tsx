@@ -5,10 +5,7 @@ import {
 import { useMatch, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 
-const StyledContainer = styled.main`
-  max-width: 800px;
-  margin: 1em auto;
-`;
+const StyledContainer = styled.main``;
 
 export function Profile() {
   const { userId } = useParams<{ userId: string }>();

@@ -1,20 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
+import {
+  API_ENDPOINTS,
+  handleQueryResponse,
+} from '@dans-coding-world/shared-data-access-api';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse } from '@dans-coding-world/api-types';
-import { handleQueryResponse } from '../helper/handle-query-response';
 import { GetUserResponseDto } from '@dans-coding-world/shared-user-dto';
 
 export const useFetchUser = (
   userId: number,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) => {
   const query = useQuery({
     staleTime: Infinity,
     queryKey: ['user', userId],
     queryFn: async () => {
       const response = await api.get<BaseResponse<GetUserResponseDto>>(
-        API_ENDPOINTS.USERS.BY_ID(userId)
+        API_ENDPOINTS.USERS.BY_ID(userId),
       );
       return handleQueryResponse(response);
     },

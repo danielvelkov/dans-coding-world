@@ -5,7 +5,7 @@ import { waitFor } from '@testing-library/dom';
 import { useReportComment } from '../posts/useReportComment';
 import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useReportComment', () => {
   const renderUseReportCommentHook = () =>

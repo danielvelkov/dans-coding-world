@@ -1,5 +1,6 @@
 import { FetchPostsQueryParams } from '../../types/fetchPostsQueryParams';
 import { mergePostQueryDefaults } from './merge-post-query-defaults';
+
 describe('mergePostQueryDefaults()', () => {
   test.each([
     {},
@@ -25,9 +26,9 @@ describe('mergePostQueryDefaults()', () => {
       const queryParams = mergePostQueryDefaults(params);
       expect(queryParams.filterBy?.status).toHaveLength(1);
       expect(queryParams.filterBy?.status).toEqual(
-        expect.arrayContaining(['PUBLISHED'])
+        expect.arrayContaining(['PUBLISHED']),
       );
-    }
+    },
   );
 
   test.each([
@@ -57,7 +58,7 @@ describe('mergePostQueryDefaults()', () => {
       const queryParams = mergePostQueryDefaults(params);
       if (isDefault) expect(queryParams.sortBy?.publishedAt).toBe('desc');
       else expect(queryParams.sortBy).toBe(params.sortBy);
-    }
+    },
   );
 
   test.each([
@@ -86,12 +87,12 @@ describe('mergePostQueryDefaults()', () => {
       const queryParams = mergePostQueryDefaults(params);
       if (isDefault)
         expect(queryParams.filterBy?.visibility).toEqual(
-          expect.arrayContaining(['MEMBERS_ONLY', 'PUBLIC'])
+          expect.arrayContaining(['MEMBERS_ONLY', 'PUBLIC']),
         );
       else
         expect(queryParams.filterBy?.visibility).toBe(
-          params.filterBy?.visibility
+          params.filterBy?.visibility,
         );
-    }
+    },
   );
 });

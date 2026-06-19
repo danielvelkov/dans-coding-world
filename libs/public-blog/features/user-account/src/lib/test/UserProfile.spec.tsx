@@ -22,9 +22,9 @@ vi.mock(
       ...(await importOriginal()),
       useAuth: vi.fn(),
     };
-  }
+  },
 );
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 const mockUserResponse = generateMockUserResponse({});
 const testUser = mockUserResponse.data?.user as UserDetail;
@@ -34,7 +34,7 @@ describe('UserProfile', () => {
     return render(
       <MemoryRouter>
         <UserProfile userId={user.id} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -65,7 +65,7 @@ describe('UserProfile', () => {
       within(descriptionList).getByText(testUser.profile?.lastName ?? '-');
       within(descriptionList).getByText(testUser.profile?.bio ?? '-');
       expect(
-        within(descriptionList).queryByText(testUser.email ?? '-')
+        within(descriptionList).queryByText(testUser.email ?? '-'),
       ).not.toBeInTheDocument();
     });
   });
@@ -81,7 +81,7 @@ describe('UserProfile', () => {
     await waitFor(() => {
       const descriptionList = screen.getByTestId('user-info');
       expect(
-        within(descriptionList).queryByText(testUser.email ?? '-')
+        within(descriptionList).queryByText(testUser.email ?? '-'),
       ).toBeInTheDocument();
     });
   });
@@ -98,10 +98,10 @@ describe('UserProfile', () => {
       renderFeature();
       await waitFor(() => {
         expect(
-          screen.getByRole('button', { name: new RegExp(name) })
+          screen.getByRole('button', { name: new RegExp(name) }),
         ).toBeInTheDocument();
       });
-    }
+    },
   );
 
   it('should render profile avatar (if present) or default avatar', async () => {
@@ -111,11 +111,11 @@ describe('UserProfile', () => {
         expect(
           screen.getByRole('img', {
             name: `${testUser.username}'s avatar`,
-          })
+          }),
         ).toBeInTheDocument();
       } else
         expect(
-          screen.getByLabelText(`Default user avatar`)
+          screen.getByLabelText(`Default user avatar`),
         ).toBeInTheDocument();
     });
   });

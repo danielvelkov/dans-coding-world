@@ -90,7 +90,8 @@
         "typecheckTargetName": "typecheck",
         "buildDepsTargetName": "build-deps",
         "watchDepsTargetName": "watch-deps"
-      }
+      },
+      "exclude": ["apps/blog-admin/vite.config.ts"]
     },
     {
       "plugin": "@nx/cypress/plugin",
@@ -159,6 +160,13 @@
       "plugin": "@nx/vitest",
       "options": {
         "testTargetName": "test"
+      },
+      "exclude": ["apps/blog-admin/vite.config.ts"]
+    },
+    {
+      "plugin": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e"
       }
     }
   ],
@@ -189,5 +197,6 @@
         "unitTestRunner": "vitest"
       }
     }
-  }
+  },
+  "analytics": true
 }

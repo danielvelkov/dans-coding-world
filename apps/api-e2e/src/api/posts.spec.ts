@@ -71,10 +71,10 @@ describe('/api/v1/posts', () => {
     tags = await seedTags();
 
     PUBLISHED_PUBLIC_POSTS_NUM = posts.filter(
-      (p) => p.visibility === 'PUBLIC' && p.status === 'PUBLISHED'
+      (p) => p.visibility === 'PUBLIC' && p.status === 'PUBLISHED',
     ).length;
     PUBLISHED_MEMBERS_ONLY_POSTS_NUM = posts.filter(
-      (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
+      (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED',
     ).length;
 
     if (!PUBLISHED_PUBLIC_POSTS_NUM || !PUBLISHED_MEMBERS_ONLY_POSTS_NUM)
@@ -92,23 +92,23 @@ describe('/api/v1/posts', () => {
 
     testData.publicOnlyTags = tags.slice(
       TAG_RANGES.PUBLIC_ONLY.start,
-      TAG_RANGES.PUBLIC_ONLY.end
+      TAG_RANGES.PUBLIC_ONLY.end,
     );
     testData.privateAdminTags = tags.slice(
       TAG_RANGES.PRIVATE_ADMIN.start,
-      TAG_RANGES.PRIVATE_ADMIN.end
+      TAG_RANGES.PRIVATE_ADMIN.end,
     );
     testData.privateAuthorTags = tags.slice(
       TAG_RANGES.PRIVATE_AUTHOR.start,
-      TAG_RANGES.PRIVATE_AUTHOR.end
+      TAG_RANGES.PRIVATE_AUTHOR.end,
     );
     testData.privateAuthorTags_AlsoUsedOnPublic = tags.slice(
       TAG_RANGES.PRIVATE_AND_PUBLIC_AUTHOR.start,
-      TAG_RANGES.PRIVATE_AND_PUBLIC_AUTHOR.end
+      TAG_RANGES.PRIVATE_AND_PUBLIC_AUTHOR.end,
     );
     testData.privateAdminTags_AlsoUsedOnPublic = tags.slice(
       TAG_RANGES.PRIVATE_AND_PUBLIC_ADMIN.start,
-      TAG_RANGES.PRIVATE_AND_PUBLIC_ADMIN.end
+      TAG_RANGES.PRIVATE_AND_PUBLIC_ADMIN.end,
     );
 
     admin = users.find((u) => u.role === 'ADMIN') as User;
@@ -122,10 +122,10 @@ describe('/api/v1/posts', () => {
     const postsByType = {
       published: posts.filter((p) => p.status === 'PUBLISHED'),
       privateAdmin: posts.filter(
-        (p) => p.status !== 'PUBLISHED' && p.authorId === admin.id
+        (p) => p.status !== 'PUBLISHED' && p.authorId === admin.id,
       ),
       privateAuthor: posts.filter(
-        (p) => p.status !== 'PUBLISHED' && p.authorId === author.id
+        (p) => p.status !== 'PUBLISHED' && p.authorId === author.id,
       ),
     };
 
@@ -142,7 +142,7 @@ describe('/api/v1/posts', () => {
         for (const tagGroup of tagGroups) {
           await attachTagsToPost(
             post.id,
-            tagGroup.map((t) => t.id)
+            tagGroup.map((t) => t.id),
           );
         }
       }
@@ -175,7 +175,7 @@ describe('/api/v1/posts', () => {
   describe('GET /api/v1/posts/:id', () => {
     it('should return post data for PUBLIC and PUBLISHED posts', async () => {
       const publishedPost = posts.find(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!publishedPost) throw new Error('Missing published test post');
 
@@ -198,7 +198,7 @@ describe('/api/v1/posts', () => {
       ];
 
       const publicPost = posts.find(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!publicPost) throw new Error('Missing test post');
 
@@ -213,7 +213,7 @@ describe('/api/v1/posts', () => {
 
     it('should return posts with their author details included', async () => {
       const publicPost = posts.find(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!publicPost) throw new Error('Missing test post');
 
@@ -232,7 +232,7 @@ describe('/api/v1/posts', () => {
       'should return MEMBERS_ONLY posts with content %s',
       async (_, isLoggedIn) => {
         const membersOnlyPost = posts.find(
-          (p) => p.status === 'PUBLISHED' && p.visibility === 'MEMBERS_ONLY'
+          (p) => p.status === 'PUBLISHED' && p.visibility === 'MEMBERS_ONLY',
         );
         if (!membersOnlyPost) throw new Error('Missing published test post');
 
@@ -249,25 +249,25 @@ describe('/api/v1/posts', () => {
         expect(postData.content).toBe(
           isLoggedIn
             ? membersOnlyPost.content
-            : VALIDATION_MESSAGES.posts.membersOnly
+            : VALIDATION_MESSAGES.posts.membersOnly,
         );
-      }
+      },
     );
 
     testInvalidIds((id) => anonHelpers.getPost(id), 'post id');
 
     it('should return 404 NOT FOUND for unknown post id', async () => {
       return await expect(anonHelpers.getPost('9999')).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
     it('should return 403 FORBIDDEN for DRAFT or ARCHIVED post of another user', async () => {
       const archivedPostOfAnotherUser = posts.find(
-        (p) => p.status === 'ARCHIVED' && p.authorId !== author.id
+        (p) => p.status === 'ARCHIVED' && p.authorId !== author.id,
       );
       const draftPostOfAnotherUser = posts.find(
-        (p) => p.status === 'DRAFT' && p.authorId !== author.id
+        (p) => p.status === 'DRAFT' && p.authorId !== author.id,
       );
       if (!archivedPostOfAnotherUser || !draftPostOfAnotherUser)
         throw new Error('Missing test posts');
@@ -278,7 +278,7 @@ describe('/api/v1/posts', () => {
         draftPostOfAnotherUser.id,
       ])
         await expect(anonHelpers.getPost(id.toString())).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
 
       // Logged in as another user
@@ -287,9 +287,9 @@ describe('/api/v1/posts', () => {
         draftPostOfAnotherUser.id,
       ])
         await expect(
-          authorHelpers.getPost(id.toString())
+          authorHelpers.getPost(id.toString()),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
     });
 
@@ -297,10 +297,10 @@ describe('/api/v1/posts', () => {
       'should allow access to DRAFT or ARCHIVED posts of another user when %s',
       async (role) => {
         const archivedPostOfAnotherUser = posts.find(
-          (p) => p.status === 'ARCHIVED' && p.authorId !== admin.id
+          (p) => p.status === 'ARCHIVED' && p.authorId !== admin.id,
         );
         const draftPostOfAnotherUser = posts.find(
-          (p) => p.status === 'DRAFT' && p.authorId !== admin.id
+          (p) => p.status === 'DRAFT' && p.authorId !== admin.id,
         );
         if (!archivedPostOfAnotherUser || !draftPostOfAnotherUser)
           throw new Error('Missing test posts');
@@ -318,7 +318,7 @@ describe('/api/v1/posts', () => {
           const postData = getData<Post>(res, 'post');
           expect(postData.id).toBe(id);
         }
-      }
+      },
     );
   });
 
@@ -337,7 +337,7 @@ describe('/api/v1/posts', () => {
           PUBLISHED_PUBLIC_POSTS_NUM + PUBLISHED_MEMBERS_ONLY_POSTS_NUM;
         const expectedPages = Math.ceil(
           (PUBLISHED_PUBLIC_POSTS_NUM + PUBLISHED_MEMBERS_ONLY_POSTS_NUM) /
-            PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+            PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
         );
 
         expect(postsData.pagination).toMatchObject({
@@ -383,8 +383,8 @@ describe('/api/v1/posts', () => {
         expect(postsData.items).toHaveLength(PUBLISHED_MEMBERS_ONLY_POSTS_NUM);
         expect(
           postsData.items.every(
-            (p) => p.content === VALIDATION_MESSAGES.posts.membersOnly
-          )
+            (p) => p.content === VALIDATION_MESSAGES.posts.membersOnly,
+          ),
         );
       });
 
@@ -418,13 +418,13 @@ describe('/api/v1/posts', () => {
         const postsData = getData<GetPostsResponseDto>(res);
 
         expect(postsData.pagination.total).toBe(
-          PUBLISHED_PUBLIC_POSTS_NUM + PUBLISHED_MEMBERS_ONLY_POSTS_NUM
+          PUBLISHED_PUBLIC_POSTS_NUM + PUBLISHED_MEMBERS_ONLY_POSTS_NUM,
         );
         for (const post of postsData.items)
           expect(
             (post as any).tags.some((name: string) =>
-              testData.publicOnlyTags.map((t) => t.name).includes(name)
-            )
+              testData.publicOnlyTags.map((t) => t.name).includes(name),
+            ),
           ).toBe(true);
       });
 
@@ -433,7 +433,7 @@ describe('/api/v1/posts', () => {
           ...new Set(
             posts
               .filter((p) => p.publishedAt)
-              .map((p) => new Date(p.publishedAt ?? '').getFullYear())
+              .map((p) => new Date(p.publishedAt ?? '').getFullYear()),
           ),
         ];
         if (uniqueYears.length < 2)
@@ -453,6 +453,38 @@ describe('/api/v1/posts', () => {
               const postYear = new Date(post.publishedAt).getFullYear();
               expect(postYear).toBe(year);
             }
+        }
+      });
+
+      it('should allow filtering by user id', async () => {
+        for (const userId of users.map((u) => u.id)) {
+          const res = await anonHelpers.getPosts({
+            filterBy: {
+              userId,
+            },
+          });
+
+          const postsData = getData<GetPostsResponseDto>(res);
+
+          for (const post of postsData.items)
+            expect(post.authorId).toBe(userId);
+        }
+      });
+
+      it(`should not return other user' private posts when filtering by user id`, async () => {
+        for (const userId of users.map((u) => u.id)) {
+          const res = await anonHelpers.getPosts({
+            filterBy: {
+              userId,
+            },
+          });
+
+          const postsData = getData<GetPostsResponseDto>(res);
+
+          for (const post of postsData.items) {
+            expect(post.authorId).toBe(userId);
+            expect(post.status).toBe('PUBLISHED');
+          }
         }
       });
 
@@ -496,11 +528,11 @@ describe('/api/v1/posts', () => {
               filterBy: {
                 tags: [tag],
               },
-            })
+            }),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
           );
-        }
+        },
       );
     });
 
@@ -518,11 +550,11 @@ describe('/api/v1/posts', () => {
               sortBy: {
                 [key]: value,
               },
-            })
+            }),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
           );
-        }
+        },
       );
 
       test.concurrent.each([
@@ -553,7 +585,7 @@ describe('/api/v1/posts', () => {
           sortedItems.forEach((post, i) => {
             expect(post.id).toBe(postsData.items[i].id);
           });
-        }
+        },
       );
     });
 
@@ -600,7 +632,7 @@ describe('/api/v1/posts', () => {
         const postsData = getData<GetPostsResponseDto>(res);
 
         expect(postsData.pagination.page).toBe(
-          Math.ceil(totalNumberOfPosts / pageSizeOptions[2]) + 1
+          Math.ceil(totalNumberOfPosts / pageSizeOptions[2]) + 1,
         );
         expect(postsData.count).toBe(0);
         expect(postsData.items.length).toBe(0);
@@ -628,7 +660,7 @@ describe('/api/v1/posts', () => {
 
           expect(postsData.pagination.page).toBe(expectedPageNum);
           expect(postsData.pagination.total).toBe(totalNumberOfPosts);
-        }
+        },
       );
 
       test.concurrent.each([
@@ -686,9 +718,25 @@ describe('/api/v1/posts', () => {
             },
           },
         ],
+        [
+          'userId is letter',
+          {
+            filterBy: {
+              userId: 'a',
+            },
+          },
+        ],
+        [
+          'userId is a decimal',
+          {
+            filterBy: {
+              userId: 1.5,
+            },
+          },
+        ],
       ])('should return validation error when %s', async (_, params) => {
         await expect(anonHelpers.getPosts(params)).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
       });
     });
@@ -699,11 +747,11 @@ describe('/api/v1/posts', () => {
         ['DRAFT posts', ['DRAFT'] as PostStatus[]],
         ['ARCHIVED posts', ['ARCHIVED'] as PostStatus[]],
       ])(
-        'should retrieve their own private %s when filtering by status',
+        'should retrieve only their own private %s when filtering by status which excludes PUBLISHED',
         async (_, allowedPostStatus) => {
           const filteredPosts = posts.filter(
             (p) =>
-              allowedPostStatus.includes(p.status) && p.authorId === author.id
+              allowedPostStatus.includes(p.status) && p.authorId === author.id,
           );
 
           const res = await authorHelpers.getPosts({
@@ -722,7 +770,7 @@ describe('/api/v1/posts', () => {
             expect(post.authorId).toBe(author.id);
             expect(allowedPostStatus).toContain(post.status);
           });
-        }
+        },
       );
 
       it(`should retrieve own private posts when author is logged in and filtering by tags`, async () => {
@@ -743,17 +791,17 @@ describe('/api/v1/posts', () => {
             expect(
               testData.privateAuthorTags_AlsoUsedOnPublic
                 .map((t) => t.name)
-                .includes(tag)
+                .includes(tag),
             ).toBe(true);
         }
       });
 
-      it(`should retrieve own private posts when user is logged in and filtering by year`, async () => {
+      it(`should retrieve only own private posts when author is logged in and filtering by year`, async () => {
         const expectedYear = posts
           .find((p) => p.authorId === author.id && p.publishedAt)
           ?.publishedAt?.getFullYear();
 
-        const res = await adminHelpers.getPosts({
+        const res = await authorHelpers.getPosts({
           filterBy: {
             year: expectedYear,
           },
@@ -771,21 +819,21 @@ describe('/api/v1/posts', () => {
         }
       });
 
-      it(`should retrieve all private user posts when logged in as ADMIN`, async () => {
-        const res = await adminHelpers.getPosts({
-          pageSize: PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS[2],
+      it(`should retrieve own private posts when user is logged in and filtering by userId and status`, async () => {
+        const res = await authorHelpers.getPosts({
           filterBy: {
-            status: ['DRAFT', 'ARCHIVED'],
+            userId: author.id,
+            status: ['DRAFT', 'ARCHIVED', 'PUBLISHED'],
           },
         });
-
         const postsData = getData<GetPostsResponseDto>(res);
+        expect(postsData.items.some((p) => p.status !== 'PUBLISHED')).toBe(
+          true,
+        );
 
-        expect(
-          postsData.items.some(
-            (p) => p.status !== 'PUBLISHED' && p.authorId !== admin.id
-          )
-        ).toBe(true);
+        for (const post of postsData.items) {
+          expect(post.authorId).toBe(author.id);
+        }
       });
 
       test.concurrent.each([
@@ -798,14 +846,14 @@ describe('/api/v1/posts', () => {
         { visibility: ['MEMBERS_ONLY'] },
         { status: [] },
       ])(
-        'should find his own posts w/wo filters and a search query specified',
+        'should find his own posts with or without filters + search query specified',
         async (filters) => {
           const expectedPost = posts.find(
             (p) =>
               p.authorId === author.id &&
               (!filters?.status?.length || filters.status.includes(p.status)) &&
               (!filters?.visibility?.length ||
-                filters.visibility.includes(p.visibility))
+                filters.visibility.includes(p.visibility)),
           );
           if (!expectedPost) throw new Error('Missing private post');
 
@@ -819,11 +867,39 @@ describe('/api/v1/posts', () => {
 
           expect(postsData.count).toBe(1);
           expect(postsData.items[0].id).toBe(expectedPost.id);
-        }
+        },
       );
 
       it.concurrent(
-        `should not retrieve other users drafts and 
+        `should not retrieve other users' drafts and 
+      archived posts when filtering by their userId`,
+        async () => {
+          const resPublished = await authorHelpers.getPosts({
+            filterBy: {
+              userId: admin.id,
+            },
+          });
+          const postsDataPublished = getData<GetPostsResponseDto>(resPublished);
+
+          expect(postsDataPublished.count).toBeGreaterThan(0);
+          for (const post of postsDataPublished.items) {
+            expect(post.status).toBe('PUBLISHED');
+            expect(post.authorId).toBe(admin.id);
+          }
+
+          const resPrivate = await authorHelpers.getPosts({
+            filterBy: {
+              userId: admin.id,
+              status: ['ARCHIVED', 'DRAFT'],
+            },
+          });
+          const postsDataPrivate = getData<GetPostsResponseDto>(resPrivate);
+          expect(postsDataPrivate.count).toBe(0);
+        },
+      );
+
+      it.concurrent(
+        `should not retrieve other users' drafts and 
       archived posts when overlapping tags are present`,
         async () => {
           const res = await authorHelpers.getPosts({
@@ -844,14 +920,14 @@ describe('/api/v1/posts', () => {
               expect(
                 testData.privateAuthorTags_AlsoUsedOnPublic
                   .map((t) => t.name)
-                  .includes(tag)
+                  .includes(tag),
               ).toBe(true);
           }
-        }
+        },
       );
     });
 
-    describe('GET /api/v1/posts - Authenticated Non-Author', () => {
+    describe('GET /api/v1/posts - Authenticated Non-Author/Admin/Mod', () => {
       test.concurrent.each([
         [['DRAFT']],
         [['ARCHIVED']],
@@ -871,7 +947,7 @@ describe('/api/v1/posts', () => {
           postsData.items.forEach((post) => {
             expect(post.authorId).toBe(user.id);
           });
-        }
+        },
       );
 
       it.concurrent(
@@ -881,7 +957,7 @@ describe('/api/v1/posts', () => {
           const privatePostFromAnotherAuthor = posts.find(
             (p) =>
               (p.status === 'DRAFT' || p.status === 'ARCHIVED') &&
-              p.authorId !== user.id
+              p.authorId !== user.id,
           );
           if (!privatePostFromAnotherAuthor)
             throw new Error('Missing post by other user');
@@ -892,8 +968,46 @@ describe('/api/v1/posts', () => {
 
           const postsData = getData<GetPostsResponseDto>(resWithFilters);
           expect(postsData.count).toBe(0);
-        }
+        },
       );
+    });
+
+    describe('GET /api/v1/posts - Authenticated ADMIN', () => {
+      it(`should be able to retrieve users' private posts
+         when logged in as ADMIN and filtering by status`, async () => {
+        const res = await adminHelpers.getPosts({
+          pageSize: PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS[2],
+          filterBy: {
+            status: ['DRAFT', 'ARCHIVED'],
+          },
+        });
+
+        const postsData = getData<GetPostsResponseDto>(res);
+
+        expect(
+          postsData.items.some(
+            (p) => p.status !== 'PUBLISHED' && p.authorId !== admin.id,
+          ),
+        ).toBe(true);
+      });
+
+      it(`should be able to retrieve ALL of user's posts
+         when logged in as ADMIN and filtering by userId and status`, async () => {
+        const res = await adminHelpers.getPosts({
+          pageSize: PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS[2],
+          filterBy: {
+            status: ['DRAFT', 'ARCHIVED'],
+            userId: author.id,
+          },
+        });
+
+        const postsData = getData<GetPostsResponseDto>(res);
+
+        for (const post of postsData.items) {
+          expect(post.authorId).toBe(author.id);
+          expect(post.status).not.toBe('PUBLISHED');
+        }
+      });
     });
   });
 
@@ -928,7 +1042,7 @@ describe('/api/v1/posts', () => {
           const helper = role === 'ADMIN' ? adminHelpers : authorHelpers;
 
           postData.title = generateRandomString(
-            POST_CONSTRAINTS.MAX_TITLE_LENGTH - 1
+            POST_CONSTRAINTS.MAX_TITLE_LENGTH - 1,
           );
 
           const res = await helper.createPost(postData);
@@ -941,13 +1055,13 @@ describe('/api/v1/posts', () => {
 
           expect(post.status).toBe(postData.isDraft ? 'DRAFT' : 'PUBLISHED');
           expect(post.visibility).toBe(
-            postData.isMembersOnly ? 'MEMBERS_ONLY' : 'PUBLIC'
+            postData.isMembersOnly ? 'MEMBERS_ONLY' : 'PUBLIC',
           );
           // Should set published date when post is PUBLISHED
           if (postData.isDraft) expect(post.publishedAt).toBe(null);
           else expect(post.publishedAt).toBeTruthy();
         }
-      }
+      },
     );
 
     it('should create tags if new names are specified in post data', async () => {
@@ -955,7 +1069,7 @@ describe('/api/v1/posts', () => {
         generateRandomString(10, {
           includeSymbols: false,
           includeUppercase: false,
-        })
+        }),
       );
 
       const res = await authorHelpers.createPost({
@@ -1007,7 +1121,7 @@ describe('/api/v1/posts', () => {
         {
           ...VALID_POST_DATA,
           content: generateRandomString(
-            POST_CONSTRAINTS.MAX_CONTENT_LENGTH + 1
+            POST_CONSTRAINTS.MAX_CONTENT_LENGTH + 1,
           ),
         },
       ],
@@ -1016,7 +1130,7 @@ describe('/api/v1/posts', () => {
         {
           ...VALID_POST_DATA,
           content: generateRandomString(
-            POST_CONSTRAINTS.MIN_CONTENT_LENGTH - 1
+            POST_CONSTRAINTS.MIN_CONTENT_LENGTH - 1,
           ),
         },
       ],
@@ -1092,9 +1206,9 @@ describe('/api/v1/posts', () => {
       ],
     ])('should return validation error when %s', async (_, postData) => {
       return await expect(
-        adminHelpers.createPost(postData as any)
+        adminHelpers.createPost(postData as any),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
       );
     });
 
@@ -1105,11 +1219,11 @@ describe('/api/v1/posts', () => {
           userHelpers.createPost({
             ...VALID_POST_DATA,
             title: generateRandomString(POST_CONSTRAINTS.MIN_TITLE_LENGTH + 1),
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
-      }
+      },
     );
 
     it('should return validation error when creating a post with the same title', async () => {
@@ -1119,9 +1233,9 @@ describe('/api/v1/posts', () => {
         authorHelpers.createPost({
           ...VALID_POST_DATA,
           title: existingPostTitle,
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS),
       );
     });
 
@@ -1140,9 +1254,9 @@ describe('/api/v1/posts', () => {
         await expect(
           authorHelpers.createPost({
             ...VALID_POST_DATA,
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED),
         );
       } finally {
         await prisma.user.update({
@@ -1176,7 +1290,7 @@ describe('/api/v1/posts', () => {
           postForUpdate.id.toString(),
           {
             [propName]: value,
-          } as any
+          } as any,
         );
 
         expect(getMessage(res)).toBe(SUCCESS_MESSAGES.POSTS.update);
@@ -1187,9 +1301,9 @@ describe('/api/v1/posts', () => {
         expect(post[propName]).toBe(value);
         // Expect updatedAt date to change
         expect(postForUpdate.updatedAt.getTime()).toBeLessThan(
-          new Date(post.updatedAt).getTime()
+          new Date(post.updatedAt).getTime(),
         );
-      }
+      },
     );
 
     test.each([
@@ -1217,14 +1331,14 @@ describe('/api/v1/posts', () => {
         expect(post[propName]).toBe(value);
         // Expect updatedAt date to change
         expect(postForUpdate.updatedAt.getTime()).toBeLessThan(
-          new Date(post.updatedAt).getTime()
+          new Date(post.updatedAt).getTime(),
         );
-      }
+      },
     );
 
     it('should set publishedAt date when post status is updated from DRAFT to PUBLISHED', async () => {
       const postForUpdate = posts.find(
-        (p) => p.status === 'DRAFT' && p.authorId === author.id
+        (p) => p.status === 'DRAFT' && p.authorId === author.id,
       );
       if (!postForUpdate) throw new Error('Missing test post');
       expect(postForUpdate.publishedAt).toBeFalsy();
@@ -1255,7 +1369,7 @@ describe('/api/v1/posts', () => {
         'content is too long',
         {
           content: generateRandomString(
-            POST_CONSTRAINTS.MAX_CONTENT_LENGTH + 1
+            POST_CONSTRAINTS.MAX_CONTENT_LENGTH + 1,
           ),
         },
       ],
@@ -1263,7 +1377,7 @@ describe('/api/v1/posts', () => {
         'content is too short',
         {
           content: generateRandomString(
-            POST_CONSTRAINTS.MIN_CONTENT_LENGTH - 1
+            POST_CONSTRAINTS.MIN_CONTENT_LENGTH - 1,
           ),
         },
       ],
@@ -1323,9 +1437,9 @@ describe('/api/v1/posts', () => {
       if (!postForUpdate) throw new Error('Missing test post');
 
       return await expect(
-        authorHelpers.updatePost(postForUpdate.id.toString(), postData as any)
+        authorHelpers.updatePost(postForUpdate.id.toString(), postData as any),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
       );
     });
 
@@ -1335,18 +1449,18 @@ describe('/api/v1/posts', () => {
         return await expect(
           authorHelpers.updatePost('9999', {
             content: 'NEW post content',
-          } as any)
+          } as any),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
         );
-      }
+      },
     );
 
     it.concurrent(
       `should return 403 FORBIDDEN when the user is not ADMIN or AUTHOR`,
       async () => {
         const usersAndMods = users.filter(
-          (u) => !(u.role === 'ADMIN' || u.role === 'AUTHOR')
+          (u) => !(u.role === 'ADMIN' || u.role === 'AUTHOR'),
         );
 
         for (const u of usersAndMods) {
@@ -1354,31 +1468,31 @@ describe('/api/v1/posts', () => {
           await expect(
             helper.updatePost('1', {
               content: generateRandomString(
-                POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
+                POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1,
               ),
-            })
+            }),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
           );
         }
-      }
+      },
     );
 
     it(`should return 403 FORBIDDEN for authors, 
       when trying to update another author's post`, async () => {
       const postForUpdateFromAnotherUser = posts.find(
-        (p) => p.authorId === admin.id
+        (p) => p.authorId === admin.id,
       );
       if (!postForUpdateFromAnotherUser) throw new Error('Missing test post');
 
       await expect(
         authorHelpers.updatePost(postForUpdateFromAnotherUser.id.toString(), {
           content: generateRandomString(
-            POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
+            POST_CONSTRAINTS.MIN_CONTENT_LENGTH + 1,
           ),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -1389,7 +1503,7 @@ describe('/api/v1/posts', () => {
         generateRandomString(10, {
           includeSymbols: false,
           includeUppercase: false,
-        })
+        }),
       );
 
       const res = await authorHelpers.updatePost(postForUpdate.id.toString(), {
@@ -1433,15 +1547,15 @@ describe('/api/v1/posts', () => {
       return await expect(
         adminHelpers.updatePost(postForUpdate.id.toString(), {
           title: existingPostTitle,
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.POST_EXISTS),
       );
     });
 
     testInvalidIds(
       async (id) => adminHelpers.updatePost(id, { content: 'NEW CONTENT' }),
-      'post id'
+      'post id',
     );
 
     it(`should return error when logged-in user is banned and trying to
@@ -1459,9 +1573,9 @@ describe('/api/v1/posts', () => {
         await expect(
           authorHelpers.updatePost(posts[0].id.toString(), {
             content: 'new content',
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED),
         );
       } finally {
         await prisma.user.update({
@@ -1485,13 +1599,13 @@ describe('/api/v1/posts', () => {
 
     it('should remove post when its authenticated author is requesting it', async () => {
       const postForDeletion = posts.find(
-        (p) => p.authorId === author.id && !deletedIds.includes(p.id)
+        (p) => p.authorId === author.id && !deletedIds.includes(p.id),
       );
       if (!postForDeletion) throw new Error('Missing test post');
 
       const deleteRes = await adminHelpers.client.request(
         API_ENDPOINTS.POSTS.BY_ID(postForDeletion.id),
-        { method: 'DELETE' }
+        { method: 'DELETE' },
       );
       expect(deleteRes.status).toBe(StatusCodes.OK);
 
@@ -1500,40 +1614,40 @@ describe('/api/v1/posts', () => {
       deletedIds.push(postForDeletion.id);
 
       await expect(
-        authorHelpers.deletePost(postForDeletion.id.toString())
+        authorHelpers.deletePost(postForDeletion.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
     it(`should return 404 NOT FOUND when trying to delete post that does not exist`, async () => {
       await expect(adminHelpers.deletePost('9999')).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
     it(`should return 403 FORBIDDEN when trying to delete another user's post`, async () => {
       const postForDeletionFromAnotherUser = posts.find(
-        (p) => p.authorId === admin.id && !deletedIds.includes(p.id)
+        (p) => p.authorId === admin.id && !deletedIds.includes(p.id),
       );
       if (!postForDeletionFromAnotherUser) throw new Error('Missing test post');
 
       await expect(
-        authorHelpers.deletePost(postForDeletionFromAnotherUser.id.toString())
+        authorHelpers.deletePost(postForDeletionFromAnotherUser.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
     it(`should allow deletion of another user's post when logged in user is ADMIN`, async () => {
       const postForDeletionFromAnotherUser = posts.find(
-        (p) => p.authorId === author.id && !deletedIds.includes(p.id)
+        (p) => p.authorId === author.id && !deletedIds.includes(p.id),
       );
       if (!postForDeletionFromAnotherUser) throw new Error('Missing test post');
 
       const deleteRes = await adminHelpers.client.request(
         API_ENDPOINTS.POSTS.BY_ID(postForDeletionFromAnotherUser.id),
-        { method: 'DELETE' }
+        { method: 'DELETE' },
       );
 
       expect(deleteRes.status).toBe(StatusCodes.OK);
@@ -1583,7 +1697,7 @@ describe('/api/v1/posts', () => {
         },
       });
       return await expect(
-        authorHelpers.deletePost(posts[0].id.toString())
+        authorHelpers.deletePost(posts[0].id.toString()),
       ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
     });
   });
@@ -1595,7 +1709,7 @@ describe('/api/v1/posts', () => {
         .map((p) => new Date(p.publishedAt!).getFullYear())
         .reduce(
           (acc, prev) => (acc.includes(prev) ? acc : [prev, ...acc]),
-          [] as number[]
+          [] as number[],
         );
       const res = await anonHelpers.getPostsMetadata();
       expect(getMessage(res)).toBe(SUCCESS_MESSAGES.POSTS.getMetadata);
@@ -1611,7 +1725,7 @@ describe('/api/v1/posts', () => {
         .map((p) => new Date(p.publishedAt!).getFullYear())
         .reduce(
           (acc, prev) => (acc.includes(prev) ? acc : [prev, ...acc]),
-          [] as number[]
+          [] as number[],
         );
 
       const notExpectedYears = posts
@@ -1619,7 +1733,7 @@ describe('/api/v1/posts', () => {
         .map((p) => new Date(p.publishedAt!).getFullYear())
         .reduce(
           (acc, prev) => (acc.includes(prev) ? acc : [prev, ...acc]),
-          [] as number[]
+          [] as number[],
         )
         .filter((year) => !expectedYears.includes(year));
 

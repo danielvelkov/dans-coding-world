@@ -1,0 +1,44 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"outDir": "dist",
+		"tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
+		"rootDir": "src"
+	},
+	"exclude": [
+		"out-tsc",
+		"dist",
+		"src/**/*.spec.ts",
+		"src/**/*.test.ts",
+		"src/**/*.spec.tsx",
+		"src/**/*.test.tsx",
+		"src/**/*.spec.js",
+		"src/**/*.test.js",
+		"src/**/*.spec.jsx",
+		"src/**/*.test.jsx",
+		"vite.config.ts",
+		"vite.config.mts",
+		"vitest.config.ts",
+		"vitest.config.mts",
+		"eslint.config.js",
+		"eslint.config.cjs",
+		"eslint.config.mjs",
+		// Added for svelte
+		"src/**/*.svelte.test.js",
+		"src/**/*.svelte.test.ts",
+		"src/**/*.svelte.spec.js",
+		"src/**/*.svelte.spec.ts"
+	],
+	"include": ["src/**/*.js", "src/**/*.svelte", "src/**/*.ts"],
+	"references": [
+    {
+      "path": "../../libs/prisma-schema/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/util/shared-constants/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/blog-admin/features/posts-manager/tsconfig.lib.json"
+    }
+  ]
+}

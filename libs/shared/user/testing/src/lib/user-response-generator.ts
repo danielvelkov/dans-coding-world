@@ -8,14 +8,13 @@ export function generateMockUserResponse({
 }: {
   user?: Partial<UserDetail>;
 }): BaseResponse<GetUserResponseDto> {
-  const mockUser = generateRandomUser();
+  const mockUser = generateRandomUser(user);
   return {
     error: null,
     success: true,
     data: {
       user: {
         ...mockUser,
-        ...user,
       },
     },
   };

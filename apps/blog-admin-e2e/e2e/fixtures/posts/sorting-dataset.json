@@ -1,0 +1,32 @@
+[
+  {
+    "title": "2025 in review ",
+    "content": "The good and the bad.",
+    "createdAt": "2025-12-05T09:20:00.000Z",
+    "publishedAt": "2025-12-06T07:00:00.000Z",
+    "updatedAt": "2025-12-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  },
+  {
+    "title": "UPDATED: my cancer journey",
+    "content": "Good news about what I am going through.",
+    "createdAt": "2025-11-05T09:20:00.000Z",
+    "publishedAt": "2025-11-05T09:20:00.000Z",
+    "updatedAt": "2026-02-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  },
+  {
+    "title": "Old post from my early years",
+    "content": "A new way to create bugs.",
+    "createdAt": "2013-11-05T09:20:00.000Z",
+    "publishedAt": "2013-11-06T07:00:00.000Z",
+    "updatedAt": "2013-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "MEMBERS_ONLY",
+    "authorId": 1
+  }
+]

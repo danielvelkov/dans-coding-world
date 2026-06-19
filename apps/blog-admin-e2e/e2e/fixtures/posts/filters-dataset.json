@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Cypress guide",
+    "content": "A step-by-step guide on transitioning your monorepo from Lerna to NX with minimal disruption.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  },
+  {
+    "title": "Tips and tricks (members-only)",
+    "content": "Advanced techniques.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "MEMBERS_ONLY",
+    "authorId": 1
+  },
+  {
+    "title": "Old post from my early years",
+    "content": "A new way to create bugs.",
+    "createdAt": "2013-11-05T09:20:00.000Z",
+    "publishedAt": "2013-11-06T07:00:00.000Z",
+    "updatedAt": "2013-11-06T07:00:00.000Z",
+    "status": "ARCHIVED",
+    "visibility": "MEMBERS_ONLY",
+    "authorId": 1
+  },
+  {
+    "title": "Welcome to my blog",
+    "content": "New post every friday.",
+    "createdAt": "2007-11-05T09:20:00.000Z",
+    "publishedAt": "2007-11-06T07:00:00.000Z",
+    "updatedAt": "2007-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  },
+  {
+    "title": "Working title: Amongooose",
+    "content": "There was something i wanted to talk about.",
+    "createdAt": "2007-11-05T09:20:00.000Z",
+    "publishedAt": "2007-11-06T07:00:00.000Z",
+    "updatedAt": "2007-11-06T07:00:00.000Z",
+    "status": "DRAFT",
+    "visibility": "PUBLIC",
+    "authorId": 1
+  }
+]

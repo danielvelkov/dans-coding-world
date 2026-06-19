@@ -1,0 +1,78 @@
+<script lang="ts">
+  import { createPostsQuery } from '@dans-coding-world/blog-admin-data-access-operations';
+  import PostsTable from './components/PostsTable.svelte';
+  import {
+    TablePaginationInfo,
+    TablePagination,
+    TableItemsPerPageSelect,
+  } from '@dans-coding-world/blog-admin-ui-common';
+  import { createPaginationHandlers } from '@dans-coding-world/helpers';
+  import { PAGINATION } from '@dans-coding-world/shared-constants';
+  import type { UserDetail } from '@dans-coding-world/user-data-access';
+  import type { PostsManagerParams } from './types/postsManagerParams.js';
+
+  const {
+    params,
+    onParamsChange = () => {},
+  }: {
+    params?: PostsManagerParams;
+    onParamsChange?: (value: PostsManagerParams) => void;
+    loggedInUser?: UserDetail;
+  } = $props();
+
+  const postsQuery = $derived(createPostsQuery(params)); // closure needed for the query to update
+
+  const isLoading = $derived(postsQuery.isLoading);
+  const posts = $derived(postsQuery.data?.items ?? []);
+  const error = $derived(postsQuery.error);
+  const total = $derived(postsQuery.data?.pagination.total ?? 0);
+  const currentPage = $derived(postsQuery.data?.pagination.page ?? 1);
+  const itemsPerPage = $derived(
+    postsQuery.data?.pagination.limit ??
+      PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
+  );
+  const totalPages = $derived(Math.ceil(total / itemsPerPage));
+
+  const { handlePageSelect, handleItemsPerPageSelect } = $derived.by(() => {
+    return createPaginationHandlers(params ?? {}, onParamsChange, {
+      defaultPageSize: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
+    });
+  });
+</script>
+
+<div class="space-y-6 p-4">
+  <div class="flex justify-between items-center">
+    <h2 class="text-3xl font-bold">Your Posts</h2>
+    <!-- <CreatePostButton /> -->
+  </div>
+
+  <PostsTable
+    {posts}
+    {isLoading}
+    error={error ?? undefined}
+    {params}
+    {onParamsChange}
+  />
+
+  {#if total > itemsPerPage}
+    <div class="flex justify-between items-center-safe flex-wrap gap-5">
+      <div class="flex flex-col gap-2">
+        <TablePaginationInfo {currentPage} {total} {itemsPerPage}
+        ></TablePaginationInfo>
+
+        <TableItemsPerPageSelect
+          currentValue={params?.pageSize ??
+            PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE}
+          values={[...PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS]}
+          onChange={handleItemsPerPageSelect}
+        ></TableItemsPerPageSelect>
+      </div>
+
+      <TablePagination
+        {currentPage}
+        {totalPages}
+        onPageSelect={handlePageSelect}
+      />
+    </div>
+  {/if}
+</div>

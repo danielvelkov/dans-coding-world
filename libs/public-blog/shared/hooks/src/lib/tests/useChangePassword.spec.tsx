@@ -5,7 +5,7 @@ import { waitFor } from '@testing-library/dom';
 import { useChangePassword } from '../users/useChangePassword';
 import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
 
-vi.mock('@dans-coding-world/shared-data-access-api');
+vi.mock('@dans-coding-world/public-blog-data-access-api');
 
 describe('useChangePassword', () => {
   const renderUseChangePasswordHook = () =>

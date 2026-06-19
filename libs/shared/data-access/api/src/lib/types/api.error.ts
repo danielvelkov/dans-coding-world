@@ -14,7 +14,7 @@ export class ApiError extends Error implements ResponseErrorDetails {
     public status: number,
     public override message: string,
     public errorCode?: string,
-    public details?: object
+    public details?: object,
   ) {
     super(message);
   }

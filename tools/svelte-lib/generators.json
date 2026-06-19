@@ -1,0 +1,9 @@
+{
+  "generators": {
+    "sveltelib": {
+      "factory": "./dist/generators/sveltelib/sveltelib",
+      "schema": "./dist/generators/sveltelib/schema.json",
+      "description": "sveltelib generator"
+    }
+  }
+}

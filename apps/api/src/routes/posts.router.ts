@@ -177,6 +177,12 @@ export default postsRouter;
  *         required: false
  *         description: Filter by posts' publishedAt date year
  *       - in: query
+ *         name: filterBy[userId]
+ *         schema:
+ *           type: number
+ *         required: false
+ *         description: Filter by userId
+ *       - in: query
  *         name: filterBy[tags]
  *         schema:
  *           type: array

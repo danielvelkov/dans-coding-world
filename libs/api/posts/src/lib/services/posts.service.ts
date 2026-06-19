@@ -46,7 +46,7 @@ export class PostsService implements IPostsService {
       PostOrderByInput
     >,
     @Inject(USER_REPOSITORY_TOKEN)
-    public users: IUserRepository
+    public users: IUserRepository,
   ) {}
 
   async getById(dto: GetPostDto): Promise<PostFull> {
@@ -80,7 +80,7 @@ export class PostsService implements IPostsService {
     const where = await this.buildPostsWhereClause(
       dto?.viewerId,
       dto?.filterBy,
-      dto?.searchQuery
+      dto?.searchQuery,
     );
     const orderBy = { ...dto?.sortBy } as PostOrderByInput;
 
@@ -208,7 +208,7 @@ export class PostsService implements IPostsService {
    */
   private async validatePostReadAccess(
     post: PostDetail | null,
-    viewerId?: number
+    viewerId?: number,
   ): Promise<void> {
     if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
@@ -233,7 +233,7 @@ export class PostsService implements IPostsService {
    */
   private async validatePostWriteAccess(
     post: PostDetail | null,
-    viewerId: number
+    viewerId: number,
   ): Promise<void> {
     if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
 
@@ -248,7 +248,7 @@ export class PostsService implements IPostsService {
   private async buildPostsWhereClause(
     viewerId?: number,
     filters?: GetPostsDto['filterBy'],
-    searchQuery?: string
+    searchQuery?: string,
   ): Promise<PostWhereInput> {
     const clauses: PostWhereInput[] = [];
 
@@ -326,6 +326,12 @@ export class PostsService implements IPostsService {
             lte: new Date(filters.year, 11, 31),
           },
         });
+
+      // STEP 3.4: Filtering by user
+      if (filters.userId && Number.isInteger(filters.userId))
+        clauses.push({
+          authorId: filters.userId,
+        });
     }
 
     // STEP 4: Search Query
@@ -353,7 +359,7 @@ export class PostsService implements IPostsService {
   private extractUniqueStrings = (arr: string[] | undefined) =>
     arr?.reduce(
       (acc, val) => (acc.includes(val) ? acc : [...acc, val]),
-      [] as string[]
+      [] as string[],
     );
   private extractTagNames = (post: Post) => {
     const postTags = (post as PostDetail).tags as { tag: Tag }[] | undefined;

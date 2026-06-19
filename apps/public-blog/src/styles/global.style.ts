@@ -22,9 +22,12 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: ${({ theme }) => theme.background.base};
   color: ${({ theme }) => theme.text.primary};
-  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+p {
+  line-height: 1.6;
 }
 
 code, pre, kbd, samp {

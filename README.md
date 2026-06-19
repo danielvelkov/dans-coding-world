@@ -19,15 +19,14 @@ This is a monorepo containing:
 ## Data-model
 
 - User - can have one of these roles:
-
   - `ADMIN` can:
-    - create/edit/delete all posts
+    - get/create/edit/delete all posts
     - create/delete all comments
-    - delete users (except other admins)
-    - get/edit/delete reports on comments
+    - get/delete all users (except other admins)
+    - get/edit/delete all reports on comments
     - revoke all refresh tokens
-    - ban users except other admins
-    - change user role
+    - ban users (except other admins)
+    - change user role (except other admins)
     - create/edit/delete all tags
   - `MOD` can:
     - create/delete all comments
@@ -47,12 +46,10 @@ This is a monorepo containing:
 - RefreshToken - used in JWT authentication
 
 - Post - depending on visibility can be:
-
   - `PUBLIC`: available for everyone, even guest users
   - `MEMBERS_ONLY`: available only for registered users
 
   Depending on status can be:
-
   - `DRAFT`: can be accessed only by the author (_\*and admins_)
   - `PUBLISHED`: can be accessed by everyone (\*_depends on visibility_)
   - `ARCHIVED`: can be access only by the author (_\*and admins_)
@@ -80,23 +77,33 @@ This is a monorepo containing:
    cd dans-coding-world
    ```
 
-2. Install the dependencies:
+1. Install the dependencies:
 
    ```sh
    npm install
    ```
 
-3. Create environment variables:
+1. Create environment variables:
 
    ```sh
-   # Create a .env file in the root and \tools directory
+   # Create .env files for each configuration in the root directory
+   # See all .env.example files for what to setup exactly
    # Add necessary environment variables for database connection
-   # See tools\.env.example
    ```
 
-4. Set up the database:
+1. Set up the database:
 
    ```sh
    # If you already have the DB you can skip this step
    npx nx create-db
+   ```
+
+1. Generate prisma types:
+
+   ```sh
+   # Generate prisma types
+   nx generate-types prisma-schema
+
+   # Generate e2e prisma types
+   nx generate-types:e2e prisma-schema
    ```

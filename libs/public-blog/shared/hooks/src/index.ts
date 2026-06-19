@@ -18,5 +18,4 @@ export * from './lib/util/useDebounce';
 export * from './lib/types/fetchPostsQueryParams';
 export * from './lib/types/fetchPostCommentsQueryParams';
 export * from './lib/posts/usePostsQueryParams';
-export * from './lib/types/api.error';
 export * from './lib/util/useDelayedLoading';

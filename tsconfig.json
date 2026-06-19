@@ -16,6 +16,12 @@
       "path": "./apps/api"
     },
     {
+      "path": "./apps/blog-admin"
+    },
+    {
+      "path": "./apps/blog-admin-e2e"
+    },
+    {
       "path": "./libs/prisma-schema"
     },
     {
@@ -131,6 +137,18 @@
     },
     {
       "path": "./libs/public-blog/features/user-account"
+    },
+    {
+      "path": "./libs/blog-admin/features/posts-manager"
+    },
+    {
+      "path": "./tools/svelte-lib"
+    },
+    {
+      "path": "./libs/blog-admin/ui/common"
+    },
+    {
+      "path": "./libs/blog-admin/data-access/operations"
     }
   ]
 }
