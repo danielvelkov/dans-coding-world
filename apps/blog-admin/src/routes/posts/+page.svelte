@@ -6,6 +6,7 @@
 	import type { PostsManagerParams } from '@dans-coding-world/blog-admin-features-posts-manager';
 	import { parseQueryString, stringifyToQueryString } from '@dans-coding-world/helpers';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 
 	// TODO
@@ -24,7 +25,8 @@
 
 	const onParamsChange = async (newParams?: PostsManagerParams) => {
 		const filteredValues = omitDefaultPostQueryParams(newParams ?? {}, isAdmin);
-		await goto(`?${stringifyToQueryString(filteredValues)}`, { keepFocus: true });
+		const query = stringifyToQueryString(filteredValues);
+		await goto(resolve(query ? `/posts?${query}` : '/posts'), { keepFocus: true });
 	};
 </script>
 

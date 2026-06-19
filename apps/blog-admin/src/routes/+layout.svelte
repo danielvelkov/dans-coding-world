@@ -1,6 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { resolve } from '$app/paths';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import type { Snippet } from 'svelte';
 
@@ -20,8 +21,8 @@
 		<nav
 			class="mx-auto flex max-w-7xl items-center gap-6 px-6 py-4 text-sm font-medium text-gray-700"
 		>
-			<a href="/" class="transition-colors hover:text-gray-900">Home</a>
-			<a href="/posts" class="transition-colors hover:text-gray-900">Posts</a>
+			<a href={resolve('/')} class="transition-colors hover:text-gray-900">Home</a>
+			<a href={resolve('/posts')} class="transition-colors hover:text-gray-900">Posts</a>
 		</nav>
 	</header>
 
