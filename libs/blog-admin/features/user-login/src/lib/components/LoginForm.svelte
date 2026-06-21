@@ -1,0 +1,113 @@
+<script lang="ts">
+  import {
+    Button,
+    Input,
+    Spinner,
+  } from '@dans-coding-world/blog-admin-ui-common';
+  import {
+    ERROR_CODES,
+    ERROR_MESSAGES,
+  } from '@dans-coding-world/shared-constants';
+  import { getValidationErrors } from '@dans-coding-world/public-blog-shared-helpers';
+
+  interface Props {
+    handleSubmit: (email: string, password: string) => void;
+    error?: Error;
+    isLoading?: boolean;
+  }
+
+  let email = $state('');
+  let password = $state('');
+  let errors: Partial<Record<'email' | 'password', string>> = $state({});
+
+  const { handleSubmit, error, isLoading }: Props = $props();
+
+  $effect(() => {
+    if (error) {
+      const apiErrors = getValidationErrors(error, ['email', 'password']);
+      if (Object.keys(apiErrors).length > 0) {
+        errors = { ...apiErrors };
+      }
+    }
+  });
+
+  const handleInvalid = (
+    event: Event & { currentTarget: EventTarget & HTMLInputElement },
+  ) => {
+    const { name, validationMessage } = event.currentTarget;
+
+    if (name === 'email') errors.email = validationMessage;
+    else errors.password = validationMessage;
+  };
+</script>
+
+<form
+  onsubmit={(e) => {
+    e.preventDefault();
+    handleSubmit(email, password);
+  }}
+  class="m-auto py-4 px-6 border border-gray-300 rounded-md flex flex-col gap-6"
+>
+  <h1
+    class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight m-4 text-center"
+  >
+    Login
+  </h1>
+  <div class="flex flex-col gap-4">
+    <label for="email" class="text-sm font-semibold">Email</label>
+    <Input
+      id="email"
+      name="email"
+      type="email"
+      placeholder="john.doe@gmail.com"
+      oninput={() => (errors.email = '')}
+      bind:value={email}
+      oninvalid={handleInvalid}
+    />
+    {#if errors.email}
+      <span class="text-red-500 text-sm sm:truncate">
+        <i class="fa fa-warning"></i>
+        {' ' + errors.email}</span
+      >
+    {/if}
+  </div>
+  <div class="flex flex-col gap-4">
+    <label for="pwd" class="text-sm font-semibold">Password</label>
+    <Input
+      id="pwd"
+      type="password"
+      name="password"
+      placeholder="••••••••"
+      oninput={() => (errors.password = '')}
+      bind:value={password}
+      oninvalid={handleInvalid}
+    />
+    {#if errors.password}
+      <span class="text-red-500 text-sm sm:truncate">
+        <i class="fa fa-warning"></i>
+        {' ' + errors.password}</span
+      >
+    {/if}
+  </div>
+  {#if error && !errors.email && !errors.password && error.message !== ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]}
+    <div
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      data-testid="login-error"
+    >
+      <span class="text-red-500 sm:truncate">
+        {error.message ?? 'Unable to login. Please try again.'}
+      </span>
+    </div>
+  {/if}
+
+  <Button disabled={isLoading} type="submit">
+    {#if isLoading}
+      <Spinner loadingMessage={'Logging in... Please wait... '} class="m-auto"
+      ></Spinner>
+    {:else}
+      Login
+    {/if}
+  </Button>
+</form>
