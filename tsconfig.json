@@ -149,6 +149,9 @@
     },
     {
       "path": "./libs/blog-admin/data-access/operations"
+    },
+    {
+      "path": "./libs/blog-admin/features/user-login"
     }
   ]
 }
