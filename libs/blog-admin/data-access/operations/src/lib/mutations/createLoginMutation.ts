@@ -1,4 +1,7 @@
-import { createMutation } from '@tanstack/svelte-query';
+import {
+  createMutation,
+  type CreateMutationOptions,
+} from '@tanstack/svelte-query';
 import type {
   LoginDto,
   LoginResponseDto,
@@ -16,19 +19,26 @@ export type LoginResponseWithoutTokens = Omit<
   LoginResponseDto,
   'accessToken' | 'refreshToken'
 >;
-export function createLoginMutation(options?: { throwOnError?: boolean }) {
-  return createMutation(() => ({
-    mutationFn: async (data: LoginDto) => {
-      const response = await api.post<BaseResponse<LoginResponseWithoutTokens>>(
-        API_ENDPOINTS.AUTH.LOGIN,
-        { ...data },
-      );
-      return handleQueryResponse(response);
-    },
-    onSuccess: (data) => {
-      if (data) return data.user;
-      return null;
-    },
-    ...options,
-  }));
+export function createLoginMutation(
+  options?: CreateMutationOptions<
+    LoginResponseWithoutTokens | null,
+    Error,
+    LoginDto
+  >,
+) {
+  return createMutation<LoginResponseWithoutTokens | null, Error, LoginDto>(
+    () => ({
+      mutationFn: async (data) => {
+        const response = await api.post<
+          BaseResponse<LoginResponseWithoutTokens>
+        >(API_ENDPOINTS.AUTH.LOGIN, { ...data });
+        return handleQueryResponse(response);
+      },
+      onSuccess: (data) => {
+        if (data) return data.user;
+        return null;
+      },
+      ...options,
+    }),
+  );
 }
