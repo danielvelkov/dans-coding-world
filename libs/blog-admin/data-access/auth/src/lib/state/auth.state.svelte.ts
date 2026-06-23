@@ -9,7 +9,7 @@ type UserWithoutPass = Omit<User, 'password'>;
 
 /**
  * Core authentication state for the application.
- * Intended to be used inside components wrapped in QueryClientProvider.
+ * Intended to be instantiated inside layout wrapped in QueryClientProvider and shared to child components.
  *
  * Handles:
  * - user login

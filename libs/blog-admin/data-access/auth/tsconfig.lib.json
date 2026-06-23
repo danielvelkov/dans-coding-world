@@ -15,7 +15,32 @@
     // Added for svelte
     "src/**/*.svelte"
   ],
-  "references": [],
+  "references": [
+    {
+      "path": "../../../prisma-schema/tsconfig.lib.json"
+    },
+    {
+      "path": "../operations/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/data-access/api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/shared-constants/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/exceptions/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/user/testing/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/api-types/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../public-blog/data-access/blog-api/tsconfig.lib.json"
+    }
+  ],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",
