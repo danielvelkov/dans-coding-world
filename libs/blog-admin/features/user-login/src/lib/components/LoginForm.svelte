@@ -96,7 +96,7 @@
       aria-atomic="true"
       data-testid="login-error"
     >
-      <span class="text-red-500 sm:truncate">
+      <span class="text-red-500 sm:truncate text-sm">
         {error.message ?? 'Unable to login. Please try again.'}
       </span>
     </div>
