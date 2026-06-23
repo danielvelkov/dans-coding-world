@@ -7,16 +7,26 @@ import { TOKEN_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
 type UserWithoutPass = Omit<User, 'password'>;
 
-export default class AuthStateManager {
+/**
+ * Core authentication state for the application.
+ * Intended to be used inside components wrapped in QueryClientProvider.
+ *
+ * Handles:
+ * - user login
+ * - logout mutation
+ * - Silent token refresh (rehydration from httpOnly cookie)
+ * - Periodic access token refresh via interval
+ */
+export class AuthStateManager {
   private refreshInterval: ReturnType<typeof setInterval> | null = null;
 
   user = $state<UserWithoutPass | null>(null);
   error = $state<Error | null>(null);
   authBootstrapPending = $state(true);
 
-  constructor() {
+  public init = () => {
     this.refreshMutation.mutate();
-  }
+  };
 
   private refreshMutation = createRefreshUserAuthMutation({
     onSuccess: (data) => {
