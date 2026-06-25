@@ -48,10 +48,6 @@ export class AuthStateManager {
     onError: (error) => {
       this.error = error;
     },
-
-    onSettled: () => {
-      this.setUser(null);
-    },
     throwOnError: false,
   });
 
@@ -88,6 +84,7 @@ export class AuthStateManager {
   };
 
   public logout = () => {
+    this.setUser(null);
     this.logoutMutation.mutate();
   };
 
