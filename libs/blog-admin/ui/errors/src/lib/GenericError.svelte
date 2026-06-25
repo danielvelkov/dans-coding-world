@@ -5,7 +5,7 @@
   interface Props {
     statusCode?: number;
     message?: string;
-    children: Snippet<[]>;
+    children?: Snippet<[]>;
   }
 
   const { statusCode, message, children }: Props = $props();
@@ -20,5 +20,7 @@
   <p class="mt-4 text-lg text-(--color-muted-foreground)">
     {message ?? ReasonPhrases.INTERNAL_SERVER_ERROR}
   </p>
-  {@render children()}
+  {#if children}
+    {@render children()}
+  {/if}
 </div>

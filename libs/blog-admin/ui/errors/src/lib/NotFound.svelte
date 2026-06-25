@@ -5,7 +5,7 @@
 
   interface Props {
     message?: string;
-    children: Snippet<[]>;
+    children?: Snippet<[]>;
   }
 
   const { message, children }: Props = $props();

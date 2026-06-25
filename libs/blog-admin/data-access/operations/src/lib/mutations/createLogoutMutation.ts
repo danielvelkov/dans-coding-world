@@ -14,9 +14,7 @@ export function createLogoutMutation(
 ) {
   return createMutation<object | null, Error>(() => ({
     mutationFn: async () => {
-      const response = await api.post<BaseResponse>(
-        API_ENDPOINTS.AUTH.LOGOUT,
-      );
+      const response = await api.post<BaseResponse>(API_ENDPOINTS.AUTH.LOGOUT);
       return handleQueryResponse(response);
     },
     ...options,
