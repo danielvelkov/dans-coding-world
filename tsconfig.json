@@ -155,6 +155,9 @@
     },
     {
       "path": "./libs/blog-admin/data-access/auth"
+    },
+    {
+      "path": "./libs/blog-admin/ui/errors"
     }
   ]
 }
