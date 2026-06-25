@@ -2,7 +2,7 @@
   import {
     Button,
     Input,
-    Spinner,
+    SpinnerLoader,
   } from '@dans-coding-world/blog-admin-ui-common';
   import {
     ERROR_CODES,
@@ -102,10 +102,10 @@
     </div>
   {/if}
 
-  <Button disabled={isLoading} type="submit">
+  <Button class="flex flex-col items-center" disabled={isLoading} type="submit">
     {#if isLoading}
-      <Spinner loadingMessage={'Logging in... Please wait... '} class="m-auto"
-      ></Spinner>
+      <SpinnerLoader loadingMessage={'Logging in... Please wait... '}
+      ></SpinnerLoader>
     {:else}
       Login
     {/if}
