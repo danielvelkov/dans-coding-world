@@ -4,6 +4,7 @@
 export { default as Button } from './lib/Button.svelte';
 export { default as Input } from './lib/Input.svelte';
 export { default as SpinnerLoader } from './lib/SpinnerLoader.svelte';
+export { default as DotsLoader } from './lib/DotsLoader.svelte';
 export { default as Select } from './lib/Select.svelte';
 export { default as MultiSelect } from './lib/MultiSelect.svelte';
 export { default as Table } from './lib/Table.svelte';
