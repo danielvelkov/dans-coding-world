@@ -10,7 +10,8 @@
 
 <button
   {...props}
-  class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded {props.class}"
+  class="bg-(--color-accent) text-(--color-text-on-accent) transition-colors rounded-xl
+   hover:bg-(--color-accent-hover) font-bold py-2 px-4 {props.class}"
 >
   {@render children?.()}
 </button>
