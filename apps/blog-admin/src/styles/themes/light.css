@@ -1,0 +1,73 @@
+:root,
+.light {
+	/* Background */
+	--color-bg-base: #f9fafb; /* grey-25 */
+	--color-bg-elevated: #ffffff; /* grey-0 */
+	--color-bg-surface: #ffffff; /* grey-0 */
+	--color-bg-surface-hover: #f3f4f6; /* grey-50 */
+	--color-bg-surface-active: #e5e7eb; /* grey-100 */
+	--color-bg-muted: #e5e7eb; /* grey-100 */
+	--color-bg-overlay: rgba(0, 0, 0, 0.5); /* black-a500 */
+
+	/* Text */
+	--color-text-primary: #0f172a; /* grey-950 */
+	--color-text-secondary: #6b7280; /* grey-500 */
+	--color-text-tertiary: #9ca3af; /* grey-400 */
+	--color-text-muted: #d1d5db; /* grey-300 */
+	--color-text-inverse: #ffffff; /* grey-0 */
+	--color-text-on-accent: #ffffff; /* grey-0 */
+
+	/* Border */
+	--color-border-subtle: #e5e7eb; /* grey-100 */
+	--color-border-default: #dcdfe3; /* grey-150 (custom) */
+	--color-border-emphasis: #d1d5db; /* grey-200 */
+	--color-border-focus: #7c3aed; /* violet-600 */
+
+	/* Accent / Primary */
+	--color-accent: #7c3aed; /* violet-600 */
+	--color-accent-hover: #6d28d9; /* violet-700 */
+	--color-accent-muted: #a78bfa; /* violet-400 */
+	--color-accent-subtle: rgba(124, 92, 212, 0.12);
+	--color-accent-glow: rgba(124, 92, 212, 0.24);
+
+	/* Success */
+	--color-success: #16a34a; /* green-600 */
+	--color-success-muted: #15803d; /* green-700 */
+	--color-success-bg: rgba(22, 163, 74, 0.08);
+	--color-success-border: rgba(22, 163, 74, 0.2);
+
+	/* Warning */
+	--color-warning: #ca8a04; /* amber-600 */
+	--color-warning-muted: #a16207; /* amber-700 */
+	--color-warning-bg: rgba(202, 138, 4, 0.08);
+	--color-warning-border: rgba(202, 138, 4, 0.2);
+
+	/* Error */
+	--color-error: #dc2626; /* red-600 */
+	--color-error-muted: #b91c1c; /* red-700 */
+	--color-error-bg: rgba(220, 38, 38, 0.08);
+	--color-error-border: rgba(220, 38, 38, 0.2);
+
+	/* Info */
+	--color-info: #2563eb; /* blue-600 */
+	--color-info-muted: #1d4ed8; /* blue-700 */
+	--color-info-bg: rgba(37, 99, 235, 0.08);
+	--color-info-border: rgba(37, 99, 235, 0.2);
+
+	/* Interactive */
+	--color-link: #7c3aed; /* violet-600 */
+	--color-link-hover: #6d28d9; /* violet-700 */
+	--color-focus-ring: rgba(124, 92, 212, 0.24);
+
+	/* Gradients */
+	--gradient-brand: linear-gradient(
+		135deg,
+		#8b5cf6 0%,
+		/* violet-500 */ #7c3aed 50%,
+		/* violet-600 */ #6d28d9 100% /* violet-700 */
+	);
+
+	--gradient-surface: linear-gradient(180deg, #ffffff 0%, /* grey-0 */ #f9fafb 100% /* grey-25 */);
+
+	--gradient-glow: radial-gradient(circle at center, rgba(124, 92, 212, 0.15) 0%, transparent 70%);
+}
