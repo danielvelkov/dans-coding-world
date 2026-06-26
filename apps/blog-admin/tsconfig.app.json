@@ -39,6 +39,9 @@
 		},
 		{
 			"path": "../../libs/blog-admin/features/posts-manager/tsconfig.lib.json"
+		},
+		{
+			"path": "../../libs/blog-admin/data-access/auth/tsconfig.lib.json"
 		}
 	]
 }
