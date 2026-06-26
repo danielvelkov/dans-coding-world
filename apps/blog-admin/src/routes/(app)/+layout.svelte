@@ -2,7 +2,11 @@
 	import { resolve } from '$app/paths';
 	import { setContext } from 'svelte';
 	import { AuthStateManager, AUTH_CONTEXT_KEY } from '$lib/shared/auth.svelte';
-	import { DotsLoader, SpinnerLoader } from '@dans-coding-world/blog-admin-ui-common';
+	import {
+		DotsLoader,
+		SpinnerLoader,
+		UserRoleBadge
+	} from '@dans-coding-world/blog-admin-ui-common';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 
@@ -22,7 +26,7 @@
 </script>
 
 <header class="border-b">
-	<nav class="mx-auto flex max-w-7xl gap-6 px-6 py-4 text-sm font-medium">
+	<nav class="mx-auto flex max-w-7xl items-baseline gap-6 px-6 py-4 text-sm font-medium">
 		<a
 			href={resolve('/')}
 			class="transition-colors hover:underline"
@@ -43,7 +47,7 @@
 					logout();
 					await goto(resolve('/login'));
 				}}
-				class="transition-colors hover:underline"
+				class=" m-0 border-none p-0 transition-colors hover:underline"
 			>
 				{#if isLoading}
 					<SpinnerLoader></SpinnerLoader>
@@ -52,6 +56,7 @@
 				{/if}
 			</button>
 			<span class="font-semibold">{user?.email}</span>
+			<UserRoleBadge role={user?.role}></UserRoleBadge>
 		{:else}
 			<a href={resolve('/login')} class="transition-colors hover:underline">Login</a>
 		{/if}
