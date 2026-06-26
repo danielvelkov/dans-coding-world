@@ -12,12 +12,14 @@
 </script>
 
 <div
-  class="mt-[20vh] flex flex-col items-center justify-center bg-(--color-background)"
+  class="mt-[15vh] flex flex-col items-center justify-center bg-(--color-background)"
 >
   <h1 class="text-6xl font-bold text-(--color-foreground)">
     {statusCode ?? StatusCodes.INTERNAL_SERVER_ERROR}
   </h1>
-  <p class="mt-4 text-lg text-(--color-muted-foreground)">
+  <p
+    class="mt-4 text-lg text-(--color-muted-foreground) text-center max-w-[50vw] whitespace-pre-line"
+  >
     {message ?? ReasonPhrases.INTERNAL_SERVER_ERROR}
   </p>
   {#if children}
