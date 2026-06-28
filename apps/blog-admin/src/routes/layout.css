@@ -1,19 +1,21 @@
 @import 'tailwindcss';
 @import '../styles/_index.css';
 
-* {
-	border-color: var(--color-border-default);
-}
+@layer base {
+	* {
+		border-color: var(--color-border-default);
+	}
 
-body {
-	background-color: var(--color-bg-base);
-	color: var(--color-text-primary);
-	font-family: var(--font-sans);
-	line-height: var(--leading-normal);
-}
+	body {
+		background-color: var(--color-bg-base);
+		color: var(--color-text-primary);
+		font-family: var(--font-sans);
+		line-height: var(--leading-normal);
+	}
 
-input {
-	color: var(--color-text-primary);
+	input {
+		color: var(--color-text-primary);
+	}
 }
 
 /* You have to do this for every lib... */
