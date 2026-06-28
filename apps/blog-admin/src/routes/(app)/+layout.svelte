@@ -26,7 +26,7 @@
 </script>
 
 <header class="border-b">
-	<nav class="mx-auto flex max-w-7xl items-baseline gap-6 px-6 py-4 text-sm font-medium">
+	<nav class="mx-auto flex max-w-7xl items-center gap-6 px-6 py-4 text-sm font-medium">
 		<a
 			href={resolve('/')}
 			class="transition-colors hover:underline"
@@ -55,7 +55,7 @@
 					Logout
 				{/if}
 			</button>
-			<span class="font-semibold">{user?.email}</span>
+			<span aria-label="Account name" class="font-semibold">{user?.email}</span>
 			<UserRoleBadge role={user?.role}></UserRoleBadge>
 		{:else}
 			<a href={resolve('/login')} class="transition-colors hover:underline">Login</a>

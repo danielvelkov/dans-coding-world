@@ -48,7 +48,8 @@
 </script>
 
 <span
-  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase border transition-colors {config.bg} {config.text} {config.border}"
+  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+   text-xs font-semibold tracking-wider uppercase border transition-colors {config.bg} {config.text} {config.border}"
 >
   <i class="{config.icon} text-[0.7rem]" aria-hidden="true"></i>
   {role}

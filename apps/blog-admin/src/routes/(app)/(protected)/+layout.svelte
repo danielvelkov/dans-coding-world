@@ -12,6 +12,7 @@
 	const user = $derived(auth.user);
 	const logout = $derived(auth.logout);
 	const isAuthenticated = $derived(auth.isAuthenticated);
+	const authBootstrapPending = $derived(auth.authBootstrapPending);
 
 	const isForbidden = $derived.by(() => user && user.role === 'USER');
 	const isUnauthorized = $derived.by(() => !isAuthenticated && !isForbidden);
@@ -29,7 +30,9 @@
 	});
 </script>
 
-{#if isForbidden}
+{#if authBootstrapPending}
+	<!-- Render nothing while session restore is running -->
+{:else if isForbidden}
 	<Forbidden message="Access Denied">
 		<div
 			class="mx-auto mt-6 flex max-w-md flex-col items-center justify-center gap-4
