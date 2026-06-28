@@ -46,7 +46,7 @@
     e.preventDefault();
     handleSubmit(email, password);
   }}
-  class="m-auto py-4 px-6 border border-gray-300 rounded-md flex flex-col gap-6"
+  class="m-auto py-4 px-6 border rounded-md flex flex-col gap-6"
 >
   <h1
     class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight m-4 text-center"
@@ -63,9 +63,10 @@
       oninput={() => (errors.email = '')}
       bind:value={email}
       oninvalid={handleInvalid}
+      required
     />
     {#if errors.email}
-      <span class="text-red-500 text-sm sm:truncate">
+      <span class="text-(--color-error) text-sm sm:truncate">
         <i class="fa fa-warning"></i>
         {' ' + errors.email}</span
       >
@@ -81,9 +82,10 @@
       oninput={() => (errors.password = '')}
       bind:value={password}
       oninvalid={handleInvalid}
+      required
     />
     {#if errors.password}
-      <span class="text-red-500 text-sm sm:truncate">
+      <span class="text-(--color-error) text-sm sm:truncate">
         <i class="fa fa-warning"></i>
         {' ' + errors.password}</span
       >
@@ -96,7 +98,7 @@
       aria-atomic="true"
       data-testid="login-error"
     >
-      <span class="text-red-500 sm:truncate text-sm">
+      <span class="text-(--color-error) sm:truncate text-sm">
         {error.message ?? 'Unable to login. Please try again.'}
       </span>
     </div>

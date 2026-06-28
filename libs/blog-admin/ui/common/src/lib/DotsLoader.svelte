@@ -16,7 +16,6 @@
 
 <style>
   .loader {
-    /* Use Tailwind CSS variable for foreground color */
     --dot-color: var(--color-accent-glow);
 
     background: radial-gradient(

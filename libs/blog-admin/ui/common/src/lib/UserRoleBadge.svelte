@@ -1,15 +1,12 @@
 <script lang="ts">
   import type { User } from '@dans-coding-world/prisma-schema';
 
-  // Type definition for the component props
   interface Props {
     role?: User['role'];
   }
 
-  // Modern Svelte 5 props declaration
   let { role }: Props = $props();
 
-  // Map roles directly to your CSS variables and FontAwesome icons
   const roleConfig: Record<
     User['role'],
     { icon: string; bg: string; text: string; border: string }
@@ -40,7 +37,6 @@
     },
   };
 
-  // Derived fallback state if a role is missing from the config
   const config = $derived(
     (role && roleConfig[role]) ?? {
       icon: 'fa fa-user',
