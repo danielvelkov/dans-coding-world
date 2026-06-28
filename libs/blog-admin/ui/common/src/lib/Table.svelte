@@ -14,16 +14,18 @@
   } = $props();
 </script>
 
-<table class="w-full table-auto text-left border border-gray-300">
+<table class="w-full table-auto text-left border">
   {#if header}
-    <thead class="border-b border-gray-200 bg-gray-50 text-gray-700">
+    <thead
+      class="border-b border-(--color-border-emphasis) text-(--color-text-secondary)"
+    >
       {@render header()}
     </thead>
   {/if}
 
   {@render children()}
 
-  <tbody class="divide-y divide-gray-200">
+  <tbody class="divide-y divide-(--color-border-emphasis)">
     {#each data as d (d)}
       {@render row(d)}
     {/each}

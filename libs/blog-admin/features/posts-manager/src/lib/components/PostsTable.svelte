@@ -60,8 +60,8 @@
   }))}
 >
   {#snippet header()}
-    <tr>
-      {#each TABLE_COLUMNS as col}
+    <tr class="bg-(--color-bg-surface-hover)">
+      {#each TABLE_COLUMNS as col (col)}
         {@render ColumnHeader(col)}
       {/each}
     </tr>
@@ -70,13 +70,16 @@
   {/snippet}
 
   {#if isLoading}
-    {@render MessageRow(POSTS_LOADING_MESSAGE, 'text-gray-500 italic')}
+    {@render MessageRow(
+      POSTS_LOADING_MESSAGE,
+      'text-(--color-text-secondary) italic',
+    )}
   {:else if error}
-    {@render MessageRow(error.message, 'text-red-500 italic')}
+    {@render MessageRow(error.message, 'text-(--color-error) italic')}
   {:else if showEmptyMessage}
     {@render MessageRow(
       params?.searchQuery ? POSTS_NO_RESULTS_MESSAGE : POSTS_EMPTY_MESSAGE,
-      'text-gray-500 italic',
+      'text-(--color-text-secondary) italic',
     )}
   {/if}
 
@@ -92,9 +95,10 @@
 
   {#if !isAdminCol || isAdmin}
     <th
-      class={`px-6 py-4 text-xs font-medium tracking-wider text-gray-500 uppercase border-b border-gray-200 bg-gray-200 ${
-        isCenterAligned ? 'text-center' : 'text-left'
-      }`}
+      class={`px-6 py-4 text-xs font-semibold tracking-wider text-(--color-text-secondary)
+       uppercase border-b border-(--color-border-subtle)  ${
+         isCenterAligned ? 'text-center' : 'text-left'
+       }`}
     >
       {#if isVisible}
         {col}
@@ -104,10 +108,10 @@
 {/snippet}
 
 {#snippet MessageRow(message: string, classOverride: string)}
-  <tr class="bg-white">
+  <tr class="bg-(--color-bg-surface)">
     <td
       colspan={TABLE_COLUMNS.length}
-      class="px-4 py-12 text-center border-b border-gray-200"
+      class="px-4 py-12 text-center border-b border-(--color-border-subtle)"
     >
       <div class={classOverride}>
         {message}
@@ -123,14 +127,17 @@
 
   <tr
     aria-label={`Row entry #${rowIndex + 1}`}
-    class=" bg-white border-b border-gray-200 hover:bg-gray-50 group"
+    class="bg-(--color-bg-surface) border-b border-(--color-border-subtle)
+    hover:bg-(--color-bg-surface-hover) group transition-colors"
     aria-expanded={isExpanded}
     aria-controls={`row-details-${post.id}`}
   >
     <!-- Expand/Collapse Button -->
-    <td class="px-4 py-4 text-sm text-gray-500">
+    <td class="px-4 py-4 text-sm text-(--color-text-secondary)">
       <button
-        class="p-1 w-5 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="p-1 w-5 rounded hover:bg-(--color-bg-surface-active)
+         text-(--color-text-secondary) focus:outline-hidden focus:ring-2
+          focus:ring-(--color-accent-hover)"
         aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
         onclick={() => {
           expandedRows = toggleValue(expandedRows, post.id);
@@ -143,7 +150,7 @@
     <!-- Title -->
     <td class="px-4 py-4">
       <div
-        class="text-sm font-medium text-gray-900 line-clamp-2"
+        class="text-sm font-medium text-(--color-text-primary) line-clamp-2"
         title={post.title}
       >
         {post.title}
@@ -154,31 +161,34 @@
     <td class="px-4 py-4">
       <div class="flex flex-col space-y-1">
         <span
-          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit"
+          class="inline-flex items-center px-2.5 py-0.5 rounded-full
+           text-xs font-semibold bg-(--color-info-bg) text-(--color-info)
+            border border-(--color-info-border) w-fit"
         >
           {post.status.toUpperCase()}
         </span>
         {#if post.visibility === 'MEMBERS_ONLY'}
-          <span class="text-xs text-gray-500">Members-only</span>
+          <span class="text-xs text-(--color-text-tertiary)">Members-only</span>
         {/if}
       </div>
     </td>
 
     <!-- Published/Updated -->
-    <td class="px-4 py-4 text-sm text-gray-500">
+    <td class="px-4 py-4 text-sm text-(--color-text-secondary)">
       <div class="flex flex-col space-y-1">
         {#if post.publishedAt}
           <time
-            class="font-medium text-gray-700"
+            class="font-medium text-(--color-text-primary)"
             datetime={new Date(post.publishedAt).toISOString()}
           >
             {formatDateTo_DD_MM_YYYY(new Date(post.publishedAt))}
           </time>
+          {'\n'}
         {:else}
-          <span class="italic text-gray-400">Not published</span>
+          <span class="italic text-(--color-text-muted)">Not published</span>
         {/if}
         {#if isRecentlyUpdated}
-          <span class="text-xs text-gray-400">
+          <span class="text-xs text-(--color-text-tertiary)">
             Updated: {formatDateTo_DD_MM_YYYY(new Date(post.updatedAt))}
           </span>
         {/if}
@@ -187,10 +197,11 @@
 
     <!-- Author (admin-only) -->
     {#if isAdmin}
-      <td class="px-4 py-4 text-sm text-gray-500">
+      <td class="px-4 py-4 text-sm text-(--color-text-secondary)">
         <a
           href={`/users?search=${post.authorId}`}
-          class="text-blue-600 hover:text-blue-800 hover:underline"
+          class="text-(--color-link) hover:text-(--color-link-hover)
+           hover:underline font-medium"
         >
           {post.author.username}
         </a>
@@ -202,12 +213,13 @@
       <div class="flex space-x-3 flex-wrap">
         <a
           href={`/posts/${post.id}/edit`}
-          class="text-blue-600 hover:text-blue-800"
+          class="text-(--color-link) hover:text-(--color-link-hover)"
         >
           Edit
         </a>
         <button
-          class="text-red-600 hover:text-red-800 focus:outline-none"
+          class="text-(--color-error) hover:text-(--color-error-muted)
+           focus:outline-hidden"
           aria-label="Delete post"
         >
           Delete
@@ -221,7 +233,7 @@
     <tr
       id={`row-details-${post.id}`}
       data-testid={`row-details-${post.id}`}
-      class="bg-gray-50"
+      class="bg-(--color-bg-surface-hover)"
     >
       <td colspan={TABLE_COLUMNS.length} class="px-0 py-0">
         <div class="p-6" transition:slide>
@@ -237,37 +249,52 @@
     <!-- Header Section -->
     <div class="flex items-start justify-between">
       <div class="space-y-1">
-        <h4 class="text-lg font-semibold text-gray-900">Post Details</h4>
-        <span class="text-sm text-gray-500">ID: {post.id}</span>
+        <h4 class="text-lg font-semibold text-(--color-text-primary)">
+          Post Details
+        </h4>
+        <span class="text-sm text-(--color-text-tertiary)">ID: {post.id}</span>
       </div>
       <a
         href={`[PUBLIC_BLOG_URL]/posts/${post.id}`}
-        class="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium text-blue-600 transition-colors border border-blue-600 rounded-md hover:bg-blue-50"
+        class="inline-flex items-center gap-2 px-3 py-1.5 text-sm
+         font-medium text-(--color-link) transition-colors
+          border border-(--color-border-emphasis) rounded-md
+           bg-(--color-bg-surface) hover:bg-(--color-bg-surface-hover)"
         target="_blank"
         rel="noopener noreferrer"
       >
-        <i class="fa fa-external-link"></i>
+        <i class="fa fa-external-link text-xs"></i>
         View Live Post
       </a>
     </div>
 
     <!-- Author Info -->
     {#if isAdmin}
-      <div class="p-4 bg-white rounded-lg border border-gray-200">
-        <h5 class="mb-2 text-sm font-semibold text-gray-700">
+      <div
+        class="p-4 bg-(--color-bg-surface) rounded-lg border
+         border-(--color-border-subtle)"
+      >
+        <h5 class="mb-2 text-sm font-semibold text-(--color-text-primary)">
           Author Information
         </h5>
-        <div class="space-y-1 text-sm text-gray-600">
-          <span class="font-medium">Username:</span>
+        <div class="space-y-1 text-sm text-(--color-text-secondary)">
+          <span class="font-medium text-(--color-text-primary)">Username:</span>
           {post.author.username}
         </div>
       </div>
     {/if}
 
     <!-- Content Preview -->
-    <div class="p-4 bg-white rounded-lg border border-gray-200">
-      <h5 class="mb-2 text-sm font-semibold text-gray-700">Content Preview</h5>
-      <p class="text-gray-600 line-clamp-2">{post.content}</p>
+    <div
+      class="p-4 bg-(--color-bg-surface) rounded-lg border
+       border-(--color-border-subtle)"
+    >
+      <h5 class="mb-2 text-sm font-semibold text-(--color-text-primary)">
+        Content Preview
+      </h5>
+      <p class="text-(--color-text-secondary) line-clamp-2 leading-relaxed">
+        {post.content}
+      </p>
     </div>
 
     <!-- Tags -->
@@ -275,7 +302,9 @@
       <div class="flex flex-wrap gap-2">
         {#each post.tags as tag}
           <span
-            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+            class="inline-flex items-center px-2.5 py-0.5
+             rounded-full text-xs font-medium bg-(--color-accent-subtle)
+              text-(--color-accent) border border-(--color-border-subtle)"
           >
             #{tag}
           </span>
@@ -285,17 +314,18 @@
 
     <!-- Metadata Grid -->
     <div
-      class="grid grid-cols-2 gap-4 pt-4 text-sm border-t border-gray-200 md:grid-cols-4"
+      class="grid grid-cols-2 gap-4 pt-4 text-sm border-t
+       border-(--color-border-subtle) md:grid-cols-4"
     >
       <dl>
-        <dt class="font-medium text-gray-500">Created</dt>
-        <dd class="text-gray-900">
+        <dt class="font-medium text-(--color-text-secondary)">Created</dt>
+        <dd class="text-(--color-text-primary)">
           {formatDateTo_DD_MM_YYYY(new Date(post.createdAt))}
         </dd>
       </dl>
       <div>
-        <dt class="font-medium text-gray-500">Last Modified</dt>
-        <dd class="text-gray-900">
+        <dt class="font-medium text-(--color-text-secondary)">Last Modified</dt>
+        <dd class="text-(--color-text-primary)">
           {formatDateTo_DD_MM_YYYY(new Date(post.updatedAt))}
         </dd>
       </div>
@@ -304,8 +334,8 @@
 {/snippet}
 
 {#snippet ControlRow()}
-  <tr class="bg-gray-50">
-    <th class="text-xs font-medium" align="center" scope="col" colspan="2">
+  <tr class="bg-(--color-bg-surface)">
+    <th class="text-xs font-medium" align="left" scope="col" colspan="2">
       <search>
         <label class="sr-only" for="search-posts"
           >Search by title or content:</label
@@ -313,7 +343,8 @@
         <input
           id="search-posts"
           type="text"
-          class="p-2 m-2 border border-gray-300 bg-white"
+          class="p-2 m-2 border border-(--color-border-default) bg-(--color-bg-surface)
+           text-(--color-text-primary) rounded-md focus:outline-hidden focus:border-(--color-border-focus)"
           placeholder="Search..."
           maxlength={POST_CONSTRAINTS.MAX_TITLE_LENGTH}
           value={params?.searchQuery ?? ''}
@@ -322,7 +353,7 @@
         />
       </search>
     </th>
-    <th class="text-xs font-medium" scope="col">
+    <th class="text-xs font-medium" scope="col" align="left">
       <PostsFilter
         filters={{ ...params?.filterBy }}
         onChange={(filters) =>
@@ -341,7 +372,7 @@
       <label class="sr-only" for="sort-posts">Sort by:</label>
       <Select
         id="sort-posts"
-        class="p-2 m-2 w-30 border border-gray-300"
+        class="p-2 m-2 w-30 border border-(--color-border-default) rounded-md"
         value={JSON.stringify(params?.sortBy)}
         onchange={(e) => {
           const value = e.currentTarget.value;
@@ -350,6 +381,9 @@
         }}
         items={SORT_OPTIONS}
       ></Select>
+    </th>
+    <th>
+      <!-- Empty -->
     </th>
   </tr>
 {/snippet}

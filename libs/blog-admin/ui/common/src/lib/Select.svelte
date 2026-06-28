@@ -12,13 +12,14 @@
 
 <select
   {...restProps}
-  class="w-full font-medium text-gray-700
-       disabled:cursor-not-allowed border border-gray-200
-        bg-white shadow-sm transition-all duration-200 focus:ring-2
-         focus:ring-blue-500 focus:outline-none
+  class="w-full font-medium text-(--color-text-primary) px-3 py-2
+       disabled:cursor-not-allowed border border-(--color-border-default)
+       bg-(--color-bg-surface) shadow-xs transition-all duration-200
+       focus:ring-2 focus:ring-(--color-focus-ring) focus:border-(--color-border-focus)
+       focus:bg-(--color-surface-active) focus:text-(--color-text-on-accent)
              {className ?? ''}"
 >
-  {#each items as { value, label }}
+  {#each items as { value, label } (label)}
     {#if option}
       {@render option(label, value)}
     {:else}
@@ -26,11 +27,9 @@
         typeof value === 'object' ? JSON.stringify(value) : value}
       <option
         value={valueAsString}
-        class="px-4 py-2.5 my-auto cursor-pointer text-gray-700 flex items-center justify-between
-                   hover:bg-gray-100
-                   focus:bg-blue-600 focus:text-white
-                   checked:bg-blue-50 checked:text-blue-700
-                   transition-colors duration-150"
+        class="px-4 py-2.5 my-auto cursor-pointer flex items-center justify-between
+                   transition-colors duration-150 checked:bg-(--color-accent)
+                   "
       >
         <span>{label}</span>
       </option>
