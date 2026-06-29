@@ -48,7 +48,7 @@ test.describe('Posts page - pagination', () => {
       await expect(page.getByLabel(/expand details/i)).toHaveCount(
         numOfTestPosts,
       );
-      await expect(page.getByLabel('pagination')).not.toBeVisible();
+      await expect(page.getByLabel('pagination')).toBeHidden();
     });
 
     test('displays correct number of page buttons', async ({ page }) => {
@@ -199,7 +199,7 @@ test.describe('Posts page - pagination', () => {
       await goToPage(page, 1);
 
       await expect(page.getByLabel('prev page')).toBeDisabled();
-      await expect(page.getByLabel('next page')).not.toBeDisabled();
+      await expect(page.getByLabel('next page')).toBeEnabled();
     });
 
     test('navigating to a random page displays the right results', async ({

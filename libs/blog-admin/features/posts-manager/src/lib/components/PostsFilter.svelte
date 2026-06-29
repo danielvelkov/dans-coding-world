@@ -63,6 +63,7 @@
 
     onChange({ status: finalStatus, visibility: finalVisibility });
   }}
+  data-testid="filter-posts"
 >
   {#snippet option(label, value)}
     {@const isStatus = STATUS_VALUES.includes(value as PostStatus)}

@@ -80,7 +80,7 @@
     "authorId": 4
   },
   {
-    "title": "Debugging 403 Forbidden Errors",
+    "title": "Debugging 403 Forbidden Errors: Part 4",
     "content": "Common causes of 403 errors and a structured approach to diagnosing and resolving them.",
     "createdAt": "2017-11-05T09:20:00.000Z",
     "publishedAt": "2017-11-06T07:00:00.000Z",

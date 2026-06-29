@@ -1,8 +1,11 @@
 import type { Post } from '@dans-coding-world/prisma-schema';
-import { test, expect } from '../fixtures/authFixture';
-import type { Page } from '../fixtures/authFixture';
+import { test, expect } from '../fixtures/dbFixture';
+import type { Page } from '../fixtures/dbFixture';
 import posts from '../fixtures/posts/sorting-dataset.json' with { type: 'json' };
-import { selectPostSorting, SORT_LABELS } from '../helpers/sorting.helper';
+import {
+  selectPostSorting,
+  SORT_LABELS,
+} from '../helpers/posts-actions.helper';
 
 async function checkIfSortedCorrectly(
   page: Page,
@@ -26,14 +29,13 @@ async function checkIfSortedCorrectly(
 test.describe('Posts - sorting', () => {
   let seededPosts: Post[] = [];
 
-  test.beforeAll(async ({ db, users }) => {
-    if (!users.current?.length)
-      users.current = await db.seedUsers({
-        users: null,
-        options: { clearExisting: true, useDefaults: true },
-      });
+  test.beforeAll(async ({ db }) => {
+    const users = await db.seedUsers({
+      users: null,
+      options: { clearExisting: true, useDefaults: true },
+    });
 
-    const admin = users.current.find((u) => u.role === 'ADMIN');
+    const admin = users.find((u) => u.role === 'ADMIN');
     if (!admin) throw new Error('Missing test user');
 
     seededPosts = await db.seedPosts({
