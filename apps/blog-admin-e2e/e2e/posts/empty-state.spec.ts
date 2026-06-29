@@ -17,7 +17,6 @@ test.describe('Posts page - empty state', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
     await loginAsRandomUser(
       page,
       users.filter((u) => u.role !== 'USER'),

@@ -348,8 +348,9 @@
           placeholder="Search..."
           maxlength={POST_CONSTRAINTS.MAX_TITLE_LENGTH}
           value={params?.searchQuery ?? ''}
-          oninput={(e: Event & { currentTarget: HTMLInputElement }) =>
-            handleSearchDebounced(e.currentTarget.value)}
+          oninput={(e: Event & { currentTarget: HTMLInputElement }) => {
+            handleSearchDebounced(e.currentTarget.value);
+          }}
         />
       </search>
     </th>

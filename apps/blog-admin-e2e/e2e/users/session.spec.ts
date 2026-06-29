@@ -7,7 +7,7 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
 import { generateMockLoginResponse } from '@dans-coding-world/shared-user-testing';
-import { test, expect } from '../fixtures/authFixture';
+import { test, expect } from '../fixtures/dbFixture';
 import { randomSelect as randomItem } from '@dans-coding-world/helpers';
 import {
   logout,
@@ -34,7 +34,6 @@ test.describe('User session', () => {
   });
 
   test(`login starts a user's session`, async ({ page }) => {
-    await page.goto('/');
     await loginAsRandomUser(
       page,
       testUsers.filter((u) => u.role !== 'USER'),
@@ -43,7 +42,6 @@ test.describe('User session', () => {
   });
 
   test(`logout ends a user's session`, async ({ page }) => {
-    await page.goto('/');
     await loginAsRandomUser(
       page,
       testUsers.filter((u) => u.role !== 'USER'),
@@ -139,7 +137,6 @@ test.describe('User session', () => {
         }
       });
 
-      await page.goto('/');
       await loginAsRandomUser(page, [randomUser]);
       expect(await checkIfLoggedIn(page)).toBe(true);
 
@@ -170,6 +167,7 @@ test.describe('User session', () => {
       await loginAsRandomUser(
         page,
         testUsers.filter((u) => u.role !== 'USER'),
+        false,
       );
       expect(await checkIfLoggedIn(page)).toBe(true);
 
@@ -204,6 +202,7 @@ test.describe('User session', () => {
       await loginAsRandomUser(
         page,
         testUsers.filter((u) => u.role !== 'USER'),
+        false,
       );
       expect(await checkIfLoggedIn(page)).toBe(true);
 
@@ -248,6 +247,7 @@ test.describe('User session', () => {
       await loginAsRandomUser(
         page,
         testUsers.filter((u) => u.role !== 'USER'),
+        false,
       );
       expect(await checkIfLoggedIn(page)).toBe(true);
 
@@ -264,7 +264,6 @@ test.describe('User session', () => {
   });
 
   test('user session is kept after reloading page', async ({ page }) => {
-    await page.goto('/');
     await loginAsRandomUser(
       page,
       testUsers.filter((u) => u.role !== 'USER'),
@@ -278,7 +277,6 @@ test.describe('User session', () => {
   test('user session is kept when navigating to a different path', async ({
     page,
   }) => {
-    await page.goto('/');
     await loginAsRandomUser(page, testUsers);
     expect(await checkIfLoggedIn(page)).toBe(true);
 

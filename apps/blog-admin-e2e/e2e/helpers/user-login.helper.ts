@@ -33,7 +33,12 @@ export async function checkIfLoggedOut(page: Page): Promise<boolean> {
   }
 }
 
-export async function loginAsRandomUser(page: Page, testUsers: UserDetail[]) {
+export async function loginAsRandomUser(
+  page: Page,
+  testUsers: UserDetail[],
+  navigateToHomePage = true,
+) {
+  if (navigateToHomePage) await page.goto('/');
   const randomUser = randomItem(testUsers);
   await expect(page.getByText(randomUser.email)).toBeHidden();
   await page.getByRole('link', { name: /^login/i }).click();
