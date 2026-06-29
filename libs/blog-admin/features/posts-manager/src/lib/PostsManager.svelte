@@ -14,10 +14,11 @@
   const {
     params,
     onParamsChange = () => {},
+    loggedInUser,
   }: {
     params?: PostsManagerParams;
     onParamsChange?: (value: PostsManagerParams) => void;
-    loggedInUser?: UserDetail;
+    loggedInUser?: Omit<UserDetail, 'password'>;
   } = $props();
 
   const postsQuery = $derived(createPostsQuery(params)); // closure needed for the query to update
@@ -42,7 +43,13 @@
 
 <div class="space-y-6 p-4">
   <div class="flex justify-between items-center">
-    <h2 class="text-3xl font-bold">Your Posts</h2>
+    <h2 class="text-3xl font-bold">
+      {#if loggedInUser && loggedInUser.role === 'ADMIN'}
+        All
+      {:else}Your
+      {/if}
+      Posts
+    </h2>
     <!-- <CreatePostButton /> -->
   </div>
 
@@ -52,6 +59,7 @@
     error={error ?? undefined}
     {params}
     {onParamsChange}
+    viewer={loggedInUser}
   />
 
   {#if total > itemsPerPage}

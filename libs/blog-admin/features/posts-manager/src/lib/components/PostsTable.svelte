@@ -26,7 +26,7 @@
     posts?: PostFull[];
     isLoading?: boolean;
     error?: Error;
-    viewer?: UserDetail;
+    viewer?: Omit<UserDetail, 'password'>;
     params?: PostsManagerParams;
     onParamsChange?: (value: PostsManagerParams) => void;
   }
@@ -385,5 +385,10 @@
     <th>
       <!-- Empty -->
     </th>
+    {#if isAdmin}
+      <th>
+        <!-- Empty -->
+      </th>
+    {/if}
   </tr>
 {/snippet}
