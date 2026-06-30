@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
-	import { AuthStateManager, AUTH_CONTEXT_KEY } from '$lib/shared/auth.svelte';
+	import { getAuth } from '$lib/shared/auth.svelte';
 	import { Forbidden, Unauthorized } from '@dans-coding-world/blog-admin-ui-errors';
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { Button } from '@dans-coding-world/blog-admin-ui-common';
 
-	const auth = getContext<AuthStateManager>(AUTH_CONTEXT_KEY);
+	const auth = getAuth();
 	const { children } = $props();
 
 	const user = $derived(auth.user);

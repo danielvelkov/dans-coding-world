@@ -89,6 +89,7 @@
         {isStatus ? 'border-l-3 border-(--color-info) pl-3' : ''}
         {isVisibility ? 'border-l-3 border-(--color-link) pl-3' : ''}
         bg-(--color-bg-surface) text-(--color-text-primary) checked:font-bold
+        checked:bg-(--color-accent-subtle)
         {isLastInGroup
         ? 'opacity-50 cursor-not-allowed'
         : 'hover:bg-(--color-accent-hover)'}"

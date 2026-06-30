@@ -2,10 +2,9 @@
 	import { UserLogin } from '@dans-coding-world/blog-admin-features-user-login';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { getContext } from 'svelte';
-	import { AUTH_CONTEXT_KEY, AuthStateManager } from '$lib/shared/auth.svelte';
+	import { getAuth } from '$lib/shared/auth.svelte';
 
-	const authStateManager = getContext<AuthStateManager>(AUTH_CONTEXT_KEY);
+	const authStateManager = getAuth();
 	const onUserLogin = $derived(authStateManager.onUserLogin);
 	const user = $derived(authStateManager.user);
 

@@ -8,10 +8,9 @@
 	import { mergePostQueryDefaults } from '$lib/util/posts/merge-post-query-defaults';
 	import PostQueryParamsParser from '$lib/util/posts/post-query-param-parser';
 	import { omitDefaultPostQueryParams } from '$lib/util/posts/omit-default-post-query-params';
-	import { AUTH_CONTEXT_KEY, type AuthStateManager } from '$lib/shared/auth.svelte';
-	import { getContext } from 'svelte';
+	import { getAuth } from '$lib/shared/auth.svelte';
 
-	const authStateManager = getContext<AuthStateManager>(AUTH_CONTEXT_KEY);
+	const authStateManager = getAuth();
 	const user = $derived(authStateManager.user);
 	const isAdmin = $derived(user?.role === 'ADMIN');
 

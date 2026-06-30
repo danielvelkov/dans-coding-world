@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { setContext } from 'svelte';
-	import { AuthStateManager, AUTH_CONTEXT_KEY } from '$lib/shared/auth.svelte';
+	import { AuthStateManager, setAuth } from '$lib/shared/auth.svelte';
 	import {
 		DotsLoader,
 		SpinnerLoader,
@@ -12,7 +11,7 @@
 
 	const authStateManager = new AuthStateManager();
 	authStateManager.init();
-	setContext(AUTH_CONTEXT_KEY, authStateManager);
+	setAuth(authStateManager);
 
 	const { children } = $props();
 	// don't do this as it might actually give you a one-time snapshot
