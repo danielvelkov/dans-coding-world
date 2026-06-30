@@ -1,4 +1,4 @@
-import type { Post } from '@dans-coding-world/prisma-schema';
+import type { Post, User } from '@dans-coding-world/prisma-schema';
 import { test, expect } from '../fixtures/dbFixture';
 import type { Page } from '../fixtures/dbFixture';
 import posts from '../fixtures/posts/sorting-dataset.json' with { type: 'json' };
@@ -6,6 +6,11 @@ import {
   selectPostSorting,
   SORT_LABELS,
 } from '../helpers/posts-actions.helper';
+import {
+  checkIfLoggedIn,
+  loginAsRandomUser,
+} from '../helpers/user-login.helper';
+import { waitOutLoader } from '../helpers/loading.helper';
 
 async function checkIfSortedCorrectly(
   page: Page,
@@ -28,18 +33,16 @@ async function checkIfSortedCorrectly(
 
 test.describe('Posts - sorting', () => {
   let seededPosts: Post[] = [];
+  let users: User[] = [];
 
   test.beforeAll(async ({ db }) => {
-    const users = await db.seedUsers({
+    const seededUsers = await db.seedUsers({
       users: null,
       options: { clearExisting: true, useDefaults: true },
     });
 
-    const admin = users.find((u) => u.role === 'ADMIN');
-    if (!admin) throw new Error('Missing test user');
-
     seededPosts = await db.seedPosts({
-      posts: posts.map((p) => ({ ...p, authorId: admin.id })),
+      posts,
       options: { useDefaults: false, clearExisting: true },
     });
 
@@ -47,11 +50,17 @@ test.describe('Posts - sorting', () => {
       throw new Error('Missing post fixtures');
     }
 
-    // TODO - login as admin
+    users = seededUsers;
   });
 
   test.beforeEach(async ({ page }) => {
+    await loginAsRandomUser(
+      page,
+      users.filter((u) => u.role === 'ADMIN'),
+    );
+    expect(await checkIfLoggedIn(page)).toBe(true);
     await page.goto('/posts');
+    await waitOutLoader(page);
   });
 
   test('sorts posts by "Published (desc)" by default', async ({ page }) => {
@@ -63,17 +72,33 @@ test.describe('Posts - sorting', () => {
     await checkIfSortedCorrectly(page, seededPosts, 'publishedAt', 'desc');
   });
 
-  test('sorts posts correctly', async ({ page }) => {
-    for (const label of SORT_LABELS) {
-      const field: 'publishedAt' | 'updatedAt' = label.includes('Published')
-        ? 'publishedAt'
-        : 'updatedAt';
-      const order: 'asc' | 'desc' = label.includes('desc') ? 'desc' : 'asc';
-
-      await selectPostSorting(page, label);
+  test.describe('post sorting', () => {
+    test('sorts by Published asc', async ({ page }) => {
+      await selectPostSorting(page, 'Published (asc)');
       expect(
-        await checkIfSortedCorrectly(page, seededPosts, field, order),
+        await checkIfSortedCorrectly(page, seededPosts, 'publishedAt', 'asc'),
       ).toBeTruthy();
-    }
+    });
+
+    test('sorts by Published desc', async ({ page }) => {
+      await selectPostSorting(page, 'Published (desc)');
+      expect(
+        await checkIfSortedCorrectly(page, seededPosts, 'publishedAt', 'desc'),
+      ).toBeTruthy();
+    });
+
+    test('sorts by Updated asc', async ({ page }) => {
+      await selectPostSorting(page, 'Modified (asc)');
+      expect(
+        await checkIfSortedCorrectly(page, seededPosts, 'updatedAt', 'asc'),
+      ).toBeTruthy();
+    });
+
+    test('sorts by Updated desc', async ({ page }) => {
+      await selectPostSorting(page, 'Modified (desc)');
+      expect(
+        await checkIfSortedCorrectly(page, seededPosts, 'updatedAt', 'desc'),
+      ).toBeTruthy();
+    });
   });
 });

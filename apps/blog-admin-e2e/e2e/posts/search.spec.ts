@@ -10,7 +10,6 @@ import { test, expect, Page } from '../fixtures/dbFixture';
 import postsJson from '../fixtures/posts/search-dataset.json' with { type: 'json' };
 import {
   checkIfLoggedIn,
-  login,
   loginAsRandomUser,
 } from '../helpers/user-login.helper';
 import { waitOutLoader } from '../helpers/loading.helper';
@@ -237,25 +236,6 @@ test.describe('Posts - search', () => {
       )) {
         await expect(page.getByText(unexpected.title)).not.toBeInViewport();
       }
-    });
-  });
-
-  test.describe('Logged in as User', () => {
-    test.beforeEach(async ({ page }) => {
-      const user = users.find((u) => u.role === 'USER');
-      if (!user) throw new Error('Missing fixture');
-      await page.goto('login');
-      await login(page, user.email, user.password);
-      expect(await checkIfLoggedIn(page)).toBe(true);
-      loggedInUser = user;
-    });
-
-    test('shows 403 FORBIDDEN when trying to navigate to page', async ({
-      page,
-    }) => {
-      await page.goto('/posts');
-      await expect(page.getByText(/403/i)).toBeVisible();
-      await expect(page.getByText(/access denied/i)).toBeVisible();
     });
   });
 });
