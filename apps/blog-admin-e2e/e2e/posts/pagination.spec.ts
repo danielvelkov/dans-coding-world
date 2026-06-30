@@ -1,4 +1,5 @@
-import type { Post } from '@dans-coding-world/prisma-schema';
+/* eslint-disable playwright/no-conditional-in-test */
+import type { Post, User } from '@dans-coding-world/prisma-schema';
 import { range, chunk, shuffle } from '@dans-coding-world/helpers';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
@@ -11,12 +12,75 @@ import {
   selectRowEntriesPerPage,
 } from '../helpers/pagination.helper';
 import postJson from '../fixtures/posts/pagination-template.json' with { type: 'json' };
+import {
+  checkIfLoggedIn,
+  loginAsRandomUser,
+} from '../helpers/user-login.helper';
 
 test.describe('Posts page - pagination', () => {
-  test.describe('Element', () => {
-    test.beforeAll(async () => {
-      // TODO - login
+  let users: User[] = [];
+  let seededPosts: Post[];
+
+  test.beforeAll(async ({ db }) => {
+    users = await db.seedUsers({
+      users: null,
+      options: { clearExisting: true, useDefaults: true },
     });
+
+    const admin = users.find((u) => u.role === 'ADMIN');
+    if (!admin) throw new Error('Missing test user');
+
+    const numOfTestPosts = Math.floor(Math.random() * (50 - 30 + 1)) + 30;
+
+    const postTemplate = postJson[0];
+
+    const postsToSeed = range(numOfTestPosts)
+      .reverse()
+      .map((i) => {
+        const dateWithOffset = postTemplate.publishedAt
+          ? new Date(postTemplate.publishedAt)
+          : postTemplate.publishedAt;
+        (dateWithOffset as Date)?.setUTCDate(
+          (dateWithOffset as Date).getUTCDate() + i,
+        );
+        return {
+          ...postTemplate,
+          title: postTemplate.title + i.toString(),
+          content: postTemplate.content + i.toString(),
+          publishedAt: dateWithOffset,
+          authorId: admin.id,
+        };
+      });
+
+    seededPosts = await db.seedPosts({
+      posts: postsToSeed,
+      options: {
+        useDefaults: false,
+        clearExisting: true,
+      },
+    });
+
+    if (!seededPosts || !seededPosts.length) {
+      throw new Error('Missing post fixtures');
+    }
+
+    // Sort by default order: publishedAt desc
+    seededPosts.sort((prev, next) => {
+      const prevDate = new Date(prev.publishedAt as Date);
+      const nextDate = new Date(next.publishedAt as Date);
+      return nextDate.getTime() - prevDate.getTime();
+    });
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await loginAsRandomUser(
+      page,
+      users.filter((u) => u.role === 'ADMIN'),
+    );
+    expect(await checkIfLoggedIn(page)).toBe(true);
+  });
+
+  test.describe('Element', () => {
     test('shows up when there are more results than the default page size', async ({
       page,
     }) => {
@@ -76,72 +140,13 @@ test.describe('Posts page - pagination', () => {
   });
 
   test.describe('Selection', () => {
-    let seededPosts: Post[];
     // tests by default run on parallel workers...
-    // Each worker can rerun test.beforeAll() causing sync issues with the API
-    // Reruns happen every time a test fails or with test parallelization and sharding
+    // Each worker reruns test.beforeAll() causing sync issues with the API
+    // Reruns also happen every time a test fails or with test parallelization and sharding
 
-    // NOT NEEDED IF workers: 1 in playwright.config
+    // NOT NEEDED IF "workers: 1" in playwright.config
     // this makes the tests run in serial mode (one after another)
     // test.describe.configure({ mode: 'serial' });
-
-    test.beforeAll(async ({ db }) => {
-      // Seed users first
-      const users = await db.seedUsers({
-        users: null,
-        options: { clearExisting: true, useDefaults: true },
-      });
-
-      const admin = users.find((u) => u.role === 'ADMIN');
-      if (!admin) throw new Error('Missing test user');
-
-      const numOfTestPosts = Math.floor(Math.random() * (50 - 30 + 1)) + 30;
-
-      const postTemplate = postJson[0];
-
-      const postsToSeed = range(numOfTestPosts)
-        .reverse()
-        .map((i) => {
-          const dateWithOffset = postTemplate.publishedAt
-            ? new Date(postTemplate.publishedAt)
-            : postTemplate.publishedAt;
-          (dateWithOffset as Date)?.setUTCDate(
-            (dateWithOffset as Date).getUTCDate() + i,
-          );
-          return {
-            ...postTemplate,
-            title: postTemplate.title + i.toString(),
-            content: postTemplate.content + i.toString(),
-            publishedAt: dateWithOffset,
-            authorId: admin.id,
-          };
-        });
-
-      seededPosts = await db.seedPosts({
-        posts: postsToSeed,
-        options: {
-          useDefaults: false,
-          clearExisting: true,
-        },
-      });
-
-      if (!seededPosts || !seededPosts.length) {
-        throw new Error('Missing post fixtures');
-      }
-
-      // Sort by default order: publishedAt desc
-      seededPosts.sort((prev, next) => {
-        const prevDate = new Date(prev.publishedAt as Date);
-        const nextDate = new Date(next.publishedAt as Date);
-        return nextDate.getTime() - prevDate.getTime();
-      });
-    });
-
-    test.beforeEach(async ({ page }) => {
-      // TODO - login
-      await page.goto('/posts');
-      await expect(page.getByLabel('pagination')).toBeVisible();
-    });
 
     test('navigates to next page of results on clicking "next"', async ({
       page,
@@ -171,7 +176,7 @@ test.describe('Posts page - pagination', () => {
       await goToPage(page, lastPage);
 
       await expect(page.getByLabel('next page')).toBeDisabled();
-      await expect(page.getByLabel('prev page')).not.toBeDisabled();
+      await expect(page.getByLabel('prev page')).toBeEnabled();
     });
 
     test('navigates to previous page on clicking "prev"', async ({ page }) => {
@@ -276,31 +281,34 @@ test.describe('Posts page - pagination', () => {
 
           for (let i = 1; i <= expectedPages; i++) {
             await expect(
-              pagination.getByRole('button', { name: `page ${i}` }),
+              pagination.getByRole('button', {
+                name: `page ${i}`,
+                exact: true,
+              }),
             ).toBeVisible();
           }
         }
       });
-
-      test('shows correct results when navigating to random pages', async ({
-        page,
-      }) => {
-        for (const pageSize of PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS) {
+      for (const pageSize of PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS) {
+        test(`shows correct results for page size ${pageSize}`, async ({
+          page,
+        }) => {
           await selectRowEntriesPerPage(page, pageSize);
+
           const pagesWithPostsArray = chunk(seededPosts, pageSize);
           const numOfPages = pagesWithPostsArray.length;
-          const randomPages = shuffle(range(numOfPages));
 
-          for (const randomPage of randomPages) {
-            await goToPage(page, randomPage);
-            for (const post of pagesWithPostsArray[randomPage - 1]) {
+          for (let pageIndex = 1; pageIndex <= numOfPages; pageIndex++) {
+            await goToPage(page, pageIndex);
+
+            for (const post of pagesWithPostsArray[pageIndex - 1]) {
               await expect(
                 page.getByText(post.title, { exact: true }),
               ).toBeVisible();
             }
           }
-        }
-      });
+        });
+      }
     });
   });
 });
