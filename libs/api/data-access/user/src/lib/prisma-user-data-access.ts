@@ -4,6 +4,7 @@ import {
   client as prisma,
   User,
   Profile,
+  UserOrderByInput,
 } from '@dans-coding-world/prisma-schema';
 
 export type UserDetail = User & { profile?: Profile };
@@ -24,6 +25,25 @@ export class PrismaUserDataAccess implements IUserRepository {
     return await prisma.user.findFirst({ where });
   }
 
+  async search(
+    where: UserWhereInput,
+    orderBy?: UserOrderByInput,
+    options?: {
+      skip?: number;
+      take?: number;
+    },
+  ): Promise<User[]> {
+    return await prisma.user.findMany({
+      where,
+      orderBy,
+      skip: options?.skip,
+      take: options?.take,
+      include: {
+        profile: true,
+      },
+    });
+  }
+
   async create(data: Omit<User, 'id'>): Promise<User> {
     return await prisma.user.create({ data });
   }
@@ -31,7 +51,7 @@ export class PrismaUserDataAccess implements IUserRepository {
   async update(
     id: number,
     data: Partial<User>,
-    profileData?: Partial<Profile>
+    profileData?: Partial<Profile>,
   ): Promise<User> {
     return await prisma.user.update({
       where: {
@@ -74,5 +94,9 @@ export class PrismaUserDataAccess implements IUserRepository {
       where,
     });
     return count;
+  }
+
+  async count(where: UserWhereInput): Promise<number> {
+    return await prisma.user.count({ where });
   }
 }
