@@ -13,6 +13,7 @@ import {
 import { createUsersRouteHelper } from '../helper/users-request.helper';
 import {
   ERROR_CODES,
+  PAGINATION,
   SUCCESS_MESSAGES,
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
@@ -24,11 +25,14 @@ import { UserDetail } from '@dans-coding-world/user-data-access';
 import {
   generateRandomString,
   passwordGenerator,
+  randomSelect,
   validPassword,
+  floorToNearestMultiple,
 } from '@dans-coding-world/helpers';
 import { getData, getMessage } from '../helper/common.helper';
 import { MOCK_RESULT } from '@dans-coding-world/api-file-storage';
 import path from 'path';
+import { GetUsersResponseDto } from '@dans-coding-world/shared-user-dto';
 
 describe('/api/v1/users', () => {
   // 1. Define separate helpers per role to avoid re-logging in
@@ -116,14 +120,14 @@ describe('/api/v1/users', () => {
       (u) =>
         u.role === 'USER' &&
         u.id !== TEST_IDS.userForPasswordChangeId &&
-        u.id !== TEST_IDS.userToBeDeletedId
+        u.id !== TEST_IDS.userToBeDeletedId,
     ) as User;
     mod = users.find((u) => u.role === 'MOD') as User;
     userToDelete = users.find(
-      (u) => u.id === TEST_IDS.userToBeDeletedId
+      (u) => u.id === TEST_IDS.userToBeDeletedId,
     ) as User;
     userToChangePassword = users.find(
-      (u) => u.id === TEST_IDS.userForPasswordChangeId
+      (u) => u.id === TEST_IDS.userForPasswordChangeId,
     ) as User;
     anotherAdmin = users.find((u) => u.id === TEST_IDS.anotherAdminId) as User;
     anotherMod = users.find((u) => u.id === TEST_IDS.anotherModId) as User;
@@ -166,7 +170,7 @@ describe('/api/v1/users', () => {
 
         expect(userData.profile).toBeDefined();
         expect(userData.profile).toEqual(userProfile);
-      }
+      },
     );
 
     test.concurrent.each([
@@ -178,8 +182,8 @@ describe('/api/v1/users', () => {
         role === 'ADMIN'
           ? adminHelpers
           : role === 'MOD'
-          ? modHelpers
-          : userHelpers;
+            ? modHelpers
+            : userHelpers;
 
       const res = await helper.getUser(user.id.toString());
       const userData = getData<User>(res, 'user');
@@ -192,10 +196,281 @@ describe('/api/v1/users', () => {
       'should return 404 NOT FOUND for unknown user id',
       async () => {
         return await expect(adminHelpers.getUser('999')).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
         );
-      }
+      },
     );
+  });
+
+  describe('GET /api/v1/users', () => {
+    it('should return 401 UNAUTHORIZED when not logged-in', async () => {
+      await expect(anonHelpers.getUsers()).rejects.toMatchObject(
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
+      );
+    });
+
+    test.concurrent.each(['USER', 'AUTHOR', 'MOD'])(
+      'should return 403 FORBIDDEN when user role is %s',
+      async (role) => {
+        let helper: UserHelpers | null = null;
+        switch (role) {
+          case 'USER':
+            helper = userHelpers;
+            break;
+          case 'AUTHOR':
+            helper = authorHelpers;
+            break;
+          case 'MOD':
+            helper = modHelpers;
+            break;
+        }
+        if (!helper) throw new Error('Missing helper');
+
+        await expect(helper.getUsers()).rejects.toMatchObject(
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
+        );
+      },
+    );
+
+    describe('Authenticated ADMIN', () => {
+      const numOfNewlySeededUsers = 100;
+      let totalAfterAdditionalSeed: number;
+      const pageSizeOptions = PAGINATION.USERS.ITEMS_PER_PAGE_OPTIONS;
+      const defaultPageSize = PAGINATION.USERS.DEFAULT_ITEMS_PER_PAGE;
+
+      beforeAll(async () => {
+        const randomUsers = Array.from({ length: numOfNewlySeededUsers }).map(
+          (_, i) => {
+            return {
+              id: Math.max(...users.map((u) => u.id)) + i + 1,
+              email: `tempUser${i}@email.com`,
+              isBanned: randomSelect([false, true]),
+              password: `tempUser${i}pass`,
+              username: `tempUser${i}`,
+              role: randomSelect(['ADMIN', 'MOD', 'AUTHOR', 'USER']),
+            } as User;
+          },
+        );
+        await seedUsers(randomUsers, {
+          clearExisting: false,
+          useDefaults: false,
+        });
+        totalAfterAdditionalSeed = numOfNewlySeededUsers + users.length;
+      }, 10000);
+
+      it('should not include password field in results', async () => {
+        const res = await adminHelpers.getUsers();
+
+        const usersData = getData<GetUsersResponseDto>(res);
+        for (const user of usersData.items)
+          expect(user).not.toHaveProperty('password');
+      });
+
+      it('should allow filtering by user role', async () => {
+        for (const role of ['ADMIN', 'MOD', 'AUTHOR', 'USER']) {
+          const res = await adminHelpers.getUsers({
+            filterBy: {
+              role: role as Role,
+            },
+          });
+
+          const usersData = getData<GetUsersResponseDto>(res);
+
+          for (const user of usersData.items) expect(user.role).toBe(role);
+        }
+      });
+
+      it('should allow filtering by isBanned', async () => {
+        for (const isBanned of [false, true]) {
+          const res = await adminHelpers.getUsers({
+            filterBy: {
+              isBanned,
+            },
+          });
+
+          const usersData = getData<GetUsersResponseDto>(res);
+
+          for (const user of usersData.items)
+            expect(user.isBanned).toBe(isBanned);
+        }
+      });
+
+      describe('?sortBy[x]=y', () => {
+        test.concurrent.each([
+          ['option does not exist', 'modifiedAt', 'asc'],
+          ['option exists, but wrong value', 'username', 'descending'],
+          ['option exists, but value is empty', 'username', ''],
+          ['option exists, but value is wrong case', 'username', 'DESC'],
+        ])(
+          'should return validation error when sortBy %s',
+          async (_, key, value) => {
+            return await expect(
+              adminHelpers.getUsers({
+                sortBy: {
+                  [key]: value,
+                },
+              }),
+            ).rejects.toMatchObject(
+              createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
+            );
+          },
+        );
+
+        // TODO - not sure about this
+        test.concurrent.each([
+          ['username (ASC)', 'username', true],
+          ['username (DESC)', 'username', false],
+        ])(
+          'should sort items provided that sorting by %s is applied',
+          async (_, propName, isDescending: boolean) => {
+            const res = await adminHelpers.getUsers({
+              sortBy: {
+                [propName]: isDescending ? 'desc' : 'asc',
+              },
+            });
+
+            const usersData = getData<GetUsersResponseDto>(res);
+
+            const sortedItems = [...usersData.items].sort((a, b) => {
+              const left = a[propName] ?? '';
+              const right = b[propName] ?? '';
+
+              return isDescending
+                ? right.localeCompare(left)
+                : left.localeCompare(right);
+            });
+
+            sortedItems.forEach((user, i) => {
+              expect(user.id).toBe(usersData.items[i].id);
+            });
+          },
+        );
+      });
+
+      describe('?pageOffset=x&pageSize=y', () => {
+        it(`should return the default items per page (${defaultPageSize})
+       when pageSize is not defined`, async () => {
+          const offset = 10;
+          const res = await adminHelpers.getUsers({
+            pageOffset: offset,
+          });
+          const usersData = getData<GetUsersResponseDto>(res);
+
+          expect(usersData.count).toBe(defaultPageSize);
+          expect(usersData.items.length).toBe(defaultPageSize);
+          expect(usersData.pagination.page).toBe(offset / defaultPageSize + 1);
+        });
+
+        it('should return 0 items when offset is beyond total number of users', async () => {
+          const res = await adminHelpers.getUsers({
+            pageOffset:
+              floorToNearestMultiple(totalAfterAdditionalSeed, 10) +
+              pageSizeOptions[2], // Add 10 for the offset to be greater than item count
+            pageSize: pageSizeOptions[2],
+          });
+          const usersData = getData<GetUsersResponseDto>(res);
+
+          expect(usersData.pagination.page).toBe(
+            Math.ceil(
+              (floorToNearestMultiple(totalAfterAdditionalSeed, 10) +
+                pageSizeOptions[2]) /
+                pageSizeOptions[2],
+            ) + 1,
+          );
+          expect(usersData.count).toBe(0);
+          expect(usersData.items.length).toBe(0);
+        });
+
+        test.concurrent.each([
+          [1, 0, pageSizeOptions[0]],
+          [2, pageSizeOptions[0], pageSizeOptions[0]],
+          [3, pageSizeOptions[0] * 2, pageSizeOptions[0]],
+          [2, pageSizeOptions[1], pageSizeOptions[1]],
+          [5, pageSizeOptions[1] * 4, pageSizeOptions[1]],
+        ])(
+          'should return page #%s when [ offset: %s ; pageLimit %s ]',
+          async (expectedPageNum, pageOffset, pageSize) => {
+            const res = await adminHelpers.getUsers({
+              pageOffset,
+              pageSize,
+            });
+            const usersData = getData<GetUsersResponseDto>(res);
+
+            expect(usersData.pagination.page).toBe(expectedPageNum);
+            expect(usersData.pagination.total).toBe(totalAfterAdditionalSeed);
+          },
+        );
+
+        test('should return last page with max users offset', async () => {
+          const lastPage = Math.ceil(
+            totalAfterAdditionalSeed / pageSizeOptions[0],
+          );
+          const res = await adminHelpers.getUsers({
+            pageOffset: floorToNearestMultiple(totalAfterAdditionalSeed, 10),
+            pageSize: pageSizeOptions[0],
+          });
+          const usersData = getData<GetUsersResponseDto>(res);
+
+          expect(usersData.pagination.page).toBe(lastPage);
+          expect(usersData.pagination.total).toBe(totalAfterAdditionalSeed);
+        });
+
+        test.concurrent.each([
+          [
+            'selected page size is not in the allowed options',
+            {
+              pageSize: 999,
+              pageOffset: 0,
+            },
+          ],
+          [
+            'search query is too long',
+            {
+              searchQuery: generateRandomString(
+                USER_CONSTRAINTS.MAX_USERNAME_LENGTH + 1,
+              ),
+            },
+          ],
+          [
+            'offset is not divisible by page size',
+            {
+              pageSize: pageSizeOptions[0],
+              pageOffset: 23,
+            },
+          ],
+          [
+            'offset is not a number',
+            {
+              pageOffset: 'abc',
+            },
+          ],
+          [
+            'page size is not a number',
+            {
+              pageSize: 'abc',
+            },
+          ],
+          [
+            'offset is decimal',
+            {
+              pageOffset: 1.5,
+            },
+          ],
+          [
+            'page size is decimal',
+            {
+              pageSize: 5.5,
+            },
+          ],
+        ])('should return validation error when %s', async (_, params) => {
+          await expect(
+            adminHelpers.getUsers(params as any),
+          ).rejects.toMatchObject(
+            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
+          );
+        });
+      });
+    });
   });
 
   describe('PATCH /api/v1/users', () => {
@@ -255,7 +530,7 @@ describe('/api/v1/users', () => {
         res = await authorHelpers.updateUser(updateDto);
         userData = getData<UserDetail>(res, 'user');
         expect(userData.profile?.[name]).toBe('');
-      }
+      },
     );
 
     it(`should set profile avatar_url if valid avatar image is passed`, async () => {
@@ -264,7 +539,7 @@ describe('/api/v1/users', () => {
 
       const pathToTestFile = path.join(
         rootPath,
-        'apps/api-e2e/src/data/avatar.png'
+        'apps/api-e2e/src/data/avatar.png',
       );
       const res = await authorHelpers.updateUser({}, pathToTestFile);
 
@@ -285,11 +560,11 @@ describe('/api/v1/users', () => {
 
       const pathToTestFile = path.join(
         rootPath,
-        'apps/api-e2e/src/data/avatar.png'
+        'apps/api-e2e/src/data/avatar.png',
       );
       const res = await authorHelpers.updateUser(
         { removeAvatar: true },
-        pathToTestFile
+        pathToTestFile,
       );
 
       const userData = getData<UserDetail>(res, 'user');
@@ -302,11 +577,11 @@ describe('/api/v1/users', () => {
         return await expect(
           anonHelpers.updateUser({
             firstName: 'Jon',
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+          createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
         );
-      }
+      },
     );
 
     // Use concurrent for validation loops
@@ -315,7 +590,7 @@ describe('/api/v1/users', () => {
         'first name is too long',
         {
           firstName: generateRandomString(
-            USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH + 1
+            USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH + 1,
           ),
         },
       ],
@@ -323,7 +598,7 @@ describe('/api/v1/users', () => {
         'first name is too short',
         {
           firstName: generateRandomString(
-            USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH - 1
+            USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH - 1,
           ),
         },
       ],
@@ -331,7 +606,7 @@ describe('/api/v1/users', () => {
         'last name is too long',
         {
           lastName: generateRandomString(
-            USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH + 1
+            USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH + 1,
           ),
         },
       ],
@@ -339,7 +614,7 @@ describe('/api/v1/users', () => {
         'last name is too short',
         {
           lastName: generateRandomString(
-            USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH - 1
+            USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH - 1,
           ),
         },
       ],
@@ -351,7 +626,7 @@ describe('/api/v1/users', () => {
       ],
     ])('should throw validation error when %s', async (_, profileData) => {
       await expect(userHelpers.updateUser(profileData)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
       );
     });
 
@@ -367,17 +642,17 @@ describe('/api/v1/users', () => {
       await expect(
         userHelpers.updateUser({
           firstName: name,
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
       );
 
       await expect(
         userHelpers.updateUser({
           lastName: name,
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
       );
     });
 
@@ -390,9 +665,9 @@ describe('/api/v1/users', () => {
 
       try {
         await expect(
-          userHelpers.updateUser({ firstName: 'Fail' })
+          userHelpers.updateUser({ firstName: 'Fail' }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED),
         );
       } finally {
         await prisma.user.update({
@@ -436,7 +711,7 @@ describe('/api/v1/users', () => {
         const revokedCount = getData<number>(res, 'revokedCount');
 
         expect(revokedCount).toBe(0);
-      }
+      },
     );
 
     test.concurrent.each(['USER', 'AUTHOR'])(
@@ -444,11 +719,11 @@ describe('/api/v1/users', () => {
       async (role) => {
         const helper = role === 'USER' ? userHelpers : authorHelpers;
         await expect(
-          helper.revokeUserTokens(mod.id.toString())
+          helper.revokeUserTokens(mod.id.toString()),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
-      }
+      },
     );
 
     testInvalidIds(async (id) => {
@@ -459,11 +734,11 @@ describe('/api/v1/users', () => {
       'should return 401 UNAUTHORIZED when not logged in',
       async () => {
         return await expect(
-          anonHelpers.revokeUserTokens(user.id.toString())
+          anonHelpers.revokeUserTokens(user.id.toString()),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+          createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
         );
-      }
+      },
     );
 
     it.concurrent(
@@ -480,9 +755,9 @@ describe('/api/v1/users', () => {
         });
         try {
           await expect(
-            modHelpers.revokeUserTokens(user.id.toString())
+            modHelpers.revokeUserTokens(user.id.toString()),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+            createErrorCodeResponse(ERROR_CODES.AUTH.BANNED),
           );
         } finally {
           await prisma.user.update({
@@ -494,7 +769,7 @@ describe('/api/v1/users', () => {
             },
           });
         }
-      }
+      },
     );
   });
 
@@ -503,11 +778,11 @@ describe('/api/v1/users', () => {
       // We need a specific client for this user since they aren't the main 'user'
       const { changePassword } = await setupClient(
         createUsersRouteHelper,
-        userToChangePassword
+        userToChangePassword,
       );
 
       const NEW_PASS = passwordGenerator(
-        USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+        USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1,
       );
 
       const res = await changePassword({
@@ -535,9 +810,9 @@ describe('/api/v1/users', () => {
         adminHelpers.changePassword({
           oldPassword: passwordGenerator(10),
           newPassword: passwordGenerator(10),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_CREDENTIALS)
+        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_CREDENTIALS),
       );
     });
 
@@ -546,9 +821,9 @@ describe('/api/v1/users', () => {
         adminHelpers.changePassword({
           oldPassword: admin.password,
           newPassword: admin.password,
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.SAME_PASSWORD)
+        createErrorCodeResponse(ERROR_CODES.AUTH.SAME_PASSWORD),
       );
     });
 
@@ -593,9 +868,9 @@ describe('/api/v1/users', () => {
           adminHelpers.changePassword({
             oldPassword: admin.password,
             newPassword: password,
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
 
         // old password field
@@ -603,11 +878,11 @@ describe('/api/v1/users', () => {
           adminHelpers.changePassword({
             oldPassword: password,
             newPassword: passwordGenerator(10),
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     it('should return 401 UNAUTHORIZED when not logged in', async () => {
@@ -615,9 +890,9 @@ describe('/api/v1/users', () => {
         anonHelpers.changePassword({
           oldPassword: 'Jon',
           newPassword: 'Doe',
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
   });
@@ -641,16 +916,16 @@ describe('/api/v1/users', () => {
 
         expect(promotedUser.role).toBe(newRole);
         expect(promotedUser.password).not.toBeDefined();
-      }
+      },
     );
 
     it(`should return an error when the targeted user is an ADMIN`, async () => {
       return await expect(
         adminHelpers.changeUserRole(anotherAdmin.id.toString(), {
           role: 'USER',
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION)
+        createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION),
       );
     });
 
@@ -658,12 +933,12 @@ describe('/api/v1/users', () => {
       return await expect(
         adminHelpers.changeUserRole(user.id.toString(), {
           role: 'USER',
-        })
+        }),
       ).rejects.toMatchObject(
         createErrorCodeResponse(
           ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-          VALIDATION_MESSAGES.users.sameRole
-        )
+          VALIDATION_MESSAGES.users.sameRole,
+        ),
       );
     });
 
@@ -674,26 +949,26 @@ describe('/api/v1/users', () => {
           role === 'ADMIN'
             ? adminHelpers
             : role === 'MOD'
-            ? modHelpers
-            : userHelpers;
+              ? modHelpers
+              : userHelpers;
 
         await expect(
           helper.changeUserRole(admin.id.toString(), {
             role: 'USER',
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
-      }
+      },
     );
 
     it('should return an error when new user role is ADMIN', async () => {
       return await expect(
         adminHelpers.changeUserRole(user.id.toString(), {
           role: 'ADMIN',
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SECURITY.FORBIDDEN_PROMOTION)
+        createErrorCodeResponse(ERROR_CODES.SECURITY.FORBIDDEN_PROMOTION),
       );
     });
 
@@ -703,23 +978,23 @@ describe('/api/v1/users', () => {
         return await expect(
           adminHelpers.changeUserRole(user.id.toString(), {
             role: role as any,
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     testInvalidIds(
       async (id) => adminHelpers.changeUserRole(id, { role: 'USER' }),
-      'user id'
+      'user id',
     );
 
     it('should return 404 NOT FOUND for unknown user id', async () => {
       return await expect(
-        adminHelpers.changeUserRole('999', { role: 'USER' })
+        adminHelpers.changeUserRole('999', { role: 'USER' }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -727,9 +1002,9 @@ describe('/api/v1/users', () => {
       return await expect(
         anonHelpers.changeUserRole(user.id.toString(), {
           role: 'USER',
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
   });
@@ -746,18 +1021,18 @@ describe('/api/v1/users', () => {
               userToBan.id.toString(),
               {
                 isBanned: bannedStatus,
-              }
+              },
             );
 
             expect(getMessage(res_promote)).toBe(
               bannedStatus
                 ? SUCCESS_MESSAGES.USERS.banned
-                : SUCCESS_MESSAGES.USERS.unbanned
+                : SUCCESS_MESSAGES.USERS.unbanned,
             );
             const updatedUser = getData<User>(res_promote, 'user');
             expect(updatedUser.isBanned).toBe(bannedStatus);
           }
-      }
+      },
     );
 
     it(`should return an error when trying to ban/un-ban another MOD as moderator`, async () => {
@@ -765,9 +1040,9 @@ describe('/api/v1/users', () => {
         await expect(
           modHelpers.changeBanStatus(anotherMod.id.toString(), {
             isBanned: bannedStatus,
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SECURITY.MODERATION_CONFLICT)
+          createErrorCodeResponse(ERROR_CODES.SECURITY.MODERATION_CONFLICT),
         );
     });
 
@@ -776,11 +1051,11 @@ describe('/api/v1/users', () => {
         await expect(
           adminHelpers.changeBanStatus(anotherAdmin.id.toString(), {
             isBanned: bannedStatus,
-          })
+          }),
         ).rejects.toMatchObject(
           createErrorCodeResponse(
-            ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION
-          )
+            ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION,
+          ),
         );
     });
 
@@ -789,9 +1064,9 @@ describe('/api/v1/users', () => {
         await expect(
           modHelpers.changeBanStatus(mod.id.toString(), {
             isBanned: bannedStatus,
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN),
         );
     });
 
@@ -804,11 +1079,11 @@ describe('/api/v1/users', () => {
         await expect(
           userHelpers.changeBanStatus(mod.id.toString(), {
             isBanned: true,
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
-      }
+      },
     );
 
     testInvalidIds(async (id) => {
@@ -817,9 +1092,9 @@ describe('/api/v1/users', () => {
 
     it('should return 404 NOT FOUND for unknown user id', async () => {
       return await expect(
-        adminHelpers.changeBanStatus('999', { isBanned: true })
+        adminHelpers.changeBanStatus('999', { isBanned: true }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -827,9 +1102,9 @@ describe('/api/v1/users', () => {
       return await expect(
         anonHelpers.changeBanStatus(user.id.toString(), {
           isBanned: true,
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -846,7 +1121,7 @@ describe('/api/v1/users', () => {
       return await expect(
         modHelpers.changeBanStatus(user.id.toString(), {
           isBanned: true,
-        })
+        }),
       ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
     });
   });
@@ -856,16 +1131,16 @@ describe('/api/v1/users', () => {
       // Create a fresh client just for this disposable user
       const { deleteUser } = await setupClient(
         createUsersRouteHelper,
-        userToDelete
+        userToDelete,
       );
 
       const res = await deleteUser(userToDelete.id.toString());
       expect(getMessage(res)).toBe(SUCCESS_MESSAGES.USERS.delete);
 
       return await expect(
-        adminHelpers.getUser(userToDelete.id.toString())
+        adminHelpers.getUser(userToDelete.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -874,38 +1149,38 @@ describe('/api/v1/users', () => {
       await adminHelpers.deleteUser(mod.id.toString());
 
       return await expect(
-        adminHelpers.getUser(mod.id.toString())
+        adminHelpers.getUser(mod.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
     it(`should return error when trying to delete yourself as admin`, async () => {
       return await expect(
-        adminHelpers.deleteUser(admin.id.toString())
+        adminHelpers.deleteUser(admin.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION)
+        createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION),
       );
     });
 
     it(`should return 403 FORBIDDEN when trying to delete another user as USER`, async () => {
       const { deleteUser } = await setupClient(
         createUsersRouteHelper,
-        anotherUser
+        anotherUser,
       );
 
       return await expect(
-        deleteUser(author.id.toString())
+        deleteUser(author.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
     it(`should return 403 FORBIDDEN when trying to delete another admin as ADMIN`, async () => {
       return await expect(
-        adminHelpers.deleteUser(anotherAdmin.id.toString())
+        adminHelpers.deleteUser(anotherAdmin.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION)
+        createErrorCodeResponse(ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION),
       );
     });
 
@@ -915,17 +1190,17 @@ describe('/api/v1/users', () => {
 
     it('should return 404 NOT FOUND for unknown user id', async () => {
       return await expect(
-        adminHelpers.deleteUser('9999')
+        adminHelpers.deleteUser('9999'),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
     it('should return 401 UNAUTHORIZED when not logged in', async () => {
       return await expect(
-        anonHelpers.deleteUser(user.id.toString())
+        anonHelpers.deleteUser(user.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -940,7 +1215,7 @@ describe('/api/v1/users', () => {
         },
       });
       return await expect(
-        authorHelpers.deleteUser(author.id.toString())
+        authorHelpers.deleteUser(author.id.toString()),
       ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
     });
   });
