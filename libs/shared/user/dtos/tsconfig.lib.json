@@ -17,6 +17,9 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
+      "path": "../../util/api-types/tsconfig.lib.json"
+    },
+    {
       "path": "../../../api/data-access/user/tsconfig.lib.json"
     },
     {
