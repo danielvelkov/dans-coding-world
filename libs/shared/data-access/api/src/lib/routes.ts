@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
     REVOKE_ALL: `${PROD_PREFIX}/auth/revoke-all`,
   },
   USERS: {
+    LIST: `${PROD_PREFIX}/users`,
     BY_ID: (userId: number) => `${PROD_PREFIX}/users/${userId}`,
     REVOKE_TOKENS: (userId: number) =>
       `${PROD_PREFIX}/users/${userId}/revoke-tokens`,

@@ -6,10 +6,11 @@ import { upload } from '../middlewares/file-uploader.middleware';
 
 const usersController = new UsersController(
   userInjector.get(UserService),
-  authInjector.get(TOKEN_SERVICE_TOKEN)
+  authInjector.get(TOKEN_SERVICE_TOKEN),
 );
 
 const usersRouter = Router();
+usersRouter.get('/', usersController.getAll);
 usersRouter.patch('/', [upload.single('avatar'), usersController.update]);
 usersRouter.route('/password').patch(usersController.changePassword);
 usersRouter
@@ -28,6 +29,98 @@ export default usersRouter;
  * tags:
  *   name: Users
  *   description: Endpoints regarding users
+ */
+
+/**
+ * @openapi
+ * /users:
+ *   get:
+ *     tags: [Users]
+ *     summary: Get users with pagination metadata
+ *     description: |
+ *       Roles required: ADMIN
+ *
+ *       Retrieve users with pagination, sorting, filtering and search capabilities.
+ *       Includes profile details if the profile is set up.
+ *     parameters:
+ *       - in: query
+ *         name: pageOffset
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *         required: false
+ *         description: Page offset for pagination (**if pageSize specified - offset must be divisible by pageSize**)
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *           enum: [10, 25 ,50]
+ *         required: false
+ *         description: Number of items per page
+ *       - in: query
+ *         name: sortBy[username]
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         required: false
+ *         description: Sort by username alphabetically
+ *       - in: query
+ *         name: filterBy[role]
+ *         schema:
+ *           type: string
+ *           enum: [ADMIN , MOD , USER , AUTHOR]
+ *       - in: query
+ *         name: filterBy[isBanned]
+ *         schema:
+ *           type: boolean
+ *         required: false
+ *         description: Filter by whether user is banned
+ *       - in: query
+ *         name: searchQuery
+ *         schema:
+ *           type: string
+ *           maxLength: 32
+ *         required: false
+ *         description: Search query to filter users by username (case insensitive)
+ *     responses:
+ *       200:
+ *         description: Users retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GetUsersResponse'
+ *       400:
+ *         description: Bad Request - Invalid query params
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               success: false
+ *               data: null
+ *               error:
+ *                 status: 400
+ *                 errorCode: VAL001
+ *                 message: One or more fields failed validation
+ *       401:
+ *         description: Unauthorized - Login first
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: Forbidden - you do not have access to this action
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
  */
 
 /**
@@ -576,6 +669,61 @@ export default usersRouter;
  *                       properties:
  *                         profile:
  *                           $ref: '#/components/schemas/Profile'
+ *
+ *     PaginationMetadata:
+ *       type: object
+ *       properties:
+ *         total:
+ *           type: number
+ *           description: Total number of items
+ *           example: 1
+ *         limit:
+ *           type: number
+ *           description: Item page. Could be either 10, 25, 50.
+ *           example: 10
+ *         page:
+ *           type: number
+ *           description: Current page number
+ *           example: 1
+ *         totalPages:
+ *           type: number
+ *           description: Total number of pages
+ *           example: 1
+ *         hasNext:
+ *           type: boolean
+ *           description: Whether there is a next page
+ *           example: false
+ *         hasPrev:
+ *           type: boolean
+ *           description: Whether there is a previous page
+ *           example: false
+ *
+ *     GetUsersResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SuccessResponse'
+ *         - type: object
+ *           properties:
+ *             data:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Users retrieved successfully
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     allOf:
+ *                       - $ref: '#/components/schemas/User'
+ *                       - type: object
+ *                         properties:
+ *                          profile:
+ *                            $ref: '#/components/schemas/Profile'
+ *                 count:
+ *                   type: number
+ *                   description: Number of items in current response
+ *                   example: 0
+ *                 pagination:
+ *                   $ref: '#/components/schemas/PaginationMetadata'
  *
  *     UpdateProfileDto:
  *       type: object
