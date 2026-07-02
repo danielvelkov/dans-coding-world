@@ -35,9 +35,10 @@ export function generateMockUsersResponse({
   data?: Partial<BaseResponse<GetUsersResponseDto>['data']>;
 }): BaseResponse<GetUsersResponseDto> {
   const defaultData: GetUsersResponseDto = {
-    items: new Array({ length })
-      .map(() => generateRandomUser())
-      .slice(0, pageSize),
+    items: Array.from({ length }, () => generateRandomUser()).slice(
+      0,
+      pageSize,
+    ),
     pagination: {
       page: 1,
       totalPages: Math.ceil(length / pageSize),
