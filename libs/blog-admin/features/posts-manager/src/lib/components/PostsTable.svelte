@@ -383,13 +383,8 @@
         items={SORT_OPTIONS}
       ></Select>
     </th>
-    <th>
+    <th colspan={isAdmin ? 2 : 1}>
       <!-- Empty -->
     </th>
-    {#if isAdmin}
-      <th>
-        <!-- Empty -->
-      </th>
-    {/if}
   </tr>
 {/snippet}
