@@ -110,7 +110,8 @@
     </select>
   </div>
   <i
-    class="fa fa-caret-down chevron-hint text-(--color-text-tertiary)"
+    class="fa fa-chevron-down chevron-hint text-(--color-text-tertiary)
+     absolute right-1.5 top-[35%] z-10"
     class:hidden={isOpen || isClosing}
     aria-hidden="true"
   ></i>
@@ -133,7 +134,7 @@
   .select-wrapper.open {
     z-index: 20;
     top: calc(
-      var(--collapsed-height) * -0.25
+      var(--collapsed-height) * -0.1
     ); /* Slight elevation offset if needed, or set to 0 */
     height: var(--expanded-height);
   }
@@ -162,13 +163,8 @@
   }
 
   .chevron-hint {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 12px;
     pointer-events: none;
     transition: opacity 0.2s;
-    z-index: 15;
   }
 
   .chevron-hint.hidden {

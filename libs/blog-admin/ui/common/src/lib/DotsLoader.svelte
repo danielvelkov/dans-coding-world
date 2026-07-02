@@ -26,7 +26,7 @@
       0 / calc(100% / 3) 100% space;
 
     clip-path: inset(0 100% 0 0);
-    animation: dots 1s steps(4) infinite;
+    animation: dots 1.5s steps(4) infinite;
   }
 
   @keyframes dots {

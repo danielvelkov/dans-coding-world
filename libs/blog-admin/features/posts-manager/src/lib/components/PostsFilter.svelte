@@ -64,6 +64,7 @@
     onChange({ status: finalStatus, visibility: finalVisibility });
   }}
   data-testid="filter-posts"
+  collapsedHeight="2.7em"
 >
   {#snippet option(label, value)}
     {@const isStatus = STATUS_VALUES.includes(value as PostStatus)}
@@ -85,7 +86,7 @@
       currentVisibility.includes(value as PostVisibility)}
 
     <option
-      class="p-[.9em] cursor-pointer
+      class="p-[.8em] cursor-pointer
         {isStatus ? 'border-l-3 border-(--color-info) pl-3' : ''}
         {isVisibility ? 'border-l-3 border-(--color-link) pl-3' : ''}
         bg-(--color-bg-surface) text-(--color-text-primary) checked:font-bold
