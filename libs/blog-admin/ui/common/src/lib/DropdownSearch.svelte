@@ -17,6 +17,7 @@
     placeHolder?: string;
     handleSearch?: (value: string) => void;
     error?: string;
+    searchInputMaxLength?: number;
     lastOptionRef: Element | null;
   }
 
@@ -32,6 +33,7 @@
     searchInput,
     handleSearch,
     error,
+    searchInputMaxLength = 50,
     lastOptionRef = $bindable(),
   }: Props = $props();
 
@@ -66,6 +68,7 @@
         ></i>
         <input
           type="search"
+          maxlength={searchInputMaxLength}
           id={randomId}
           onfocus={() => (isOpen = true)}
           oninput={(e: Event & { currentTarget: HTMLInputElement }) => {

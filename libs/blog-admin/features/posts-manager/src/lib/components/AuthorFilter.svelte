@@ -6,6 +6,7 @@
     type InfiniteData,
   } from '@tanstack/svelte-query';
   import { DropdownSearch } from '@dans-coding-world/blog-admin-ui-common';
+  import { USER_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
   type QueryData = Pick<
     CreateInfiniteQueryResult<InfiniteData<GetUsersResponseDto | null>, Error>,
@@ -71,6 +72,7 @@
   <DropdownSearch
     bind:lastOptionRef={lastOption}
     placeHolder="Filter by author..."
+    searchInputMaxLength={USER_CONSTRAINTS.MAX_USERNAME_LENGTH}
     options={items.map((u) => ({ label: u.username, value: u.id.toString() }))}
     error={error?.message ?? undefined}
     isLoadingOptions={isLoading}
