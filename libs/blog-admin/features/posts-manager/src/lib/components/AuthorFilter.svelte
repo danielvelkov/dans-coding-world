@@ -39,6 +39,9 @@
   const items = $derived(
     queryData.data?.pages.flatMap((val) => val?.items ?? []) ?? [],
   );
+
+  const activeUser = $derived(items.find((u) => u.id === selectedAuthor));
+
   const hasMore = $derived(queryData.hasNextPage);
   const isLoading = $derived(queryData.isLoading);
   const error = $derived(queryData?.error);
@@ -57,24 +60,55 @@
     observer.observe(lastOption);
     return () => observer.disconnect();
   });
+
+  function clearAuthorFilter() {
+    searchInput = '';
+    onChange({ ...filters, userId: undefined });
+  }
 </script>
 
-<DropdownSearch
-  bind:lastOptionRef={lastOption}
-  placeHolder="Filter by author..."
-  options={items.map((u) => ({ label: u.username, value: u.id.toString() }))}
-  error={error?.message ?? undefined}
-  isLoadingOptions={isLoading}
-  {isSearching}
-  {handleSearch}
-  {searchInput}
-  handleSelect={(id) => {
-    const user = items.find((u) => u.id === +id);
-    if (!user) return;
-    searchInput = user.username;
-    onChange({ ...filters, userId: +id });
-  }}
-  selected={selectedAuthor != undefined
-    ? { value: selectedAuthor.toString() }
-    : selectedAuthor}
-></DropdownSearch>
+<div class="flex flex-col space-y-2 w-full">
+  <DropdownSearch
+    bind:lastOptionRef={lastOption}
+    placeHolder="Filter by author..."
+    options={items.map((u) => ({ label: u.username, value: u.id.toString() }))}
+    error={error?.message ?? undefined}
+    isLoadingOptions={isLoading}
+    {isSearching}
+    {handleSearch}
+    {searchInput}
+    handleSelect={(id) => {
+      const user = items.find((u) => u.id === +id);
+      if (!user) return;
+      searchInput = user.username;
+      onChange({ ...filters, userId: +id });
+    }}
+    selected={selectedAuthor != undefined
+      ? { value: selectedAuthor.toString() }
+      : selectedAuthor}
+  ></DropdownSearch>
+
+  {#if selectedAuthor}
+    <div
+      class="flex items-center gap-2 mt-1.5 text-xs text-(--color-text-secondary)"
+    >
+      <span>Filtering by:</span>
+      <div
+        class="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 font-medium rounded-md bg-(--color-accent-subtle) text-(--color-accent) border border-(--color-border-subtle)"
+      >
+        <span class="max-w-30 truncate">
+          {activeUser?.username ?? `User #${selectedAuthor}`}
+        </span>
+        <button
+          type="button"
+          onclick={clearAuthorFilter}
+          class="p-0.5 rounded-sm hover:bg-(--color-bg-surface-active) text-(--color-accent) transition-colors focus:outline-hidden"
+          title="Clear author filter"
+          aria-label="Clear filter"
+        >
+          <i class="fa fa-times text-[10px]"></i>
+        </button>
+      </div>
+    </div>
+  {/if}
+</div>

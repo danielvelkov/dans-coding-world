@@ -83,6 +83,22 @@ describe('AuthorFilter', () => {
       .toHaveAttribute('aria-selected', 'true');
   });
 
+  it('adds button to clear filter on author being selected', async () => {
+    const user = users[1];
+    await renderFeature({ filters: { userId: user.id } });
+    await expect
+      .element(page.getByRole('button', { name: /clear filter/i }))
+      .toBeInTheDocument();
+  });
+
+  it('calls onChange without userId on clicking "clear filter"', async () => {
+    const onChange = vi.fn();
+    const user = users[1];
+    await renderFeature({ filters: { userId: user.id }, onChange });
+    await page.getByRole('button', { name: /clear filter/i }).click();
+    expect(onChange).toHaveBeenCalledWith({ userId: undefined });
+  });
+
   it('displays error from query data', async () => {
     await renderFeature({
       queryData: {
