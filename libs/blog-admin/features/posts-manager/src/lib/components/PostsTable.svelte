@@ -77,8 +77,9 @@
   {:else if error}
     {@render MessageRow(error.message, 'text-(--color-error) italic')}
   {:else if showEmptyMessage}
+    {@const showNoResults = params?.searchQuery || params?.filterBy?.userId}
     {@render MessageRow(
-      params?.searchQuery ? POSTS_NO_RESULTS_MESSAGE : POSTS_EMPTY_MESSAGE,
+      showNoResults ? POSTS_NO_RESULTS_MESSAGE : POSTS_EMPTY_MESSAGE,
       'text-(--color-text-secondary) italic',
     )}
   {/if}
