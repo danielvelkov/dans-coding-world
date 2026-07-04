@@ -20,3 +20,18 @@ export function deepMerge<T>(target: T, source: Partial<T>): T {
   }
   return target;
 }
+
+export const sortObjectsByStringProp =
+  <T>(key: keyof T, order: 'desc' | 'asc' = 'asc') =>
+  (a: T, b: T) => {
+    const av = String(a[key] ?? '');
+    const bv = String(b[key] ?? '');
+
+    const result = av.localeCompare(bv, undefined, {
+      numeric: false,
+      sensitivity: 'variant',
+      caseFirst: 'upper',
+    });
+
+    return order === 'asc' ? result : -result;
+  };
