@@ -119,6 +119,7 @@
     <div
       class="absolute left-0 right-0 z-50 overflow-y-auto mt-1.5 max-h-50 rounded-md border border-(--color-border-subtle) bg-(--color-bg-surface) shadow-lg p-1 focus:outline-hidden"
       role="listbox"
+      data-testid="dropdown-search-listbox"
     >
       {#if error}
         <div
