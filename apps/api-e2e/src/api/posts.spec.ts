@@ -471,7 +471,7 @@ describe('/api/v1/posts', () => {
         }
       });
 
-      it(`should not return other user' private posts when filtering by user id`, async () => {
+      it(`should not return other users' private posts when filtering by user id`, async () => {
         for (const userId of users.map((u) => u.id)) {
           const res = await anonHelpers.getPosts({
             filterBy: {

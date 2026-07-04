@@ -22,6 +22,7 @@ import {
   passwordGenerator,
   hashPassword,
   validPassword,
+  sortObjectsByStringProp,
 } from '@dans-coding-world/helpers';
 import {
   IStorageProvider,
@@ -165,14 +166,9 @@ describe('UserService', () => {
               username: isDescending ? 'desc' : 'asc',
             },
           });
-          const sortedItems = [...res.items].sort((a, b) => {
-            const left = a.username ?? '';
-            const right = b.username ?? '';
-
-            return isDescending
-              ? right.localeCompare(left)
-              : left.localeCompare(right);
-          });
+          const sortedItems = [...res.items].sort(
+            sortObjectsByStringProp('username', isDescending ? 'desc' : 'asc'),
+          );
 
           sortedItems.forEach((user, i) => {
             expect(user.id).toBe(res.items[i].id);

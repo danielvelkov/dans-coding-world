@@ -28,6 +28,7 @@ import {
   randomSelect,
   validPassword,
   floorToNearestMultiple,
+  sortObjectsByStringProp,
 } from '@dans-coding-world/helpers';
 import { getData, getMessage } from '../helper/common.helper';
 import { MOCK_RESULT } from '@dans-coding-world/api-file-storage';
@@ -318,8 +319,8 @@ describe('/api/v1/users', () => {
 
         // TODO - not sure about this
         test.concurrent.each([
-          ['username (ASC)', 'username', true],
-          ['username (DESC)', 'username', false],
+          ['username (ASC)', 'username', false],
+          ['username (DESC)', 'username', true],
         ])(
           'should sort items provided that sorting by %s is applied',
           async (_, propName, isDescending: boolean) => {
@@ -331,14 +332,12 @@ describe('/api/v1/users', () => {
 
             const usersData = getData<GetUsersResponseDto>(res);
 
-            const sortedItems = [...usersData.items].sort((a, b) => {
-              const left = a[propName] ?? '';
-              const right = b[propName] ?? '';
-
-              return isDescending
-                ? right.localeCompare(left)
-                : left.localeCompare(right);
-            });
+            const sortedItems = [...usersData.items].sort(
+              sortObjectsByStringProp(
+                'username',
+                isDescending ? 'desc' : 'asc',
+              ),
+            );
 
             sortedItems.forEach((user, i) => {
               expect(user.id).toBe(usersData.items[i].id);

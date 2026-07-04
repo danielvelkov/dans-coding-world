@@ -84,11 +84,7 @@ export class UserService implements IUserService {
       dto?.searchQuery,
     );
 
-    // orderBy NOT NEEDED. SORTING DONE BEFORE RETURNING RESULTS:
-    // prisma does not yet support case insensitive sorting,
-    //  so something like this happens because of ASCII values: U < a < t
-    // its recommended to normalize string values before sorting but we won't do that
-    const orderBy = {} as UserOrderByInput;
+    const orderBy = { ...dto?.sortBy } as UserOrderByInput;
 
     const [users, total] = await Promise.all([
       this.users.search(where, orderBy, {
@@ -103,18 +99,8 @@ export class UserService implements IUserService {
     const currentPage = Math.floor((dto?.pageOffset ?? 0) / usersPerPage) + 1;
     const totalPages = Math.ceil(total / usersPerPage);
 
-    let finalResults = users.map((u) => this.filterUserData(u, true, false));
+    const finalResults = users.map((u) => this.filterUserData(u, true, false));
 
-    // TODO - not sure about this
-    if (dto?.sortBy?.username)
-      finalResults = finalResults.sort((prev, next) => {
-        const left = prev.username;
-        const right = next.username;
-
-        return dto.sortBy?.username === 'desc'
-          ? right.localeCompare(left)
-          : left.localeCompare(right);
-      });
     return {
       items: finalResults,
       count: users.length,
