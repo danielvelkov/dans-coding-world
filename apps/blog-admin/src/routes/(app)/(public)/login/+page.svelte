@@ -18,7 +18,7 @@
 	<title>Login</title>
 </svelte:head>
 
-<div class="mt-[10vh] flex-1 justify-self-center">
+<div class="mt-[10vh] flex-1 self-center">
 	<UserLogin
 		onLogin={async (user) => {
 			onUserLogin(user);

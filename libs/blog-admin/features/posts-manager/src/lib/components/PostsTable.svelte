@@ -151,7 +151,7 @@
     <!-- Title -->
     <td class="px-4 py-4">
       <div
-        class="text-sm font-medium text-(--color-text-primary) line-clamp-2"
+        class="text-sm font-medium text-(--color-text-primary) line-clamp-2 max-w-[15ch]"
         title={post.title}
       >
         {post.title}
@@ -336,7 +336,8 @@
 
 {#snippet ControlRow()}
   <tr class="bg-(--color-bg-surface)">
-    <th class="text-xs font-medium" align="left" scope="col" colspan="2">
+    <th></th>
+    <th class="text-xs font-medium" align="left" scope="col">
       <search>
         <label class="sr-only" for="search-posts"
           >Search by title or content:</label

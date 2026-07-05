@@ -62,6 +62,6 @@
 	</nav>
 </header>
 
-<main class="flex max-w-2xl flex-1 flex-col self-center">
+<main class="mx-auto flex w-full max-w-7xl flex-1 flex-col self-center px-4 py-5 sm:px-6 lg:px-8">
 	{@render children()}
 </main>

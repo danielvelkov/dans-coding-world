@@ -62,7 +62,7 @@
   }, 1000);
 </script>
 
-<div class="space-y-6 p-4">
+<div class="space-y-6 flex flex-col items-stretch mx-auto">
   <div class="flex flex-col gap-5">
     <h2 class="text-3xl font-bold">
       {#if loggedInUser && loggedInUser.role === 'ADMIN'}
