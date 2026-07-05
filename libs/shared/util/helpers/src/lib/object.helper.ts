@@ -27,11 +27,7 @@ export const sortObjectsByStringProp =
     const av = String(a[key] ?? '');
     const bv = String(b[key] ?? '');
 
-    const result = av.localeCompare(bv, undefined, {
-      numeric: false,
-      sensitivity: 'variant',
-      caseFirst: 'upper',
-    });
+    const result = av < bv ? -1 : av > bv ? 1 : 0;
 
     return order === 'asc' ? result : -result;
   };

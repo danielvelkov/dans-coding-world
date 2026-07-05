@@ -296,6 +296,19 @@ describe('/api/v1/users', () => {
         }
       });
 
+      it('should allow searching by username (case-insensitive)', async () => {
+        for (const searchTerm of ['user', 'mod', 'admin']) {
+          const res = await adminHelpers.getUsers({
+            searchQuery: searchTerm,
+          });
+
+          const usersData = getData<GetUsersResponseDto>(res);
+
+          for (const user of usersData.items)
+            expect(user.username.toLowerCase()).toContain(searchTerm);
+        }
+      });
+
       describe('?sortBy[x]=y', () => {
         test.concurrent.each([
           ['option does not exist', 'modifiedAt', 'asc'],
