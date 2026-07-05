@@ -5,7 +5,7 @@ import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
 } from '@dans-coding-world/shared-constants';
-import { test, expect } from '../fixtures/authFixture';
+import { test, expect } from '../fixtures/dbFixture';
 import {
   login,
   checkIfLoggedIn,
