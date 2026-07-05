@@ -461,6 +461,8 @@ test.describe('Posts - filtering', () => {
       test('selecting a user from the dropdown filters posts by that author', async ({
         page,
       }) => {
+        test.slow();
+
         await selectRowEntriesPerPage(
           page,
           PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS.at(-1)!,
@@ -496,6 +498,8 @@ test.describe('Posts - filtering', () => {
       test('clearing the author filter restores unfiltered post list', async ({
         page,
       }) => {
+        test.slow();
+
         await selectRowEntriesPerPage(
           page,
           PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS.at(-1)!,

@@ -59,7 +59,7 @@
 
   const handleSearchDebounced = debounceCallback(async (value: string) => {
     searchedUser = value;
-  }, 1000);
+  }, 300);
 </script>
 
 <div class="space-y-6 flex flex-col items-stretch mx-auto">
