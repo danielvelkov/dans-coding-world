@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { slide } from 'svelte/transition';
+  import { slide, fade } from 'svelte/transition';
   import {
     ADMIN_ONLY_COLUMN,
     OMITTED_COLUMN_NAMES,
@@ -127,6 +127,7 @@
   {@const isExpanded = expandedRows.includes(post.id)}
 
   <tr
+    in:fade
     aria-label={`Row entry #${rowIndex + 1}`}
     class="bg-(--color-bg-surface) border-b border-(--color-border-subtle)
     hover:bg-(--color-bg-surface-hover) group transition-colors"

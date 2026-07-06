@@ -9,6 +9,7 @@
 	import PostQueryParamsParser from '$lib/util/posts/post-query-param-parser';
 	import { omitDefaultPostQueryParams } from '$lib/util/posts/omit-default-post-query-params';
 	import { getAuth } from '$lib/shared/auth.svelte';
+	import { resetParams } from '$lib/util/posts/post-query-param-reset';
 
 	const authStateManager = getAuth();
 	const user = $derived(authStateManager.user);
@@ -27,6 +28,8 @@
 	});
 
 	const onParamsChange = async (newParams?: PostsManagerParams) => {
+		newParams = resetParams(params, newParams);
+
 		const filteredValues = omitDefaultPostQueryParams(newParams ?? {}, isAdmin);
 		const query = stringifyToQueryString(filteredValues);
 		await goto(resolve(query ? `/posts?${query}` : '/posts'), { keepFocus: true });
