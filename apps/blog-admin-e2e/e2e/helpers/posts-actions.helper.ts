@@ -1,4 +1,14 @@
 import { type Page } from '@playwright/test';
+
+export function getPostRow(page: Page, rowIndex: number) {
+  return page.getByLabel(new RegExp(`row entry #${rowIndex + 1}$`, 'i'));
+}
+
+export async function expandPostRow(page: Page, rowIndex: number) {
+  const row = getPostRow(page, rowIndex);
+  await row.getByRole('button', { name: /expand details/i }).click();
+  return row;
+}
 export const SORT_LABELS = [
   'Published (desc)',
   'Published (asc)',

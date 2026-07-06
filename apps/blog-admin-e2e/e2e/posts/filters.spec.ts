@@ -25,7 +25,10 @@ import { waitOutLoader } from '../helpers/loading.helper';
 import { generateMockUsersResponse } from '@dans-coding-world/shared-user-testing';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { sortObjectsByStringProp } from '@dans-coding-world/helpers';
-import { selectRowEntriesPerPage } from '../helpers/pagination.helper';
+import {
+  goToPage,
+  selectRowEntriesPerPage,
+} from '../helpers/pagination.helper';
 
 const STATUSES = Object.values(PostStatusEnum);
 const VISIBILITIES = Object.values(PostVisibilityEnum);
@@ -252,6 +255,33 @@ test.describe('Posts - filtering', () => {
         await expect(
           page.getByText(otherAuthorArchivedPosts[0].title),
         ).toBeInViewport();
+      });
+
+      test('will reset to first page on selecting post filter', async ({
+        page,
+      }) => {
+        expect(seededPosts.length).toBeGreaterThan(
+          PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
+        );
+        await goToPage(page, 2);
+        await expect(page).toHaveURL(
+          new RegExp(`pageOffset=${PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE}`),
+        );
+        await selectPostFilter(page, ['DRAFT']);
+        await waitOutLoader(page);
+        await expect(page).not.toHaveURL(
+          new RegExp(`pageOffset=${PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE}`),
+        );
+        const expectedPosts = seededPosts
+          .filter((p) => p.status === 'DRAFT')
+          .slice(0, PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE);
+        await assertFilteredCorrectly(
+          page,
+          expectedPosts,
+          loggedInUser,
+          ['DRAFT'],
+          VISIBILITIES,
+        );
       });
     });
 
@@ -540,6 +570,48 @@ test.describe('Posts - filtering', () => {
         await assertFilteredCorrectly(
           page,
           seededPosts,
+          loggedInUser,
+          STATUSES,
+          VISIBILITIES,
+        );
+      });
+
+      test('will reset to first page on selecting filtering by author', async ({
+        page,
+      }) => {
+        test.slow();
+        const randomPost = randomSelect(seededPosts);
+        const postAuthor = seededUsersWithNewAdditions.find(
+          (u) => u.id === randomPost.authorId,
+        );
+        if (!postAuthor)
+          throw new Error('Post author not found in seeded users');
+        expect(seededPosts.length).toBeGreaterThan(
+          PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
+        );
+
+        await goToPage(page, 2);
+        await expect(page).toHaveURL(
+          new RegExp(`pageOffset=${PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE}`),
+        );
+
+        const search = page.getByRole('searchbox', { name: 'Search for:' });
+        await search.click();
+        await search.fill(postAuthor.username);
+        await page
+          .getByTestId('dropdown-search-listbox')
+          .getByRole('option', { name: postAuthor.username })
+          .click();
+
+        const postsByAuthor = seededPosts
+          .filter((p) => p.authorId === postAuthor.id)
+          .slice(0, PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE);
+        await expect(page).not.toHaveURL(
+          new RegExp(`pageOffset=${PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE}`),
+        );
+        await assertFilteredCorrectly(
+          page,
+          postsByAuthor,
           loggedInUser,
           STATUSES,
           VISIBILITIES,
