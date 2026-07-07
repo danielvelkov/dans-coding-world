@@ -21,6 +21,7 @@
   import type { PostsManagerParams } from '../types/postsManagerParams.js';
   import { debounceCallback } from '@dans-coding-world/blog-admin-data-access-operations';
   import PostsFilter from './PostsFilter.svelte';
+  import PostDeleteDialog from './PostDeleteDialog.svelte';
 
   interface Props {
     posts?: PostFull[];
@@ -29,6 +30,7 @@
     viewer?: Omit<UserDetail, 'password'>;
     params?: PostsManagerParams;
     onParamsChange?: (value: PostsManagerParams) => void;
+    onPostDelete?: (id: number) => void;
   }
 
   const {
@@ -38,9 +40,11 @@
     viewer,
     params,
     onParamsChange,
+    onPostDelete,
   }: Props = $props();
 
   let expandedRows = $state<PostFull['id'][]>([]);
+  let postForDeletion: PostFull | null = $state(null);
 
   const showEmptyMessage = $derived(posts.length === 0);
   const isAdmin = $derived(viewer?.role === 'ADMIN');
@@ -224,6 +228,9 @@
           Edit
         </a>
         <button
+          onclick={() => {
+            postForDeletion = post;
+          }}
           class="text-(--color-error) hover:text-(--color-error-muted)
            focus:outline-hidden cursor-pointer"
           aria-label="Delete post"
@@ -273,22 +280,6 @@
         View Live Post
       </a>
     </div>
-
-    <!-- Author Info -->
-    {#if isAdmin}
-      <div
-        class="p-4 bg-(--color-bg-surface) rounded-lg border
-         border-(--color-border-subtle)"
-      >
-        <h5 class="mb-2 text-sm font-semibold text-(--color-text-primary)">
-          Author Information
-        </h5>
-        <div class="space-y-1 text-sm text-(--color-text-secondary)">
-          <span class="font-medium text-(--color-text-primary)">Username:</span>
-          {post.author.username}
-        </div>
-      </div>
-    {/if}
 
     <!-- Content Preview -->
     <div
@@ -395,3 +386,7 @@
     </th>
   </tr>
 {/snippet}
+
+{#if postForDeletion}
+  <PostDeleteDialog bind:postForDeletion {onPostDelete}></PostDeleteDialog>
+{/if}

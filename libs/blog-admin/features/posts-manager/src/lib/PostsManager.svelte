@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    createDeletePostMutation,
     createPostsQuery,
     createUsersQueryInfinite,
     debounceCallback,
@@ -35,10 +36,16 @@
       searchQuery: searchedUser.length > 0 ? searchedUser : undefined,
     }),
   );
+  const deletePostMutation = $derived(
+    createDeletePostMutation({ throwOnError: false }),
+  );
+  const deletePostMutate = $derived(deletePostMutation.mutate);
+  const deletePostError = $derived(deletePostMutation.error);
+  const reset = $derived(deletePostMutation.reset);
 
   const isLoading = $derived(postsQueryResult.isLoading);
   const posts = $derived(postsQueryResult.data?.items ?? []);
-  const error = $derived(postsQueryResult.error);
+  const getPostsError = $derived(postsQueryResult.error);
   const total = $derived(postsQueryResult.data?.pagination.total ?? 0);
   const currentPage = $derived(postsQueryResult.data?.pagination.page ?? 1);
   const itemsPerPage = $derived(
@@ -60,6 +67,24 @@
   const handleSearchDebounced = debounceCallback(async (value: string) => {
     searchedUser = value;
   }, 300);
+
+  const handlePostDelete = (id: number) => {
+    reset();
+    if (loggedInUser) {
+      deletePostMutate({ authorId: loggedInUser?.id, postId: id });
+
+      // Go to previous page if deleting last post on current page
+      const isLastPost =
+        posts.at(-1)?.id === id && posts.length === 1 && total > 1;
+      if (isLastPost && params?.pageOffset && params.pageOffset > 0)
+        onParamsChange({
+          ...params,
+          pageOffset:
+            params.pageOffset -
+            (params.pageSize ?? PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE),
+        });
+    }
+  };
 </script>
 
 <div class="space-y-6 flex flex-col items-stretch mx-auto">
@@ -72,6 +97,15 @@
       Posts
     </h2>
     {#if loggedInUser}
+      {#if deletePostError}
+        <div
+          data-testid="deletion-error-message"
+          class="p-2 self-start text-sm text-center text-(--color-error) bg-(--color-error-bg) rounded-md m-1"
+        >
+          <i class="fa fa-exclamation-circle mr-2"></i>
+          {deletePostError.message}
+        </div>
+      {/if}
       <!-- <CreatePostButton /> -->
       {#if loggedInUser.role === 'ADMIN'}
         <AuthorFilter
@@ -97,10 +131,11 @@
   <PostsTable
     {posts}
     {isLoading}
-    error={error ?? undefined}
     {params}
     {onParamsChange}
+    error={getPostsError ?? undefined}
     viewer={loggedInUser}
+    onPostDelete={handlePostDelete}
   />
 
   {#if total > itemsPerPage}
