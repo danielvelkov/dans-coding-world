@@ -18,7 +18,7 @@ import {
   checkIfLoggedIn,
   loginAsRandomUser,
 } from '../helpers/user-login.helper';
-import { PAGINATION } from '@dans-coding-world/shared-constants';
+import { ERROR_CODES, PAGINATION } from '@dans-coding-world/shared-constants';
 import { randomSelect } from '@dans-coding-world/helpers';
 import { selectPostFilter } from '../helpers/posts-actions.helper';
 import { waitOutLoader } from '../helpers/loading.helper';
@@ -29,6 +29,7 @@ import {
   goToPage,
   selectRowEntriesPerPage,
 } from '../helpers/pagination.helper';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
 
 const STATUSES = Object.values(PostStatusEnum);
 const VISIBILITIES = Object.values(PostVisibilityEnum);
@@ -573,6 +574,38 @@ test.describe('Posts - filtering', () => {
           loggedInUser,
           STATUSES,
           VISIBILITIES,
+        );
+      });
+
+      test('displays error if api response for users fails', async ({
+        page,
+      }) => {
+        // custom timeout because of tanstack query retry ms
+        test.setTimeout(60_000);
+        const errorMessage = 'Failed to fetch users';
+        await page.route(
+          `**${API_ENDPOINTS.USERS.LIST}**`,
+          async (route) =>
+            await route.fulfill({
+              status: 401,
+              json: generateErrorResponseByErrorCode(
+                ERROR_CODES.AUTH.UNAUTHORIZED,
+                undefined,
+                errorMessage,
+              ),
+            }),
+        );
+
+        await page.reload();
+        await waitOutLoader(page);
+        const search = page.getByRole('searchbox', { name: 'Search for:' });
+        await search.click();
+        const searchSpinner = page
+          .getByTestId('dropdown-search-listbox')
+          .getByText(/searching/i);
+        await searchSpinner.waitFor({ state: 'hidden', timeout: 100000 });
+        await expect(page.getByTestId('dropdown-search-listbox')).toContainText(
+          errorMessage,
         );
       });
 

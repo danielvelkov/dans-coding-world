@@ -1,5 +1,9 @@
 import { GetUsersResponseDto } from '@dans-coding-world/shared-user-dto';
-import { createInfiniteQuery } from '@tanstack/svelte-query';
+import {
+  createInfiniteQuery,
+  CreateInfiniteQueryOptions,
+  InfiniteData,
+} from '@tanstack/svelte-query';
 import { FetchUsersQueryParams } from '../types/fetchUsersQueryParams.js';
 import {
   API_ENDPOINTS,
@@ -11,7 +15,13 @@ import { BaseResponse } from '@dans-coding-world/api-types';
 
 export function createUsersQueryInfinite(
   params?: FetchUsersQueryParams,
-  options?: { enabled?: boolean },
+  options?: Partial<
+    CreateInfiniteQueryOptions<
+      GetUsersResponseDto | null,
+      Error,
+      InfiniteData<GetUsersResponseDto | null, unknown>
+    >
+  >,
 ) {
   return createInfiniteQuery<GetUsersResponseDto | null, Error>(() => ({
     initialPageParam: 0,
