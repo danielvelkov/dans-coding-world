@@ -142,7 +142,7 @@ test.describe('User session', () => {
 
       await page.goto('/posts');
 
-      const tokenExpiryInMs = TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION + 5000; // add some leeway after expiry
+      const tokenExpiryInMs = TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION + 1000; // add some leeway after expiry
 
       await page.clock.runFor(tokenExpiryInMs);
       await expect(page.getByText(/403/i)).toBeVisible();
