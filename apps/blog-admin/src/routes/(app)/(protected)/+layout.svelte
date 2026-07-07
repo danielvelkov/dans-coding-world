@@ -14,13 +14,15 @@
 	const authBootstrapPending = $derived(auth.authBootstrapPending);
 
 	const isForbidden = $derived.by(() => user && user.role === 'USER');
+	const isBanned = $derived.by(() => user && user.isBanned);
 	const isUnauthorized = $derived.by(() => !isAuthenticated && !isForbidden);
 
 	$effect(() => {
 		let logoutTimer: NodeJS.Timeout | null = null;
-		if (isForbidden) {
+		if (isForbidden || isBanned) {
 			logoutTimer = setTimeout(() => {
 				logout();
+				goto(resolve('/'));
 			}, 10000);
 		}
 		return () => {
@@ -31,6 +33,30 @@
 
 {#if authBootstrapPending}
 	<!-- Render nothing while session restore is running -->
+{:else if isBanned}
+	<div
+		class="mx-auto mt-6 flex max-w-md flex-col items-center justify-center gap-4
+			rounded-2xl border border-(--color-border-subtle) bg-(--color-bg-surface-hover)
+			p-6 text-center"
+	>
+		<p class="text-base font-medium text-(--color-text-primary)">You have been banned.</p>
+		<p class="mb-2 w-75 text-sm text-balance whitespace-pre-line text-(--color-text-secondary)">
+			{`Please submit an unban request to one of our mods.\n\n You will be
+				automatically signed out shortly...`}
+		</p>
+
+		<Button
+			class="w-full  bg-(--color-accent) font-semibold 
+				 shadow-(--color-focus-ring) transition-colors sm:w-auto"
+			role="link"
+			onclick={async () => {
+				logout();
+				await goto(resolve('/'));
+			}}
+		>
+			Log Out Now
+		</Button>
+	</div>
 {:else if isForbidden}
 	<Forbidden message="Access Denied">
 		<div
