@@ -8,6 +8,7 @@
 	} from '@dans-coding-world/blog-admin-ui-common';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import ThemeToggleButton from '$lib/shared/ThemeToggleButton.svelte';
 
 	const authStateManager = new AuthStateManager();
 	authStateManager.init();
@@ -61,6 +62,7 @@
 		{:else}
 			<a href={resolve('/login')} class="transition-colors hover:underline">Login</a>
 		{/if}
+		<ThemeToggleButton></ThemeToggleButton>
 	</nav>
 </header>
 

@@ -36,7 +36,7 @@
 		<div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
 			<a
 				href={resolve('/(app)/(public)/login')}
-				class="bg-(--color-accent)] w-full rounded-xl px-8 py-4 font-medium text-(--color-text-on-accent) shadow-(--color-focus-ring) transition-all hover:-translate-y-0.5 hover:bg-(--color-accent-hover) sm:w-auto"
+				class="w-full rounded-xl bg-(--color-accent) px-8 py-4 font-medium text-(--color-text-on-accent) shadow-(--color-focus-ring) transition-all hover:-translate-y-0.5 hover:bg-(--color-accent-hover) sm:w-auto"
 			>
 				Go to Dashboard Sign-in
 			</a>
