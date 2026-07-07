@@ -12,13 +12,10 @@
   const { onLogin }: Props = $props();
 
   const loginMutation = $derived(createLoginMutation({ throwOnError: false }));
-
-  const {
-    reset,
-    mutate,
-    error,
-    isPending: isLoading,
-  } = $derived(loginMutation);
+  const reset = $derived(loginMutation.reset);
+  const mutate = $derived(loginMutation.mutate);
+  const error = $derived(loginMutation.error);
+  const isLoading = $derived(loginMutation.isPending);
   const user = $derived(loginMutation.data?.user);
 
   $effect(() => {
