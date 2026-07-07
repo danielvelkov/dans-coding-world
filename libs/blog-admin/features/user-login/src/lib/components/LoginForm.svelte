@@ -104,7 +104,12 @@
     </div>
   {/if}
 
-  <Button class="flex flex-col items-center" disabled={isLoading} type="submit">
+  <Button
+    data-testid="login-button"
+    class="flex flex-col items-center"
+    disabled={isLoading}
+    type="submit"
+  >
     {#if isLoading}
       <SpinnerLoader loadingMessage={'Logging in... Please wait... '}
       ></SpinnerLoader>

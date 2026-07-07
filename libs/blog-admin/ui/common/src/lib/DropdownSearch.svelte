@@ -112,7 +112,9 @@
       tabindex="-1"
       type="button"
       class="fixed inset-0 z-40 cursor-default focus:outline-hidden"
-      onclick={() => (isOpen = false)}
+      onclick={() => {
+        isOpen = false;
+      }}
       aria-label="Close overlay"
     ></button>
 

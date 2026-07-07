@@ -57,7 +57,9 @@ describe('DropdownSearch', () => {
     await openDropdown();
     await page.getByRole('option', { name: 'Alice' }).click();
     expect(handleSelect).toHaveBeenCalledWith('1');
-    expect(page.getByRole('listbox')).not.toBeInTheDocument();
+    await vi.waitFor(async () => {
+      expect(page.getByRole('listbox')).not.toBeInTheDocument();
+    });
   });
 
   it('marks selected option with aria-selected', async () => {
@@ -113,7 +115,9 @@ describe('DropdownSearch', () => {
     await openDropdown();
     expect(page.getByRole('listbox')).toBeInTheDocument();
     await page.getByRole('button', { name: 'Close dropdown' }).click();
-    expect(page.getByRole('listbox')).not.toBeInTheDocument();
+    await vi.waitFor(async () => {
+      expect(page.getByRole('listbox')).not.toBeInTheDocument();
+    });
   });
 
   it('closes dropdown when overlay is clicked', async () => {
@@ -121,6 +125,8 @@ describe('DropdownSearch', () => {
     await openDropdown();
     expect(page.getByRole('listbox')).toBeInTheDocument();
     await page.getByRole('button', { name: 'Close overlay' }).click();
-    expect(page.getByRole('listbox')).not.toBeInTheDocument();
+    await vi.waitFor(async () => {
+      expect(page.getByRole('listbox')).not.toBeInTheDocument();
+    });
   });
 });

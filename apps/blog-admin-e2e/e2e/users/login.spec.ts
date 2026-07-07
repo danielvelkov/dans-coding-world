@@ -111,7 +111,9 @@ test.describe('User - login', () => {
       await login(page, randomUser.email, randomUser.password);
 
       await expect(page.getByRole('button', { name: 'Login' })).toBeHidden();
-      await expect(page.getByRole('button')).toContainText(/Logging in/i);
+      await expect(page.getByTestId('login-button')).toContainText(
+        /Logging in/i,
+      );
 
       await responsePromise;
     });

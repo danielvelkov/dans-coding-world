@@ -1,6 +1,5 @@
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateMockPostResponse } from '@dans-coding-world/shared-post-testing';
-import { randNumber } from '@ngneat/falso';
 
 describe('Post - content sanitation', () => {
   it('displays post content as valid sanitized HTML', () => {
@@ -14,23 +13,41 @@ describe('Post - content sanitation', () => {
   });
 
   it('does not allow for XSS attacks to happen through post content', () => {
-    cy.fixture('post/unsafe-content-dataset.json').then((unsafeContentList) => {
-      unsafeContentList.forEach((unsafeString: string) => {
+    cy.fixture('post/unsafe-content-dataset.json').then(
+      (unsafeContentList: string[]) => {
         const stub = cy.stub();
-
         cy.on('window:confirm', stub);
 
-        renderBlogContent(unsafeString);
-
-        cy.getByTestId('post-content').should('exist');
-
-        const arbitraryWaitTime = randNumber({ max: 1000 });
-
-        cy.wait(arbitraryWaitTime).then(() => {
-          expect(stub).not.to.have.been.calledWith('hacked');
+        const first = generateMockPostResponse({
+          post: { content: unsafeContentList[0] },
         });
-      });
-    });
+        if (!first.data) throw new Error('missing data');
+        const postId = first.data.post.id;
+
+        cy.intercept(`${API_ENDPOINTS.POSTS.BY_ID(postId)}*`, () => first).as(
+          'getPost',
+        );
+        cy.visit(`/blog/${postId}`);
+        cy.wait('@getPost');
+
+        unsafeContentList.forEach((unsafeString) => {
+          cy.intercept(
+            `${API_ENDPOINTS.POSTS.BY_ID(postId)}*`,
+            generateMockPostResponse({
+              post: { content: unsafeString, id: postId },
+            }),
+          ).as('getPost');
+
+          cy.reload();
+          cy.wait('@getPost');
+
+          cy.getByTestId('post-content').should('exist');
+
+          expect(stub).not.to.have.been.calledWith('hacked');
+          stub.reset();
+        });
+      },
+    );
   });
 
   function renderBlogContent(content: string) {
@@ -43,7 +60,7 @@ describe('Post - content sanitation', () => {
     const testPostId = mockResponse.data.post.id;
 
     cy.intercept(`${API_ENDPOINTS.POSTS.BY_ID(testPostId)}*`, mockResponse).as(
-      'getPostResponse'
+      'getPostResponse',
     );
 
     cy.visit(`/blog/${testPostId}`);

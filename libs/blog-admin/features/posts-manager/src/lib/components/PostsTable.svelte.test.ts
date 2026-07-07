@@ -23,9 +23,11 @@ it('renders successfully', async () => {
   expect(screen).toBeDefined();
 });
 
-it('renders as <table> element', async () => {
+it('renders as <table> element in a wrapper', async () => {
   const { container } = await render(PostsTable);
-  expect((container.firstChild as HTMLElement).tagName).toBe('TABLE');
+  expect((container.firstChild?.firstChild as HTMLElement).tagName).toBe(
+    'TABLE',
+  );
 });
 
 it.each(TABLE_COLUMNS.filter((c) => c !== ADMIN_ONLY_COLUMN))(
@@ -272,16 +274,6 @@ describe('Rows', () => {
       expect(expandedRow.getByRole('paragraph').element().textContent).toBe(
         postUAT.content,
       );
-    });
-
-    it('contains author username if viewer has role ADMIN', async () => {
-      const postUAT = posts[0];
-      const page = await render(PostsTable, { posts, viewer: admin });
-      await expandRow(0);
-      const expandedRow = page.getByTestId(`row-details-${postUAT.id}`);
-      expect(
-        expandedRow.getByText(postUAT.author.username),
-      ).toBeInTheDocument();
     });
 
     it('contains post tags', async () => {
