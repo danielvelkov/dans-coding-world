@@ -25,7 +25,9 @@
 </script>
 
 <header class="border-b">
-	<nav class="mx-auto flex max-w-7xl items-center gap-6 px-6 py-4 text-sm font-medium">
+	<nav
+		class="mx-auto flex w-fit max-w-7xl flex-wrap items-center gap-6 px-6 py-4 text-sm font-medium sm:w-auto"
+	>
 		<a
 			href={resolve('/')}
 			class="transition-colors hover:underline"

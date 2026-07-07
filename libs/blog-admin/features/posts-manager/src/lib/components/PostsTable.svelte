@@ -53,41 +53,45 @@
   }, 500);
 </script>
 
-<Table
-  data={posts.map((post, rowIndex) => ({
-    post,
-    rowIndex: (params?.pageOffset ?? 0) + rowIndex,
-  }))}
+<div
+  class="overflow-x-auto max-h-max min-h-fit sm:min-h-[50vh] sm:w-full w-[90vw]"
 >
-  {#snippet header()}
-    <tr class="bg-(--color-bg-surface-hover)">
-      {#each TABLE_COLUMNS as col (col)}
-        {@render ColumnHeader(col)}
-      {/each}
-    </tr>
+  <Table
+    data={posts.map((post, rowIndex) => ({
+      post,
+      rowIndex: (params?.pageOffset ?? 0) + rowIndex,
+    }))}
+  >
+    {#snippet header()}
+      <tr class="bg-(--color-bg-surface-hover)">
+        {#each TABLE_COLUMNS as col (col)}
+          {@render ColumnHeader(col)}
+        {/each}
+      </tr>
 
-    {@render ControlRow()}
-  {/snippet}
+      {@render ControlRow()}
+    {/snippet}
 
-  {#if isLoading}
-    {@render MessageRow(
-      POSTS_LOADING_MESSAGE,
-      'text-(--color-text-secondary) italic',
-    )}
-  {:else if error}
-    {@render MessageRow(error.message, 'text-(--color-error) italic')}
-  {:else if showEmptyMessage}
-    {@const showNoResults = params?.searchQuery || params?.filterBy?.userId}
-    {@render MessageRow(
-      showNoResults ? POSTS_NO_RESULTS_MESSAGE : POSTS_EMPTY_MESSAGE,
-      'text-(--color-text-secondary) italic',
-    )}
-  {/if}
+    {#if isLoading}
+      {@render MessageRow(
+        POSTS_LOADING_MESSAGE,
+        'text-(--color-text-secondary) italic',
+      )}
+    {:else if error}
+      {@render MessageRow(error.message, 'text-(--color-error) italic')}
+    {:else if showEmptyMessage}
+      {@const showNoResults = params?.searchQuery || params?.filterBy?.userId}
+      {@render MessageRow(
+        showNoResults ? POSTS_NO_RESULTS_MESSAGE : POSTS_EMPTY_MESSAGE,
+        'text-(--color-text-secondary) italic',
+      )}
+    {/if}
 
-  {#snippet row({ post, rowIndex })}
-    {@render PostRow(post, rowIndex)}
-  {/snippet}
-</Table>
+    {#snippet row({ post, rowIndex })}
+      {@render PostRow(post, rowIndex)}
+    {/snippet}
+  </Table>
+</div>
 
 {#snippet ColumnHeader(col: (typeof TABLE_COLUMNS)[number])}
   {@const isAdminCol = col === ADMIN_ONLY_COLUMN}
@@ -221,7 +225,7 @@
         </a>
         <button
           class="text-(--color-error) hover:text-(--color-error-muted)
-           focus:outline-hidden"
+           focus:outline-hidden cursor-pointer"
           aria-label="Delete post"
         >
           Delete
@@ -376,7 +380,7 @@
       <label class="sr-only" for="sort-posts">Sort by:</label>
       <Select
         id="sort-posts"
-        class="p-2 m-2 w-30 border border-(--color-border-default) rounded-md"
+        class="p-2 m-2 w-max border border-(--color-border-default) rounded-md"
         value={JSON.stringify(params?.sortBy)}
         onchange={(e) => {
           const value = e.currentTarget.value;
