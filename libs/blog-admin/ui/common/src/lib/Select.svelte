@@ -16,8 +16,8 @@
        disabled:cursor-not-allowed border border-(--color-border-default)
        bg-(--color-bg-surface) shadow-xs transition-all duration-200
        focus:ring-2 focus:ring-(--color-focus-ring) focus:border-(--color-border-focus)
-       focus:bg-(--color-surface-active) focus:text-(--color-text-on-accent)
-             {className ?? ''}"
+       focus:bg-(--color-surface-active) focus:text-(--color-text-primary)
+       {className ?? ''}"
 >
   {#each items as { value, label } (label)}
     {#if option}
@@ -27,8 +27,8 @@
         typeof value === 'object' ? JSON.stringify(value) : value}
       <option
         value={valueAsString}
-        class="px-4 py-2.5 my-auto cursor-pointer flex items-center justify-between
-                   transition-colors duration-150 checked:bg-(--color-accent)
+        class="px-4 py-2.5 my-auto cursor-pointer flex items-center justify-between text-(--color-text-primary)
+                   transition-colors duration-150 checked:bg-(--color-accent-subtle) checked:text-(--color-accent)
                    "
       >
         <span>{label}</span>

@@ -1,5 +1,5 @@
 :root,
-.light {
+:root.light {
 	/* Background */
 	--color-bg-base: #f9fafb; /* grey-25 */
 	--color-bg-elevated: #ffffff; /* grey-0 */

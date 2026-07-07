@@ -1,5 +1,4 @@
-:root,
-.dark {
+:root.dark {
 	/* Background */
 	--color-bg-base: #0f0f14; /* near-black */
 	--color-bg-elevated: #1a1a22; /* dark surface */
