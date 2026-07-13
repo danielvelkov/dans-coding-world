@@ -98,6 +98,7 @@ describe('Comments - reporting', () => {
     cy.contains('button', 'Report').should('not.exist');
   });
 
+  // TODO: Flaky
   context('Authenticated users', () => {
     beforeEach(() => {
       const { reporter, postId } = getReporterScenario();
