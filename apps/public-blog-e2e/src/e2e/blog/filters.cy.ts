@@ -1,4 +1,4 @@
-import { Post, Tag } from '@dans-coding-world/prisma-schema';
+import type { Post, Tag } from '@dans-coding-world/prisma-schema';
 describe('Blog - filters', () => {
   type PostWithTags = Post & { tags: string[] };
 
@@ -9,7 +9,7 @@ describe('Blog - filters', () => {
 
     cy.fixture('blog/filters-dataset.json').then((fixturePosts) => {
       const postsWithoutTags = fixturePosts.map(
-        ({ tags, ...rest }: { tags: string[] }) => rest
+        ({ tags, ...rest }: { tags: string[] }) => rest,
       );
 
       cy.task('db:seed-posts', {
@@ -46,8 +46,8 @@ describe('Blog - filters', () => {
                   'status',
                   'content',
                   'visibility',
-                ])
-              )
+                ]),
+              ),
             );
 
             if (!seededPost) throw new Error('Post must exist');
@@ -111,7 +111,7 @@ describe('Blog - filters', () => {
     it('clicking on a year button marks it as the only one selected', () => {
       const postsYears = [
         ...new Set(
-          seededPosts.map((p) => new Date(p.publishedAt as Date).getFullYear())
+          seededPosts.map((p) => new Date(p.publishedAt as Date).getFullYear()),
         ),
       ];
       for (const selectedYear of postsYears) {
@@ -119,15 +119,15 @@ describe('Blog - filters', () => {
         cy.contains('button', selectedYear).should(
           'have.attr',
           'aria-pressed',
-          'true'
+          'true',
         );
         Cypress._.without(postsYears, selectedYear).forEach(
           (notSelectedYear) => {
             cy.contains('button', notSelectedYear).should(
               'not.have.attr',
-              'aria-pressed'
+              'aria-pressed',
             );
-          }
+          },
         );
       }
     });
@@ -135,7 +135,7 @@ describe('Blog - filters', () => {
     it('selecting an active year filter deselects it', () => {
       const postsYears = [
         ...new Set(
-          seededPosts.map((p) => new Date(p.publishedAt as Date).getFullYear())
+          seededPosts.map((p) => new Date(p.publishedAt as Date).getFullYear()),
         ),
       ];
       const selectedYear = postsYears[Cypress._.random(postsYears.length - 1)];
@@ -143,24 +143,24 @@ describe('Blog - filters', () => {
       cy.contains('button', selectedYear).should(
         'have.attr',
         'aria-pressed',
-        'true'
+        'true',
       );
       cy.selectPostPublicationYearFilter(selectedYear);
       cy.contains('button', selectedYear).should(
         'not.have.attr',
-        'aria-pressed'
+        'aria-pressed',
       );
     });
 
     it('applies filtering correctly when selecting post publication year', () => {
       const uniquePublicationYears = new Set(
-        seededPosts.map((p) => new Date(p.publishedAt as Date).getFullYear())
+        seededPosts.map((p) => new Date(p.publishedAt as Date).getFullYear()),
       );
       uniquePublicationYears.forEach((year) => {
         cy.selectPostPublicationYearFilter(year);
         cy.get('[aria-label="blog posts"] article time').each(($timeElm) => {
           expect($timeElm.attr('datetime')).to.satisfy((timeString: string) =>
-            timeString.startsWith(year.toString())
+            timeString.startsWith(year.toString()),
           );
         });
       });
@@ -177,14 +177,14 @@ describe('Blog - filters', () => {
         (posts) => {
           const statuses = Cypress._.map(posts, 'status');
           return statuses.includes('PUBLISHED') && statuses.includes('DRAFT');
-        }
+        },
       );
 
       if (!postsOfSameYearThatAreDraftAndPublic)
         throw new Error('Missing test fixture');
 
       cy.selectPostPublicationYearFilter(
-        postsOfSameYearThatAreDraftAndPublic[0].year
+        postsOfSameYearThatAreDraftAndPublic[0].year,
       );
 
       const expectedTitles = postsOfSameYearThatAreDraftAndPublic
@@ -207,14 +207,14 @@ describe('Blog - filters', () => {
           seededPosts
             .filter((p) => p.status === 'PUBLISHED')
             .map((p) => p.tags)
-            .flat()
+            .flat(),
         );
         if (!randomTag) throw new Error('Tag must exist');
 
         cy.selectPostTagFilter(randomTag);
         assertCorrectPostsShown(
           (p) => p.tags.includes(randomTag),
-          (p) => !p.tags.includes(randomTag)
+          (p) => !p.tags.includes(randomTag),
         );
       });
 
@@ -223,7 +223,7 @@ describe('Blog - filters', () => {
           seededPosts
             .filter((p) => p.status === 'PUBLISHED')
             .map((p) => p.tags)
-            .flat()
+            .flat(),
         );
 
         const randomlySelectedTags = Cypress._.sampleSize(publicTags, 2);
@@ -234,13 +234,13 @@ describe('Blog - filters', () => {
         assertCorrectPostsShown(
           (p) =>
             Cypress._.some(p.tags, (element) =>
-              Cypress._.includes(randomlySelectedTags, element)
+              Cypress._.includes(randomlySelectedTags, element),
             ),
           (p) =>
             Cypress._.every(
               p.tags,
-              (element) => !Cypress._.includes(randomlySelectedTags, element)
-            )
+              (element) => !Cypress._.includes(randomlySelectedTags, element),
+            ),
         );
       });
 
@@ -249,7 +249,7 @@ describe('Blog - filters', () => {
           seededPosts
             .filter((p) => p.status === 'PUBLISHED')
             .map((p) => p.tags)
-            .flat()
+            .flat(),
         );
         if (!randomTag) throw new Error('Tag must exist');
 
@@ -262,7 +262,7 @@ describe('Blog - filters', () => {
               cy.contains('button', randomTag).should(
                 'have.attr',
                 'aria-pressed',
-                'true'
+                'true',
               );
             });
           });
@@ -276,7 +276,7 @@ describe('Blog - filters', () => {
               cy.contains('button', randomTag).should(
                 'have.attr',
                 'aria-pressed',
-                'false'
+                'false',
               );
             });
           });
@@ -289,11 +289,11 @@ describe('Blog - filters', () => {
           .filter(
             (tagName) =>
               seededPosts.find(
-                (p) => p.status === 'PUBLISHED' && !p.tags.includes(tagName)
+                (p) => p.status === 'PUBLISHED' && !p.tags.includes(tagName),
               ) &&
               seededPosts.find(
-                (p) => p.status !== 'PUBLISHED' && p.tags.includes(tagName)
-              )
+                (p) => p.status !== 'PUBLISHED' && p.tags.includes(tagName),
+              ),
           );
         if (!tagsOnlyUsedInPrivatePosts)
           throw new Error('Missing private post tag');
@@ -303,14 +303,14 @@ describe('Blog - filters', () => {
             cy.get(`section[aria-labelledby="${id}"]`).within(() => {
               for (const tagOnlyUsedInPrivatePosts of tagsOnlyUsedInPrivatePosts)
                 cy.contains('button', tagOnlyUsedInPrivatePosts).should(
-                  'not.exist'
+                  'not.exist',
                 );
               for (const publicTag of Cypress._.without(
                 seededPosts
                   .filter((p) => p.status === 'PUBLISHED')
                   .map((p) => p.tags)
                   .flat(),
-                ...tagsOnlyUsedInPrivatePosts
+                ...tagsOnlyUsedInPrivatePosts,
               ))
                 cy.contains('button', publicTag).should('exist');
             });
@@ -325,11 +325,11 @@ describe('Blog - filters', () => {
           .find(
             (tagName) =>
               seededPosts.find(
-                (p) => p.status === 'PUBLISHED' && !p.tags.includes(tagName)
+                (p) => p.status === 'PUBLISHED' && !p.tags.includes(tagName),
               ) &&
               seededPosts.find(
-                (p) => p.status !== 'PUBLISHED' && p.tags.includes(tagName)
-              )
+                (p) => p.status !== 'PUBLISHED' && p.tags.includes(tagName),
+              ),
           );
         if (!tagOnlyUsedInPrivatePosts)
           throw new Error('Missing private post tag');
@@ -339,7 +339,7 @@ describe('Blog - filters', () => {
 
       function assertCorrectPostsShown(
         expectedPostsPredicate: (post: PostWithTags) => boolean,
-        unexpectedPostsPredicate: (post: PostWithTags) => boolean
+        unexpectedPostsPredicate: (post: PostWithTags) => boolean,
       ) {
         const expectedTitles = seededPosts
           .filter(expectedPostsPredicate)

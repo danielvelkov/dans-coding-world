@@ -3,7 +3,7 @@ import {
   COMMENT_CONSTRAINTS,
   PAGINATION,
 } from '@dans-coding-world/shared-constants';
-import {
+import type {
   Comment,
   CommentWithReplies,
   Post,
@@ -50,7 +50,7 @@ describe('Comments - commenting', () => {
       options: { useDefaults: true, clearExisting: true },
     }).then((posts) => {
       testPosts = (posts as Post[]).filter(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!testPosts || !testPosts.length)
         throw new Error('Missing post fixtures');
@@ -126,7 +126,7 @@ describe('Comments - commenting', () => {
 
     beforeEach(() => {
       const randomUser = Cypress._.sample(
-        testUsers.filter((u) => u.isBanned === false)
+        testUsers.filter((u) => u.isBanned === false),
       ) as UserDetail;
 
       cy.visit('/login');
@@ -144,7 +144,7 @@ describe('Comments - commenting', () => {
 
     it('reflects comment length in a counter near textarea', () => {
       const randomLen = Cypress._.random(
-        COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH
+        COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH,
       );
       const content = generateRandomString(randomLen);
       getEnabledCommentTextarea().type(content, { delay: 0 });
@@ -152,14 +152,14 @@ describe('Comments - commenting', () => {
         .parent()
         .within(() => {
           cy.contains(
-            `${randomLen} / ${COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH}`
+            `${randomLen} / ${COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH}`,
           );
         });
     });
 
     it('does not allow typing past certain limit', () => {
       const content = generateRandomString(
-        COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH
+        COMMENT_CONSTRAINTS.MAX_CONTENT_LENGTH,
       );
       getEnabledCommentTextarea().type(content, { delay: 0 });
       getEnabledCommentTextarea().type('bababui!');
@@ -210,7 +210,7 @@ describe('Comments - commenting', () => {
 
     it('hides comment form and displays "banned" message if user banned', () => {
       const bannedUser = testUsers.find(
-        (u) => u.isBanned === true
+        (u) => u.isBanned === true,
       ) as UserDetail;
       cy.logout();
       cy.visit('/login');

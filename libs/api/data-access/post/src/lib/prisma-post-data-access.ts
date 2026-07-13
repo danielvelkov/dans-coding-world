@@ -1,8 +1,8 @@
-import {
+import { client } from '@dans-coding-world/prisma-schema';
+import type {
   Post,
   PostWhereInput,
   PostOrderByInput,
-  client,
   PostWithAuthorProfile,
 } from '@dans-coding-world/prisma-schema';
 import { IPostRepository } from '@dans-coding-world/shared-data-access-interfaces';
@@ -12,9 +12,11 @@ export type PostDetail = Post & {
 };
 export type PostFull = PostWithAuthorProfile & PostDetail;
 
-export class PrismaPostDataAccess
-  implements IPostRepository<Post, PostWhereInput, PostOrderByInput>
-{
+export class PrismaPostDataAccess implements IPostRepository<
+  Post,
+  PostWhereInput,
+  PostOrderByInput
+> {
   async getById(id: number): Promise<Post | null> {
     const post = await client.post.findFirst({
       where: { id },
@@ -137,7 +139,7 @@ export class PrismaPostDataAccess
     options?: {
       skip?: number;
       take?: number;
-    }
+    },
   ): Promise<Post[]> {
     return await client.post.findMany({
       where,
@@ -229,7 +231,7 @@ export class PrismaPostDataAccess
       .map((d) => new Date(d.publishedAt!).getFullYear())
       .reduce(
         (acc, val) => (acc.includes(val) ? acc : [...acc, val]),
-        [] as number[]
+        [] as number[],
       );
   }
 }

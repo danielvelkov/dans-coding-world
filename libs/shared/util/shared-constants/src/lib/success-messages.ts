@@ -10,6 +10,7 @@ export const SUCCESS_MESSAGES = {
     revoke: 'User token/tokens revoked',
   },
   USERS: {
+    getAll: 'Users retrieved successfully',
     get: 'User details retrieved successfully',
     update: 'Profile updated successfully',
     delete: 'Account deleted successfully',

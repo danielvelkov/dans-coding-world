@@ -9,7 +9,7 @@ import {
   PAGINATION,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { Report } from '@dans-coding-world/prisma-schema';
+import type { Report } from '@dans-coding-world/prisma-schema';
 import { FilterReportsByDto } from './filter-reports-by.dto.js';
 export class GetReportsDto {
   @IsOptional()

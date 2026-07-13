@@ -11,4 +11,8 @@ export const PAGINATION = {
     ITEMS_PER_PAGE_OPTIONS: [10, 25, 50],
     DEFAULT_ITEMS_PER_PAGE: 10,
   },
+  USERS: {
+    ITEMS_PER_PAGE_OPTIONS: [10, 25, 50],
+    DEFAULT_ITEMS_PER_PAGE: 10,
+  },
 } as const;

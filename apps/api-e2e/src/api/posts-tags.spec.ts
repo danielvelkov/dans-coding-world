@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  Tag,
-  Post,
-  User,
-  client as prisma,
-} from '@dans-coding-world/prisma-schema';
+import { client as prisma } from '@dans-coding-world/prisma-schema';
+import type { Tag, Post, User } from '@dans-coding-world/prisma-schema';
 import {
   seedUsers,
   seedPosts,
@@ -65,23 +61,23 @@ describe('/api/v1/tags', () => {
 
     testData.publicOnlyTags = tags.slice(
       TAG_RANGES.PUBLIC_ONLY.start,
-      TAG_RANGES.PUBLIC_ONLY.end
+      TAG_RANGES.PUBLIC_ONLY.end,
     );
     testData.privateAdminTags = tags.slice(
       TAG_RANGES.PRIVATE_ADMIN.start,
-      TAG_RANGES.PRIVATE_ADMIN.end
+      TAG_RANGES.PRIVATE_ADMIN.end,
     );
     testData.privateAuthorTags = tags.slice(
       TAG_RANGES.PRIVATE_AUTHOR.start,
-      TAG_RANGES.PRIVATE_AUTHOR.end
+      TAG_RANGES.PRIVATE_AUTHOR.end,
     );
     testData.privateAuthorTags_AlsoUsedOnPublic = tags.slice(
       TAG_RANGES.PRIVATE_AND_PUBLIC_AUTHOR.start,
-      TAG_RANGES.PRIVATE_AND_PUBLIC_AUTHOR.end
+      TAG_RANGES.PRIVATE_AND_PUBLIC_AUTHOR.end,
     );
     testData.privateAdminTags_AlsoUsedOnPublic = tags.slice(
       TAG_RANGES.PRIVATE_AND_PUBLIC_ADMIN.start,
-      TAG_RANGES.PRIVATE_AND_PUBLIC_ADMIN.end
+      TAG_RANGES.PRIVATE_AND_PUBLIC_ADMIN.end,
     );
 
     admin = users.find((u) => u.role === 'ADMIN') as User;
@@ -94,10 +90,10 @@ describe('/api/v1/tags', () => {
     const postsByType = {
       published: posts.filter((p) => p.status === 'PUBLISHED'),
       privateAdmin: posts.filter(
-        (p) => p.status !== 'PUBLISHED' && p.authorId === admin.id
+        (p) => p.status !== 'PUBLISHED' && p.authorId === admin.id,
       ),
       privateAuthor: posts.filter(
-        (p) => p.status !== 'PUBLISHED' && p.authorId === author.id
+        (p) => p.status !== 'PUBLISHED' && p.authorId === author.id,
       ),
     };
 
@@ -114,7 +110,7 @@ describe('/api/v1/tags', () => {
         for (const tagGroup of tagGroups) {
           await attachTagsToPost(
             post.id,
-            tagGroup.map((t) => t.id)
+            tagGroup.map((t) => t.id),
           );
         }
       }
@@ -140,7 +136,7 @@ describe('/api/v1/tags', () => {
         setupClient(createPostsRouteHelper, user),
         setupClient(createPostsRouteHelper, author),
         setupClient(createPostsRouteHelper, undefined),
-      ]
+      ],
     );
   });
 
@@ -187,8 +183,8 @@ describe('/api/v1/tags', () => {
       // Expect every private post of another user not to be present
       expect(
         returnedTagIds.every((id) =>
-          new Set(testData.privateAdminTags.map((t) => t.id)).has(id)
-        )
+          new Set(testData.privateAdminTags.map((t) => t.id)).has(id),
+        ),
       ).toBe(false);
       expect(returnedTagIds).toHaveLength(expectedTagIds.size);
     });
@@ -199,7 +195,7 @@ describe('/api/v1/tags', () => {
 
     it('should return 404 NOT FOUND for unknown tag id', async () => {
       return await expect(anonHelpers.getTagById('999')).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -228,17 +224,17 @@ describe('/api/v1/tags', () => {
 
     it('should return 401 UNAUTHORIZED when trying to create tag as guest', async () => {
       return await expect(
-        anonHelpers.createTag({ name: NEW_TAG_NAME })
+        anonHelpers.createTag({ name: NEW_TAG_NAME }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
     it('should return 403 FORBIDDEN when trying to create tag as anything other than ADMIN or AUTHOR', async () => {
       return await expect(
-        userHelpers.createTag({ name: NEW_TAG_NAME })
+        userHelpers.createTag({ name: NEW_TAG_NAME }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -251,9 +247,9 @@ describe('/api/v1/tags', () => {
       expect(getMessage(res)).toBe(SUCCESS_MESSAGES.TAGS.create);
 
       return await expect(
-        adminHelpers.createTag({ name: UNIQUE_TAG_NAME })
+        adminHelpers.createTag({ name: UNIQUE_TAG_NAME }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.TAG_EXISTS)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.TAG_EXISTS),
       );
     });
 
@@ -284,9 +280,9 @@ describe('/api/v1/tags', () => {
       'should return validation error when tag name field %s',
       async (_, name) => {
         await expect(adminHelpers.createTag({ name })).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     it(`should return error when logged-in user is banned and trying to
@@ -303,9 +299,9 @@ describe('/api/v1/tags', () => {
         await expect(
           authorHelpers.createTag({
             name: 'tag-name',
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED),
         );
       } finally {
         await prisma.user.update({
@@ -332,7 +328,7 @@ describe('/api/v1/tags', () => {
 
       const res = await adminHelpers.updateTag(
         tagForUpdate?.id.toString(),
-        newName
+        newName,
       );
 
       expect(getMessage(res)).toBe(SUCCESS_MESSAGES.TAGS.update);
@@ -348,18 +344,18 @@ describe('/api/v1/tags', () => {
       return await expect(
         adminHelpers.updateTag(
           tagForUpdate.id.toString(),
-          tagWithExistingName.name
-        )
+          tagWithExistingName.name,
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.TAG_EXISTS)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.TAG_EXISTS),
       );
     });
 
     it('should return 401 UNAUTHORIZED when trying to update tag as guest', async () => {
       return await expect(
-        anonHelpers.updateTag('1', 'new-tag-name')
+        anonHelpers.updateTag('1', 'new-tag-name'),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -392,19 +388,19 @@ describe('/api/v1/tags', () => {
         const tagForUpdate = tags[0];
 
         await expect(
-          adminHelpers.updateTag(tagForUpdate?.id.toString(), name)
+          adminHelpers.updateTag(tagForUpdate?.id.toString(), name),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     it('should return 403 FORBIDDEN when trying to update a tag as normal user', async () => {
       const name = 'new-tag-name';
       return await expect(
-        userHelpers.updateTag(tags[0].id.toString(), name)
+        userHelpers.updateTag(tags[0].id.toString(), name),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -415,10 +411,10 @@ describe('/api/v1/tags', () => {
           generateRandomString(12, {
             includeUppercase: false,
             includeSymbols: false,
-          })
-        )
+          }),
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -433,7 +429,7 @@ describe('/api/v1/tags', () => {
         },
       });
       return await expect(
-        authorHelpers.updateTag(tags[0].id.toString(), 'new-name')
+        authorHelpers.updateTag(tags[0].id.toString(), 'new-name'),
       ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
     });
   });
@@ -450,9 +446,9 @@ describe('/api/v1/tags', () => {
       expect(getMessage(res)).toBe(SUCCESS_MESSAGES.TAGS.delete);
 
       await expect(
-        adminHelpers.deleteTag(tagForDeletion.id.toString())
+        adminHelpers.deleteTag(tagForDeletion.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -461,54 +457,54 @@ describe('/api/v1/tags', () => {
       if (!publicPost) throw new Error('Missing test post');
 
       const res_beforeTagDeletion = await anonHelpers.getPost(
-        publicPost?.id.toString()
+        publicPost?.id.toString(),
       );
 
       const postData = getData<Post & { tags: string[] }>(
         res_beforeTagDeletion,
-        'post'
+        'post',
       );
 
       const tagForDeletion = testData.publicOnlyTags.find((t) =>
-        postData.tags.includes(t.name)
+        postData.tags.includes(t.name),
       );
       if (!tagForDeletion) throw new Error('Missing test tag');
 
       await adminHelpers.deleteTag(tagForDeletion?.id.toString());
 
       const res_afterTagDeletion = await adminHelpers.getPost(
-        publicPost?.id.toString()
+        publicPost?.id.toString(),
       );
 
       const postDataAfterDeletion = getData<Post & { tags: string[] }>(
         res_afterTagDeletion,
-        'post'
+        'post',
       );
 
       expect(
-        postDataAfterDeletion.tags.includes(tagForDeletion?.name)
+        postDataAfterDeletion.tags.includes(tagForDeletion?.name),
       ).not.toBe(true);
     });
 
     it('should return 401 UNAUTHORIZED when trying to delete tag as guest', async () => {
       return await expect(
-        anonHelpers.deleteTag(tags[0].id.toString())
+        anonHelpers.deleteTag(tags[0].id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
     it('should return 404 NOT FOUND for unknown tag id', async () => {
       await expect(adminHelpers.deleteTag('9999')).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
     it('should return 403 FORBIDDEN when user deleting the tag is not ADMIN or AUTHOR', async () => {
       await expect(
-        userHelpers.deleteTag(tags[0].id.toString())
+        userHelpers.deleteTag(tags[0].id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -523,7 +519,7 @@ describe('/api/v1/tags', () => {
         },
       });
       return await expect(
-        authorHelpers.deleteTag(tags[0].id.toString())
+        authorHelpers.deleteTag(tags[0].id.toString()),
       ).rejects.toMatchObject(createErrorCodeResponse(ERROR_CODES.AUTH.BANNED));
     });
   });

@@ -1,22 +1,30 @@
 import { generateRandomString } from '@dans-coding-world/helpers';
-import type { Post, User } from '@dans-coding-world/prisma-schema';
+import type {
+  Post,
+  PostStatus,
+  User,
+  PostVisibility,
+} from '@dans-coding-world/prisma-schema';
 import { POST_CONSTRAINTS } from '@dans-coding-world/shared-constants';
-import { test, expect, Page } from '../fixtures/authFixture';
+import { test, expect, Page } from '../fixtures/dbFixture';
 import postsJson from '../fixtures/posts/search-dataset.json' with { type: 'json' };
-
-async function clearAndType(page: Page, text: string) {
-  const input = page
-    .locator('search')
-    .getByRole('searchbox', { name: /search by/i });
-  await input.clear();
-  await input.fill(text);
-}
+import {
+  checkIfLoggedIn,
+  loginAsRandomUser,
+} from '../helpers/user-login.helper';
+import { waitOutLoader } from '../helpers/loading.helper';
+import {
+  searchForPost,
+  selectPostFilter,
+} from '../helpers/posts-actions.helper';
 
 async function checkIfSearchedCorrectly(
   page: Page,
   posts: Post[],
   searchTerm: string,
   user: User,
+  statusFilters: PostStatus[] = ['PUBLISHED', 'ARCHIVED', 'DRAFT'],
+  visibilityFilters: PostVisibility[] = ['MEMBERS_ONLY', 'PUBLIC'],
 ) {
   const field = 'publishedAt';
   const sorted = [...posts].sort((prev, next) => {
@@ -42,29 +50,41 @@ async function checkIfSearchedCorrectly(
           p.content.toLowerCase().includes(searchTerm.toLowerCase())),
     );
 
-  for (let i = 0; i < filtered.length; i++) {
-    const row = page.getByLabel(new RegExp(`row entry #${i + 1}`, 'i'));
-    await expect(row).toContainText(filtered[i].title);
+  filtered = filtered.filter(
+    (p) =>
+      statusFilters.includes(p.status) ||
+      visibilityFilters.includes(p.visibility),
+  );
+
+  try {
+    for (let i = 0; i < filtered.length; i++) {
+      const row = page.getByLabel(new RegExp(`row entry #${i + 1}`, 'i'));
+      await expect(row).toContainText(filtered[i].title);
+    }
+    return true;
+  } catch (error) {
+    return false;
   }
 }
 
-// TODO - authenticated users required for filter testing to work
-test.describe.skip('Posts - search', () => {
+test.describe('Posts - search', () => {
   let seededPosts: Post[];
+  let users: User[];
   let loggedInUser: User;
 
-  test.beforeAll(async ({ db, users }) => {
-    if (!users.current?.length)
-      users.current = await db.seedUsers({
-        users: null,
-        options: { clearExisting: true, useDefaults: true },
-      });
+  test.beforeAll(async ({ db }) => {
+    const seededUsers = await db.seedUsers({
+      users: null,
+      options: { clearExisting: true, useDefaults: true },
+    });
 
-    const admin = users.current.find((u) => u.role === 'ADMIN');
+    const admin = seededUsers.find((u) => u.role === 'ADMIN');
     if (!admin) throw new Error('Missing test user');
 
+    users = seededUsers;
+
     seededPosts = await db.seedPosts({
-      posts: postsJson.map((p) => ({ ...p, authorId: admin.id })),
+      posts: postsJson,
       options: { useDefaults: false, clearExisting: true },
     });
 
@@ -73,44 +93,63 @@ test.describe.skip('Posts - search', () => {
     }
   });
 
-  test('does not allow typing past a certain limit', async ({ page }) => {
-    const longSearchString = generateRandomString(
-      POST_CONSTRAINTS.MAX_TITLE_LENGTH + 20,
-    );
-    const input = page
-      .locator('search')
-      .getByRole('searchbox', { name: /search by/i });
+  test.describe('Input element', () => {
+    test.beforeEach(async ({ page }) => {
+      await loginAsRandomUser(
+        page,
+        users.filter((u) => u.role !== 'USER'),
+      );
+      expect(await checkIfLoggedIn(page)).toBe(true);
+      await page.goto('/posts');
+      await waitOutLoader(page);
+    });
 
-    await input.fill(longSearchString);
+    test('does not allow typing past a certain limit', async ({ page }) => {
+      const longSearchString = generateRandomString(
+        POST_CONSTRAINTS.MAX_TITLE_LENGTH + 20,
+      );
+      const input = page
+        .locator('search')
+        .getByRole('textbox', { name: /search by/i });
 
-    await expect(input).not.toHaveValue(longSearchString);
-    await expect(input).toHaveValue(
-      longSearchString.substring(0, POST_CONSTRAINTS.MAX_TITLE_LENGTH),
-    );
+      await input.fill(longSearchString);
+
+      await expect(input).not.toHaveValue(longSearchString);
+      await expect(input).toHaveValue(
+        longSearchString.substring(0, POST_CONSTRAINTS.MAX_TITLE_LENGTH),
+      );
+    });
   });
 
   test.describe('Logged in as ADMIN', () => {
     test.beforeEach(async ({ page }) => {
-      // log in as ADMIN
+      loggedInUser = await loginAsRandomUser(
+        page,
+        users.filter((u) => u.role === 'ADMIN'),
+      );
+      expect(await checkIfLoggedIn(page)).toBe(true);
       await page.goto('/posts');
     });
+
     test('finds all posts that contain search term in title or content (case insensitive)', async ({
       page,
     }) => {
+      test.slow();
       const commonTerm = 'javascript';
 
       for (const searchTerm of [commonTerm, commonTerm.toUpperCase()]) {
-        await clearAndType(page, searchTerm);
-        // await checkIfSearchedCorrectly(
-        //   page,
-        //   seededPosts,
-        //   commonTerm,
-        //   loggedInUser,
-        // );
+        await searchForPost(page, searchTerm);
+        expect(
+          await checkIfSearchedCorrectly(
+            page,
+            seededPosts,
+            commonTerm,
+            loggedInUser,
+          ),
+        ).toBe(true);
       }
     });
 
-    test.skip('search applies to all users posts', () => {});
     test('applies search when navigating to page through URL', async ({
       page,
     }) => {
@@ -118,24 +157,85 @@ test.describe.skip('Posts - search', () => {
 
       await page.goto(`/posts?searchQuery=${searchTerm}`);
 
+      await page.waitForLoadState();
+
       await expect(
-        page.locator('search').getByRole('searchbox', { name: /search by/i }),
+        page.locator('search').getByRole('textbox', { name: /search by/i }),
       ).toHaveValue(searchTerm);
 
-      //   await checkIfSearchedCorrectly(
-      //     page,
-      //     seededPosts,
-      //     searchTerm,
-      //     loggedInUser,
-      //   );
+      expect(
+        await checkIfSearchedCorrectly(
+          page,
+          seededPosts,
+          searchTerm,
+          loggedInUser,
+        ),
+      ).toBe(true);
     });
   });
 
-  test.describe('Logged in as AUTHOR/MOD', () => {
+  test.describe('Logged in as AUTHOR', () => {
     test.beforeEach(async ({ page }) => {
-      // log in as AUTHOR/MOD
-      await page.goto('/posts');
+      loggedInUser = await loginAsRandomUser(
+        page,
+        users.filter((u) => u.role === 'AUTHOR'),
+      );
+      expect(await checkIfLoggedIn(page)).toBe(true);
     });
-    test.skip("search applies to only the user's posts", () => {});
+
+    test("search applies only to the user's posts", async ({ page }) => {
+      const searchTerm = 'the';
+
+      await page.goto(`/posts?searchQuery=${searchTerm}`);
+
+      await page.waitForLoadState();
+
+      await expect(
+        page.locator('search').getByRole('textbox', { name: /search by/i }),
+      ).toHaveValue(searchTerm);
+
+      expect(
+        await checkIfSearchedCorrectly(
+          page,
+          seededPosts.filter((p) => p.authorId === loggedInUser.id),
+          searchTerm,
+          loggedInUser,
+        ),
+      ).toBe(true);
+    });
+
+    test(`does not leak other users' draft posts when searching 
+      and filtering by DRAFT post status`, async ({ page }) => {
+      test.slow();
+      const commonSearchTerm = 'part';
+      const postsWithSearchTerm = seededPosts.filter((p) =>
+        p.title.toLowerCase().includes(commonSearchTerm),
+      );
+      const uniqueAuthorIds = new Set(
+        postsWithSearchTerm.map((p) => p.authorId),
+      );
+      expect([...uniqueAuthorIds].length).toBeGreaterThan(1);
+
+      const privatePostsByOtherAuthors = postsWithSearchTerm.filter(
+        (p) => p.status === 'DRAFT' && p.authorId !== loggedInUser.id,
+      );
+      expect(privatePostsByOtherAuthors.length).toBeGreaterThan(0);
+
+      await selectPostFilter(page, ['Draft', 'Public', 'Members-only']);
+      await searchForPost(page, commonSearchTerm);
+      expect(
+        await checkIfSearchedCorrectly(
+          page,
+          postsWithSearchTerm,
+          commonSearchTerm,
+          loggedInUser,
+        ),
+      ).toBe(true);
+      for (const unexpected of postsWithSearchTerm.filter(
+        (p) => p.authorId !== loggedInUser.id,
+      )) {
+        await expect(page.getByText(unexpected.title)).not.toBeInViewport();
+      }
+    });
   });
 });

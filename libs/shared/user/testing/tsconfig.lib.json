@@ -14,16 +14,22 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
+      "path": "../../util/shared-constants/tsconfig.lib.json"
+    },
+    {
       "path": "../dtos/tsconfig.lib.json"
     },
     {
-      "path": "../../util/api-types/tsconfig.lib.json"
+      "path": "../../util/helpers/tsconfig.lib.json"
     },
     {
       "path": "../../../api/data-access/user/tsconfig.lib.json"
     },
     {
       "path": "../../../prisma-schema/tsconfig.lib.json"
+    },
+    {
+      "path": "../../util/api-types/tsconfig.lib.json"
     }
   ]
 }

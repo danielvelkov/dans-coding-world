@@ -1,6 +1,6 @@
-import { Post, Profile, User } from '@dans-coding-world/prisma-schema';
+import type { Post, Profile, User } from '@dans-coding-world/prisma-schema';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
-import { UserDetail } from '@dans-coding-world/user-data-access';
+import type { UserDetail } from '@dans-coding-world/user-data-access';
 import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
@@ -64,8 +64,8 @@ describe('User - login', () => {
               list.some(
                 (c) =>
                   c.startsWith(ACCESS_TOKEN_COOKIE) ||
-                  c.startsWith(REFRESH_TOKEN_COOKIE)
-              ) && list.every((c) => c.includes('HttpOnly'))
+                  c.startsWith(REFRESH_TOKEN_COOKIE),
+              ) && list.every((c) => c.includes('HttpOnly')),
           );
         });
     });
@@ -136,8 +136,8 @@ describe('User - login', () => {
        it navigates back to post on login`, () => {
       const membersOnlyPost = Cypress._.sample(
         testPosts.filter(
-          (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
-        )
+          (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED',
+        ),
       ) as Post;
 
       if (!membersOnlyPost) throw new Error('Missing members only post');
@@ -164,8 +164,8 @@ describe('User - login', () => {
        it navigates back to post on login`, () => {
       const membersOnlyPost = Cypress._.sample(
         testPosts.filter(
-          (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
-        )
+          (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED',
+        ),
       ) as Post;
 
       if (!membersOnlyPost) throw new Error('Missing members only post');

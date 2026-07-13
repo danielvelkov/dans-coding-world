@@ -42,6 +42,7 @@
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
   });
+
   function open() {
     isClosing = false;
     isOpen = true;
@@ -49,19 +50,21 @@
 
   function close() {
     if (!isOpen) return;
-
     isClosing = true;
   }
 
-  function onTransitionEnd() {
-    if (isClosing) {
+  function onTransitionEnd(e: TransitionEvent) {
+    if (isClosing && e.propertyName === 'height') {
       isClosing = false;
       isOpen = false;
     }
   }
 </script>
 
-<div class="relative w-fit {className ?? ''}">
+<div
+  class="relative w-fit {className ?? ''}"
+  style="height: {collapsedHeight};"
+>
   <div
     bind:this={wrapper}
     class="select-wrapper {isOpen ? 'open' : ''} {isClosing ? 'closing' : ''}"
@@ -80,21 +83,23 @@
       {...restProps}
       multiple
       title="Hold Ctrl (Cmd on Mac) to select multiple"
-      class="native-select font-medium text-gray-700
-       disabled:cursor-not-allowed border border-gray-200
-        bg-white shadow-sm transition-all duration-200 focus:ring-2
-                   hover:bg-gray-100
-                   focus:bg-blue-600 focus:text-white
-                   checked:bg-blue-50 checked:text-blue-700
+      class="native-select font-medium text-(--color-text-primary) rounded-sm
+       disabled:cursor-not-allowed border border-(--color-border-default)
+       bg-(--color-bg-surface) shadow-xs transition-all duration-200
+       focus:ring-2 focus:ring-(--color-focus-ring) focus:border-(--color-border-focus)
+       hover:bg-(--color-bg-surface-hover)
+       focus:bg-(--color-accent) focus:text-(--color-text-on-accent)
+       checked:bg-(--color-accent-subtle) checked:text-(--color-accent)
 "
     >
-      {#each items as { value, label }}
+      {#each items as { value, label } (label)}
         {#if option}
           {@render option(label, value)}
         {:else}
           <option
             value={typeof value === 'object' ? JSON.stringify(value) : value}
-            class="option-row"
+            class="option-row p-2 text-sm text-(--color-text-primary)
+             checked:bg-(--color-accent-subtle) checked:text-(--color-accent)"
           >
             <span class="line-clamp-1">
               {label}
@@ -105,8 +110,8 @@
     </select>
   </div>
   <i
-    class="fa fa-caret-down chevron-hint text-gray-400"
-    // you can toggle class like this
+    class="fa fa-chevron-down chevron-hint text-(--color-text-tertiary)
+     absolute right-1.5 top-[35%] z-10"
     class:hidden={isOpen || isClosing}
     aria-hidden="true"
   ></i>
@@ -114,25 +119,29 @@
 
 <style>
   .select-wrapper {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     overflow: hidden;
     height: var(--collapsed-height);
-    transition: 0.4s height;
+    transition:
+      height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
   }
 
-  /* OPEN state */
   .select-wrapper.open {
-    width: 100%;
-    position: absolute;
     z-index: 20;
-    top: calc(var(--collapsed-height) * -0.5);
+    top: calc(
+      var(--collapsed-height) * -0.1
+    ); /* Slight elevation offset if needed, or set to 0 */
     height: var(--expanded-height);
   }
 
-  /* CLOSING state - trigger the transition back */
   .select-wrapper.closing {
     height: var(--collapsed-height);
-    position: absolute; /* Keep absolute positioning during collapse */
+    top: 0;
     z-index: 20;
   }
 
@@ -140,8 +149,6 @@
     appearance: base-select;
     width: 100%;
     height: 100%;
-    border: 1px solid #d1d5db;
-    background: white;
     overflow: hidden;
   }
 
@@ -149,9 +156,6 @@
     padding: 0.5rem 1rem;
   }
 
-  .option-row:hover {
-    background: #f3e8ff;
-  }
   option::checkmark {
     order: 1;
     margin-left: auto;
@@ -159,9 +163,6 @@
   }
 
   .chevron-hint {
-    position: absolute;
-    bottom: 30%;
-    right: 6px;
     pointer-events: none;
     transition: opacity 0.2s;
   }

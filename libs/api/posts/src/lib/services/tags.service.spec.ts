@@ -10,15 +10,17 @@ import {
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
 import {
-  Post,
-  PostOrderByInput,
   PostStatusEnum,
   PostVisibilityEnum,
+  client,
+} from '@dans-coding-world/prisma-schema';
+import type {
+  Post,
+  PostOrderByInput,
   PostWhereInput,
   Tag,
   TagWhereInput,
   User,
-  client,
 } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import { PrismaPostDataAccess as MockPostRepository } from '@dans-coding-world/post-data-access';
@@ -115,7 +117,7 @@ describe('TagsService', () => {
       expect.assertions(1);
       return tagsService.getById({ tagId: 999 }).catch((error) => {
         expect(error.message).toMatch(
-          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
         );
       });
     });
@@ -128,7 +130,7 @@ describe('TagsService', () => {
       expect.assertions(1);
       return tagsService.getById({ tagId: id as any }).catch((error) => {
         expect(error.message).toMatch(
-          ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+          ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
         );
       });
     });
@@ -145,7 +147,7 @@ describe('TagsService', () => {
         tags.push(
           await mockTagsRepo.create({
             name: 'tag-' + i,
-          })
+          }),
         );
 
       const statuses = [...Object.values(PostStatusEnum)];
@@ -200,21 +202,21 @@ describe('TagsService', () => {
 
       await attachTagsToPostsEvenly(
         publishedPosts,
-        tags.filter((_, i) => i < NUM_OF_TAGS / 2)
+        tags.filter((_, i) => i < NUM_OF_TAGS / 2),
       );
       const privateAuthorPosts = posts.filter(
-        (p) => p.status !== 'PUBLISHED' && p.authorId === author.id
+        (p) => p.status !== 'PUBLISHED' && p.authorId === author.id,
       );
 
       await attachTagsToPostsEvenly(
         privateAuthorPosts,
-        tags.filter((_, i) => i > NUM_OF_TAGS / 2)
+        tags.filter((_, i) => i > NUM_OF_TAGS / 2),
       );
 
       const res = await tagsService.getAll({ viewerId: author.id });
 
       expect(res.items.length).toBe(
-        privateAuthorPosts.length + publishedPosts.length
+        privateAuthorPosts.length + publishedPosts.length,
       );
     });
   });
@@ -275,7 +277,7 @@ describe('TagsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.TAG_EXISTS]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.TAG_EXISTS],
           );
         });
     });
@@ -365,7 +367,7 @@ describe('TagsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.TAG_EXISTS]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.TAG_EXISTS],
           );
         });
     });
@@ -376,7 +378,7 @@ describe('TagsService', () => {
         .update({ tagId: 999, name: 'new-tag' })
         .catch((error) => {
           expect(error.message).toBe(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -397,7 +399,7 @@ describe('TagsService', () => {
       expect.assertions(1);
       return tagsService.delete({ tagId: 999 }).catch((error) => {
         expect(error.message).toBe(
-          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
         );
       });
     });

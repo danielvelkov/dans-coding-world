@@ -1,0 +1,67 @@
+:root.dark {
+	/* Background */
+	--color-bg-base: #0f0f14; /* near-black */
+	--color-bg-elevated: #1a1a22; /* dark surface */
+	--color-bg-surface: #1f1f28; /* panel surface */
+	--color-bg-surface-hover: #2a2a35; /* hover */
+	--color-bg-surface-active: #34343f; /* active */
+	--color-bg-muted: #2d2d38; /* muted surface */
+	--color-bg-overlay: rgba(0, 0, 0, 0.6);
+
+	/* Text */
+	--color-text-primary: #f3f4f6; /* grey-100 */
+	--color-text-secondary: #9ca3af; /* grey-400 */
+	--color-text-tertiary: #6b7280; /* grey-500 */
+	--color-text-muted: #4b5563; /* grey-600 */
+	--color-text-inverse: #ffffff; /* white */
+	--color-text-on-accent: #ffffff;
+
+	/* Border */
+	--color-border-subtle: #2d2d38; /* dark grey */
+	--color-border-default: #3b3b46; /* mid grey */
+	--color-border-emphasis: #4b4b57; /* lighter grey */
+	--color-border-focus: #8b5cf6; /* violet-500 */
+
+	/* Accent / Primary */
+	--color-accent: #8b5cf6; /* violet-500 */
+	--color-accent-hover: #7c3aed; /* violet-600 */
+	--color-accent-muted: #a78bfa; /* violet-400 */
+	--color-accent-subtle: rgba(139, 92, 246, 0.15);
+	--color-accent-glow: rgba(139, 92, 246, 0.3);
+
+	/* Success */
+	--color-success: #22c55e; /* green-500 */
+	--color-success-muted: #16a34a; /* green-600 */
+	--color-success-bg: rgba(34, 197, 94, 0.12);
+	--color-success-border: rgba(34, 197, 94, 0.25);
+
+	/* Warning */
+	--color-warning: #f59e0b; /* amber-500 */
+	--color-warning-muted: #d97706; /* amber-600 */
+	--color-warning-bg: rgba(245, 158, 11, 0.12);
+	--color-warning-border: rgba(245, 158, 11, 0.25);
+
+	/* Error */
+	--color-error: #ef4444; /* red-500 */
+	--color-error-muted: #dc2626; /* red-600 */
+	--color-error-bg: rgba(239, 68, 68, 0.12);
+	--color-error-border: rgba(239, 68, 68, 0.25);
+
+	/* Info */
+	--color-info: #3b82f6; /* blue-500 */
+	--color-info-muted: #2563eb; /* blue-600 */
+	--color-info-bg: rgba(59, 130, 246, 0.12);
+	--color-info-border: rgba(59, 130, 246, 0.25);
+
+	/* Interactive */
+	--color-link: #8b5cf6; /* violet-500 */
+	--color-link-hover: #7c3aed; /* violet-600 */
+	--color-focus-ring: rgba(139, 92, 246, 0.35);
+
+	/* Gradients */
+	--gradient-brand: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+
+	--gradient-surface: linear-gradient(180deg, #1f1f28 0%, #0f0f14 100%);
+
+	--gradient-glow: radial-gradient(circle at center, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+}

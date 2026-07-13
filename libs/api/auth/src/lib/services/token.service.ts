@@ -1,6 +1,6 @@
 import { Injectable, Inject } from 'injection-js';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
+import type { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 import {
   ITokenService,
   TokenOptions,
@@ -28,7 +28,7 @@ export class TokenService implements ITokenService {
     @Inject(AUTH_CONFIG_TOKEN)
     private authConfig: AuthConfiguration,
     @Inject(REFRESH_TOKEN_REPOSITORY_TOKEN)
-    private refreshTokens: IRefreshTokenRepository
+    private refreshTokens: IRefreshTokenRepository,
   ) {}
 
   generateAccessToken(
@@ -36,7 +36,7 @@ export class TokenService implements ITokenService {
     options: TokenOptions = {
       secret: this.authConfig.options.accessSecret,
       expiresIn: this.authConfig.options.accessExpiration,
-    }
+    },
   ): string {
     return jwt.sign(payload, options.secret, {
       expiresIn: options.expiresIn,
@@ -49,7 +49,7 @@ export class TokenService implements ITokenService {
     options: TokenOptions = {
       secret: this.authConfig.options.refreshSecret,
       expiresIn: this.authConfig.options.refreshExpiration,
-    }
+    },
   ): string {
     return jwt.sign(user, options.secret, {
       expiresIn: options.expiresIn,
@@ -63,7 +63,7 @@ export class TokenService implements ITokenService {
     options: TokenOptions = {
       secret: this.authConfig.options.refreshSecret,
       expiresIn: this.authConfig.options.refreshExpiration,
-    }
+    },
   ) {
     return jwt.verify(token, options.secret) as jwt.JwtPayload;
   }
@@ -97,14 +97,14 @@ export class TokenService implements ITokenService {
 
     return await this.refreshTokens.updateMany(
       { userId: dto.userId, revoked: false },
-      { revoked: true }
+      { revoked: true },
     );
   }
 
   async revokeAllRefreshTokens(): Promise<number> {
     return await this.refreshTokens.updateMany(
       { revoked: false },
-      { revoked: true }
+      { revoked: true },
     );
   }
 }

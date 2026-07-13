@@ -1,4 +1,25 @@
 @import 'tailwindcss';
+@import '../styles/_index.css';
+
+@layer base {
+	* {
+		border-color: var(--color-border-default);
+	}
+
+	body {
+		background-color: var(--color-bg-base);
+		color: var(--color-text-primary);
+		font-family: var(--font-sans);
+		line-height: var(--leading-normal);
+	}
+
+	input {
+		color: var(--color-text-primary);
+	}
+}
+
 /* You have to do this for every lib... */
+@source '../../../../libs/blog-admin/features/user-login/src';
 @source '../../../../libs/blog-admin/features/posts-manager/src';
 @source '../../../../libs/blog-admin/ui/common/src';
+@source '../../../../libs/blog-admin/ui/errors/src';

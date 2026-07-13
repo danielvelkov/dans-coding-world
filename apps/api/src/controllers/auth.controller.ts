@@ -24,7 +24,7 @@ export class AuthController {
   constructor(
     private authService: IAuthService,
     private registrationService: IRegistrationService,
-    private tokenService: ITokenService
+    private tokenService: ITokenService,
   ) {
     this.logout = this.logout.bind(this);
     this.revokeToken = this.revokeToken.bind(this);
@@ -51,9 +51,8 @@ export class AuthController {
     try {
       const loginDto: LoginDto = req.body;
 
-      const { accessToken, refreshToken, user } = await this.authService.login(
-        loginDto
-      );
+      const { accessToken, refreshToken, user } =
+        await this.authService.login(loginDto);
 
       res.cookie(ACCESS_TOKEN_COOKIE, accessToken, {
         httpOnly: true,
@@ -78,16 +77,16 @@ export class AuthController {
     try {
       const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE];
 
-      await this.tokenService.revokeRefreshToken({
-        token: refreshToken,
-      });
-
       // Clear cookies
       res.clearCookie(ACCESS_TOKEN_COOKIE, {
         httpOnly: true,
       });
       res.clearCookie(REFRESH_TOKEN_COOKIE, {
         httpOnly: true,
+      });
+
+      await this.tokenService.revokeRefreshToken({
+        token: refreshToken,
       });
 
       return res
@@ -137,9 +136,8 @@ export class AuthController {
         ...req.body,
       };
 
-      const revokedToken = await this.tokenService.revokeRefreshToken(
-        refreshTokenDto
-      );
+      const revokedToken =
+        await this.tokenService.revokeRefreshToken(refreshTokenDto);
 
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.AUTH.revoke,

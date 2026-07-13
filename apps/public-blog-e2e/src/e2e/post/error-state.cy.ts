@@ -1,7 +1,7 @@
-import { Post, Profile, User } from '@dans-coding-world/prisma-schema';
+import type { Post, Profile, User } from '@dans-coding-world/prisma-schema';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateMockPostResponse } from '@dans-coding-world/shared-post-testing';
-import { UserDetail } from '@dans-coding-world/user-data-access';
+import type { UserDetail } from '@dans-coding-world/user-data-access';
 
 describe('Post - error state', () => {
   let testPosts: Post[];

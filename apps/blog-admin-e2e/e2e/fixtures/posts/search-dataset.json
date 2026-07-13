@@ -48,5 +48,55 @@
     "status": "ARCHIVED",
     "visibility": "PUBLIC",
     "authorId": 1
+  },
+  {
+    "title": "Understanding SvelteKit Load Functions",
+    "content": "A practical introduction to SvelteKit load functions and how they shape data flow in modern applications.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 4
+  },
+  {
+    "title": "Mastering Async Patterns in JavaScript",
+    "content": "A deep dive into promises, async/await, and how to write predictable asynchronous code.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 4
+  },
+  {
+    "title": "Svelte Reactivity Explained",
+    "content": "An accessible explanation of Svelte’s reactivity model and how it differs from traditional frameworks.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 4
+  },
+  {
+    "title": "Debugging 403 Forbidden Errors: Part 4",
+    "content": "Common causes of 403 errors and a structured approach to diagnosing and resolving them.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "DRAFT",
+    "visibility": "PUBLIC",
+    "authorId": 4
+  },
+  {
+    "title": "Playwright Clock API Overview",
+    "content": "How to control and manipulate time in Playwright tests using the Clock API.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "status": "ARCHIVED",
+    "visibility": "PUBLIC",
+    "authorId": 4
   }
 ]

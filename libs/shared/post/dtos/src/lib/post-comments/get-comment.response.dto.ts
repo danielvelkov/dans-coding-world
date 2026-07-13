@@ -1,4 +1,4 @@
-import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
+import type { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 
 export class GetCommentResponseDto {
   comment: CommentWithReplies;

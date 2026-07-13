@@ -1,16 +1,17 @@
-import { client,  Comment } from '@dans-coding-world/prisma-schema';
-import comments from '../data/posts-comments.json' with {type: "json"};
+import { client } from '@dans-coding-world/prisma-schema';
+import type { Comment } from '@dans-coding-world/prisma-schema';
+import comments from '../data/posts-comments.json' with { type: 'json' };
 import { SeedOptions } from './types/seed-options.js';
 
 /**
  * @description ⚠️ **Test-only method.** This function is intended for development and testing purposes only.
- * 
+ *
  * **🚨 Do not use in production.** It will delete existing comments data.
- * 
- * @param customComments Comments to create. 
+ *
+ * @param customComments Comments to create.
  * Make sure the authors of the comments and the posts exist, otherwise an error will be thrown
  * @param options Seed options for whether to reset the 'Comment' table and/or use default comment data
- * 
+ *
  * *DEFAULT DATA*:
  * - Comments on posts with Id from 1-10;
  * - From users with ids 1, 2 or 3
@@ -18,11 +19,11 @@ import { SeedOptions } from './types/seed-options.js';
  */
 export const seedComments = async (
   customComments?: Comment[],
-  options: SeedOptions = { clearExisting: true, useDefaults: true }
+  options: SeedOptions = { clearExisting: true, useDefaults: true },
 ): Promise<Comment[]> => {
   if (!(process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_e2e'))
     throw new Error(
-      'Not in test environment. Check your test setup configuration.'
+      'Not in test environment. Check your test setup configuration.',
     );
   try {
     const seeded: Comment[] = [];
@@ -52,7 +53,5 @@ export const seedComments = async (
 
 const createAndReturnCommentsWithId = async (comments: any[]) => {
   if (!comments.length) return [];
-  return await client.comment.createManyAndReturn(
-    { data: comments }
-  );
+  return await client.comment.createManyAndReturn({ data: comments });
 };

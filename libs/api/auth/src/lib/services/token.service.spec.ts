@@ -6,7 +6,8 @@ import {
 } from './token.service.js';
 import crypto from 'crypto';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { client, User } from '@dans-coding-world/prisma-schema';
+import { client } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import { config } from '../config/auth.config.js';
 import { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
@@ -45,7 +46,7 @@ describe('Token service', () => {
           expiresIn: 1,
         }),
       tokenSecret,
-      payload
+      payload,
     );
 
     testJwtGeneration(
@@ -56,7 +57,7 @@ describe('Token service', () => {
           expiresIn: 1,
         }),
       tokenSecret,
-      payload
+      payload,
     );
 
     it('should throw when secret is empty', async () => {
@@ -128,7 +129,7 @@ describe('Token service', () => {
         .revokeRefreshToken({ token: randomToken })
         .catch((err) => {
           expect(err.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.AUTH.TOKEN_NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.AUTH.TOKEN_NOT_FOUND],
           );
         });
     });
@@ -139,7 +140,7 @@ describe('Token service', () => {
         .revokeRefreshToken({ token: 'bad.token' })
         .catch((err) => {
           expect(err.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
           );
         });
     });
@@ -154,8 +155,8 @@ describe('Token service', () => {
       expect(count).toBe(2);
       expect(
         (await mockRefreshTokenRepo.getUserTokens(TEST_USER_ID))?.some(
-          (t) => !t.revoked
-        )
+          (t) => !t.revoked,
+        ),
       ).toBe(false);
     });
 
@@ -166,7 +167,7 @@ describe('Token service', () => {
       expect(mockRefreshTokenRepo.updateMany).toHaveBeenCalledTimes(1);
       expect(count).toBe(3);
       expect(
-        (await mockRefreshTokenRepo.getAll())?.some((t) => !t.revoked)
+        (await mockRefreshTokenRepo.getAll())?.some((t) => !t.revoked),
       ).toBe(false);
     });
   });
@@ -178,7 +179,7 @@ function testJwtGeneration(
   description: string,
   generateToken: (...args: any[]) => string,
   secret: string,
-  payload: any
+  payload: any,
 ) {
   describe(description, () => {
     let token: string;
@@ -197,7 +198,7 @@ function testJwtGeneration(
 
     it('should provide payload on valid signature', () => {
       expect(jwt.verify(token, secret)).toEqual(
-        expect.objectContaining(payload)
+        expect.objectContaining(payload),
       );
     });
 

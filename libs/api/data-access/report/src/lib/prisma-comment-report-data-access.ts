@@ -1,8 +1,8 @@
-import {
+import { client } from '@dans-coding-world/prisma-schema';
+import type {
   Report,
   ReportWhereInput,
   ReportOrderByInput,
-  client,
   User,
   Comment,
   ReportHistory,
@@ -15,9 +15,11 @@ export type ReportDetail = Report & {
   history: ReportHistory[];
 };
 
-export class PrismaCommentReportDataAccess
-  implements IReportRepository<Report, ReportWhereInput, ReportOrderByInput>
-{
+export class PrismaCommentReportDataAccess implements IReportRepository<
+  Report,
+  ReportWhereInput,
+  ReportOrderByInput
+> {
   async getById(id: number): Promise<Report | null> {
     return await client.report.findFirst({
       where: { id },
@@ -61,7 +63,7 @@ export class PrismaCommentReportDataAccess
     options?: {
       skip?: number;
       take?: number;
-    }
+    },
   ): Promise<Report[]> {
     return await client.report.findMany({
       where,

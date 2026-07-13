@@ -10,17 +10,19 @@ import {
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
 import {
+  PostStatusEnum,
+  PostVisibilityEnum,
+  client,
+} from '@dans-coding-world/prisma-schema';
+import type {
   Post,
   PostOrderByInput,
   PostStatus,
-  PostStatusEnum,
   PostVisibility,
-  PostVisibilityEnum,
   PostWhereInput,
   PostWithAuthorProfile,
   Role,
   User,
-  client,
 } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import { IPostsService } from '../interfaces/posts-service.interface.js';

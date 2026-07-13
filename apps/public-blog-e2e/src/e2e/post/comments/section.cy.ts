@@ -1,5 +1,10 @@
-import { PostFull } from '@dans-coding-world/post-data-access';
-import { Comment, Post, Profile, User } from '@dans-coding-world/prisma-schema';
+import type { PostFull } from '@dans-coding-world/post-data-access';
+import type {
+  Comment,
+  Post,
+  Profile,
+  User,
+} from '@dans-coding-world/prisma-schema';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
 describe('Comments - section', () => {
@@ -33,7 +38,7 @@ describe('Comments - section', () => {
       options: { useDefaults: true, clearExisting: true },
     }).then((posts) => {
       testPosts = (posts as Post[]).filter(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!testPosts || !testPosts.length)
         throw new Error('Missing post fixtures');
@@ -93,7 +98,7 @@ describe('Comments - section', () => {
         .within(() => {
           cy.get('button').should(
             'contain.text',
-            `View Replies (${replyCount})`
+            `View Replies (${replyCount})`,
           );
         });
     });
@@ -102,12 +107,12 @@ describe('Comments - section', () => {
   it(`renders comment's replies when selecting "view replies"`, () => {
     const randomCommentWithReplies = getRandomRootCommentWithReplies();
     const commentAuthor = testUsers.find(
-      (u) => u.id === randomCommentWithReplies.userId
+      (u) => u.id === randomCommentWithReplies.userId,
     );
     cy.visit(`/blog/${randomCommentWithReplies.postId}`);
     cy.get(`ul[aria-label="Post comments"]`).within(() => {
       const commentReplies = testComments.filter(
-        (c) => c.threadParentId === randomCommentWithReplies.id
+        (c) => c.threadParentId === randomCommentWithReplies.id,
       );
       cy.contains('p', randomCommentWithReplies.content)
         .closest('li')
@@ -129,7 +134,7 @@ describe('Comments - section', () => {
 
   it('should not show replies at max reply depth or deeper', () => {
     const deeplyNestedComment = testComments.find(
-      (c) => c.depth >= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH
+      (c) => c.depth >= COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH,
     );
 
     if (!deeplyNestedComment) throw new Error('Missing test comment');
@@ -150,7 +155,7 @@ describe('Comments - section', () => {
 
   function getRootCommentFromReply(reply: Comment) {
     const parentComment = testComments.find(
-      (c) => c.id === reply.threadParentId
+      (c) => c.id === reply.threadParentId,
     );
     if (!parentComment) return reply;
     else return getRootCommentFromReply(parentComment);
@@ -158,13 +163,13 @@ describe('Comments - section', () => {
 
   function getRandomPostWithComments() {
     return Cypress._.sample(
-      testPosts.filter((p) => testComments.some((c) => c.postId === p.id))
+      testPosts.filter((p) => testComments.some((c) => c.postId === p.id)),
     ) as Post;
   }
 
   function getRootCommentsForPost(postId: number) {
     return testComments.filter(
-      (c) => !c.threadParentId && c.postId === postId
+      (c) => !c.threadParentId && c.postId === postId,
     ) as Comment[];
   }
 
@@ -172,11 +177,11 @@ describe('Comments - section', () => {
     const parentIds = new Set(
       testComments
         .filter((c) => c.threadParentId === null)
-        .map((c) => c.threadParentId)
+        .map((c) => c.threadParentId),
     );
 
     const commentsWithReplies = testComments.filter(
-      (c) => c.threadParentId === null || parentIds.has(c.id)
+      (c) => c.threadParentId === null || parentIds.has(c.id),
     );
 
     return Cypress._.sample(
@@ -184,8 +189,8 @@ describe('Comments - section', () => {
         testPosts
           .filter((p) => p.status === 'PUBLISHED')
           .map((p) => p.id)
-          .includes(c.postId)
-      )
+          .includes(c.postId),
+      ),
     ) as Comment;
   }
 

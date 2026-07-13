@@ -13,19 +13,19 @@ export function errorHandler(
   err: unknown,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (err instanceof ApiException) {
     const response = generateErrorResponse(
       err.statusCode,
       err.errorCode,
       err.message,
-      err.details
+      err.details,
     );
     res.status(err.statusCode).json(response);
   } else {
     const response = generateErrorResponseByErrorCode(
-      ERROR_CODES.SERVER.INTERNAL_ERROR
+      ERROR_CODES.SERVER.INTERNAL_ERROR,
     );
     res
       .status(ERROR_HTTP_STATUS[ERROR_CODES.SERVER.INTERNAL_ERROR])

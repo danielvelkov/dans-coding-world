@@ -1,4 +1,4 @@
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 
 export class LoginResponseDto {
   accessToken: string;

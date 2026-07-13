@@ -1,4 +1,4 @@
-import {
+import type {
   RefreshToken,
   RefreshTokenWhereInput,
 } from '@dans-coding-world/prisma-schema';
@@ -11,7 +11,7 @@ export interface IRefreshTokenRepository {
   update(jti: string, data: Partial<RefreshToken>): Promise<RefreshToken>;
   updateMany(
     where: RefreshTokenWhereInput,
-    data: Partial<RefreshToken>
+    data: Partial<RefreshToken>,
   ): Promise<number>;
   delete(jti: string): Promise<RefreshToken>;
   deleteMany(where: RefreshTokenWhereInput): Promise<number>;

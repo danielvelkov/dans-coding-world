@@ -1,5 +1,10 @@
 import { PostFull } from '@dans-coding-world/post-data-access';
-import { Comment, Post, Profile, User } from '@dans-coding-world/prisma-schema';
+import type {
+  Comment,
+  Post,
+  Profile,
+  User,
+} from '@dans-coding-world/prisma-schema';
 import { formatToRelativeTimeFromNow } from '@dans-coding-world/helpers';
 
 describe('Comments - details', () => {
@@ -33,7 +38,7 @@ describe('Comments - details', () => {
       options: { useDefaults: true, clearExisting: true },
     }).then((posts) => {
       testPosts = (posts as Post[]).filter(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!testPosts || !testPosts.length)
         throw new Error('Missing post fixtures');
@@ -83,7 +88,7 @@ describe('Comments - details', () => {
       .find('time')
       .should(
         'have.text',
-        formatToRelativeTimeFromNow(new Date(comment.createdAt))
+        formatToRelativeTimeFromNow(new Date(comment.createdAt)),
       );
   });
 
@@ -101,13 +106,13 @@ describe('Comments - details', () => {
 
   function getRandomPostWithComments() {
     return Cypress._.sample(
-      testPosts.filter((p) => testComments.some((c) => c.postId === p.id))
+      testPosts.filter((p) => testComments.some((c) => c.postId === p.id)),
     ) as Post;
   }
 
   function getRandomRootCommentForPost(postId: number) {
     return Cypress._.sample(
-      testComments.filter((c) => !c.threadParentId && c.postId === postId)
+      testComments.filter((c) => !c.threadParentId && c.postId === postId),
     ) as Comment;
   }
 

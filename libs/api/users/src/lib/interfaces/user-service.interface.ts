@@ -1,4 +1,4 @@
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import {
   DeleteUserDto,
   ChangePasswordDto,
@@ -7,6 +7,8 @@ import {
   ChangeRoleDto,
   ChangeBanStatusDto,
   GetUserResponseDto,
+  GetUsersDto,
+  GetUsersResponseDto,
 } from '@dans-coding-world/shared-user-dto';
 /**
  * Service for user related actions.
@@ -26,6 +28,28 @@ import {
  * ```
  */
 export interface IUserService {
+  /**
+   * Retrieves a paginated and filterable list of users.
+   *
+   * Supports filtering, sorting, pagination, and text search by username
+   *
+   * **Filtering options:**
+   * - By role (MOD, ADMIN, USER, AUTHOR)
+   * - By isBanned status
+   *
+   * **Sorting options:**
+   * - By username (asc: A-Z, desc: Z-A)
+   *
+   * @param dto - Optional request parameters including  pagination, sorting, filtering, and search query
+   * @returns Paginated response containing users, total count, and pagination metadata
+   *
+   * @example
+   * ```typescript
+   * const {items, pagination, count} = await userService.getAll({ limit: 10, page: 1, viewerId: 1, searchQuery: 'user12'  });
+   * ```
+   */
+  getAll(dto?: GetUsersDto): Promise<GetUsersResponseDto>;
+
   /**
    * Retrieves a user by its unique identifier along with its profile data.
    *

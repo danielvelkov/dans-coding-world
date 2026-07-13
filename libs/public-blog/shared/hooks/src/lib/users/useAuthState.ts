@@ -1,4 +1,4 @@
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import { noop, useMutation } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import {

@@ -1,5 +1,6 @@
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
 const { join } = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   output: {
@@ -17,6 +18,18 @@ module.exports = {
       outputHashing: 'none',
       generatePackageJson: true,
       sourceMap: false,
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: join(
+            __dirname,
+            '../../libs/prisma-schema/src/generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node',
+          ),
+          to: '.',
+          noErrorOnMissing: false,
+        },
+      ],
     }),
   ],
   ignoreWarnings: [

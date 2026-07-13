@@ -16,7 +16,8 @@ import {
 import { PrismaUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
 import { PrismaRefreshTokenDataAccess as MockRefreshTokenRepository } from '@dans-coding-world/token-data-access';
 import { hashPassword } from '@dans-coding-world/helpers';
-import { User, client } from '@dans-coding-world/prisma-schema';
+import { client } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import { decode, JwtPayload } from 'jsonwebtoken';
 
 let mockUserRepo: IUserRepository;
@@ -190,7 +191,7 @@ describe('Auth service', () => {
       return authService
         .refreshToken({ token: mockToken })
         .catch((error) =>
-          expect(error.message).toMatch(/invalid or expired token/i)
+          expect(error.message).toMatch(/invalid or expired token/i),
         );
     });
     it('should throw if refresh token is expired', async () => {

@@ -21,7 +21,7 @@
   value={currentValue}
   items={values.map((v) => ({ label: `${v} rows`, value: v }))}
   aria-label="Rows per page"
-  class="px-3 py-2 border border-gray-300 rounded-sm bg-white text-sm
-         focus:outline-none focus:ring-2 focus:ring-blue-500"
+  class="px-3 py-2 border rounded-sm text-(--color-text-primary) text-sm bg-(--color-bg-surface)
+         focus:outline-none focus:ring-2 focus:ring-(--color-focus-ring)"
   onchange={handleChange}
 ></Select>

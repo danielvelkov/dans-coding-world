@@ -10,6 +10,7 @@
       "vitest"
     ],
     "module": "nodenext",
+    "lib": ["DOM"],
     "moduleResolution": "nodenext",
     "forceConsistentCasingInFileNames": true
   },

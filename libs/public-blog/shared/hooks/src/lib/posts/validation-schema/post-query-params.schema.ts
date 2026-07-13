@@ -4,7 +4,7 @@ import {
   POST_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
 import { defaultFilters } from '../utils/merge-post-query-defaults';
-import { PostVisibility } from '@dans-coding-world/prisma-schema';
+import type { PostVisibility } from '@dans-coding-world/prisma-schema';
 
 export const PostQueryParams = z
   .object({
@@ -23,10 +23,10 @@ export const PostQueryParams = z
                   message: 'Array items must be unique',
                 });
             })
-            .default(defaultFilters.filterBy?.visibility as PostVisibility[])
+            .default(defaultFilters.filterBy?.visibility as PostVisibility[]),
         ),
         status: z.tuple([z.literal('PUBLISHED')]).optional(),
-      })
+      }),
     ),
     sortBy: z.optional(
       z
@@ -35,7 +35,7 @@ export const PostQueryParams = z
           publishedAt: z.enum(['asc', 'desc']),
         })
         .partial()
-        .default({ ...defaultFilters.sortBy })
+        .default({ ...defaultFilters.sortBy }),
     ),
     searchQuery: z.optional(z.string().max(POST_CONSTRAINTS.MAX_TITLE_LENGTH)),
     pageSize: z.optional(
@@ -44,10 +44,10 @@ export const PostQueryParams = z
         .pipe(
           z.union(
             PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS.map((size) =>
-              z.literal(size)
-            )
-          )
-        )
+              z.literal(size),
+            ),
+          ),
+        ),
     ),
     pageOffset: z.optional(z.coerce.number()),
   })
@@ -65,7 +65,7 @@ export const PostQueryParams = z
     {
       path: ['pageOffset'],
       error: 'if pageSize specified - offset must be divisible by pageSize',
-    }
+    },
   )
   .transform((data) => ({
     ...data,

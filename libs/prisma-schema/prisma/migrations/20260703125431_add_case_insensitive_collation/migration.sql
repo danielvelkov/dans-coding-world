@@ -1,0 +1,3 @@
+ALTER TABLE "User"
+  ALTER COLUMN "username"
+  SET DATA TYPE text COLLATE "C";

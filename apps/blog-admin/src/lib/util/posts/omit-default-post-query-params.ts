@@ -23,5 +23,8 @@ export const omitDefaultPostQueryParams = (
 	)
 		delete filteredValues.filterBy.visibility;
 	if (!isAdmin) delete filteredValues.filterBy?.userId;
+	if (filteredValues.pageOffset !== undefined && filteredValues.pageOffset === 0)
+		delete filteredValues.pageOffset;
+
 	return filteredValues;
 };

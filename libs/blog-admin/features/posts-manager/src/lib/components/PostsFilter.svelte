@@ -63,6 +63,8 @@
 
     onChange({ status: finalStatus, visibility: finalVisibility });
   }}
+  data-testid="filter-posts"
+  collapsedHeight="2.7em"
 >
   {#snippet option(label, value)}
     {@const isStatus = STATUS_VALUES.includes(value as PostStatus)}
@@ -84,11 +86,14 @@
       currentVisibility.includes(value as PostVisibility)}
 
     <option
-      class="p-[.9em] cursor-pointer text-gray-700
-        {isStatus ? 'border-l-3 border-blue-400 pl-3' : ''}
-        {isVisibility ? 'border-l-3 border-purple-400 pl-3' : ''}
-        checked:bg-blue-50 checked:text-blue-700 checked:font-bold
-        {isLastInGroup ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}"
+      class="p-[.8em] cursor-pointer bg-(--color-bg-surface)
+        {isStatus ? 'border-l-3 border-(--color-info) pl-3' : ''}
+        {isVisibility ? 'border-l-3 border-(--color-link) pl-3' : ''}
+         text-(--color-text-primary) checked:text-(--color-accent)
+        checked:bg-(--color-accent-subtle)
+        {isLastInGroup
+        ? 'opacity-50 cursor-not-allowed'
+        : 'hover:bg-(--color-bg-surface-hover)'}"
       title={isLastInGroup ? 'At least one must remain selected' : undefined}
       disabled={isLastInGroup}
       {selected}

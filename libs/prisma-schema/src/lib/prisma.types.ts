@@ -16,6 +16,7 @@ export type {
 } from '../generated/prisma/client.js';
 
 export type UserWhereInput = Prisma.UserWhereInput;
+export type UserOrderByInput = Prisma.UserOrderByWithRelationInput;
 export type RefreshTokenWhereInput = Prisma.RefreshTokenWhereInput;
 export type PostWhereInput = Prisma.PostWhereInput;
 export type PostOrderByInput = Prisma.PostOrderByWithRelationInput;

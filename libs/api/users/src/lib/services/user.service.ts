@@ -1,10 +1,16 @@
-import { User, client } from '@dans-coding-world/prisma-schema';
+import {
+  User,
+  UserOrderByInput,
+  UserWhereInput,
+  client,
+} from '@dans-coding-world/prisma-schema';
 import { Inject, Injectable } from 'injection-js';
 import type { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { transformAndValidateDto } from '@dans-coding-world/validation';
 import { ApiException } from '@dans-coding-world/exceptions';
 import {
   ERROR_CODES,
+  PAGINATION,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
 import {
@@ -23,6 +29,8 @@ import {
   ChangeRoleDto,
   GetUserResponseDto,
   AvatarImageDto,
+  GetUsersDto,
+  GetUsersResponseDto,
 } from '@dans-coding-world/shared-user-dto';
 import { UserDetail } from '@dans-coding-world/user-data-access';
 import type { IStorageProvider } from '@dans-coding-world/api-file-storage';
@@ -40,7 +48,7 @@ export class UserService implements IUserService {
     @Inject(USER_REPOSITORY_TOKEN)
     public users: IUserRepository,
     @Inject(STORAGE_PROVIDER_TOKEN)
-    public storageProvider: IStorageProvider
+    public storageProvider: IStorageProvider,
   ) {}
 
   async getById(dto: GetUserDto): Promise<GetUserResponseDto> {
@@ -62,10 +70,49 @@ export class UserService implements IUserService {
     const filteredUser = this.filterUserData(
       user,
       true,
-      !isAuthor && !hasElevatedPrivileges
+      !isAuthor && !hasElevatedPrivileges,
     );
 
     return { user: filteredUser };
+  }
+
+  async getAll(dto?: GetUsersDto): Promise<GetUsersResponseDto> {
+    if (dto) dto = await transformAndValidateDto(dto, GetUsersDto);
+
+    const where = await this.buildUsersWhereClause(
+      dto?.filterBy,
+      dto?.searchQuery,
+    );
+
+    const orderBy = { ...dto?.sortBy } as UserOrderByInput;
+
+    const [users, total] = await Promise.all([
+      this.users.search(where, orderBy, {
+        skip: dto?.pageOffset ?? 0,
+        take: dto?.pageSize ?? PAGINATION.USERS.DEFAULT_ITEMS_PER_PAGE,
+      }),
+      this.users.count(where),
+    ]);
+
+    const usersPerPage =
+      dto?.pageSize ?? PAGINATION.USERS.DEFAULT_ITEMS_PER_PAGE;
+    const currentPage = Math.floor((dto?.pageOffset ?? 0) / usersPerPage) + 1;
+    const totalPages = Math.ceil(total / usersPerPage);
+
+    const finalResults = users.map((u) => this.filterUserData(u, true, false));
+
+    return {
+      items: finalResults,
+      count: users.length,
+      pagination: {
+        total,
+        limit: usersPerPage,
+        page: currentPage,
+        totalPages,
+        hasNext: currentPage < totalPages,
+        hasPrev: currentPage > 1,
+      },
+    };
   }
 
   async update(dto: UpdateUserDto): Promise<GetUserResponseDto> {
@@ -132,7 +179,7 @@ export class UserService implements IUserService {
 
     const isNewPasswordSameAsOldPassword = await validPassword(
       dto.newPassword,
-      user.password
+      user.password,
     );
 
     if (isNewPasswordSameAsOldPassword)
@@ -155,7 +202,7 @@ export class UserService implements IUserService {
     if (user.role === dto.role)
       throw new ApiException(
         ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-        VALIDATION_MESSAGES.users.sameRole
+        VALIDATION_MESSAGES.users.sameRole,
       );
 
     if (user.role === 'ADMIN')
@@ -226,7 +273,7 @@ export class UserService implements IUserService {
   private filterUserData(
     user: User | UserDetail,
     hidePrivateFields = false,
-    hideProtectedFields = false
+    hideProtectedFields = false,
   ) {
     return filterObject(
       user,
@@ -236,7 +283,7 @@ export class UserService implements IUserService {
         if (hideProtectedFields && this.PROTECTED_FIELDS.includes(k))
           return false;
         return true;
-      })
+      }),
     );
   }
 
@@ -249,5 +296,41 @@ export class UserService implements IUserService {
         console.debug(`File: (${filePath}) was deleted`);
       });
     }
+  }
+
+  private async buildUsersWhereClause(
+    filters?: GetUsersDto['filterBy'],
+    searchQuery?: string,
+  ): Promise<UserWhereInput> {
+    const clauses: UserWhereInput[] = [];
+    // STEP 1: Check if no filters should be applied
+    if (!filters && !searchQuery) {
+      return {};
+    }
+
+    // STEP 2: Explicit Filters - What DOES the user want to see?
+    if (filters) {
+      // STEP 2.1: Filtering by role
+      if (filters.role) {
+        clauses.push({
+          role: filters.role,
+        });
+      }
+
+      // STEP 2.2: Filtering by whether or not user is banned
+      if (filters.isBanned !== undefined)
+        clauses.push({
+          isBanned: filters.isBanned,
+        });
+    }
+
+    // STEP 3: Search Query
+    if (searchQuery) {
+      clauses.push({
+        username: { contains: searchQuery.trim(), mode: 'insensitive' },
+      });
+    }
+
+    return { AND: clauses };
   }
 }

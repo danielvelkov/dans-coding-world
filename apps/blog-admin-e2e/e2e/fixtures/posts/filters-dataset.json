@@ -4,7 +4,7 @@
     "content": "A step-by-step guide on transitioning your monorepo from Lerna to NX with minimal disruption.",
     "createdAt": "2017-11-05T09:20:00.000Z",
     "publishedAt": "2017-11-06T07:00:00.000Z",
-    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "updatedAt": "2017-11-06T08:15:00.000Z",
     "status": "PUBLISHED",
     "visibility": "PUBLIC",
     "authorId": 1
@@ -13,8 +13,8 @@
     "title": "Tips and tricks (members-only)",
     "content": "Advanced techniques.",
     "createdAt": "2017-11-05T09:20:00.000Z",
-    "publishedAt": "2017-11-06T07:00:00.000Z",
-    "updatedAt": "2017-11-06T07:00:00.000Z",
+    "publishedAt": "2017-11-06T07:10:00.000Z",
+    "updatedAt": "2017-11-06T08:20:00.000Z",
     "status": "PUBLISHED",
     "visibility": "MEMBERS_ONLY",
     "authorId": 1
@@ -24,7 +24,7 @@
     "content": "A new way to create bugs.",
     "createdAt": "2013-11-05T09:20:00.000Z",
     "publishedAt": "2013-11-06T07:00:00.000Z",
-    "updatedAt": "2013-11-06T07:00:00.000Z",
+    "updatedAt": "2013-11-06T09:45:00.000Z",
     "status": "ARCHIVED",
     "visibility": "MEMBERS_ONLY",
     "authorId": 1
@@ -34,7 +34,7 @@
     "content": "New post every friday.",
     "createdAt": "2007-11-05T09:20:00.000Z",
     "publishedAt": "2007-11-06T07:00:00.000Z",
-    "updatedAt": "2007-11-06T07:00:00.000Z",
+    "updatedAt": "2007-11-06T07:30:00.000Z",
     "status": "PUBLISHED",
     "visibility": "PUBLIC",
     "authorId": 1
@@ -43,10 +43,60 @@
     "title": "Working title: Amongooose",
     "content": "There was something i wanted to talk about.",
     "createdAt": "2007-11-05T09:20:00.000Z",
-    "publishedAt": "2007-11-06T07:00:00.000Z",
-    "updatedAt": "2007-11-06T07:00:00.000Z",
+    "publishedAt": "2007-11-06T07:05:00.000Z",
+    "updatedAt": "2007-11-06T08:00:00.000Z",
     "status": "DRAFT",
     "visibility": "PUBLIC",
     "authorId": 1
+  },
+  {
+    "title": "Understanding SvelteKit Load Functions",
+    "content": "A practical introduction to SvelteKit load functions and how they shape data flow in modern applications.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:20:00.000Z",
+    "updatedAt": "2017-11-06T09:00:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 4
+  },
+  {
+    "title": "Mastering Async Patterns in JavaScript",
+    "content": "A deep dive into promises, async/await, and how to write predictable asynchronous code.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:25:00.000Z",
+    "updatedAt": "2017-11-06T09:10:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 4
+  },
+  {
+    "title": "Svelte Reactivity Explained",
+    "content": "An accessible explanation of Svelte’s reactivity model and how it differs from traditional frameworks.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:30:00.000Z",
+    "updatedAt": "2017-11-06T09:20:00.000Z",
+    "status": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "authorId": 4
+  },
+  {
+    "title": "Debugging 403 Forbidden Errors: Part 4",
+    "content": "Common causes of 403 errors and a structured approach to diagnosing and resolving them.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:35:00.000Z",
+    "updatedAt": "2017-11-06T09:25:00.000Z",
+    "status": "DRAFT",
+    "visibility": "PUBLIC",
+    "authorId": 4
+  },
+  {
+    "title": "Playwright Clock API Overview",
+    "content": "How to control and manipulate time in Playwright tests using the Clock API.",
+    "createdAt": "2017-11-05T09:20:00.000Z",
+    "publishedAt": "2017-11-06T07:40:00.000Z",
+    "updatedAt": "2017-11-06T09:30:00.000Z",
+    "status": "ARCHIVED",
+    "visibility": "PUBLIC",
+    "authorId": 4
   }
 ]

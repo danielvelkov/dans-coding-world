@@ -1,5 +1,5 @@
 import { ApiException } from '@dans-coding-world/exceptions';
-import { Role, User } from '@dans-coding-world/prisma-schema';
+import type { Role, User } from '@dans-coding-world/prisma-schema';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { Request, Response, NextFunction } from 'express';
 import { Authorized } from './authorized.guard.js';
@@ -21,14 +21,14 @@ export function RequiredRole(...roles: Role[]) {
   return (
     target: unknown,
     propertyKey: string,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
   ) => {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (
       req: Request,
       res: Response,
-      next: NextFunction
+      next: NextFunction,
     ) {
       const user = req.user as User | undefined;
 

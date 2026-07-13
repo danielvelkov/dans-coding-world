@@ -2,7 +2,8 @@
 import 'reflect-metadata';
 import { IUserService } from '../interfaces/user-service.interface.js';
 import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
-import { User, client, Role, Profile } from '@dans-coding-world/prisma-schema';
+import { client } from '@dans-coding-world/prisma-schema';
+import type { User, Role, Profile } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import {
   PrismaUserDataAccess as MockUserRepository,
@@ -11,6 +12,7 @@ import {
 import {
   ERROR_CODES,
   ERROR_MESSAGES,
+  PAGINATION,
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from '@dans-coding-world/shared-constants';
@@ -21,6 +23,7 @@ import {
   passwordGenerator,
   hashPassword,
   validPassword,
+  sortObjectsByStringProp,
 } from '@dans-coding-world/helpers';
 import {
   IStorageProvider,
@@ -59,10 +62,10 @@ describe('UserService', () => {
 
   beforeAll(async () => {
     initialPasswords = roles.map((_) =>
-      passwordGenerator(USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1)
+      passwordGenerator(USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1),
     );
     hashedPasswords = await Promise.all(
-      initialPasswords.map((pass) => hashPassword(pass))
+      initialPasswords.map((pass) => hashPassword(pass)),
     );
   });
 
@@ -80,8 +83,8 @@ describe('UserService', () => {
           username: `fake${role.toLowerCase()}123`,
           role,
           isBanned: false,
-        })
-      )
+        }),
+      ),
     );
 
     [user, admin, mod, author] = users.map((u, i) => ({
@@ -124,6 +127,232 @@ describe('UserService', () => {
 
   afterEach(() => jest.clearAllMocks());
 
+  describe('getAll()', () => {
+    it(`should return users profile details, excluding password always`, async () => {
+      const res = await userService.getAll({});
+      for (const item of res.items) {
+        expect(item).toHaveProperty('profile');
+        expect(item).not.toHaveProperty('password');
+      }
+    });
+
+    describe('sorting', () => {
+      test.each([
+        ['contain invalid key', { invalidKey: 'asc' }],
+        ['specify invalid direction', { username: 'invalid' }],
+        ['specify valid direction but in the wrong case ', { username: 'ASC' }],
+        ['specify valid direction but in an array', { username: ['asc'] }],
+      ])('should throw when sorting options %s', async (_, sortBy) => {
+        expect.assertions(1);
+
+        return userService
+          .getAll({
+            sortBy: sortBy as any,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(
+              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
+            );
+          });
+      });
+
+      test.each([
+        ['username (ASC)', false],
+        ['username (DESC)', true],
+      ])(
+        'should sort items provided that sorting by %s is applied',
+        async (_, isDescending: boolean) => {
+          const res = await userService.getAll({
+            sortBy: {
+              username: isDescending ? 'desc' : 'asc',
+            },
+          });
+          const sortedItems = [...res.items].sort(
+            sortObjectsByStringProp('username', isDescending ? 'desc' : 'asc'),
+          );
+
+          sortedItems.forEach((user, i) => {
+            expect(user.id).toBe(res.items[i].id);
+          });
+        },
+      );
+    });
+
+    describe('pagination', () => {
+      const pageSizeOptions = PAGINATION.USERS.ITEMS_PER_PAGE_OPTIONS;
+      test.each([
+        ['negative page size', -1, 0],
+        ['negative offset', 10, -1],
+        ['floating point page size', 0.1, 0],
+        ['floating point offset', 10, 2.5],
+        ['string as page size', '0', 0],
+        ['page size that is not allowed', 99, 0],
+      ])('should throw when %s is set', async (_, pageSize, pageOffset) => {
+        expect.assertions(1);
+        // eslint-disable-next-line
+        // @ts-ignore
+        return userService.getAll({ pageSize, pageOffset }).catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
+          );
+        });
+      });
+
+      test.each([
+        [2, pageSizeOptions[0]],
+        [4, pageSizeOptions[0]],
+        [21, pageSizeOptions[1]],
+        [49, pageSizeOptions[2]],
+      ])(
+        'should throw when pagination offset (%s) is not divisible by page size (%s)',
+        async (pageOffset, pageSize) => {
+          expect.assertions(1);
+          return userService.getAll({ pageOffset, pageSize }).catch((error) => {
+            expect(error.message).toMatch(
+              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
+            );
+          });
+        },
+      );
+
+      test.each([
+        [1, 0, pageSizeOptions[0]],
+        [2, pageSizeOptions[0], pageSizeOptions[0]],
+        [3, pageSizeOptions[0] * 2, pageSizeOptions[0]],
+        [2, pageSizeOptions[1], pageSizeOptions[1]],
+      ])(
+        'should return page #%s when [ offset: %s ; pageLimit %s ]',
+        async (expectedPageNum, pageOffset, pageSize) => {
+          const resDto = await userService.getAll({
+            pageOffset,
+            pageSize,
+          });
+          expect(resDto.pagination.limit).toBe(pageSize);
+          expect(resDto.pagination.page).toBe(expectedPageNum);
+        },
+      );
+    });
+
+    describe('filtering by role', () => {
+      test.each(['Moderator', 'usr', 'administrator'])(
+        'should throw when filtering by unknown user role',
+        async (role) => {
+          expect.assertions(1);
+          return userService
+            .getAll({
+              filterBy: {
+                role: role as any,
+              },
+            })
+            .catch((error) => {
+              expect(error.message).toMatch(/failed.*validation/i);
+            });
+        },
+      );
+
+      test(`it should return the correct amount of users when
+         filtering by role`, async () => {
+        for (const role of roles) {
+          const resDto = await userService.getAll({
+            filterBy: {
+              role: role,
+            },
+          });
+          expect(resDto.count).toBe(1);
+          for (const user of resDto.items) expect(user.role).toBe(role);
+        }
+      });
+    });
+
+    describe('filtering by isBanned', () => {
+      test.each([
+        ['is one', 1],
+        ['is zero', 0],
+      ])(
+        'should throw validation error when isBanned %s',
+        async (_, isBanned) => {
+          expect.assertions(1);
+          return userService
+            .getAll({
+              filterBy: {
+                isBanned: isBanned as any,
+              },
+            })
+            .catch((error) => {
+              expect(error.message).toMatch(/failed.*validation/i);
+            });
+        },
+      );
+
+      test(`it should return the correct amount of users when
+         filtering by isBanned`, async () => {
+        const bannedUsers = await Promise.all(
+          new Array({ length: Math.floor(Math.random() * 10) + 1 }).map(
+            (_, i) =>
+              mockUsersRepo.create({
+                email: `bannedFake${i}@gmail.com`,
+                password: `bannedFake${i}Pass`,
+                username: `bannedFake${i}`,
+                role: 'USER',
+                isBanned: true,
+              }),
+          ),
+        );
+
+        const resDto = await userService.getAll({
+          filterBy: {
+            isBanned: true,
+          },
+        });
+        expect(resDto.count).toBe(bannedUsers.length);
+        for (const item of resDto.items) expect(item.isBanned).toBe(true);
+      });
+    });
+
+    describe('searching', () => {
+      test.each([
+        [
+          'too long (longer than a username max length)',
+          generateRandomString(USER_CONSTRAINTS.MAX_USERNAME_LENGTH + 1),
+        ],
+      ])('should throw when the search query is %s', async (_, searchQuery) => {
+        expect.assertions(1);
+        return userService.getAll({ searchQuery }).catch((error) => {
+          expect(error.message).toMatch(
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
+          );
+        });
+      });
+
+      test.each(['user', 'admin', 'mod'])(
+        'should find users by checking if username includes searchQuery (case insensitive)',
+        async (searchQuery) => {
+          const res = await userService.getAll({
+            searchQuery,
+          });
+
+          expect(
+            res.items.every((u) =>
+              u.username.toLowerCase().includes(searchQuery.toLowerCase()),
+            ),
+          ).toBe(true);
+        },
+      );
+
+      test.each([generateRandomString(10), 'tony_hackah'])(
+        `should not return any result when search query (%s) 
+      does not correspond to any username`,
+        async (searchQuery) => {
+          const res = await userService.getAll({
+            searchQuery,
+          });
+
+          expect(res.pagination.total).toBe(0);
+        },
+      );
+    });
+  });
+
   describe('getById()', () => {
     it(`should return user data with profile details, excluding password always
       and removing protected fields like email if no viewerId is provided`, async () => {
@@ -160,7 +389,7 @@ describe('UserService', () => {
         const receivedUser = res.user as UserDetail;
 
         expect(receivedUser.email).toBe(user.email);
-      }
+      },
     );
 
     test.each([
@@ -186,7 +415,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -358,7 +587,7 @@ describe('UserService', () => {
         'first name is too long',
         {
           firstName: generateRandomString(
-            USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH + 1
+            USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH + 1,
           ),
         },
       ],
@@ -366,7 +595,7 @@ describe('UserService', () => {
         'first name is too short',
         {
           firstName: generateRandomString(
-            USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH - 1
+            USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH - 1,
           ),
         },
       ],
@@ -374,7 +603,7 @@ describe('UserService', () => {
         'last name is too long',
         {
           lastName: generateRandomString(
-            USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH + 1
+            USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH + 1,
           ),
         },
       ],
@@ -382,7 +611,7 @@ describe('UserService', () => {
         'last name is too short',
         {
           lastName: generateRandomString(
-            USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH - 1
+            USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH - 1,
           ),
         },
       ],
@@ -485,7 +714,7 @@ describe('UserService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     it('should throw when user with that id does not exist', async () => {
@@ -496,7 +725,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -506,7 +735,7 @@ describe('UserService', () => {
     it(`should update password if new one is
        valid and old password matches current one`, async () => {
       const NEW_PASS = passwordGenerator(
-        USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+        USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1,
       );
       await userService.changePassword({
         userId: user.id,
@@ -522,7 +751,7 @@ describe('UserService', () => {
       // the new password like in registration service
       const isValidPassword = await validPassword(
         NEW_PASS,
-        updatedUser.password
+        updatedUser.password,
       );
       expect(isValidPassword).toBe(true);
     });
@@ -537,7 +766,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toBe(
-            ERROR_MESSAGES[ERROR_CODES.AUTH.INVALID_CREDENTIALS]
+            ERROR_MESSAGES[ERROR_CODES.AUTH.INVALID_CREDENTIALS],
           );
         });
     });
@@ -552,7 +781,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toBe(
-            ERROR_MESSAGES[ERROR_CODES.AUTH.SAME_PASSWORD]
+            ERROR_MESSAGES[ERROR_CODES.AUTH.SAME_PASSWORD],
           );
         });
     });
@@ -567,10 +796,10 @@ describe('UserService', () => {
         .changePassword({
           userId: id as any,
           oldPassword: passwordGenerator(
-            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1,
           ),
           newPassword: passwordGenerator(
-            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1,
           ),
         })
         .catch((error) => {
@@ -618,7 +847,7 @@ describe('UserService', () => {
         .changePassword({
           userId: user.id,
           oldPassword: passwordGenerator(
-            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1,
           ),
           newPassword: password,
         })
@@ -631,7 +860,7 @@ describe('UserService', () => {
           userId: user.id,
           oldPassword: password,
           newPassword: passwordGenerator(
-            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1,
           ),
         })
         .catch((err) => {
@@ -645,15 +874,15 @@ describe('UserService', () => {
         .changePassword({
           userId: 9999,
           oldPassword: passwordGenerator(
-            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1,
           ),
           newPassword: passwordGenerator(
-            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1
+            USER_CONSTRAINTS.MAX_PASSWORD_LENGTH - 1,
           ),
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -687,7 +916,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION]
+            ERROR_MESSAGES[ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION],
           );
         });
     });
@@ -713,7 +942,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SECURITY.FORBIDDEN_PROMOTION]
+            ERROR_MESSAGES[ERROR_CODES.SECURITY.FORBIDDEN_PROMOTION],
           );
         });
     });
@@ -730,7 +959,7 @@ describe('UserService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     test.each([
@@ -758,7 +987,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -769,7 +998,7 @@ describe('UserService', () => {
       'should ban/un-ban user if its done by %s',
       async (role) => {
         const userWithElevatedPrivileges = [mod, admin].find(
-          (u) => u.role === role
+          (u) => u.role === role,
         );
         if (!userWithElevatedPrivileges) throw new Error('Missing test user');
 
@@ -781,7 +1010,7 @@ describe('UserService', () => {
           });
           expect(bannedUser.isBanned).toBe(bannedStatus);
         }
-      }
+      },
     );
 
     it('should be able ban/un-ban MOD if done by ADMIN', async () => {
@@ -813,7 +1042,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SECURITY.MODERATION_CONFLICT]
+            ERROR_MESSAGES[ERROR_CODES.SECURITY.MODERATION_CONFLICT],
           );
         });
     });
@@ -829,7 +1058,7 @@ describe('UserService', () => {
           })
           .catch((error) => {
             expect(error.message).toMatch(
-              ERROR_MESSAGES[ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN]
+              ERROR_MESSAGES[ERROR_CODES.SECURITY.SELF_ACTION_FORBIDDEN],
             );
           });
     });
@@ -851,7 +1080,29 @@ describe('UserService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
+    );
+
+    test.each([
+      ['is null', null],
+      ['is undefined', undefined],
+      ['is empty string', ''],
+      ['is one', 1],
+      ['is zero', 0],
+    ])(
+      'should throw validation error when isBanned %s',
+      async (_, isBanned) => {
+        expect.assertions(1);
+        return userService
+          .changeBanStatus({
+            userId: mod.id,
+            userToChangeId: 1,
+            isBanned: isBanned as any,
+          })
+          .catch((error) => {
+            expect(error.message).toMatch(/failed.*validation/i);
+          });
+      },
     );
 
     test.each([
@@ -882,7 +1133,7 @@ describe('UserService', () => {
           })
           .catch((error) => {
             expect(error.message).toMatch(
-              ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+              ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
             );
           });
     });
@@ -908,7 +1159,7 @@ describe('UserService', () => {
           userToDeleteId: userToDelete.id,
         });
         expect(mockUsersRepo.delete).toHaveBeenCalledTimes(1);
-      }
+      },
     );
 
     it(`should throw when trying to delete another user as USER`, async () => {
@@ -928,7 +1179,7 @@ describe('UserService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -951,7 +1202,7 @@ describe('UserService', () => {
           })
           .catch((error) => {
             expect(error.message).toMatch(
-              ERROR_MESSAGES[ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION]
+              ERROR_MESSAGES[ERROR_CODES.SECURITY.ADMIN_PRIVILEGE_VIOLATION],
             );
           });
     });
@@ -972,7 +1223,7 @@ describe('UserService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     test.each([
@@ -1001,7 +1252,7 @@ describe('UserService', () => {
           })
           .catch((error) => {
             expect(error.message).toMatch(
-              ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+              ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
             );
           });
     });

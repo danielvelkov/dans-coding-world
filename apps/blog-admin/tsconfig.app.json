@@ -31,14 +31,17 @@
 	],
 	"include": ["src/**/*.js", "src/**/*.svelte", "src/**/*.ts"],
 	"references": [
-    {
-      "path": "../../libs/prisma-schema/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/shared/util/shared-constants/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/blog-admin/features/posts-manager/tsconfig.lib.json"
-    }
-  ]
+		{
+			"path": "../../libs/prisma-schema/tsconfig.lib.json"
+		},
+		{
+			"path": "../../libs/shared/util/shared-constants/tsconfig.lib.json"
+		},
+		{
+			"path": "../../libs/blog-admin/features/posts-manager/tsconfig.lib.json"
+		},
+		{
+			"path": "../../libs/blog-admin/data-access/auth/tsconfig.lib.json"
+		}
+	]
 }

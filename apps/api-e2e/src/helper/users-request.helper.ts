@@ -4,6 +4,7 @@ import {
   ChangeBanStatusDto,
   ChangePasswordDto,
   ChangeRoleDto,
+  GetUsersDto,
   UpdateUserDto,
 } from '@dans-coding-world/shared-user-dto';
 import {
@@ -20,13 +21,17 @@ export function createUsersRouteHelper(client: ApiClient) {
       return client.post(API_ENDPOINTS.USERS.REVOKE_TOKENS(+userId));
     },
 
+    getUsers(params?: GetUsersDto) {
+      return client.get(API_ENDPOINTS.USERS.LIST, { params });
+    },
+
     getUser(userId: string) {
       return client.get(API_ENDPOINTS.USERS.BY_ID(+userId));
     },
 
     updateUser(
       profileData: Omit<UpdateUserDto, 'userId' | 'avatar'>,
-      avatarFilePath?: string
+      avatarFilePath?: string,
     ) {
       const formData = toFormData(profileData);
       if (avatarFilePath) {
@@ -56,7 +61,7 @@ export function createUsersRouteHelper(client: ApiClient) {
 
     changeBanStatus(
       id: string,
-      data: Omit<ChangeBanStatusDto, 'userId' | 'userToChangeId'>
+      data: Omit<ChangeBanStatusDto, 'userId' | 'userToChangeId'>,
     ) {
       const body = toURLSearchParams(data);
       return client.patch(API_ENDPOINTS.USERS.BAN(+id), body, {

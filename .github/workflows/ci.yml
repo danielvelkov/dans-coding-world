@@ -57,12 +57,19 @@ jobs:
 
       - run: npm ci --legacy-peer-deps
 
+      - name: Install Playwright Browsers
+        run: npm install -g playwright
+
+      - name: Install Playwright Browsers-2
+        run: npx playwright install --with-deps
+
       # Generate prisma client
       - run: |
           export DATABASE_URL=${{ env.DATABASE_URL }}
           npx nx run @dans-coding-world/prisma-schema:generate-types:e2e
 
-      - run: |
+      - name: Run Lint, Build and Tests
+        run: |
           export NODE_ENV=test
           npx nx run-many -t lint test build
 
@@ -75,3 +82,8 @@ jobs:
         run: |
           export NODE_ENV=test_e2e
           npx nx e2e public-blog-e2e
+
+      - name: Run Blog Admin E2E tests
+        run: |
+          export NODE_ENV=test_e2e
+          npx nx e2e blog-admin-e2e

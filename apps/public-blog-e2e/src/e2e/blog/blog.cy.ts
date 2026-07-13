@@ -1,4 +1,4 @@
-import { Post, User } from '@dans-coding-world/prisma-schema';
+import type { Post, User } from '@dans-coding-world/prisma-schema';
 
 describe('Blog - general', () => {
   let seededPosts: Post[];
@@ -22,7 +22,7 @@ describe('Blog - general', () => {
           seededPosts = posts as Post[];
           if (!seededPosts || !seededPosts.length)
             throw new Error('Missing post fixtures');
-        })
+        }),
     );
   });
 
@@ -45,7 +45,7 @@ describe('Blog - general', () => {
     it(`does not show content or provide navigation 
       for members-only posts when logged out`, () => {
       const membersOnlyPost = seededPosts.find(
-        (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
+        (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED',
       );
       if (!membersOnlyPost) throw new Error('Missing members only post');
 
@@ -53,7 +53,7 @@ describe('Blog - general', () => {
         .closest('article')
         .within(() => {
           cy.contains(membersOnlyPost.content.substring(0, 10)).should(
-            'not.exist'
+            'not.exist',
           );
           cy.contains('a', /continue reading/i).should('not.exist');
 
@@ -83,7 +83,7 @@ describe('Blog - general', () => {
       cy.login(randomUser.email, randomUser.password);
 
       const membersOnlyPost = seededPosts.find(
-        (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
+        (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED',
       );
       if (!membersOnlyPost) throw new Error('Missing members only post');
 

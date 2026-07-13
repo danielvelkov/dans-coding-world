@@ -1,4 +1,4 @@
-import { UserPreview } from '@dans-coding-world/prisma-schema';
+import type { UserPreview } from '@dans-coding-world/prisma-schema';
 import {
   randEmail,
   randFirstName,
@@ -7,7 +7,7 @@ import {
   randPassword,
   randSentence,
 } from '@ngneat/falso';
-import { UserDetail } from '@dans-coding-world/user-data-access';
+import type { UserDetail } from '@dans-coding-world/user-data-access';
 
 export const generateRandomUserPreview = (): UserPreview => {
   const authorId = randNumber({ min: 30, max: 1000 });

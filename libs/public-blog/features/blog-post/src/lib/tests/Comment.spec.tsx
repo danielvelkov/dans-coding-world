@@ -8,7 +8,7 @@ import Comment from '../components/Comment';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import { formatToRelativeTimeFromNow } from '@dans-coding-world/helpers';
-import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
+import type { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import { generateRandomComments } from '@dans-coding-world/shared-post-testing';
 import { generateRandomUserPreview } from '@dans-coding-world/shared-user-testing';
 
@@ -20,7 +20,7 @@ describe('Comment', () => {
     return render(
       <MemoryRouter>
         <Comment comment={comment} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -61,7 +61,7 @@ describe('Comment', () => {
     await waitFor(() => {
       const time = screen.getByRole('time');
       expect(time.textContent).toBe(
-        formatToRelativeTimeFromNow(new Date(testComment.createdAt))
+        formatToRelativeTimeFromNow(new Date(testComment.createdAt)),
       );
     });
   });

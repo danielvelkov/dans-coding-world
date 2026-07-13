@@ -1,4 +1,5 @@
-import { client, Report } from '@dans-coding-world/prisma-schema';
+import { client } from '@dans-coding-world/prisma-schema';
+import type { Report } from '@dans-coding-world/prisma-schema';
 import { SeedOptions } from './types/seed-options.js';
 
 /**
@@ -12,11 +13,11 @@ import { SeedOptions } from './types/seed-options.js';
  */
 export const seedReports = async (
   customReports?: Omit<Report, 'id'>[],
-  options: SeedOptions = { clearExisting: true }
+  options: SeedOptions = { clearExisting: true },
 ): Promise<Report[]> => {
   if (!(process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_e2e'))
     throw new Error(
-      'Not in test environment. Check your test setup configuration.'
+      'Not in test environment. Check your test setup configuration.',
     );
   try {
     const seeded: Report[] = [];

@@ -9,9 +9,10 @@ import {
 } from '@dans-coding-world/api-auth';
 import { IUserService } from '@dans-coding-world/api-users';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import {
   AvatarImageDto,
+  GetUsersDto,
   UpdateUserDto,
 } from '@dans-coding-world/shared-user-dto';
 import path from 'path';
@@ -19,10 +20,11 @@ import path from 'path';
 export class UsersController {
   constructor(
     private userService: IUserService,
-    private tokenService: ITokenService
+    private tokenService: ITokenService,
   ) {
     this.revokeUserTokens = this.revokeUserTokens.bind(this);
     this.get = this.get.bind(this);
+    this.getAll = this.getAll.bind(this);
     this.update = this.update.bind(this);
     this.changePassword = this.changePassword.bind(this);
     this.changeRole = this.changeRole.bind(this);
@@ -42,6 +44,26 @@ export class UsersController {
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.AUTH.revoke,
         revokedCount: revokedTokens,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  @Authorized()
+  @BlockBanned()
+  @RequiredRole('ADMIN')
+  async getAll(req: Request, res: Response, next: NextFunction) {
+    try {
+      const getUsersDto: GetUsersDto = {
+        ...req.query,
+      };
+
+      const usersWithMetadata = await this.userService.getAll(getUsersDto);
+
+      return res.status(StatusCodes.OK).json({
+        message: SUCCESS_MESSAGES.USERS.getAll,
+        ...usersWithMetadata,
       });
     } catch (error) {
       return next(error);

@@ -1,4 +1,4 @@
-import { Comment, Post } from '@dans-coding-world/prisma-schema';
+import type { Comment, Post } from '@dans-coding-world/prisma-schema';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 
 describe('Comments - pagination', () => {
@@ -78,7 +78,7 @@ describe('Comments - pagination', () => {
         const prevDate = new Date(prev.createdAt as Date);
         const nextDate = new Date(next.createdAt as Date);
         return nextDate.getTime() - prevDate.getTime();
-      }
+      },
     );
 
     cy.get('[aria-label="Post comments"] > li')
@@ -87,7 +87,7 @@ describe('Comments - pagination', () => {
 
     cy.get('[aria-label="Post comments"] > li p').each(($p, index) => {
       expect($p.text()).to.equal(
-        commentsOrderedByCreatedDateDesc[index].content
+        commentsOrderedByCreatedDateDesc[index].content,
       );
     });
   });
@@ -98,7 +98,7 @@ describe('Comments - pagination', () => {
       .DEFAULT_ITEMS_PER_PAGE as number;
 
     const totalPages = Math.ceil(
-      totalRootComments.length / defaultLoadedComments
+      totalRootComments.length / defaultLoadedComments,
     );
     for (let i = 1; i < totalPages; i++) {
       cy.contains('button', 'Load more').click();

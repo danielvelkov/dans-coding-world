@@ -1,4 +1,5 @@
-import { client, ReportHistory } from '@dans-coding-world/prisma-schema';
+import { client } from '@dans-coding-world/prisma-schema';
+import type { ReportHistory } from '@dans-coding-world/prisma-schema';
 import { SeedOptions } from './types/seed-options.js';
 
 /**
@@ -12,11 +13,11 @@ import { SeedOptions } from './types/seed-options.js';
  */
 export const seedReportHistories = async (
   customReportHistories?: Omit<ReportHistory, 'id'>[],
-  options: SeedOptions = { clearExisting: true }
+  options: SeedOptions = { clearExisting: true },
 ): Promise<ReportHistory[]> => {
   if (!(process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_e2e'))
     throw new Error(
-      'Not in test environment. Check your test setup configuration.'
+      'Not in test environment. Check your test setup configuration.',
     );
   try {
     const seeded: ReportHistory[] = [];
@@ -27,7 +28,7 @@ export const seedReportHistories = async (
 
     if (customReportHistories) {
       const reports = await createAndReturnReportHistoriesWithId(
-        customReportHistories
+        customReportHistories,
       );
       seeded.push(...reports);
     }
@@ -40,7 +41,7 @@ export const seedReportHistories = async (
 };
 
 const createAndReturnReportHistoriesWithId = async (
-  reportHistories: Omit<ReportHistory, 'id'>[]
+  reportHistories: Omit<ReportHistory, 'id'>[],
 ) => {
   if (!reportHistories.length) return [];
   return await client.reportHistory.createManyAndReturn({

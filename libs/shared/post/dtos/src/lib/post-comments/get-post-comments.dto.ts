@@ -1,4 +1,4 @@
-import { Comment } from '@dans-coding-world/prisma-schema';
+import type { Comment } from '@dans-coding-world/prisma-schema';
 import { IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
 import {
   COMMENT_CONSTRAINTS,

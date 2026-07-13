@@ -15,6 +15,6 @@
   const end = $derived(Math.min(currentPage * itemsPerPage, total));
 </script>
 
-<span class="text-gray-600">
+<span class="text-(--color-text-secondary)">
   {`Showing ${start} - ${end} of ${total} entries`}
 </span>

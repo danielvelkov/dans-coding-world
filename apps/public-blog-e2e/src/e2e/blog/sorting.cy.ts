@@ -1,4 +1,4 @@
-import { Post } from '@dans-coding-world/prisma-schema';
+import type { Post } from '@dans-coding-world/prisma-schema';
 
 const SORT_LABELS = [
   'Published date (desc)',
@@ -22,7 +22,7 @@ describe('Blog - sorting', () => {
           seededPosts = posts as Post[];
           if (!seededPosts || !seededPosts.length)
             throw new Error('Missing post fixtures');
-        })
+        }),
     );
   });
 
@@ -36,7 +36,7 @@ describe('Blog - sorting', () => {
     checkIfSortedCorrectly(
       seededPosts.filter((p) => p.status === 'PUBLISHED'),
       'publishedAt',
-      'desc'
+      'desc',
     );
   });
 
@@ -53,7 +53,7 @@ describe('Blog - sorting', () => {
       checkIfSortedCorrectly(
         seededPosts.filter((p) => p.status === 'PUBLISHED'),
         field,
-        order
+        order,
       );
     }
   });
@@ -62,7 +62,7 @@ describe('Blog - sorting', () => {
 function checkIfSortedCorrectly(
   posts: Post[],
   field: 'publishedAt' | 'updatedAt',
-  order: 'asc' | 'desc'
+  order: 'asc' | 'desc',
 ) {
   const postsOrderedByPublishedDateDesc = [...posts].sort((prev, next) => {
     const prevDate = new Date(prev[field] as Date);

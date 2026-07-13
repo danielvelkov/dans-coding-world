@@ -1,4 +1,4 @@
-import { Report } from '@dans-coding-world/prisma-schema';
+import type { Report } from '@dans-coding-world/prisma-schema';
 import {
   GetReportDto,
   GetReportsDto,

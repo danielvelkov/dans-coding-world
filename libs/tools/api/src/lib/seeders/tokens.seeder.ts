@@ -1,4 +1,5 @@
-import { client, RefreshToken } from '@dans-coding-world/prisma-schema';
+import { client } from '@dans-coding-world/prisma-schema';
+import type { RefreshToken } from '@dans-coding-world/prisma-schema';
 import { SeedOptions } from './types/seed-options.js';
 
 /**
@@ -12,11 +13,11 @@ import { SeedOptions } from './types/seed-options.js';
  */
 export const seedRefreshTokens = async (
   customTokens?: Omit<RefreshToken, 'createdAt'>[],
-  options: SeedOptions = { clearExisting: true }
+  options: SeedOptions = { clearExisting: true },
 ): Promise<RefreshToken[]> => {
   if (!(process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_e2e'))
     throw new Error(
-      'Not in test environment. Check your test setup configuration.'
+      'Not in test environment. Check your test setup configuration.',
     );
   try {
     const seeded: RefreshToken[] = [];
@@ -55,7 +56,7 @@ export const getTokenById = async (jti: string) => {
 };
 
 export const updateRefreshToken = async (
-  data: RequireOnly<RefreshToken, 'jti'>
+  data: RequireOnly<RefreshToken, 'jti'>,
 ): Promise<RefreshToken> =>
   await client.refreshToken.update({
     where: { jti: data.jti },
