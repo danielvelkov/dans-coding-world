@@ -1,4 +1,4 @@
-import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
+import type { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 import { JwtPayload } from 'jsonwebtoken';
 import {
   RefreshTokenDto,

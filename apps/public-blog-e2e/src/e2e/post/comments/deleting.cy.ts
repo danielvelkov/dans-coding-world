@@ -1,5 +1,5 @@
 import { generateRandomString } from '@dans-coding-world/helpers';
-import {
+import type {
   Comment,
   CommentWithReplies,
   Post,
@@ -50,7 +50,7 @@ describe('Comments - deletion', () => {
       options: { useDefaults: true, clearExisting: true },
     }).then((posts) => {
       testPosts = (posts as Post[]).filter(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!testPosts || !testPosts.length)
         throw new Error('Missing post fixtures');
@@ -99,7 +99,7 @@ describe('Comments - deletion', () => {
 
     beforeEach(() => {
       const publishedPostIds = new Set(
-        testPosts.filter((p) => p.status === 'PUBLISHED').map((p) => p.id)
+        testPosts.filter((p) => p.status === 'PUBLISHED').map((p) => p.id),
       );
       const commentsGroupedByPostId = Object.entries(
         Object.groupBy(
@@ -107,29 +107,29 @@ describe('Comments - deletion', () => {
             (c) =>
               c.depth === 0 &&
               publishedPostIds.has(c.postId) &&
-              testUsers.map((u) => u.id).includes(c.userId)
+              testUsers.map((u) => u.id).includes(c.userId),
           ),
-          ({ postId }) => postId
-        )
+          ({ postId }) => postId,
+        ),
       );
       const matchingEntry = commentsGroupedByPostId.find(([, group]) => {
         if (!group || group.length < 2) return false;
         const groupedByAuthor = Object.values(
-          Object.groupBy(group, ({ userId }) => userId)
+          Object.groupBy(group, ({ userId }) => userId),
         );
         return groupedByAuthor.some(
-          (comments) => comments && comments.length >= 2
+          (comments) => comments && comments.length >= 2,
         );
       });
 
       if (!matchingEntry)
         throw new Error(
-          'Missing fixtures - post with more than 2 comments by same user at depth 0'
+          'Missing fixtures - post with more than 2 comments by same user at depth 0',
         );
       deletePostId = Number(matchingEntry[0]);
       const postComments = matchingEntry[1] as Comment[];
       ownDeletableComments = Object.values(
-        Object.groupBy(postComments, ({ userId }) => userId)
+        Object.groupBy(postComments, ({ userId }) => userId),
       ).find(
         (group) =>
           group &&
@@ -137,18 +137,18 @@ describe('Comments - deletion', () => {
           testUsers
             .filter((u) => u.role === 'USER' || u.role === 'AUTHOR')
             .map((u) => u.id)
-            .includes(group[0].userId)
+            .includes(group[0].userId),
       ) as Comment[];
       if (!ownDeletableComments || ownDeletableComments.length < 2)
         throw new Error('Missing fixtures');
 
       anotherUserComment = postComments.find(
-        (c) => c.userId !== ownDeletableComments[0].userId
+        (c) => c.userId !== ownDeletableComments[0].userId,
       ) as Comment;
       if (!anotherUserComment) throw new Error('Missing fixtures');
 
       const commentAuthor = testUsers.find(
-        (u) => u.id === ownDeletableComments[0].userId
+        (u) => u.id === ownDeletableComments[0].userId,
       ) as UserDetail;
       if (!commentAuthor) throw new Error('Missing fixtures');
 
@@ -231,7 +231,7 @@ describe('Comments - deletion', () => {
             message: 'Resource not found',
             errorCode: 'NOT_FOUND',
           },
-        }
+        },
       ).as('deleteComment');
 
       cy.getByTestId(`comment-${commentToDelete.id}`)
@@ -243,7 +243,7 @@ describe('Comments - deletion', () => {
       cy.get('dialog').within(() => {
         cy.getByTestId('error-message').should(
           'contain.text',
-          'Resource not found'
+          'Resource not found',
         );
       });
     });
@@ -252,7 +252,7 @@ describe('Comments - deletion', () => {
       const commentToDelete = ownDeletableComments[1];
       cy.intercept(
         'DELETE',
-        API_ENDPOINTS.COMMENTS.BY_ID(deletePostId, commentToDelete.id)
+        API_ENDPOINTS.COMMENTS.BY_ID(deletePostId, commentToDelete.id),
       ).as('deleteComment');
 
       cy.getByTestId(`comment-${commentToDelete.id}`)
@@ -279,7 +279,7 @@ describe('Comments - deletion', () => {
 
       cy.intercept(
         'DELETE',
-        API_ENDPOINTS.COMMENTS.BY_ID(deletePostId, parentComment.id)
+        API_ENDPOINTS.COMMENTS.BY_ID(deletePostId, parentComment.id),
       ).as('deleteParentComment');
 
       cy.getByTestId(`comment-${parentComment.id}`)

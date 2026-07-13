@@ -14,7 +14,7 @@ import {
   BlockBanned,
 } from '@dans-coding-world/api-auth';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 
 export class CommentsController {
   constructor(private commentService: ICommentsService) {
@@ -39,9 +39,8 @@ export class CommentsController {
         maxReplyLevels: depth ? +depth : undefined,
       };
 
-      const result = await this.commentService.getPostComments(
-        getPostCommentsDto
-      );
+      const result =
+        await this.commentService.getPostComments(getPostCommentsDto);
 
       return res.status(StatusCodes.OK).json({
         ...result,

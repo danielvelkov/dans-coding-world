@@ -1,7 +1,7 @@
 import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
-import {
+import { client as prisma } from '@dans-coding-world/prisma-schema';
+import type {
   UserWhereInput,
-  client as prisma,
   User,
   Profile,
   UserOrderByInput,

@@ -2,7 +2,8 @@
 import 'reflect-metadata';
 import { IUserService } from '../interfaces/user-service.interface.js';
 import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
-import { User, client, Role, Profile } from '@dans-coding-world/prisma-schema';
+import { client } from '@dans-coding-world/prisma-schema';
+import type { User, Role, Profile } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import {
   PrismaUserDataAccess as MockUserRepository,

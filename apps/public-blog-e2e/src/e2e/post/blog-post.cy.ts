@@ -1,10 +1,10 @@
 import { stringifyToQueryString } from '@dans-coding-world/helpers';
-import { PostFull } from '@dans-coding-world/post-data-access';
-import { Post, Profile, User } from '@dans-coding-world/prisma-schema';
+import type { PostFull } from '@dans-coding-world/post-data-access';
+import type { Post, Profile, User } from '@dans-coding-world/prisma-schema';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateMockPostResponse } from '@dans-coding-world/shared-post-testing';
 import { randNumber, randWord } from '@ngneat/falso';
-import { UserDetail } from '@dans-coding-world/user-data-access';
+import type { UserDetail } from '@dans-coding-world/user-data-access';
 
 describe('BlogPost', () => {
   const testPostId = 1;

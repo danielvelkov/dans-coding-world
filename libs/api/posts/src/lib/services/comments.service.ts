@@ -1,4 +1,4 @@
-import {
+import type {
   CommentWithReplies,
   Comment,
   CommentsOrderByInput,
@@ -62,11 +62,11 @@ export class CommentsService implements ICommentsService {
     @Inject(POST_REPOSITORY_TOKEN)
     public posts: IPostRepository<Post, PostWhereInput, PostOrderByInput>,
     @Inject(USER_REPOSITORY_TOKEN)
-    public users: IUserRepository
+    public users: IUserRepository,
   ) {}
 
   async getPostComments(
-    dto: GetPostCommentsDto
+    dto: GetPostCommentsDto,
   ): Promise<GetPostCommentsResponseDto> {
     dto = await transformAndValidateDto(dto, GetPostCommentsDto);
 
@@ -188,7 +188,7 @@ export class CommentsService implements ICommentsService {
    */
   private async validatePostAccess(
     postId: number,
-    viewerId?: number
+    viewerId?: number,
   ): Promise<void> {
     const post = await this.posts.getById(postId);
     if (!post) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
@@ -227,7 +227,7 @@ export class CommentsService implements ICommentsService {
   private async validateCommentAccess(
     comment: Comment | null,
     postId: number,
-    viewerId: number
+    viewerId: number,
   ): Promise<void> {
     if (!comment || comment.postId !== postId) {
       throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
@@ -252,7 +252,7 @@ export class CommentsService implements ICommentsService {
   }
 
   private setReplyCountRecursively(
-    comment: CommentWithReplies
+    comment: CommentWithReplies,
   ): CommentWithReplies {
     // Base case: no replies
     if (!comment.replies || comment.replies.length === 0) {
@@ -264,7 +264,7 @@ export class CommentsService implements ICommentsService {
     }
 
     const processedReplies = comment.replies.map((reply) =>
-      this.setReplyCountRecursively(reply)
+      this.setReplyCountRecursively(reply),
     );
 
     return {

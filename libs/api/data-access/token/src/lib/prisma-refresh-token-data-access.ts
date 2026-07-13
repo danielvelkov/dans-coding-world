@@ -1,6 +1,6 @@
-import {
+import { client as prisma } from '@dans-coding-world/prisma-schema';
+import type {
   RefreshToken,
-  client as prisma,
   RefreshTokenWhereInput,
 } from '@dans-coding-world/prisma-schema';
 import { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
@@ -26,7 +26,7 @@ export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
   async create(
     jti: string,
     userId: string,
-    expiresAt: Date
+    expiresAt: Date,
   ): Promise<RefreshToken> {
     return await prisma.refreshToken.create({
       data: {
@@ -38,7 +38,7 @@ export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
   }
   async update(
     jti: string,
-    data: Partial<RefreshToken>
+    data: Partial<RefreshToken>,
   ): Promise<RefreshToken> {
     return await prisma.refreshToken.update({
       where: {
@@ -49,7 +49,7 @@ export class PrismaRefreshTokenDataAccess implements IRefreshTokenRepository {
   }
   async updateMany(
     where: RefreshTokenWhereInput,
-    data: Partial<RefreshToken>
+    data: Partial<RefreshToken>,
   ): Promise<number> {
     const { count } = await prisma.refreshToken.updateMany({
       where,

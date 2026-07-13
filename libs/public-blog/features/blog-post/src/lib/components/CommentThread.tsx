@@ -1,4 +1,4 @@
-import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
+import type { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import styled from 'styled-components';
 import Comment from './Comment';
 import React, { useEffect, useState } from 'react';

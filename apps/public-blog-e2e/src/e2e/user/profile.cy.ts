@@ -1,9 +1,9 @@
 import { generateRandomString } from '@dans-coding-world/helpers';
-import { Profile, User } from '@dans-coding-world/prisma-schema';
+import type { Profile, User } from '@dans-coding-world/prisma-schema';
 import { USER_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateMockUserResponse } from '@dans-coding-world/shared-user-testing';
-import { UserDetail } from '@dans-coding-world/user-data-access';
+import type { UserDetail } from '@dans-coding-world/user-data-access';
 
 describe('User - profile page', () => {
   const testUsers: UserDetail[] = [];
@@ -78,7 +78,7 @@ describe('User - profile page', () => {
                 id: 1,
               },
             },
-          })
+          }),
         ).as('userResponse');
 
         cy.visit(`/users/${currentTestUser.id}`);
@@ -172,7 +172,7 @@ describe('User - profile page', () => {
 
       it(`should show 403 FORBIDDEN error if navigating to other user's profile`, () => {
         const randomUser = Cypress._.sample(
-          testUsers.filter((u) => u.id !== currentTestUser.id)
+          testUsers.filter((u) => u.id !== currentTestUser.id),
         ) as UserDetail;
         cy.visit(`/users/${randomUser.id}/edit`);
         cy.contains('h1', '403');
@@ -190,7 +190,7 @@ describe('User - profile page', () => {
             .then((oldSrc) => {
               cy.getByTestId('file-input').selectFile(
                 'src/fixtures/user/avatar.webp',
-                { force: true }
+                { force: true },
               );
               cy.get('img.avatar')
                 .invoke('attr', 'src')
@@ -227,11 +227,11 @@ describe('User - profile page', () => {
 
           cy.contains(validProfileDetails.firstName).should('not.exist');
           cy.contains(currentTestUser.profile?.firstName as string).should(
-            'exist'
+            'exist',
           );
           cy.contains(validProfileDetails.lastName).should('not.exist');
           cy.contains(currentTestUser.profile?.lastName as string).should(
-            'exist'
+            'exist',
           );
           cy.contains(validProfileDetails.bio).should('not.exist');
           cy.contains(currentTestUser.profile?.bio as string).should('exist');
@@ -266,7 +266,7 @@ describe('User - profile page', () => {
               .then((oldSrc) => {
                 cy.getByTestId('file-input').selectFile(
                   'src/fixtures/user/avatar.png',
-                  { force: true }
+                  { force: true },
                 );
                 cy.get('img.avatar')
                   .invoke('attr', 'src')
@@ -303,7 +303,7 @@ describe('User - profile page', () => {
         cy.editProfile(
           validProfileDetails.firstName,
           validProfileDetails.lastName,
-          validProfileDetails.bio
+          validProfileDetails.bio,
         );
         cy.url().should('include', `/users/${currentTestUser.id}`);
         cy.contains(validProfileDetails.firstName);
@@ -315,7 +315,7 @@ describe('User - profile page', () => {
         cy.editProfile(
           currentTestUser.profile?.firstName as string,
           currentTestUser.profile?.lastName as string,
-          currentTestUser.profile?.bio as string
+          currentTestUser.profile?.bio as string,
         );
       });
 
@@ -327,7 +327,7 @@ describe('User - profile page', () => {
             lastName?: string;
             bio?: string;
           } = {},
-          waitForRequest = false
+          waitForRequest = false,
         ) => {
           const {
             firstName = validProfileDetails.firstName,
@@ -342,7 +342,7 @@ describe('User - profile page', () => {
 
         it('should display an error if first name is too short', () => {
           const tooShort = generateRandomString(
-            USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH - 1
+            USER_CONSTRAINTS.MIN_FIRST_NAME_LENGTH - 1,
           );
           checkFieldValidation('first-name-error', {
             firstName: tooShort,
@@ -350,7 +350,7 @@ describe('User - profile page', () => {
         });
         it('should not allow typing past limit if first name is too long', () => {
           const tooLong = generateRandomString(
-            USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH + 4
+            USER_CONSTRAINTS.MAX_FIRST_NAME_LENGTH + 4,
           );
 
           cy.get('[name="firstName"]').as('firstName');
@@ -362,7 +362,7 @@ describe('User - profile page', () => {
 
         it('should display an error if last name is too short', () => {
           const tooShort = generateRandomString(
-            USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH - 1
+            USER_CONSTRAINTS.MIN_LAST_NAME_LENGTH - 1,
           );
           checkFieldValidation('last-name-error', {
             lastName: tooShort,
@@ -377,14 +377,14 @@ describe('User - profile page', () => {
                 {
                   firstName: invalidName,
                 },
-                true
+                true,
               );
               checkFieldValidation(
                 'last-name-error',
                 {
                   lastName: invalidName,
                 },
-                true
+                true,
               );
             });
           });
@@ -392,7 +392,7 @@ describe('User - profile page', () => {
 
         it('should not allow typing past limit if last name is too long', () => {
           const tooLong = generateRandomString(
-            USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH + 4
+            USER_CONSTRAINTS.MAX_LAST_NAME_LENGTH + 4,
           );
 
           cy.get('[name="lastName"]').as('lastName');
@@ -404,7 +404,7 @@ describe('User - profile page', () => {
 
         it('should not allow typing past specified limit if user bio is too long', () => {
           const tooLong = generateRandomString(
-            USER_CONSTRAINTS.MAX_BIO_LENGTH + 4
+            USER_CONSTRAINTS.MAX_BIO_LENGTH + 4,
           );
 
           cy.get('[name="bio"]').as('bio');
@@ -425,12 +425,12 @@ describe('User - profile page', () => {
           });
           cy.getByTestId('file-input').selectFile(
             'src/fixtures/user/avatar.txt',
-            { force: true }
+            { force: true },
           );
           cy.getByTestId('avatar-error').should('exist');
           cy.getByTestId('file-input').selectFile(
             'src/fixtures/user/avatar.png',
-            { force: true }
+            { force: true },
           );
           cy.getByTestId('avatar-error').should('not.exist');
           cy.task('deleteFile', 'src/fixtures/user/avatar.txt');
@@ -444,7 +444,7 @@ describe('User - profile page', () => {
           });
           cy.getByTestId('file-input').selectFile(
             'src/fixtures/user/large-avatar.png',
-            { force: true }
+            { force: true },
           );
           cy.getByTestId('avatar-error').should('exist');
           cy.task('deleteFile', 'src/fixtures/user/large-avatar.png');

@@ -1,9 +1,11 @@
-import { client, Tag, TagWhereInput } from '@dans-coding-world/prisma-schema';
+import { client } from '@dans-coding-world/prisma-schema';
+import type { Tag, TagWhereInput } from '@dans-coding-world/prisma-schema';
 import { ITagRepository } from '@dans-coding-world/shared-data-access-interfaces';
 
-export class PrismaPostTagsDataAccess
-  implements ITagRepository<Tag, TagWhereInput>
-{
+export class PrismaPostTagsDataAccess implements ITagRepository<
+  Tag,
+  TagWhereInput
+> {
   async getById(id: number): Promise<Tag | null> {
     return await client.tag.findFirst({
       where: {

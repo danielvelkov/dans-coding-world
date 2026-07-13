@@ -1,5 +1,5 @@
 import { formatToRelativeTimeFromNow } from '@dans-coding-world/helpers';
-import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
+import type { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import { UserAvatar } from '@dans-coding-world/public-blog-ui-common';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';

@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   client as prismaClient,
+  ReportStatusEnum,
+} from '@dans-coding-world/prisma-schema';
+import type {
   Comment,
   Post,
   Report,
   ReportHistory,
-  ReportStatusEnum,
   User,
 } from '@dans-coding-world/prisma-schema';
 import {
@@ -66,11 +68,11 @@ describe('/api/v1/reports/comments', () => {
     const reportsToCreate: Omit<Report, 'id'>[] = [];
 
     const postsForTest = posts.filter(
-      (post) => post.status === 'PUBLISHED' || post.status === 'DRAFT'
+      (post) => post.status === 'PUBLISHED' || post.status === 'DRAFT',
     );
 
     const commentsForTest = comments.filter((comment) =>
-      postsForTest.map((p) => p.id).includes(comment.postId)
+      postsForTest.map((p) => p.id).includes(comment.postId),
     );
 
     let i = 0;
@@ -88,7 +90,7 @@ describe('/api/v1/reports/comments', () => {
         commentId: comment.id,
         reporterId: randomReporter.id,
         createdAt: new Date(
-          Date.now() + Math.floor(Math.random() * 100) * 1000 * 60 // between 1-100 min difference
+          Date.now() + Math.floor(Math.random() * 100) * 1000 * 60, // between 1-100 min difference
         ),
       });
     }
@@ -113,13 +115,13 @@ describe('/api/v1/reports/comments', () => {
       if (!comment) throw new Error('missing comment');
 
       const validModerators = users.filter(
-        (u) => u.id !== comment.userId && u.role !== 'USER'
+        (u) => u.id !== comment.userId && u.role !== 'USER',
       );
 
       const randomModerator: User = randomSelect(validModerators);
 
       const randomStatus = randomSelect(
-        Object.values(ReportStatusEnum).filter((s) => s !== report.status)
+        Object.values(ReportStatusEnum).filter((s) => s !== report.status),
       );
 
       reportHistoriesToCreate.push({
@@ -131,7 +133,7 @@ describe('/api/v1/reports/comments', () => {
         reportId: report.id,
         moderatorId: randomModerator.id,
         changedAt: new Date(
-          Date.now() + Math.floor(Math.random() * 100) * 1000 * 60 // between 1-100 min difference
+          Date.now() + Math.floor(Math.random() * 100) * 1000 * 60, // between 1-100 min difference
         ),
       });
     }
@@ -156,12 +158,12 @@ describe('/api/v1/reports/comments', () => {
         const helper = role === 'ADMIN' ? adminHelpers : modHelpers;
 
         const reportWithHistory = reports.find((report) =>
-          reportsHistories.map((h) => h.reportId).includes(report.id)
+          reportsHistories.map((h) => h.reportId).includes(report.id),
         );
         if (!reportWithHistory) throw new Error('Missing report with history');
 
         const reportedComment = comments.find(
-          (comment) => comment.id === reportWithHistory.commentId
+          (comment) => comment.id === reportWithHistory.commentId,
         );
         if (!reportedComment) throw new Error('Missing test comment');
 
@@ -178,12 +180,12 @@ describe('/api/v1/reports/comments', () => {
         expect(report.reportedComment.userId).toBe(reportedComment.userId);
 
         expect(report.history.length).toBeGreaterThan(0);
-      }
+      },
     );
 
     it('should return 401 UNAUTHORIZED when not logged-in', async () => {
       await expect(anonHelpers.getReport('1')).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -192,9 +194,9 @@ describe('/api/v1/reports/comments', () => {
       async (role) => {
         const helper = role === 'USER' ? userHelpers : authorHelpers;
         await expect(helper.getReport('1')).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
-      }
+      },
     );
 
     testInvalidIds(async (id) => {
@@ -203,7 +205,7 @@ describe('/api/v1/reports/comments', () => {
 
     it('should return 404 NOT FOUND for unknown report id', async () => {
       return await expect(adminHelpers.getReport('9999')).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
   });
@@ -222,14 +224,14 @@ describe('/api/v1/reports/comments', () => {
 
         for (const report of items) {
           const expectedComment = comments.find(
-            (c) => report.commentId === c.id
+            (c) => report.commentId === c.id,
           );
           if (!expectedComment) throw new Error('Missing comment');
 
           expect(report.reportedComment.id).toBe(expectedComment.id);
           expect(report.reportedComment.content).toBe(expectedComment.content);
         }
-      }
+      },
     );
 
     test.concurrent.each(['USER', 'AUTHOR'])(
@@ -238,14 +240,14 @@ describe('/api/v1/reports/comments', () => {
         const helper = role === 'USER' ? userHelpers : authorHelpers;
 
         await expect(helper.getReports()).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
-      }
+      },
     );
 
     it('should return 401 UNAUTHORIZED when not logged-in', async () => {
       await expect(anonHelpers.getReports()).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -255,7 +257,7 @@ describe('/api/v1/reports/comments', () => {
       const { items, pagination } = getData<GetReportsResponseDto>(res);
 
       expect(pagination.total).toBe(
-        reports.filter((r) => r.status === 'PENDING').length
+        reports.filter((r) => r.status === 'PENDING').length,
       );
 
       for (const report of items) expect(report.status).toBe('PENDING');
@@ -269,10 +271,10 @@ describe('/api/v1/reports/comments', () => {
               comments.find(
                 (c) =>
                   c.postId === p.id &&
-                  reports.map((r) => r.commentId).includes(c.id)
-              )
+                  reports.map((r) => r.commentId).includes(c.id),
+              ),
             )
-            .map((p) => p.id)
+            .map((p) => p.id),
         ),
       ];
 
@@ -294,8 +296,8 @@ describe('/api/v1/reports/comments', () => {
         expect(items.length).toBeGreaterThan(0);
         expect(pagination.total).toBe(
           reports.filter((r) =>
-            comments.find((c) => c.postId === postId && c.id === r.commentId)
-          ).length
+            comments.find((c) => c.postId === postId && c.id === r.commentId),
+          ).length,
         );
       }
     });
@@ -306,7 +308,7 @@ describe('/api/v1/reports/comments', () => {
         ...new Set(
           comments
             .filter((c) => reports.find((r) => r.commentId === c.id))
-            .map((c) => c.userId)
+            .map((c) => c.userId),
         ),
       ];
 
@@ -329,9 +331,9 @@ describe('/api/v1/reports/comments', () => {
         expect(pagination.total).toBe(
           reports.filter((r) =>
             comments.find(
-              (c) => c.userId === maliciousUserId && c.id === r.commentId
-            )
-          ).length
+              (c) => c.userId === maliciousUserId && c.id === r.commentId,
+            ),
+          ).length,
         );
       }
     });
@@ -344,11 +346,11 @@ describe('/api/v1/reports/comments', () => {
             filterBy: {
               status: [status as any],
             },
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     describe('?sortBy[x]=y', () => {
@@ -365,11 +367,11 @@ describe('/api/v1/reports/comments', () => {
               sortBy: {
                 [key]: value,
               },
-            })
+            }),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
           );
-        }
+        },
       );
 
       test.concurrent.each([
@@ -396,7 +398,7 @@ describe('/api/v1/reports/comments', () => {
           sortedItems.forEach((report, i) => {
             expect(report.id).toBe(reportsData.items[i].id);
           });
-        }
+        },
       );
     });
 
@@ -437,7 +439,7 @@ describe('/api/v1/reports/comments', () => {
         const reportsData = getData<GetReportsResponseDto>(res);
 
         expect(reportsData.pagination.page).toBe(
-          Math.ceil(totalRoundUpToHundred / pageSizeOptions[2]) + 1
+          Math.ceil(totalRoundUpToHundred / pageSizeOptions[2]) + 1,
         );
         expect(reportsData.count).toBe(0);
         expect(reportsData.items.length).toBe(0);
@@ -464,7 +466,7 @@ describe('/api/v1/reports/comments', () => {
 
           expect(reportsData.pagination.page).toBe(expectedPageNum);
           expect(reportsData.pagination.total).toBe(totalNumberOfReports);
-        }
+        },
       );
 
       test.concurrent.each([
@@ -540,7 +542,7 @@ describe('/api/v1/reports/comments', () => {
         ],
       ])('should return validation error when %s', async (_, params) => {
         await expect(adminHelpers.getReports(params)).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
       });
     });
@@ -627,7 +629,7 @@ describe('/api/v1/reports/comments', () => {
       const commentToReport = testComments.find(
         (c) =>
           !testReports.map((r) => r.commentId).includes(c.id) &&
-          c.userId !== mod.id
+          c.userId !== mod.id,
       );
 
       if (!commentToReport) throw new Error('Missing test comment');
@@ -644,7 +646,7 @@ describe('/api/v1/reports/comments', () => {
       expect(createdReport.status).toBe('PENDING');
       // Check date and time down to minutes
       expect(new Date(createdReport.createdAt).toISOString().slice(0, 16)).toBe(
-        now.toISOString().slice(0, 16)
+        now.toISOString().slice(0, 16),
       );
 
       testReports.push(createdReport);
@@ -658,7 +660,7 @@ describe('/api/v1/reports/comments', () => {
           testPosts
             .filter((p) => p.status === 'PUBLISHED')
             .map((p) => p.id)
-            .includes(c.postId)
+            .includes(c.postId),
       );
 
       if (!commentToReport) throw new Error('Missing test comment');
@@ -675,9 +677,9 @@ describe('/api/v1/reports/comments', () => {
         userHelpers.createReport({
           commentId: commentToReport.id,
           reason: generateRandomString(10),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.REPORT_EXISTS)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.REPORT_EXISTS),
       );
     });
 
@@ -686,7 +688,7 @@ describe('/api/v1/reports/comments', () => {
       const commentReportedByUser = testComments.find(
         (c) =>
           c.userId === user.id &&
-          !testReports.map((r) => r.commentId).includes(c.id)
+          !testReports.map((r) => r.commentId).includes(c.id),
       );
       if (!commentReportedByUser) throw new Error('Missing test comment');
 
@@ -694,9 +696,9 @@ describe('/api/v1/reports/comments', () => {
         userHelpers.createReport({
           commentId: commentReportedByUser.id,
           reason: generateRandomString(10),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -706,9 +708,9 @@ describe('/api/v1/reports/comments', () => {
         anonHelpers.createReport({
           commentId: comments[0].id,
           reason: generateRandomString(10),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -717,9 +719,9 @@ describe('/api/v1/reports/comments', () => {
         modHelpers.createReport({
           commentId: 9999,
           reason: generateRandomString(10),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -729,7 +731,7 @@ describe('/api/v1/reports/comments', () => {
         (c) =>
           c.userId !== user.id &&
           !testReports.map((r) => r.commentId).includes(c.id) &&
-          testPosts.find((p) => p.status !== 'PUBLISHED')?.id === c.postId
+          testPosts.find((p) => p.status !== 'PUBLISHED')?.id === c.postId,
       );
       if (!commentNotMadeOrReportedByUserOnAPrivatePost)
         throw new Error('Missing test comment');
@@ -738,9 +740,9 @@ describe('/api/v1/reports/comments', () => {
         userHelpers.createReport({
           commentId: commentNotMadeOrReportedByUserOnAPrivatePost.id,
           reason: generateRandomString(10),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -765,14 +767,14 @@ describe('/api/v1/reports/comments', () => {
           role === 'ADMIN'
             ? adminHelpers
             : role === 'MOD'
-            ? modHelpers
-            : authorHelpers;
+              ? modHelpers
+              : authorHelpers;
 
         const commentOnAPrivatePostWithoutReports = testComments.find(
           (c) =>
             !testReports.map((r) => r.commentId).includes(c.id) &&
             testPosts.find((p) => p.status !== 'PUBLISHED')?.id === c.postId &&
-            c.userId !== reporter.id
+            c.userId !== reporter.id,
         );
         if (!commentOnAPrivatePostWithoutReports)
           throw new Error('Missing test comment');
@@ -787,7 +789,7 @@ describe('/api/v1/reports/comments', () => {
         expect(report.reporterId).toBe(reporter.id);
 
         testReports.push(report);
-      }
+      },
     );
 
     test.each([
@@ -803,11 +805,11 @@ describe('/api/v1/reports/comments', () => {
           adminHelpers.createReport({
             commentId: testComments[0].id,
             reason,
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     test.concurrent.each([
@@ -820,11 +822,11 @@ describe('/api/v1/reports/comments', () => {
           adminHelpers.createReport({
             commentId: commentId as any,
             reason: generateRandomString(10),
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
   });
 
@@ -837,14 +839,14 @@ describe('/api/v1/reports/comments', () => {
         comments
           .filter((c) => c.userId !== mod.id)
           .map((c) => c.id)
-          .includes(r.commentId)
+          .includes(r.commentId),
       );
       if (!reportForUpdate) throw new Error('Missing test report');
 
       const newStatus = randomSelect(
         Object.values(ReportStatusEnum).filter(
-          (s) => s !== reportForUpdate.status
-        )
+          (s) => s !== reportForUpdate.status,
+        ),
       );
 
       const now = new Date();
@@ -860,7 +862,7 @@ describe('/api/v1/reports/comments', () => {
       // Report should contain: History by far + new entry
       expect(report.history.length).toBe(
         reportsHistories.filter((rh) => rh.reportId === reportForUpdate.id)
-          .length + 1
+          .length + 1,
       );
 
       const latestModerationHistoryEntry =
@@ -872,7 +874,7 @@ describe('/api/v1/reports/comments', () => {
       expect(
         new Date(latestModerationHistoryEntry.changedAt)
           .toISOString()
-          .slice(0, 16)
+          .slice(0, 16),
       ).toBe(now.toISOString().slice(0, 16));
     });
 
@@ -881,7 +883,7 @@ describe('/api/v1/reports/comments', () => {
         comments
           .filter((c) => c.userId !== admin.id)
           .map((c) => c.id)
-          .includes(r.commentId)
+          .includes(r.commentId),
       );
       if (!reportForUpdate) throw new Error('Missing test report');
 
@@ -889,12 +891,12 @@ describe('/api/v1/reports/comments', () => {
         adminHelpers.updateReport(reportForUpdate.id.toString(), {
           status: reportForUpdate.status,
           note: generateRandomString(10),
-        })
+        }),
       ).rejects.toMatchObject(
         createErrorCodeResponse(
           ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-          VALIDATION_MESSAGES.reports.sameStatus
-        )
+          VALIDATION_MESSAGES.reports.sameStatus,
+        ),
       );
     });
 
@@ -903,7 +905,7 @@ describe('/api/v1/reports/comments', () => {
         comments
           .filter((c) => c.userId === mod.id)
           .map((c) => c.id)
-          .includes(r.commentId)
+          .includes(r.commentId),
       );
       if (!reportForUpdate) throw new Error('Missing test report');
 
@@ -911,13 +913,13 @@ describe('/api/v1/reports/comments', () => {
         modHelpers.updateReport(reportForUpdate.id.toString(), {
           status: randomSelect(
             Object.values(ReportStatusEnum).filter(
-              (s) => s !== reportForUpdate.status
-            )
+              (s) => s !== reportForUpdate.status,
+            ),
           ),
           note: generateRandomString(10),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -929,11 +931,11 @@ describe('/api/v1/reports/comments', () => {
           modHelpers.updateReport(reports[0].id.toString(), {
             status: status as any,
             note: generateRandomString(10),
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     test.concurrent.each(['USER', 'AUTHOR'])(
@@ -948,11 +950,11 @@ describe('/api/v1/reports/comments', () => {
         await expect(
           helper.updateReport(reports[0].id.toString(), {
             status: 'DISMISSED',
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
-      }
+      },
     );
 
     it('should return 401 UNAUTHORIZED when not logged-in', async () => {
@@ -960,9 +962,9 @@ describe('/api/v1/reports/comments', () => {
       await expect(
         anonHelpers.updateReport(reports[0].id.toString(), {
           status: 'DISMISSED',
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -971,9 +973,9 @@ describe('/api/v1/reports/comments', () => {
         modHelpers.updateReport('9999', {
           status: 'PENDING',
           note: generateRandomString(10),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -988,9 +990,9 @@ describe('/api/v1/reports/comments', () => {
         modHelpers.updateReport(reports[0].id.toString(), {
           status: 'PENDING',
           note,
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
       );
     });
 
@@ -1023,7 +1025,7 @@ describe('/api/v1/reports/comments', () => {
         {
           clearExisting: false,
           useDefaults: false,
-        }
+        },
       );
       if (!commentWithoutReport)
         throw new Error('Missing comment for deletion test setup');
@@ -1041,7 +1043,7 @@ describe('/api/v1/reports/comments', () => {
         {
           clearExisting: false,
           useDefaults: false,
-        }
+        },
       );
       if (!reportForDeletion)
         throw new Error('Missing report for deletion test setup');
@@ -1069,7 +1071,7 @@ describe('/api/v1/reports/comments', () => {
     it(`should delete a report and its related report 
     history if user requesting it is ADMIN`, async () => {
       const res = await adminHelpers.deleteReport(
-        reportForDeletion.id.toString()
+        reportForDeletion.id.toString(),
       );
 
       expect(getMessage(res)).toBe(SUCCESS_MESSAGES.REPORTS.delete);
@@ -1083,9 +1085,9 @@ describe('/api/v1/reports/comments', () => {
 
       // Deleted Comment should not exist afterwards
       await expect(
-        adminHelpers.getReport(reportForDeletion.id.toString())
+        adminHelpers.getReport(reportForDeletion.id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -1100,29 +1102,29 @@ describe('/api/v1/reports/comments', () => {
           role === 'USER'
             ? userHelpers
             : role === 'AUTHOR'
-            ? authorHelpers
-            : modHelpers;
+              ? authorHelpers
+              : modHelpers;
 
         await expect(
-          helper.deleteReport(reports[0].id.toString())
+          helper.deleteReport(reports[0].id.toString()),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
-      }
+      },
     );
 
     it('should return 401 UNAUTHORIZED when not logged-in', async () => {
       if (!reports[0]) throw new Error('Missing initial report data');
       await expect(
-        anonHelpers.deleteReport(reports[0].id.toString())
+        anonHelpers.deleteReport(reports[0].id.toString()),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
     it('should throw when report with that id does not exist', async () => {
       await expect(adminHelpers.deleteReport('9999')).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 

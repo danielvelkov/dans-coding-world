@@ -1,9 +1,9 @@
-import {
+import { client as prisma } from '@dans-coding-world/prisma-schema';
+import type {
   Profile,
   RefreshToken,
   Role,
   User,
-  client as prisma,
 } from '@dans-coding-world/prisma-schema';
 import {
   seedRefreshTokens,

@@ -2,7 +2,7 @@ import {
   generateRandomString,
   passwordGenerator,
 } from '@dans-coding-world/helpers';
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import { USER_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { ChangePasswordDto } from '@dans-coding-world/shared-user-dto';
@@ -25,14 +25,14 @@ describe('User - settings page', () => {
 
       for (let i = 0; i < users.length; i++) testUsers.push(users[i]);
       currentTestUser = Cypress._.sample(
-        testUsers.filter((u) => u.role === 'USER' || u.role === 'AUTHOR')
+        testUsers.filter((u) => u.role === 'USER' || u.role === 'AUTHOR'),
       ) as User;
     });
   });
 
   beforeEach(() => {
     const validPassword = passwordGenerator(
-      USER_CONSTRAINTS.MIN_PASSWORD_LENGTH
+      USER_CONSTRAINTS.MIN_PASSWORD_LENGTH,
     );
     if (!previouslySetPassword.length)
       previouslySetPassword = currentTestUser.password;
@@ -59,7 +59,7 @@ describe('User - settings page', () => {
       cy.changePassword(
         validFormFields.oldPassword,
         validFormFields.newPassword,
-        validFormFields.confirmPassword
+        validFormFields.confirmPassword,
       );
       cy.contains('Password changed successfully');
       previouslySetPassword = validFormFields.newPassword;
@@ -72,7 +72,7 @@ describe('User - settings page', () => {
           oldPassword?: string;
           newPassword?: string;
           confirmPassword?: string;
-        } = {}
+        } = {},
       ) => {
         const {
           oldPassword = validFormFields.oldPassword,
@@ -93,7 +93,7 @@ describe('User - settings page', () => {
         cy.changePassword(
           validFormFields.oldPassword,
           validFormFields.newPassword,
-          validFormFields.confirmPassword
+          validFormFields.confirmPassword,
         );
         cy.contains('Password changed successfully');
         previouslySetPassword = validFormFields.newPassword;
@@ -101,7 +101,7 @@ describe('User - settings page', () => {
 
       it('does not allow typing a password that is too long', () => {
         const tooLong = generateRandomString(
-          USER_CONSTRAINTS.MAX_PASSWORD_LENGTH + 4
+          USER_CONSTRAINTS.MAX_PASSWORD_LENGTH + 4,
         );
 
         cy.get('[name="newPassword"]').as('password');
@@ -113,7 +113,7 @@ describe('User - settings page', () => {
 
       it('shows error if password is too short', () => {
         const newPassword = passwordGenerator(
-          USER_CONSTRAINTS.MIN_PASSWORD_LENGTH - 1
+          USER_CONSTRAINTS.MIN_PASSWORD_LENGTH - 1,
         );
 
         checkFieldValidation('new-password-error', {
@@ -127,7 +127,7 @@ describe('User - settings page', () => {
           USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
           {
             includeNumbers: false,
-          }
+          },
         );
 
         checkFieldValidation('new-password-error', {
@@ -141,7 +141,7 @@ describe('User - settings page', () => {
           USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
           {
             includeUppercase: false,
-          }
+          },
         );
 
         checkFieldValidation('new-password-error', {
@@ -155,7 +155,7 @@ describe('User - settings page', () => {
           USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
           {
             includeLowercase: false,
-          }
+          },
         );
 
         checkFieldValidation('new-password-error', {
@@ -169,7 +169,7 @@ describe('User - settings page', () => {
           USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
           {
             includeSymbols: false,
-          }
+          },
         );
 
         checkFieldValidation('new-password-error', {
@@ -180,7 +180,7 @@ describe('User - settings page', () => {
 
       it('shows error if confirm password is different than new password', () => {
         const newPassword = passwordGenerator(
-          USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1
+          USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
         );
 
         checkFieldValidation('confirm-password-error', {
@@ -197,7 +197,7 @@ describe('User - settings page', () => {
           validFormFields.confirmPassword,
           {
             waitForRequest: true,
-          }
+          },
         );
         cy.contains('Old password verification failed').should('be.visible');
       });
@@ -228,7 +228,7 @@ describe('User - settings page', () => {
         navigate to /blog after confirming profile deletion`, () => {
       cy.intercept(
         'DELETE',
-        `${API_ENDPOINTS.USERS.BY_ID(currentTestUser.id)}`
+        `${API_ENDPOINTS.USERS.BY_ID(currentTestUser.id)}`,
       ).as('deleteAccount');
       cy.contains('button', 'Delete Account').click();
       cy.get('dialog')

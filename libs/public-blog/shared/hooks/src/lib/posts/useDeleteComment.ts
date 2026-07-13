@@ -9,7 +9,7 @@ import {
   DeleteCommentDto,
   GetPostCommentsDto,
 } from '@dans-coding-world/shared-post-dto';
-import { Comment } from '@dans-coding-world/prisma-schema';
+import type { Comment } from '@dans-coding-world/prisma-schema';
 
 export function useDeleteComment() {
   const queryClient = useQueryClient();

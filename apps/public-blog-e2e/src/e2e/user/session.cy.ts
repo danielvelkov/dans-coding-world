@@ -1,6 +1,6 @@
-import { Profile, User } from '@dans-coding-world/prisma-schema';
+import type { Profile, User } from '@dans-coding-world/prisma-schema';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
-import { UserDetail } from '@dans-coding-world/user-data-access';
+import type { UserDetail } from '@dans-coding-world/user-data-access';
 import {
   ERROR_CODES,
   TOKEN_CONSTRAINTS,
@@ -102,7 +102,7 @@ describe('User session', () => {
         cy.contains('a', 'Login').should('exist');
         cy.checkIfLoggedOut();
       });
-    }
+    },
   );
 
   context(`user session refreshes at a certain interval once logged in`, () => {
@@ -138,7 +138,7 @@ describe('User session', () => {
           req.reply({
             statusCode: 400,
             body: generateErrorResponseByErrorCode(
-              ERROR_CODES.AUTH.INVALID_TOKEN
+              ERROR_CODES.AUTH.INVALID_TOKEN,
             ),
           });
         } else {

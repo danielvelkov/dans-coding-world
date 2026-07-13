@@ -9,7 +9,7 @@ import {
 import { Authorized, RequiredRole } from '@dans-coding-world/api-auth';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 import { ICommentReportsService } from '@dans-coding-world/api-reports';
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 
 export class CommentReportsController {
   constructor(private reportsService: ICommentReportsService) {
@@ -47,9 +47,8 @@ export class CommentReportsController {
         ...req.query,
       };
 
-      const reportsWithMetadata = await this.reportsService.getAll(
-        getReportsDto
-      );
+      const reportsWithMetadata =
+        await this.reportsService.getAll(getReportsDto);
 
       return res.status(StatusCodes.OK).json({
         message: SUCCESS_MESSAGES.REPORTS.getAll,

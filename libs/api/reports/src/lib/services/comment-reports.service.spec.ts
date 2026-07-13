@@ -13,7 +13,8 @@ import {
   IReportRepository,
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
-import {
+import { ReportStatusEnum, client } from '@dans-coding-world/prisma-schema';
+import type {
   Comment,
   CommentWhereInput,
   CommentsOrderByInput,
@@ -26,11 +27,9 @@ import {
   ReportHistory,
   ReportOrderByInput,
   ReportStatus,
-  ReportStatusEnum,
   ReportWhereInput,
   Role,
   User,
-  client,
 } from '@dans-coding-world/prisma-schema';
 import { ReflectiveInjector } from 'injection-js';
 import {
@@ -117,8 +116,8 @@ describe('CommentReportsService', () => {
           username: `fake${role.toLowerCase()}123`,
           role,
           isBanned: false,
-        })
-      )
+        }),
+      ),
     );
 
     const postsForCreation: {
@@ -136,8 +135,8 @@ describe('CommentReportsService', () => {
           ...validPostContent,
           authorId: post.author.id,
           ...post,
-        })
-      )
+        }),
+      ),
     );
 
     maliciousUser = user;
@@ -195,7 +194,7 @@ describe('CommentReportsService', () => {
       },
     ]);
     commentReportsService = injector.get(
-      CommentReportsService
+      CommentReportsService,
     ) as CommentReportsService;
 
     jest.spyOn(mockCommentReportsRepo, 'create');
@@ -244,7 +243,7 @@ describe('CommentReportsService', () => {
 
         // Select a reporter that IS NOT the comment's author
         const validReporters = reporters.filter(
-          (u) => u.id !== randomComment.userId
+          (u) => u.id !== randomComment.userId,
         );
 
         const randomReporter: User = randomSelect(validReporters);
@@ -275,10 +274,10 @@ describe('CommentReportsService', () => {
           mockCommentReportsRepo.create({
             ...r,
             createdAt: new Date(
-              Date.now() + Math.floor(Math.random() * 100) * 1000 * 60 // between 1-100 min difference
+              Date.now() + Math.floor(Math.random() * 100) * 1000 * 60, // between 1-100 min difference
             ),
-          })
-        )
+          }),
+        ),
       );
 
       // Fetch all created reports to use in the tests
@@ -405,7 +404,7 @@ describe('CommentReportsService', () => {
         for (const report of items) {
           if (filterBy.maliciousUserId)
             expect(report.reportedComment.userId).toBe(
-              filterBy.maliciousUserId
+              filterBy.maliciousUserId,
             );
 
           if (filterBy.postId)
@@ -416,7 +415,7 @@ describe('CommentReportsService', () => {
         }
 
         expect(pagination.total).toBe(total);
-      }
+      },
     );
 
     test.each([
@@ -432,7 +431,7 @@ describe('CommentReportsService', () => {
         .getAll({ pageSize: pageSize as any, pageOffset })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
           );
         });
     });
@@ -450,7 +449,7 @@ describe('CommentReportsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     test.each([
@@ -469,7 +468,7 @@ describe('CommentReportsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     test.each([
@@ -486,7 +485,7 @@ describe('CommentReportsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
           );
         });
     });
@@ -512,7 +511,7 @@ describe('CommentReportsService', () => {
         sortedItems.forEach((post, i) => {
           expect(post.id).toBe(res.items[i].id);
         });
-      }
+      },
     );
 
     const pageSizeOptions = PAGINATION.REPORTS.ITEMS_PER_PAGE_OPTIONS;
@@ -530,10 +529,10 @@ describe('CommentReportsService', () => {
           .getAll({ pageOffset, pageSize })
           .catch((error) => {
             expect(error.message).toMatch(
-              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
             );
           });
-      }
+      },
     );
 
     test.each([
@@ -550,7 +549,7 @@ describe('CommentReportsService', () => {
         });
         expect(resDto.pagination.limit).toBe(pageSize);
         expect(resDto.pagination.page).toBe(expectedPageNum);
-      }
+      },
     );
 
     it('should return 0 items when offset is beyond total number of reports', async () => {
@@ -597,7 +596,7 @@ describe('CommentReportsService', () => {
         const reportHistoryChange = report.history[i];
         expect(reportHistoryChange.note).toBe(historyForReport[0].note);
         expect(reportHistoryChange.moderatorId).toBe(
-          historyForReport[i].moderatorId
+          historyForReport[i].moderatorId,
         );
       }
     });
@@ -614,10 +613,10 @@ describe('CommentReportsService', () => {
           .getById({ reportId: id as any })
           .catch((error) => {
             expect(error.message).toMatch(
-              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
             );
           });
-      }
+      },
     );
 
     it('should throw when report with that id does not exist', async () => {
@@ -628,7 +627,7 @@ describe('CommentReportsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -652,7 +651,7 @@ describe('CommentReportsService', () => {
       expect(createdReport.status).toBe('PENDING');
       // Check date and time down to minutes
       expect(createdReport.createdAt.toISOString().slice(0, 16)).toBe(
-        now.toISOString().slice(0, 16)
+        now.toISOString().slice(0, 16),
       );
     });
 
@@ -666,7 +665,7 @@ describe('CommentReportsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.REPORT_EXISTS]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.REPORT_EXISTS],
           );
         });
     });
@@ -681,7 +680,7 @@ describe('CommentReportsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -704,7 +703,7 @@ describe('CommentReportsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     test.each([
@@ -724,7 +723,7 @@ describe('CommentReportsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     test.each([
@@ -744,7 +743,7 @@ describe('CommentReportsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     it('should throw when comment with that id does not exist', async () => {
@@ -757,7 +756,7 @@ describe('CommentReportsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -772,7 +771,7 @@ describe('CommentReportsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.USER_MISSING]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.USER_MISSING],
           );
         });
     });
@@ -797,7 +796,7 @@ describe('CommentReportsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -832,7 +831,7 @@ describe('CommentReportsService', () => {
 
         expect(report).toBeDefined();
         expect(mockCommentReportsRepo.create).toHaveBeenCalledTimes(1);
-      }
+      },
     );
   });
 
@@ -861,10 +860,10 @@ describe('CommentReportsService', () => {
       // Report should contain: History by far + new entry
       expect(report.history.length).toBe(historyForReport.length + 1);
       expect(
-        report.history.map((e) => e.id).includes(reportHistoryEntry?.id)
+        report.history.map((e) => e.id).includes(reportHistoryEntry?.id),
       ).toBe(true);
       expect(
-        report.history.map((e) => e.note).includes(historyForReport[0].note)
+        report.history.map((e) => e.note).includes(historyForReport[0].note),
       ).toBe(true);
     });
 
@@ -891,7 +890,7 @@ describe('CommentReportsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -909,7 +908,7 @@ describe('CommentReportsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     it('should throw when report with that id does not exist', async () => {
@@ -922,7 +921,7 @@ describe('CommentReportsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -964,7 +963,7 @@ describe('CommentReportsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     test.each([
@@ -985,7 +984,7 @@ describe('CommentReportsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
   });
 
@@ -1003,14 +1002,14 @@ describe('CommentReportsService', () => {
           where: {
             id: reportByAuthor.id,
           },
-        })
+        }),
       ).toBe(0);
       expect(
         await client.reportHistory.count({
           where: {
             reportId: reportByAuthor.id,
           },
-        })
+        }),
       ).toBe(0);
     });
 
@@ -1024,14 +1023,14 @@ describe('CommentReportsService', () => {
           where: {
             id: reportByAuthor.commentId,
           },
-        })
+        }),
       ).toBe(1);
       expect(
         await client.user.count({
           where: {
             id: reportByAuthor.reporterId,
           },
-        })
+        }),
       ).toBe(1);
     });
 
@@ -1050,7 +1049,7 @@ describe('CommentReportsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
   });
 
@@ -1062,7 +1061,7 @@ describe('CommentReportsService', () => {
       })
       .catch((error) => {
         expect(error.message).toMatch(
-          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
         );
       });
   });
@@ -1077,7 +1076,7 @@ describe('CommentReportsService', () => {
  */
 export function getExpectedReportCount(
   reports: ReportDetail[],
-  filters?: FilterReportsByDto
+  filters?: FilterReportsByDto,
 ): number {
   let filteredReports = [...reports]; // Start with all posts
 
@@ -1102,21 +1101,21 @@ export function getExpectedReportCount(
     // 2a. Filtering by status
     if (effectiveFilters.status && effectiveFilters.status.length > 0) {
       filteredReports = filteredReports.filter((r) =>
-        effectiveFilters.status?.includes(r.status)
+        effectiveFilters.status?.includes(r.status),
       );
     }
 
     // 2b. Filtering by post id
     if (effectiveFilters.postId) {
       filteredReports = filteredReports.filter(
-        (r) => r.reportedComment.postId === effectiveFilters.postId
+        (r) => r.reportedComment.postId === effectiveFilters.postId,
       );
     }
 
     // 2c. Filtering by malicious user id
     if (effectiveFilters.maliciousUserId) {
       filteredReports = filteredReports.filter(
-        (r) => r.reportedComment.userId === effectiveFilters.maliciousUserId
+        (r) => r.reportedComment.userId === effectiveFilters.maliciousUserId,
       );
     }
   }

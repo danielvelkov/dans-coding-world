@@ -1,5 +1,5 @@
 import { generateRandomString } from '@dans-coding-world/helpers';
-import { Post } from '@dans-coding-world/prisma-schema';
+import type { Post } from '@dans-coding-world/prisma-schema';
 import { POST_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 describe('Blog - search', () => {
   let seededPosts: Post[];
@@ -15,7 +15,7 @@ describe('Blog - search', () => {
           seededPosts = posts as Post[];
           if (!seededPosts || !seededPosts.length)
             throw new Error('Missing post fixtures');
-        })
+        }),
     );
   });
 
@@ -25,18 +25,18 @@ describe('Blog - search', () => {
 
   it('does not allow typing past a certain limit', () => {
     const longSearchString = generateRandomString(
-      POST_CONSTRAINTS.MAX_TITLE_LENGTH + 20
+      POST_CONSTRAINTS.MAX_TITLE_LENGTH + 20,
     );
     cy.get('search').within(() => {
       cy.get('input[aria-label="search"]').type(longSearchString);
 
       cy.get('input[aria-label="search"]').should(
         'not.have.value',
-        longSearchString
+        longSearchString,
       );
       cy.get('input[aria-label="search"]').should(
         'have.value',
-        longSearchString.substring(0, POST_CONSTRAINTS.MAX_TITLE_LENGTH)
+        longSearchString.substring(0, POST_CONSTRAINTS.MAX_TITLE_LENGTH),
       );
     });
   });
@@ -70,7 +70,7 @@ describe('Blog - search', () => {
       (p) =>
         p.status === 'PUBLISHED' &&
         (p.content.toLowerCase().includes(commonTerm) ||
-          p.title.toLowerCase().includes(commonTerm))
+          p.title.toLowerCase().includes(commonTerm)),
     ).length;
     if (expectedNumOfPosts != 2) throw new Error('Wrong fixtures');
     const commonTermUpperCase = commonTerm.toUpperCase();
@@ -85,7 +85,7 @@ describe('Blog - search', () => {
 
   it('does not find posts that are unpublished', () => {
     const unpublishedPosts = seededPosts.filter(
-      (p) => p.status !== 'PUBLISHED'
+      (p) => p.status !== 'PUBLISHED',
     );
     if (!unpublishedPosts.length) throw new Error('Missing fixtures');
 
@@ -109,11 +109,11 @@ describe('Blog - search', () => {
       (p) =>
         p.status === 'PUBLISHED' &&
         (p.title.toLowerCase().includes(searchTerm) ||
-          p.content.toLowerCase().includes(searchTerm))
+          p.content.toLowerCase().includes(searchTerm)),
     ).length;
 
     cy.get('search').within(() =>
-      cy.get('input').should('have.value', searchTerm)
+      cy.get('input').should('have.value', searchTerm),
     );
 
     cy.get('[aria-label="blog posts"]').within(() => {

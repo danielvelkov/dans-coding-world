@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
+import { client as prisma } from '@dans-coding-world/prisma-schema';
+import type {
   Comment,
   CommentWithReplies,
   Post,
   User,
-  client as prisma,
 } from '@dans-coding-world/prisma-schema';
 import {
   seedUsers,
@@ -57,12 +57,12 @@ describe('/api/v1/posts/{postId}/comments', () => {
     comments = await seedComments();
 
     publishedPublicPosts = posts.filter(
-      (p) => p.visibility === 'PUBLIC' && p.status === 'PUBLISHED'
+      (p) => p.visibility === 'PUBLIC' && p.status === 'PUBLISHED',
     );
     draftPosts = posts.filter((p) => p.status === 'DRAFT');
     archivedPosts = posts.filter((p) => p.status === 'ARCHIVED');
     membersOnlyPosts = posts.filter(
-      (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED'
+      (p) => p.visibility === 'MEMBERS_ONLY' && p.status === 'PUBLISHED',
     );
 
     if (!publishedPublicPosts || !draftPosts || !membersOnlyPosts)
@@ -89,7 +89,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
     it(`should return top-level comments for PUBLIC and PUBLISHED posts
       including each comment's replies count`, async () => {
       const publishedPosts = posts.filter(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!publishedPosts) throw new Error('Missing published test posts');
 
@@ -97,7 +97,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         const res = await anonHelpers.getPostComments(post.id.toString());
 
         expect(getMessage(res)).toBe(
-          SUCCESS_MESSAGES.COMMENTS.getPostsComments
+          SUCCESS_MESSAGES.COMMENTS.getPostsComments,
         );
 
         const commentsData = getData<GetPostCommentsResponseDto>(res);
@@ -105,10 +105,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
         // Total should show only direct replies to post (depth === 0)
         expect(commentsData.pagination.total).toBe(
-          comments.filter((c) => c.postId === post.id && c.depth === 0).length
+          comments.filter((c) => c.postId === post.id && c.depth === 0).length,
         );
         expect(commentsData.pagination.limit).toBe(
-          PAGINATION.COMMENTS.DEFAULT_ITEMS_PER_PAGE
+          PAGINATION.COMMENTS.DEFAULT_ITEMS_PER_PAGE,
         );
 
         for (const comment of postComments) {
@@ -128,11 +128,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
       'should return 404 NOT FOUND for unknown post id',
       async () => {
         return await expect(
-          anonHelpers.getPostComments('9999')
+          anonHelpers.getPostComments('9999'),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
         );
-      }
+      },
     );
 
     describe('?depth=y', () => {
@@ -148,7 +148,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
       it(`should return all replies for each comment when depth is omitted from query`, async () => {
         const res = await adminHelpers.getPostComments(
-          postWithDeeplyNestedReplies.id.toString()
+          postWithDeeplyNestedReplies.id.toString(),
         );
 
         const commentsData = getData<GetPostCommentsResponseDto>(res);
@@ -156,7 +156,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         for (const comment of commentsData.items)
           checkRepliesRecursively(
             comment.replies,
-            comments.filter((c) => c.postId === postWithDeeplyNestedReplies.id)
+            comments.filter((c) => c.postId === postWithDeeplyNestedReplies.id),
           );
       });
 
@@ -170,7 +170,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
             postWithDeeplyNestedReplies.id.toString(),
             {
               depth: replyLevel,
-            }
+            },
           );
 
           const commentsData = getData<GetPostCommentsResponseDto>(res);
@@ -181,8 +181,8 @@ describe('/api/v1/posts/{postId}/comments', () => {
               comments.filter(
                 (c) =>
                   c.postId === postWithDeeplyNestedReplies.id &&
-                  c.depth <= replyLevel
-              )
+                  c.depth <= replyLevel,
+              ),
             );
         }
       });
@@ -191,7 +191,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         const commentWithoutReplies = comments.find(
           (c, _, arr) =>
             !arr.map((com) => com.threadParentId).includes(c.id) &&
-            c.depth === 0
+            c.depth === 0,
         );
         if (!commentWithoutReplies) throw new Error('Missing test comment');
 
@@ -204,13 +204,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
             commentWithoutReplies?.postId.toString(),
             {
               maxReplyLevels: depthLevel,
-            }
+            },
           );
 
           const commentsData = getData<GetPostCommentsResponseDto>(res);
 
           const lonelyComment = commentsData.items.find(
-            (c) => c.id === commentWithoutReplies.id
+            (c) => c.id === commentWithoutReplies.id,
           );
           expect(lonelyComment?.replies).toEqual([]);
           expect(lonelyComment?.replyCount).toBe(0);
@@ -233,9 +233,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
         return await expect(
           anonHelpers.getPostComments(publishedPublicPosts[0].id.toString(), {
             depth,
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
       });
     });
@@ -254,11 +254,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
               sortBy: {
                 [key]: value,
               },
-            })
+            }),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+            createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
           );
-        }
+        },
       );
 
       test.concurrent.each([
@@ -275,7 +275,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
               sortBy: {
                 [propName]: isDescending ? 'desc' : 'asc',
               },
-            }
+            },
           );
 
           const commentsData = getData<GetPostCommentsResponseDto>(res);
@@ -290,7 +290,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
           sortedItems.forEach((comment, i) => {
             expect(comment.id).toBe(commentsData.items[i].id);
           });
-        }
+        },
       );
     });
 
@@ -306,7 +306,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
           (p) =>
             !comments.find((c) => c.postId === p.id) &&
             p.status === 'PUBLISHED' &&
-            p.visibility === 'PUBLIC'
+            p.visibility === 'PUBLIC',
         );
         if (!postWithoutComments)
           throw new Error('Missing test post without comments');
@@ -340,7 +340,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
           postWithoutCommentsId.toString(),
           {
             pageOffset: offset,
-          }
+          },
         );
 
         const commentsData = getData<GetPostCommentsResponseDto>(res);
@@ -356,13 +356,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
           {
             pageOffset: totalNumberOfComments,
             pageSize: pageSizeOptions[2],
-          }
+          },
         );
 
         const commentsData = getData<GetPostCommentsResponseDto>(res);
 
         expect(commentsData.pagination.page).toBe(
-          Math.ceil(totalNumberOfComments / pageSizeOptions[2]) + 1
+          Math.ceil(totalNumberOfComments / pageSizeOptions[2]) + 1,
         );
         expect(commentsData.count).toBe(0);
         expect(commentsData.items.length).toBe(0);
@@ -387,14 +387,14 @@ describe('/api/v1/posts/{postId}/comments', () => {
             {
               pageOffset,
               pageSize,
-            }
+            },
           );
 
           const commentsData = getData<GetPostCommentsResponseDto>(res);
 
           expect(commentsData.pagination.page).toBe(expectedPageNum);
           expect(commentsData.pagination.total).toBe(totalNumberOfComments);
-        }
+        },
       );
 
       test.concurrent.each([
@@ -438,9 +438,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
         ],
       ])('should return validation error when %s', async (_, params) => {
         await expect(
-          anonHelpers.getPostComments(postWithoutCommentsId.toString(), params)
+          anonHelpers.getPostComments(postWithoutCommentsId.toString(), params),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
       });
     });
@@ -454,9 +454,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
         MEMBERS_ONLY post`, async () => {
         for (const post of membersOnlyPosts)
           await expect(
-            anonHelpers.getPostComments(post.id.toString())
+            anonHelpers.getPostComments(post.id.toString()),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+            createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
           );
       });
 
@@ -464,9 +464,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
         DRAFT or ARCHIVED post`, async () => {
         for (const post of draftPosts.concat(archivedPosts))
           await expect(
-            anonHelpers.getPostComments(post.id.toString())
+            anonHelpers.getPostComments(post.id.toString()),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
           );
       });
     });
@@ -477,16 +477,16 @@ describe('/api/v1/posts/{postId}/comments', () => {
           (p) =>
             p.visibility === 'MEMBERS_ONLY' &&
             p.status === 'PUBLISHED' &&
-            comments.find((c) => c.postId === p.id)
+            comments.find((c) => c.postId === p.id),
         );
         if (!membersOnlyPost) throw new Error('Missing test post');
 
         const expectedNumberOfComments = comments.filter(
-          (c) => c.postId === membersOnlyPost.id && c.depth === 0
+          (c) => c.postId === membersOnlyPost.id && c.depth === 0,
         ).length;
 
         const res = await authorHelpers.getPostComments(
-          membersOnlyPost.id.toString()
+          membersOnlyPost.id.toString(),
         );
 
         const commentsData = getData<GetPostCommentsResponseDto>(res);
@@ -499,19 +499,19 @@ describe('/api/v1/posts/{postId}/comments', () => {
           (p) =>
             p.status === 'ARCHIVED' &&
             p.authorId === admin.id &&
-            comments.find((c) => c.postId === p.id)
+            comments.find((c) => c.postId === p.id),
         );
         const draftPost = posts.find(
           (p) =>
             p.status === 'DRAFT' &&
             p.authorId === admin.id &&
-            comments.find((c) => c.postId === p.id)
+            comments.find((c) => c.postId === p.id),
         );
         if (!archivedPost || !draftPost) throw new Error('Missing test posts');
 
         for (const post of [archivedPost, draftPost]) {
           const expectedNumberOfComments = comments.filter(
-            (c) => c.postId === post.id && c.depth === 0
+            (c) => c.postId === post.id && c.depth === 0,
           ).length;
           const res = await adminHelpers.getPostComments(post.id.toString());
 
@@ -524,27 +524,27 @@ describe('/api/v1/posts/{postId}/comments', () => {
       it(`should return 403 FORBIDDEN when trying to get comments 
         for DRAFT or ARCHIVED post of another user`, async () => {
         const archivedPost = posts.find(
-          (p) => p.status === 'ARCHIVED' && p.authorId !== author.id
+          (p) => p.status === 'ARCHIVED' && p.authorId !== author.id,
         );
         const draftPost = posts.find(
-          (p) => p.status === 'DRAFT' && p.authorId !== author.id
+          (p) => p.status === 'DRAFT' && p.authorId !== author.id,
         );
         if (!archivedPost || !draftPost) throw new Error('Missing test posts');
 
         // Not logged in
         for (const id of [archivedPost.id, draftPost.id])
           await expect(
-            anonHelpers.getPostComments(id.toString())
+            anonHelpers.getPostComments(id.toString()),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
           );
 
         // Logged in as another user
         for (const id of [archivedPost.id, draftPost.id])
           await expect(
-            authorHelpers.getPostComments(id.toString())
+            authorHelpers.getPostComments(id.toString()),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
           );
       });
     });
@@ -557,7 +557,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         (p) =>
           p.status === 'PUBLISHED' &&
           p.visibility === 'PUBLIC' &&
-          comments.find((c) => c.postId === p.id && c.threadParentId)
+          comments.find((c) => c.postId === p.id && c.threadParentId),
       );
       if (!publishedPosts) throw new Error('Missing published test posts');
 
@@ -566,7 +566,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
           (c, i, arr) =>
             c.postId === post.id &&
             arr.find((r) => r.threadParentId === c.id) &&
-            c.depth === 0
+            c.depth === 0,
         );
         if (!commentsWithReplies.length)
           throw new Error('Missing replies for post');
@@ -574,7 +574,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         for (const comment of commentsWithReplies) {
           const res = await anonHelpers.getComment(
             post.id.toString(),
-            comment.id.toString()
+            comment.id.toString(),
           );
 
           expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.get);
@@ -583,11 +583,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
           const replies = commentsData.comment.replies;
 
           expect(replies.every((c) => c.threadParentId === comment.id)).toBe(
-            true
+            true,
           );
 
           expect(commentsData.comment.replyCount).toBe(
-            getReplyCountRecursively(commentsData.comment)
+            getReplyCountRecursively(commentsData.comment),
           );
         }
       }
@@ -598,22 +598,22 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
       await expect(anonHelpers.getComment('999', '1')).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
 
       const publishedPost = posts.find(
         (p) =>
           p.status === 'PUBLISHED' &&
           p.visibility === 'PUBLIC' &&
-          comments.find((c) => c.postId === p.id)
+          comments.find((c) => c.postId === p.id),
       );
 
       if (!publishedPost) throw new Error('Missing published test post');
 
       await expect(
-        anonHelpers.getComment(publishedPost.id.toString(), '9999')
+        anonHelpers.getComment(publishedPost.id.toString(), '9999'),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -631,7 +631,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
           currDepth--
         ) {
           searchedComment = comments.find(
-            (c) => c.id === searchedComment?.threadParentId
+            (c) => c.id === searchedComment?.threadParentId,
           );
         }
 
@@ -639,7 +639,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
         commentWithDeeplyNestedReplies = searchedComment;
 
         commentReplies = comments.filter(
-          (c) => c.threadParentId === commentWithDeeplyNestedReplies.id
+          (c) => c.threadParentId === commentWithDeeplyNestedReplies.id,
         );
 
         for (
@@ -651,7 +651,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
             (c) =>
               c.depth === currDepth &&
               c.threadParentId &&
-              commentReplies.map((com) => com.id).includes(c.threadParentId)
+              commentReplies.map((com) => com.id).includes(c.threadParentId),
           );
           commentReplies.push(...temp);
         }
@@ -660,7 +660,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
       it(`should return all the comment's replies when depth is not set`, async () => {
         const res = await anonHelpers.getComment(
           commentWithDeeplyNestedReplies.postId.toString(),
-          commentWithDeeplyNestedReplies.id.toString()
+          commentWithDeeplyNestedReplies.id.toString(),
         );
 
         const commentsData = getData<GetCommentResponseDto>(res);
@@ -678,7 +678,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
           const res = await anonHelpers.getComment(
             commentWithDeeplyNestedReplies.postId.toString(),
             commentWithDeeplyNestedReplies.id.toString(),
-            { depth: replyLevel }
+            { depth: replyLevel },
           );
 
           const commentData = getData<GetCommentResponseDto>(res);
@@ -686,7 +686,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
           for (const comment of commentData.comment.replies)
             checkRepliesRecursively(
               comment.replies,
-              commentReplies.filter((c) => c.depth <= replyLevel)
+              commentReplies.filter((c) => c.depth <= replyLevel),
             );
         }
       });
@@ -710,10 +710,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
             commentWithDeeplyNestedReplies.id.toString(),
             {
               depth,
-            }
-          )
+            },
+          ),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
       });
     });
@@ -723,9 +723,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
         from a MEMBERS_ONLY post`, async () => {
         for (const post of membersOnlyPosts)
           await expect(
-            anonHelpers.getComment(post.id.toString(), '1')
+            anonHelpers.getComment(post.id.toString(), '1'),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+            createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
           );
       });
 
@@ -733,9 +733,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
          from a DRAFT or ARCHIVED post`, async () => {
         for (const post of draftPosts.concat(archivedPosts))
           await expect(
-            anonHelpers.getComment(post.id.toString(), '1')
+            anonHelpers.getComment(post.id.toString(), '1'),
           ).rejects.toMatchObject(
-            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+            createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
           );
       });
     });
@@ -748,29 +748,29 @@ describe('/api/v1/posts/{postId}/comments', () => {
             p.visibility === 'MEMBERS_ONLY' &&
             p.status === 'PUBLISHED' &&
             comments.find((c) => c.postId === p.id && c.threadParentId) &&
-            p.authorId !== author.id
+            p.authorId !== author.id,
         );
         if (!membersOnlyPosts) throw new Error('Missing test posts');
 
         for (const post of membersOnlyPosts) {
           const postComments = comments.filter(
-            (c) => c.postId === post.id && c.depth === 0
+            (c) => c.postId === post.id && c.depth === 0,
           );
 
           for (const comment of postComments) {
             const expectedNumberOfComments = comments.filter(
-              (c) => c.postId === post.id && c.threadParentId === comment.id
+              (c) => c.postId === post.id && c.threadParentId === comment.id,
             ).length;
 
             const res = await authorHelpers.getComment(
               post.id.toString(),
-              comment.id.toString()
+              comment.id.toString(),
             );
 
             const repliesData = getData<GetCommentResponseDto>(res);
 
             expect(repliesData.comment.replyCount).toBe(
-              expectedNumberOfComments
+              expectedNumberOfComments,
             );
           }
         }
@@ -782,31 +782,31 @@ describe('/api/v1/posts/{postId}/comments', () => {
           (p) =>
             p.status === 'ARCHIVED' &&
             p.authorId === admin.id &&
-            comments.find((c) => c.postId === p.id && c.threadParentId)
+            comments.find((c) => c.postId === p.id && c.threadParentId),
         );
         const draftPost = posts.find(
           (p) =>
             p.status === 'DRAFT' &&
             p.authorId === admin.id &&
-            comments.find((c) => c.postId === p.id && c.threadParentId)
+            comments.find((c) => c.postId === p.id && c.threadParentId),
         );
         if (!archivedPost || !draftPost) throw new Error('Missing test posts');
 
         for (const post of [archivedPost, draftPost]) {
           const postComments = comments.filter(
-            (c) => c.postId === post.id && c.depth === 0
+            (c) => c.postId === post.id && c.depth === 0,
           );
 
           for (const comment of postComments) {
             const res = await adminHelpers.getComment(
               post.id.toString(),
-              comment.id.toString()
+              comment.id.toString(),
             );
 
             const repliesData = getData<GetCommentResponseDto>(res);
 
             expect(repliesData.comment.replyCount).toBe(
-              getReplyCountRecursively(repliesData.comment)
+              getReplyCountRecursively(repliesData.comment),
             );
           }
         }
@@ -818,13 +818,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
           (p) =>
             p.status === 'ARCHIVED' &&
             p.authorId !== author.id &&
-            comments.find((c) => c.postId === p.id && c.threadParentId)
+            comments.find((c) => c.postId === p.id && c.threadParentId),
         );
         const draftPost = posts.find(
           (p) =>
             p.status === 'DRAFT' &&
             p.authorId !== author.id &&
-            comments.find((c) => c.postId === p.id && c.threadParentId)
+            comments.find((c) => c.postId === p.id && c.threadParentId),
         );
 
         if (!archivedPost || !draftPost) throw new Error('Missing test posts');
@@ -832,34 +832,34 @@ describe('/api/v1/posts/{postId}/comments', () => {
         // Not logged in
         for (const post of [archivedPost, draftPost]) {
           const postComments = comments.filter(
-            (c) => c.postId === post.id && c.depth === 0
+            (c) => c.postId === post.id && c.depth === 0,
           );
 
           for (const parentComment of postComments)
             await expect(
               anonHelpers.getComment(
                 post.id.toString(),
-                parentComment.id.toString()
-              )
+                parentComment.id.toString(),
+              ),
             ).rejects.toMatchObject(
-              createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+              createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
             );
         }
 
         // Logged in as another user
         for (const post of [archivedPost, draftPost]) {
           const postComments = comments.filter(
-            (c) => c.postId === post.id && c.depth === 0
+            (c) => c.postId === post.id && c.depth === 0,
           );
 
           for (const parentComment of postComments)
             await expect(
               authorHelpers.getComment(
                 post.id.toString(),
-                parentComment.id.toString()
-              )
+                parentComment.id.toString(),
+              ),
             ).rejects.toMatchObject(
-              createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+              createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
             );
         }
       });
@@ -872,7 +872,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
             (p) =>
               p.status === 'ARCHIVED' &&
               p.authorId === admin.id &&
-              comments.find((c) => c.postId === p.id)
+              comments.find((c) => c.postId === p.id),
           );
 
           if (!archivedPost) throw new Error('Missing test posts');
@@ -881,13 +881,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
           for (const post of [archivedPost]) {
             const postComments = comments.filter(
-              (c) => c.postId === post.id && c.depth === 0
+              (c) => c.postId === post.id && c.depth === 0,
             );
 
             for (const parentComment of postComments) {
               const res = await helper.getComment(
                 post.id.toString(),
-                parentComment.id.toString()
+                parentComment.id.toString(),
               );
 
               const repliesData = getData<GetCommentResponseDto>(res);
@@ -895,7 +895,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
               expect(repliesData).toBeDefined();
             }
           }
-        }
+        },
       );
     });
   });
@@ -908,13 +908,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
     it('should delete a comment and all its related replies', async () => {
       const commentWithReplies = comments.find(
         (c, i, arr) =>
-          c.userId === admin.id && arr.find((r) => r.threadParentId === c.id)
+          c.userId === admin.id && arr.find((r) => r.threadParentId === c.id),
       );
       if (!commentWithReplies) throw new Error('Missing test comment');
 
       const res = await adminHelpers.deleteComment(
         commentWithReplies?.postId.toString(),
-        commentWithReplies?.id.toString()
+        commentWithReplies?.id.toString(),
       );
 
       expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.delete);
@@ -923,23 +923,23 @@ describe('/api/v1/posts/{postId}/comments', () => {
       await expect(
         adminHelpers.deleteComment(
           commentWithReplies?.postId.toString(),
-          commentWithReplies?.id.toString()
-        )
+          commentWithReplies?.id.toString(),
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
 
       // All comment replies
       for (const reply of comments.filter(
-        (c) => c.threadParentId === commentWithReplies?.id
+        (c) => c.threadParentId === commentWithReplies?.id,
       ))
         await expect(
           adminHelpers.deleteComment(
             commentWithReplies?.postId.toString(),
-            reply?.id.toString()
-          )
+            reply?.id.toString(),
+          ),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+          createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
         );
 
       comments = await seedComments();
@@ -947,9 +947,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
     it('should return 401 UNAUTHORIZED when trying to delete comment as guest', async () => {
       return await expect(
-        anonHelpers.deleteComment('1', '1')
+        anonHelpers.deleteComment('1', '1'),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -963,24 +963,24 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
       await expect(
-        adminHelpers.deleteComment('999', '1')
+        adminHelpers.deleteComment('999', '1'),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
 
       const publishedPost = posts.find(
         (p) =>
           p.status === 'PUBLISHED' &&
           p.visibility === 'PUBLIC' &&
-          comments.find((c) => c.postId === p.id)
+          comments.find((c) => c.postId === p.id),
       );
 
       if (!publishedPost) throw new Error('Missing published test post');
 
       await expect(
-        adminHelpers.deleteComment(publishedPost.id.toString(), '999')
+        adminHelpers.deleteComment(publishedPost.id.toString(), '999'),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -992,10 +992,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
       await expect(
         authorHelpers.deleteComment(
           otherUserComment?.postId.toString(),
-          otherUserComment?.id.toString()
-        )
+          otherUserComment?.id.toString(),
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -1012,13 +1012,13 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
         const res = await helper.deleteComment(
           otherUserComment?.postId.toString(),
-          otherUserComment.id.toString()
+          otherUserComment.id.toString(),
         );
 
         expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.delete);
 
         comments = await seedComments();
-      }
+      },
     );
 
     it(`should return error when logged-in user is banned and trying to
@@ -1036,10 +1036,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
         await expect(
           authorHelpers.deleteComment(
             posts[0].id.toString(),
-            comments[0].id.toString()
-          )
+            comments[0].id.toString(),
+          ),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED),
         );
       } finally {
         await prisma.user.update({
@@ -1082,7 +1082,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
       const newContent = generateRandomString(20);
       const post = posts.find(
         (p) =>
-          p.status === 'PUBLISHED' && comments.find((c) => c.postId === p.id)
+          p.status === 'PUBLISHED' && comments.find((c) => c.postId === p.id),
       );
       if (!post) throw new Error('Missing post');
 
@@ -1104,16 +1104,16 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
     it('should return 401 UNAUTHORIZED when trying to create comment as guest', async () => {
       return await expect(
-        anonHelpers.createComment('1', { content: generateRandomString(10) })
+        anonHelpers.createComment('1', { content: generateRandomString(10) }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
     testInvalidIds(async (id) => {
       return adminHelpers.createComment(id, {
         content: generateRandomString(
-          COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
+          COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1,
         ),
       });
     }, 'postId');
@@ -1124,7 +1124,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
 
       return adminHelpers.createComment(post?.id.toString(), {
         content: generateRandomString(
-          COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1
+          COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1,
         ),
         replyToCommentId: id as any,
       });
@@ -1147,11 +1147,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
         if (!post) throw new Error('Missing post');
 
         await expect(
-          adminHelpers.createComment(post?.id.toString(), { content })
+          adminHelpers.createComment(post?.id.toString(), { content }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
@@ -1159,16 +1159,16 @@ describe('/api/v1/posts/{postId}/comments', () => {
       await expect(
         adminHelpers.createComment((999).toString(), {
           content: generateRandomString(10),
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
     it('should return 404 NOT FOUND when replyToCommentId does not exist', async () => {
       const post = posts.find(
         (p) =>
-          p.status === 'PUBLISHED' && comments.find((c) => c.postId === p.id)
+          p.status === 'PUBLISHED' && comments.find((c) => c.postId === p.id),
       );
 
       if (!post)
@@ -1178,9 +1178,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
         adminHelpers.createComment(post.id.toString(), {
           content: generateRandomString(10),
           replyToCommentId: 999,
-        })
+        }),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -1188,16 +1188,16 @@ describe('/api/v1/posts/{postId}/comments', () => {
       non-PUBLISHED post that the user is not the author of`, async () => {
       // Login: author -> use authorHelpers
       const nonPublishedPosts = posts.filter(
-        (p) => p.status !== 'PUBLISHED' && p.authorId !== author.id
+        (p) => p.status !== 'PUBLISHED' && p.authorId !== author.id,
       );
       // NOTE: Assuming nonPublishedPosts is guaranteed to be non-empty by test setup
       for (const post of nonPublishedPosts)
         await expect(
           authorHelpers.createComment(post.id.toString(), {
             content: generateRandomString(10),
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+          createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
         );
     });
 
@@ -1216,9 +1216,9 @@ describe('/api/v1/posts/{postId}/comments', () => {
         await expect(
           authorHelpers.createComment(posts[0].id.toString(), {
             content: 'new content',
-          })
+          }),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED),
         );
       } finally {
         await prisma.user.update({
@@ -1244,19 +1244,19 @@ describe('/api/v1/posts/{postId}/comments', () => {
       const commentForUpdate = comments.find(
         (c) =>
           c.userId === admin.id &&
-          posts.find((p) => p.id === c.postId && p.status === 'PUBLISHED')
+          posts.find((p) => p.id === c.postId && p.status === 'PUBLISHED'),
       );
 
       if (!commentForUpdate)
         throw new Error(
-          'Missing comment by admin on a published post for test setup.'
+          'Missing comment by admin on a published post for test setup.',
         );
 
       // Login: admin -> use adminHelpers
       const res = await adminHelpers.updateComment(
         commentForUpdate.postId.toString(),
         commentForUpdate.id.toString(),
-        newContent
+        newContent,
       );
 
       expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.update);
@@ -1271,10 +1271,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
         anonHelpers.updateComment(
           (1).toString(),
           (1).toString(),
-          generateRandomString(10)
-        )
+          generateRandomString(10),
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -1282,7 +1282,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
       return adminHelpers.updateComment(
         (1).toString(),
         id as any,
-        generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
+        generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1),
       );
     }, 'postId');
 
@@ -1290,7 +1290,7 @@ describe('/api/v1/posts/{postId}/comments', () => {
       return adminHelpers.updateComment(
         id as any,
         (1).toString(),
-        generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
+        generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1),
       );
     }, 'commentId');
 
@@ -1310,24 +1310,24 @@ describe('/api/v1/posts/{postId}/comments', () => {
         const commentForUpdate = comments.find(
           (c) =>
             c.userId === admin.id &&
-            posts.find((p) => p.id === c.postId && p.status === 'PUBLISHED')
+            posts.find((p) => p.id === c.postId && p.status === 'PUBLISHED'),
         );
 
         if (!commentForUpdate)
           throw new Error(
-            'Missing comment by admin on a published post for test setup (validation test).'
+            'Missing comment by admin on a published post for test setup (validation test).',
           );
 
         await expect(
           adminHelpers.updateComment(
             commentForUpdate.postId.toString(),
             commentForUpdate.id.toString(),
-            content
-          )
+            content,
+          ),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     it('should return 404 NOT FOUND for unknown post id or comment id', async () => {
@@ -1335,17 +1335,17 @@ describe('/api/v1/posts/{postId}/comments', () => {
         adminHelpers.updateComment(
           (999).toString(),
           (1).toString(),
-          generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
-        )
+          generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1),
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
 
       const publishedPost = posts.find(
         (p) =>
           p.status === 'PUBLISHED' &&
           p.visibility === 'PUBLIC' &&
-          comments.find((c) => c.postId === p.id)
+          comments.find((c) => c.postId === p.id),
       );
 
       if (!publishedPost)
@@ -1355,10 +1355,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
         adminHelpers.updateComment(
           publishedPost.id.toString(),
           (999).toString(),
-          generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
-        )
+          generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1),
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.SERVER.NOT_FOUND),
       );
     });
 
@@ -1372,10 +1372,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
         authorHelpers.updateComment(
           otherUserComment.postId.toString(),
           otherUserComment.id.toString(),
-          generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1)
-        )
+          generateRandomString(COMMENT_CONSTRAINTS.MIN_CONTENT_LENGTH + 1),
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -1395,11 +1395,11 @@ describe('/api/v1/posts/{postId}/comments', () => {
         const res = await helper.updateComment(
           otherUserComment.postId.toString(),
           otherUserComment.id.toString(),
-          'new content'
+          'new content',
         );
 
         expect(getMessage(res)).toBe(SUCCESS_MESSAGES.COMMENTS.update);
-      }
+      },
     );
 
     it(`should return error when logged-in user is banned and trying to
@@ -1417,10 +1417,10 @@ describe('/api/v1/posts/{postId}/comments', () => {
           authorHelpers.updateComment(
             posts[0].id.toString(),
             comments[0].id.toString(),
-            'new content'
-          )
+            'new content',
+          ),
         ).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+          createErrorCodeResponse(ERROR_CODES.AUTH.BANNED),
         );
       } finally {
         await prisma.user.update({
@@ -1447,20 +1447,20 @@ function getReplyCountRecursively(comment: CommentWithReplies) {
 
 function checkRepliesRecursively(
   commentsToCheck: CommentWithReplies[],
-  allComments: Comment[]
+  allComments: Comment[],
 ) {
   for (const comment of commentsToCheck) {
     if (comment.replies && comment.replies.length) {
       const expectedReplies = allComments.filter(
-        (p) => p.threadParentId === comment.id
+        (p) => p.threadParentId === comment.id,
       );
       expect(comment.replies.length).toBe(expectedReplies.length);
       expect(comment.replyCount).toBe(getReplyCountRecursively(comment));
 
       expect(
         comment.replies.every((c) =>
-          expectedReplies.map((r) => r.id).includes(c.id)
-        )
+          expectedReplies.map((r) => r.id).includes(c.id),
+        ),
       ).toBe(true);
 
       for (const reply of comment.replies)

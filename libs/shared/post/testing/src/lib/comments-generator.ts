@@ -1,10 +1,10 @@
 import { randNumber, randPastDate, randSentence } from '@ngneat/falso';
-import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
+import type { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import { generateRandomUserPreview } from '@dans-coding-world/shared-user-testing';
 
 export function generateRandomComments(
   postId: number,
-  count: number
+  count: number,
 ): CommentWithReplies[] {
   const comments: CommentWithReplies[] = [];
 
@@ -17,7 +17,7 @@ export function generateRandomComments(
     const comment = {
       id: randNumber({ min: 1, max: 1000 }),
       content: randSentence({ length: randNumber({ min: 1, max: 2 }) }).join(
-        ' '
+        ' ',
       ),
       createdAt: randPastDate(),
       updatedAt: randPastDate(),
@@ -40,7 +40,7 @@ export function generateCommentThreads(
   count: number,
   replyLevels: number,
   threadParentId?: number,
-  currentDepth = 0
+  currentDepth = 0,
 ): CommentWithReplies[] {
   const comments = generateRandomComments(postId, count);
 
@@ -55,7 +55,7 @@ export function generateCommentThreads(
         randNumber({ min: 1, max: count }),
         replyLevels - 1,
         c.id,
-        currentDepth + 1
+        currentDepth + 1,
       );
     }
     return {

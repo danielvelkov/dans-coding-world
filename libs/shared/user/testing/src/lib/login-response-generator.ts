@@ -1,6 +1,6 @@
 import { BaseResponse } from '@dans-coding-world/api-types';
 import { generateRandomUser } from './user-generator.js';
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 
 export function generateMockLoginResponse({
   user,

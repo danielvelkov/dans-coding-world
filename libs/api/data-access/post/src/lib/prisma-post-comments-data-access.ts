@@ -1,5 +1,5 @@
-import {
-  client,
+import { client } from '@dans-coding-world/prisma-schema';
+import type {
   Comment,
   CommentsOrderByInput,
   CommentWhereInput,
@@ -7,16 +7,17 @@ import {
 import { ICommentRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { COMMENT_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
-export class PrismaPostCommentsDataAccess
-  implements
-    ICommentRepository<Comment, CommentWhereInput, CommentsOrderByInput>
-{
+export class PrismaPostCommentsDataAccess implements ICommentRepository<
+  Comment,
+  CommentWhereInput,
+  CommentsOrderByInput
+> {
   async getById(
     id: number,
     options?: {
       includeReplies?: boolean;
       maxReplyTreeDepth?: number;
-    }
+    },
   ): Promise<Comment | null> {
     return await client.comment.findFirst({
       where: {
@@ -24,7 +25,7 @@ export class PrismaPostCommentsDataAccess
       },
       ...(options?.includeReplies &&
         this.buildPrismaCommentIncludeQuery(
-          options.maxReplyTreeDepth ?? COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH
+          options.maxReplyTreeDepth ?? COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH,
         )),
     });
   }
@@ -37,14 +38,14 @@ export class PrismaPostCommentsDataAccess
       take?: number;
       includeReplies?: boolean;
       maxReplyTreeDepth?: number;
-    }
+    },
   ): Promise<Comment[]> {
     return await client.comment.findMany({
       where,
       orderBy,
       ...(options?.includeReplies &&
         this.buildPrismaCommentIncludeQuery(
-          options.maxReplyTreeDepth ?? COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH
+          options.maxReplyTreeDepth ?? COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH,
         )),
       take: options?.take,
       skip: options?.skip,

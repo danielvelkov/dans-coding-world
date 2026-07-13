@@ -20,7 +20,7 @@ import {
   createErrorCodeResponse,
   createValidationErrorResponse,
 } from '../helper/error-response.helper.js';
-import { User, client as prisma } from '@dans-coding-world/prisma-schema';
+import { type User, client as prisma } from '@dans-coding-world/prisma-schema';
 import {
   USER_CONSTRAINTS,
   VALIDATION_MESSAGES,
@@ -46,7 +46,7 @@ describe('/api/v1/auth', () => {
   let register: (
     email: string,
     password: string,
-    username: string
+    username: string,
   ) => Promise<BaseResponse>;
   let revokeToken: (token: string) => Promise<BaseResponse>;
   let revokeAllTokens: () => Promise<BaseResponse>;
@@ -100,24 +100,24 @@ describe('/api/v1/auth', () => {
       'should return an error message on missing required fields',
       async ([username, password]) => {
         await expect(login(username, password)).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     it('should return an error message on invalid credentials', async () => {
       await expect(
-        login('onomatopoeia@gmail.com', 'onomatopoeia123')
+        login('onomatopoeia@gmail.com', 'onomatopoeia123'),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_CREDENTIALS)
+        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_CREDENTIALS),
       );
     });
 
     it('should return an error message on wrong password provided', async () => {
       await expect(
-        login(users[0].email, 'onomatopoeia123')
+        login(users[0].email, 'onomatopoeia123'),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_PASSWORD)
+        createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_PASSWORD),
       );
     });
   });
@@ -145,10 +145,10 @@ describe('/api/v1/auth', () => {
       expect(data).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.logout);
 
       expect(() =>
-        getJwtToken(findSetCookie(logoutRes, ACCESS_TOKEN_COOKIE))
+        getJwtToken(findSetCookie(logoutRes, ACCESS_TOKEN_COOKIE)),
       ).toThrow();
       expect(() =>
-        getJwtToken(findSetCookie(logoutRes, REFRESH_TOKEN_COOKIE))
+        getJwtToken(findSetCookie(logoutRes, REFRESH_TOKEN_COOKIE)),
       ).toThrow();
     });
 
@@ -173,7 +173,7 @@ describe('/api/v1/auth', () => {
 
     it('should return 401 Unauthorized when trying to access as a logged out user', async () => {
       return await expect(logout).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
   });
@@ -212,11 +212,11 @@ describe('/api/v1/auth', () => {
 
       const newRefreshTokenCookie = findSetCookie(
         refreshRes,
-        REFRESH_TOKEN_COOKIE
+        REFRESH_TOKEN_COOKIE,
       );
       const newAccessTokenCookie = findSetCookie(
         refreshRes,
-        ACCESS_TOKEN_COOKIE
+        ACCESS_TOKEN_COOKIE,
       );
 
       expect(getJwtToken(newRefreshTokenCookie)).toBeTruthy();
@@ -230,11 +230,11 @@ describe('/api/v1/auth', () => {
       expect(refreshRes.status).toBe(200);
       const { data: refreshData } = refreshRes.data as BaseResponse;
       expect((refreshData as LoginResponseDto).user).not.toHaveProperty(
-        'password'
+        'password',
       );
       expect(refreshData).toHaveProperty(
         'message',
-        SUCCESS_MESSAGES.AUTH.token
+        SUCCESS_MESSAGES.AUTH.token,
       );
       expect(refreshData).toHaveProperty('user');
     });
@@ -243,9 +243,9 @@ describe('/api/v1/auth', () => {
       'should return validation error message if string is not valid JWT token',
       async (token: string) => {
         return await expect(renewAuthToken(token)).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR)
+          createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
         );
-      }
+      },
     );
 
     test.each([
@@ -272,9 +272,9 @@ describe('/api/v1/auth', () => {
       async (_, tokenUpdateData) => {
         await updateRefreshToken({ ...tokenUpdateData, jti: getJti(jwt) });
         return await expect(renewAuthToken(jwt)).rejects.toMatchObject(
-          createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_TOKEN)
+          createErrorCodeResponse(ERROR_CODES.AUTH.INVALID_TOKEN),
         );
-      }
+      },
     );
   });
 
@@ -294,17 +294,17 @@ describe('/api/v1/auth', () => {
       const { data } = await register(
         VALID_USER_DATA.email,
         VALID_USER_DATA.password,
-        VALID_USER_DATA.username
+        VALID_USER_DATA.username,
       );
 
       expect((data as RegistrationResponseDto).user).not.toHaveProperty(
-        'password'
+        'password',
       );
       expect(data).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.register);
 
       const { data: loginData } = await login(
         VALID_USER_DATA.email,
-        VALID_USER_DATA.password
+        VALID_USER_DATA.password,
       );
 
       expect(loginData).toHaveProperty('message', SUCCESS_MESSAGES.AUTH.login);
@@ -316,7 +316,7 @@ describe('/api/v1/auth', () => {
         {
           clearExisting: true,
           useDefaults: false,
-        }
+        },
       );
 
       // Same username
@@ -324,10 +324,10 @@ describe('/api/v1/auth', () => {
         register(
           'mockEmail13@gmail.com',
           VALID_USER_DATA.password,
-          VALID_USER_DATA.username
-        )
+          VALID_USER_DATA.username,
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.USER_EXISTS)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.USER_EXISTS),
       );
 
       // Same email
@@ -335,10 +335,10 @@ describe('/api/v1/auth', () => {
         register(
           VALID_USER_DATA.email,
           VALID_USER_DATA.password,
-          'veryCoolUser13'
-        )
+          'veryCoolUser13',
+        ),
       ).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.VALIDATION.USER_EXISTS)
+        createErrorCodeResponse(ERROR_CODES.VALIDATION.USER_EXISTS),
       );
     });
 
@@ -367,7 +367,7 @@ describe('/api/v1/auth', () => {
         'username',
         {
           [MIN_LENGTH]: VALIDATION_MESSAGES.minLength(
-            USER_CONSTRAINTS.MIN_USERNAME_LENGTH
+            USER_CONSTRAINTS.MIN_USERNAME_LENGTH,
           ),
         },
       ],
@@ -379,7 +379,7 @@ describe('/api/v1/auth', () => {
         'username',
         {
           [MIN_LENGTH]: VALIDATION_MESSAGES.minLength(
-            USER_CONSTRAINTS.MIN_USERNAME_LENGTH
+            USER_CONSTRAINTS.MIN_USERNAME_LENGTH,
           ),
         },
       ],
@@ -401,7 +401,7 @@ describe('/api/v1/auth', () => {
         'password',
         {
           [MIN_LENGTH]: VALIDATION_MESSAGES.minLength(
-            USER_CONSTRAINTS.MIN_PASSWORD_LENGTH
+            USER_CONSTRAINTS.MIN_PASSWORD_LENGTH,
           ),
         },
       ],
@@ -413,7 +413,7 @@ describe('/api/v1/auth', () => {
         'password',
         {
           [MIN_LENGTH]: VALIDATION_MESSAGES.minLength(
-            USER_CONSTRAINTS.MIN_PASSWORD_LENGTH
+            USER_CONSTRAINTS.MIN_PASSWORD_LENGTH,
           ),
         },
       ],
@@ -421,9 +421,9 @@ describe('/api/v1/auth', () => {
       'should return validation error when %s',
       async (_, username, password, email, property, constraints) => {
         await expect(register(email, password, username)).rejects.toMatchObject(
-          createValidationErrorResponse([{ field: property, constraints }])
+          createValidationErrorResponse([{ field: property, constraints }]),
         );
-      }
+      },
     );
   });
 
@@ -454,7 +454,7 @@ describe('/api/v1/auth', () => {
       await logout();
 
       return await expect(revokeToken(userRefreshToken)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -464,13 +464,13 @@ describe('/api/v1/auth', () => {
 
       await login(user.email, user.password);
       return await expect(revokeToken(userRefreshToken)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
     it('should mark token as "revoked" in the db', async () => {
       expect((await getTokenById(getJti(userRefreshToken))).revoked).toBe(
-        false
+        false,
       );
       const admin = users.find((u) => u.role === 'ADMIN');
       if (!admin) throw new Error('Missing test user');
@@ -499,7 +499,7 @@ describe('/api/v1/auth', () => {
       });
       await login(mod.email, mod.password);
       await expect(revokeToken(userRefreshToken)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.BANNED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.BANNED),
       );
       await prisma.user.update({
         where: {
@@ -515,7 +515,7 @@ describe('/api/v1/auth', () => {
       // clear tokens
       await seedRefreshTokens([], { clearExisting: true, useDefaults: false });
       return await expect(revokeToken(userRefreshToken)).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.TOKEN_NOT_FOUND)
+        createErrorCodeResponse(ERROR_CODES.AUTH.TOKEN_NOT_FOUND),
       );
     });
   });
@@ -551,7 +551,7 @@ describe('/api/v1/auth', () => {
       await logout();
 
       return await expect(revokeAllTokens).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED)
+        createErrorCodeResponse(ERROR_CODES.AUTH.UNAUTHORIZED),
       );
     });
 
@@ -566,12 +566,12 @@ describe('/api/v1/auth', () => {
 
       await login(user.email, user.password);
       await expect(revokeAllTokens).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
 
       await login(moderator.email, moderator.password);
       await expect(revokeAllTokens).rejects.toMatchObject(
-        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN)
+        createErrorCodeResponse(ERROR_CODES.SERVER.FORBIDDEN),
       );
     });
 
@@ -591,7 +591,7 @@ describe('/api/v1/auth', () => {
 
       expect(revokeData).toHaveProperty(
         'message',
-        SUCCESS_MESSAGES.AUTH.revoke
+        SUCCESS_MESSAGES.AUTH.revoke,
       );
       expect(revokeData).toHaveProperty('revokedCount', tokens.length + 1); // +1 because admin logged in
       for (const token of tokens) {

@@ -2,13 +2,13 @@ import {
   generateRandomString,
   passwordGenerator,
 } from '@dans-coding-world/helpers';
-import { Profile, User } from '@dans-coding-world/prisma-schema';
+import type { Profile, User } from '@dans-coding-world/prisma-schema';
 import {
   ERROR_CODES,
   ERROR_MESSAGES,
   USER_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
-import { UserDetail } from '@dans-coding-world/user-data-access';
+import type { UserDetail } from '@dans-coding-world/user-data-access';
 
 describe('User - register', () => {
   const testUsers: UserDetail[] = [];
@@ -54,7 +54,7 @@ describe('User - register', () => {
         validFormFields.email,
         validFormFields.username,
         validFormFields.password,
-        validFormFields.password
+        validFormFields.password,
       );
       cy.url().should('include', `/blog`);
       cy.checkIfLoggedIn();
@@ -68,7 +68,7 @@ describe('User - register', () => {
           email?: string;
           password?: string;
           confirmPassword?: string;
-        } = {}
+        } = {},
       ) => {
         const {
           email = validFormFields.email,
@@ -95,7 +95,7 @@ describe('User - register', () => {
           validFormFields.email + generateRandomString(2),
           validFormFields.username + generateRandomString(2),
           validFormFields.password,
-          validFormFields.password
+          validFormFields.password,
         );
         cy.url().should('include', `/blog`);
         cy.checkIfLoggedIn();
@@ -103,7 +103,7 @@ describe('User - register', () => {
 
       it('does not allow typing an username longer than specified limit', () => {
         const tooLong = generateRandomString(
-          USER_CONSTRAINTS.MAX_USERNAME_LENGTH + 4
+          USER_CONSTRAINTS.MAX_USERNAME_LENGTH + 4,
         );
 
         cy.get('[name="username"]').as('username');
@@ -127,7 +127,7 @@ describe('User - register', () => {
 
       it('does not allow typing a password that is too long', () => {
         const tooLong = generateRandomString(
-          USER_CONSTRAINTS.MAX_PASSWORD_LENGTH + 4
+          USER_CONSTRAINTS.MAX_PASSWORD_LENGTH + 4,
         );
 
         cy.get('[name="password"]').as('password');
@@ -139,7 +139,7 @@ describe('User - register', () => {
 
       it('shows error if password is too short', () => {
         const password = passwordGenerator(
-          USER_CONSTRAINTS.MIN_PASSWORD_LENGTH - 1
+          USER_CONSTRAINTS.MIN_PASSWORD_LENGTH - 1,
         );
 
         checkFieldValidation('password-error', {
@@ -153,7 +153,7 @@ describe('User - register', () => {
           USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
           {
             includeNumbers: false,
-          }
+          },
         );
 
         checkFieldValidation('password-error', {
@@ -167,7 +167,7 @@ describe('User - register', () => {
           USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
           {
             includeUppercase: false,
-          }
+          },
         );
 
         checkFieldValidation('password-error', {
@@ -181,7 +181,7 @@ describe('User - register', () => {
           USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
           {
             includeLowercase: false,
-          }
+          },
         );
 
         checkFieldValidation('password-error', {
@@ -195,7 +195,7 @@ describe('User - register', () => {
           USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
           {
             includeSymbols: false,
-          }
+          },
         );
 
         checkFieldValidation('password-error', {
@@ -206,7 +206,7 @@ describe('User - register', () => {
 
       it('shows error if confirm password is different than password', () => {
         const password = passwordGenerator(
-          USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1
+          USER_CONSTRAINTS.MIN_PASSWORD_LENGTH + 1,
         );
 
         checkFieldValidation('confirm-password-error', {
@@ -228,11 +228,11 @@ describe('User - register', () => {
           existingUser.email,
           `user_${generateRandomString(8)}`,
           validFormFields.password,
-          validFormFields.password
+          validFormFields.password,
         );
 
         cy.contains(ERROR_MESSAGES[ERROR_CODES.VALIDATION.USER_EXISTS]).should(
-          'be.visible'
+          'be.visible',
         );
       });
     });

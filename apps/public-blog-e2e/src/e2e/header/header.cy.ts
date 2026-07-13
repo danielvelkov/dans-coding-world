@@ -1,5 +1,5 @@
-import { Profile, User } from '@dans-coding-world/prisma-schema';
-import { UserDetail } from '@dans-coding-world/user-data-access';
+import type { Profile, User } from '@dans-coding-world/prisma-schema';
+import type { UserDetail } from '@dans-coding-world/user-data-access';
 import { getDisplayName } from '@dans-coding-world/public-blog-shared-helpers';
 
 describe('Global header', () => {
@@ -64,7 +64,7 @@ describe('Global header', () => {
               cy.get('img').should(
                 'have.attr',
                 'alt',
-                `${randomUser.username}'s avatar`
+                `${randomUser.username}'s avatar`,
               );
           });
       });

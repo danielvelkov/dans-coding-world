@@ -5,7 +5,7 @@ import {
   generateCommentThreads,
   generateRandomComments,
 } from './comments-generator.js';
-import { Comment } from '@dans-coding-world/prisma-schema';
+import type { Comment } from '@dans-coding-world/prisma-schema';
 
 export function generateMockPostCommentsResponse({
   postId = 1,
@@ -24,7 +24,7 @@ export function generateMockPostCommentsResponse({
     data: {
       items: generateCommentThreads(postId, length, replyLevels).slice(
         0,
-        pageSize
+        pageSize,
       ),
       pagination: {
         page: 1,

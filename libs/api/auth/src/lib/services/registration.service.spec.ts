@@ -5,7 +5,8 @@ import { USER_REPOSITORY_TOKEN } from './auth.service.js';
 import { RegistrationService } from './registration.service.js';
 import { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { PrismaUserDataAccess as MockUserRepository } from '@dans-coding-world/user-data-access';
-import { User, client } from '@dans-coding-world/prisma-schema';
+import { client } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import { USER_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 import { passwordGenerator } from '@dans-coding-world/helpers';
 
@@ -32,7 +33,7 @@ describe('Registration service', () => {
     ]);
 
     registrationService = injector.get(
-      RegistrationService
+      RegistrationService,
     ) as RegistrationService;
 
     jest.spyOn(mockUserRepo, 'create');

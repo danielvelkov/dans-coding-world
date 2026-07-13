@@ -8,7 +8,10 @@ import {
 import CommentThread from '../components/CommentThread';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
-import { CommentWithReplies, Role } from '@dans-coding-world/prisma-schema';
+import type {
+  CommentWithReplies,
+  Role,
+} from '@dans-coding-world/prisma-schema';
 import { generateCommentThreads } from '@dans-coding-world/shared-post-testing';
 import userEvent from '@testing-library/user-event';
 import { generateRandomUser } from '@dans-coding-world/shared-user-testing';

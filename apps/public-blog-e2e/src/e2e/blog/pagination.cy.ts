@@ -1,4 +1,4 @@
-import { Post } from '@dans-coding-world/prisma-schema';
+import type { Post } from '@dans-coding-world/prisma-schema';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateMockPostsResponse } from '@dans-coding-world/shared-post-testing';
@@ -13,7 +13,7 @@ describe('Blog - pagination', () => {
         generateMockPostsResponse({
           length: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE * 2,
           pageSize: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
-        })
+        }),
       ).as('postsResponse');
 
       cy.visit('/blog');
@@ -29,7 +29,7 @@ describe('Blog - pagination', () => {
         generateMockPostsResponse({
           length: 4,
           pageSize: PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
-        })
+        }),
       ).as('postsResponse');
 
       cy.visit('/blog');
@@ -47,7 +47,7 @@ describe('Blog - pagination', () => {
         generateMockPostsResponse({
           length: expectedPages * pageSize,
           pageSize,
-        })
+        }),
       ).as('postsResponse');
 
       cy.visit('/blog');
@@ -90,7 +90,7 @@ describe('Blog - pagination', () => {
           cy.task('db:seed-posts', {
             posts: postsToSeed,
             options: { useDefaults: false, clearExisting: true },
-          })
+          }),
         )
         .then((posts) => {
           seededPosts = posts as Post[];
@@ -113,7 +113,7 @@ describe('Blog - pagination', () => {
     it(`navigates to next page of results on clicking "next"`, () => {
       const pagesWithPostsArray = Cypress._.chunk(
         seededPosts,
-        PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+        PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
       );
 
       const numOfPages = pagesWithPostsArray.length;
@@ -128,7 +128,7 @@ describe('Blog - pagination', () => {
 
     it('disables "next" button if on last page of results', () => {
       const lastPage = Math.ceil(
-        seededPosts.length / PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+        seededPosts.length / PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
       );
       cy.goToPage(lastPage);
       cy.get('[aria-label="next page"]').should('have.attr', 'disabled');
@@ -138,7 +138,7 @@ describe('Blog - pagination', () => {
     it(`navigates to previous page on clicking "prev"`, () => {
       const pagesWithPostsArray = Cypress._.chunk(
         seededPosts,
-        PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+        PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
       );
 
       const numOfPages = pagesWithPostsArray.length;
@@ -163,12 +163,12 @@ describe('Blog - pagination', () => {
     it('navigating to a random page displays the right results', () => {
       const pagesWithPostsArray = Cypress._.chunk(
         seededPosts,
-        PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE
+        PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
       );
 
       const numOfPages = pagesWithPostsArray.length;
       const randomPages = Cypress._.shuffle(
-        [...Array.from({ length: numOfPages })].map((_, i) => i + 1)
+        [...Array.from({ length: numOfPages })].map((_, i) => i + 1),
       );
 
       for (const randomPage of randomPages) {
@@ -208,7 +208,7 @@ describe('Blog - pagination', () => {
 
           const numOfPages = pagesWithPostsArray.length;
           const randomPages = Cypress._.shuffle(
-            [...Array.from({ length: numOfPages })].map((_, i) => i + 1)
+            [...Array.from({ length: numOfPages })].map((_, i) => i + 1),
           );
 
           for (const randomPage of randomPages) {

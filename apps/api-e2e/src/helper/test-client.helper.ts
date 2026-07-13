@@ -1,7 +1,7 @@
 import { CookieJar } from 'tough-cookie';
 import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import { createAuthRouteHelper } from './auth-request.helper';
 import { ApiClient } from '@dans-coding-world/shared-data-access-api';
 
@@ -18,8 +18,8 @@ export function createApiClient() {
       axios.create({
         jar: jar,
         withCredentials: true,
-      })
-    )
+      }),
+    ),
   );
 
   return api;
@@ -34,7 +34,7 @@ export function createApiClient() {
  */
 export const setupClient = async (
   routeHelperFactory: (client: ApiClient) => any,
-  user?: User
+  user?: User,
 ): Promise<any> => {
   const client = createApiClient();
 

@@ -1,4 +1,4 @@
-import { Tag, TagWhereInput } from '@dans-coding-world/prisma-schema';
+import type { Tag, TagWhereInput } from '@dans-coding-world/prisma-schema';
 import {
   GetTagsDto,
   GetTagsResponse,
@@ -20,7 +20,7 @@ export const TAG_REPOSITORY_TOKEN = 'ITagsRepository';
 export class TagsService implements ITagsService {
   constructor(
     @Inject(TAG_REPOSITORY_TOKEN)
-    public tags: ITagRepository<Tag, TagWhereInput>
+    public tags: ITagRepository<Tag, TagWhereInput>,
   ) {}
 
   async getById(dto: GetTagDto): Promise<Tag> {

@@ -14,7 +14,7 @@ import { ApiException } from '@dans-coding-world/exceptions';
 import { validPassword } from '@dans-coding-world/helpers';
 import { Inject, Injectable } from 'injection-js';
 import type { AuthConfiguration } from '../config/auth.config.js';
-import { RefreshToken, User } from '@dans-coding-world/prisma-schema';
+import type { RefreshToken, User } from '@dans-coding-world/prisma-schema';
 import {
   AUTH_CONFIG_TOKEN,
   TOKEN_SERVICE_TOKEN,
@@ -34,7 +34,7 @@ export class AuthService implements IAuthService {
     @Inject(REFRESH_TOKEN_REPOSITORY_TOKEN)
     public refreshTokens: IRefreshTokenRepository,
     @Inject(AUTH_CONFIG_TOKEN)
-    private authConfig: AuthConfiguration
+    private authConfig: AuthConfiguration,
   ) {}
 
   async login(dto: LoginDto): Promise<LoginResponseDto> {
@@ -85,20 +85,20 @@ export class AuthService implements IAuthService {
 
   private async storeUserRefreshToken(
     token: string,
-    userId: string
+    userId: string,
   ): Promise<void> {
     const { jti } = this.tokenService.verifyRefreshToken(token);
 
     if (!jti) throw new ApiException(ERROR_CODES.SERVER.INTERNAL_ERROR);
 
     const expiresAt = new Date(
-      Date.now() + this.authConfig.options.refreshExpiration
+      Date.now() + this.authConfig.options.refreshExpiration,
     );
     await this.refreshTokens.create(jti, userId, expiresAt);
   }
 
   private async validateAndGetRefreshToken(
-    token: string
+    token: string,
   ): Promise<RefreshToken> {
     let payload;
     try {

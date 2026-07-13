@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import {
   JWT_STRATEGY_NAME,
   PassportJwtStrategy,
@@ -25,14 +25,14 @@ export function AttachUser() {
   return function (
     target: unknown,
     propertyKey: string,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
 
     descriptor.value = function (
       req: Request,
       res: Response,
-      next: NextFunction
+      next: NextFunction,
     ) {
       passport.authenticate(
         JWT_STRATEGY_NAME,
@@ -43,7 +43,7 @@ export function AttachUser() {
           if (user) req.user = user;
 
           return originalMethod.call(this, req, res, next);
-        }
+        },
       )(req, res, next);
     };
   };

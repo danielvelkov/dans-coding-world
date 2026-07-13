@@ -10,12 +10,12 @@ import {
   IPostRepository,
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
-import {
+import { client } from '@dans-coding-world/prisma-schema';
+import type {
   Post,
   PostOrderByInput,
   PostWhereInput,
   User,
-  client,
   Comment,
   CommentWhereInput,
   CommentsOrderByInput,
@@ -93,8 +93,8 @@ describe('CommentsService', () => {
           username: `fake${role.toLowerCase()}123`,
           role,
           isBanned: false,
-        })
-      )
+        }),
+      ),
     );
 
     const postsForCreation: {
@@ -113,8 +113,8 @@ describe('CommentsService', () => {
           ...validPostContent,
           authorId: post.author.id,
           ...post,
-        })
-      )
+        }),
+      ),
     );
 
     injector = ReflectiveInjector.resolveAndCreate([
@@ -182,12 +182,12 @@ describe('CommentsService', () => {
                 postId: comment.post.id,
                 threadParentId: null,
                 createdAt: new Date(
-                  Date.now() + i * 1000 * 60 * 3 // 3 minutes between
+                  Date.now() + i * 1000 * 60 * 3, // 3 minutes between
                 ),
-              })
-            )
+              }),
+            ),
           )
-          .flat()
+          .flat(),
       );
     });
 
@@ -220,10 +220,10 @@ describe('CommentsService', () => {
       });
 
       expect(resWithoutReplies.pagination.total).toBe(
-        PUBLISHED_POST_COMMENTS_COUNT
+        PUBLISHED_POST_COMMENTS_COUNT,
       );
       expect(resWithoutReplies.items.every((c) => c.replyCount === 0)).toBe(
-        true
+        true,
       );
 
       const commentIdAndReplyCountMap = new Map();
@@ -249,8 +249,8 @@ describe('CommentsService', () => {
 
       expect(
         resWithReplies.items.every(
-          (c) => c.replyCount === commentIdAndReplyCountMap.get(c.id)
-        )
+          (c) => c.replyCount === commentIdAndReplyCountMap.get(c.id),
+        ),
       ).toBe(true);
     });
 
@@ -312,7 +312,7 @@ describe('CommentsService', () => {
             checkRepliesRecursively(
               comment.replies,
               // get only those comments up until that depth
-              repliesToTopLevelComments.filter((c) => c.depth <= replyLevel)
+              repliesToTopLevelComments.filter((c) => c.depth <= replyLevel),
             );
         }
       });
@@ -339,7 +339,7 @@ describe('CommentsService', () => {
           });
 
           const lonelyComment = res.items.find(
-            (c) => c.id === commentWithoutReplies.id
+            (c) => c.id === commentWithoutReplies.id,
           );
           expect(lonelyComment?.replies).toEqual([]);
           expect(lonelyComment?.replyCount).toBe(0);
@@ -372,7 +372,7 @@ describe('CommentsService', () => {
             .catch((error) => {
               expect(error.message).toMatch(/failed.*validation/i);
             });
-        }
+        },
       );
     });
 
@@ -401,7 +401,7 @@ describe('CommentsService', () => {
         sortedItems.forEach((comment, i) => {
           expect(comment.id).toBe(res.items[i].id);
         });
-      }
+      },
     );
 
     test.each([
@@ -419,7 +419,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
           );
         });
     });
@@ -441,7 +441,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
           );
         });
     });
@@ -461,10 +461,10 @@ describe('CommentsService', () => {
           .getPostComments({ pageOffset, pageSize, postId: publishedPost.id })
           .catch((error) => {
             expect(error.message).toMatch(
-              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
             );
           });
-      }
+      },
     );
 
     test.each([
@@ -482,7 +482,7 @@ describe('CommentsService', () => {
         });
         expect(resDto.pagination.limit).toBe(pageSize);
         expect(resDto.pagination.page).toBe(expectedPageNum);
-      }
+      },
     );
 
     test.each([
@@ -509,7 +509,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -529,10 +529,10 @@ describe('CommentsService', () => {
           })
           .catch((error) => {
             expect(error.message).toMatch(
-              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR]
+              ERROR_MESSAGES[ERROR_CODES.VALIDATION.VALIDATION_ERROR],
             );
           });
-      }
+      },
     );
 
     it('should throw when user specified viewerId does not exist', async () => {
@@ -544,7 +544,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.USER_MISSING]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.USER_MISSING],
           );
         });
     });
@@ -557,7 +557,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -570,7 +570,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED]
+            ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED],
           );
         });
     });
@@ -597,7 +597,7 @@ describe('CommentsService', () => {
         });
 
         expect(res.pagination.total).toBe(DRAFT_POST_COMMENTS_COUNT);
-      }
+      },
     );
   });
 
@@ -661,7 +661,7 @@ describe('CommentsService', () => {
           for (const comment of res.comment.replies)
             checkRepliesRecursively(
               comment.replies,
-              repliesToComment.filter((c) => c.depth <= replyLevel)
+              repliesToComment.filter((c) => c.depth <= replyLevel),
             );
         }
       });
@@ -720,7 +720,7 @@ describe('CommentsService', () => {
             .catch((error) => {
               expect(error.message).toMatch(/failed.*validation/i);
             });
-        }
+        },
       );
     });
 
@@ -768,7 +768,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -783,7 +783,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -830,7 +830,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -852,7 +852,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED]
+            ERROR_MESSAGES[ERROR_CODES.AUTH.UNAUTHORIZED],
           );
         });
     });
@@ -936,10 +936,10 @@ describe('CommentsService', () => {
               userId: admin.id,
               postId: publishedPost.id,
               replyToCommentId: parentId,
-            })
+            }),
           ).rejects.toHaveProperty(
             'message',
-            ERROR_MESSAGES[ERROR_CODES.VALIDATION.MAX_REPLY_DEPTH_REACHED]
+            ERROR_MESSAGES[ERROR_CODES.VALIDATION.MAX_REPLY_DEPTH_REACHED],
           );
         } else {
           const commentReply = await commentsService.create({
@@ -978,7 +978,7 @@ describe('CommentsService', () => {
           .catch((error) => {
             expect(error.message).toMatch(/failed.*validation/i);
           });
-      }
+      },
     );
 
     test.each([
@@ -1025,7 +1025,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -1041,7 +1041,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -1057,7 +1057,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -1087,7 +1087,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -1128,7 +1128,7 @@ describe('CommentsService', () => {
         postId: publishedPost.id,
       });
       expect(
-        postComments.items.map((c) => c.id).includes(adminComment.id)
+        postComments.items.map((c) => c.id).includes(adminComment.id),
       ).toBe(false);
     });
 
@@ -1142,7 +1142,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -1159,7 +1159,7 @@ describe('CommentsService', () => {
           authorId: user.id,
         });
         expect(mockCommentsRepository.delete).toHaveBeenCalledTimes(1);
-      }
+      },
     );
 
     it('should throw when the commentId provided does not exist', async () => {
@@ -1172,7 +1172,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -1192,7 +1192,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -1229,7 +1229,7 @@ describe('CommentsService', () => {
         postId: publishedPost.id,
       });
       expect(
-        postComments.items.map((c) => c.id).includes(adminComment.id)
+        postComments.items.map((c) => c.id).includes(adminComment.id),
       ).toBe(false);
 
       for (const reply of [replyAtDepth_1, replyAtDepth_2])
@@ -1289,7 +1289,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -1307,7 +1307,7 @@ describe('CommentsService', () => {
           content: NEW_CONTENT,
         });
         expect(mockCommentsRepository.update).toHaveBeenCalledTimes(1);
-      }
+      },
     );
 
     it('should throw when the commentId provided does not exist', async () => {
@@ -1321,7 +1321,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
           );
         });
     });
@@ -1341,7 +1341,7 @@ describe('CommentsService', () => {
         })
         .catch((error) => {
           expect(error.message).toMatch(
-            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN]
+            ERROR_MESSAGES[ERROR_CODES.SERVER.FORBIDDEN],
           );
         });
     });
@@ -1355,7 +1355,7 @@ describe('CommentsService', () => {
    */
   async function createNestedReplies(
     parentComment: Comment,
-    currentDepth = 1
+    currentDepth = 1,
   ): Promise<Comment[]> {
     if (currentDepth > COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH) {
       return [];
@@ -1384,20 +1384,20 @@ describe('CommentsService', () => {
 
   function checkRepliesRecursively(
     commentsToCheck: CommentWithReplies[],
-    allComments: Comment[]
+    allComments: Comment[],
   ) {
     for (const comment of commentsToCheck) {
       if (comment.replies && comment.replies.length) {
         const expectedReplies = allComments.filter(
-          (p) => p.threadParentId === comment.id
+          (p) => p.threadParentId === comment.id,
         );
         expect(comment.replies.length).toBe(expectedReplies.length);
         expect(comment.replyCount).toBe(getReplyCountRecursively(comment));
 
         expect(
           comment.replies.every((c) =>
-            expectedReplies.map((r) => r.id).includes(c.id)
-          )
+            expectedReplies.map((r) => r.id).includes(c.id),
+          ),
         ).toBe(true);
 
         for (const reply of comment.replies)

@@ -1,6 +1,7 @@
-import profiles from '../data/profiles.json' with {type: "json"};
-import { client, Profile } from '@dans-coding-world/prisma-schema';
-import { SeedOptions } from './types/seed-options.js';
+import profiles from '../data/profiles.json' with { type: 'json' };
+import { client } from '@dans-coding-world/prisma-schema';
+import type { Profile } from '@dans-coding-world/prisma-schema';
+import type { SeedOptions } from './types/seed-options.js';
 
 /**
  * @description ⚠️ **Test-only method.** This function is intended for development and testing purposes only.
@@ -9,7 +10,7 @@ import { SeedOptions } from './types/seed-options.js';
  *
  * @param customUserProfiles Profiles to create.
  * @param options Seed options for whether to clear and reset the 'Profile' table
- * 
+ *
  * *DEFAULT DATA*:
  * - Id: 1 - **Admin profile**
  * - Id: 2 - **Mod profile**
@@ -18,11 +19,11 @@ import { SeedOptions } from './types/seed-options.js';
  */
 export const seedUserProfiles = async (
   customUserProfiles?: Profile[],
-  options: SeedOptions = { clearExisting: true, useDefaults: true }
+  options: SeedOptions = { clearExisting: true, useDefaults: true },
 ): Promise<Profile[]> => {
   if (!(process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_e2e'))
     throw new Error(
-      'Not in test environment. Check your test setup configuration.'
+      'Not in test environment. Check your test setup configuration.',
     );
   try {
     const seeded: Profile[] = [];
@@ -33,12 +34,13 @@ export const seedUserProfiles = async (
     }
 
     if (options.useDefaults) {
-      const defaultProfiles = await createAndReturnProfilesWithId(profiles)
+      const defaultProfiles = await createAndReturnProfilesWithId(profiles);
       seeded.push(...defaultProfiles);
     }
 
     if (customUserProfiles) {
-      const newProfiles = await createAndReturnProfilesWithId(customUserProfiles)
+      const newProfiles =
+        await createAndReturnProfilesWithId(customUserProfiles);
       seeded.push(...newProfiles);
     }
     return seeded;
@@ -51,9 +53,6 @@ export const seedUserProfiles = async (
 };
 
 const createAndReturnProfilesWithId = async (profiles: any[]) => {
-  if(!profiles.length)
-    return [];
-  return await client.profile.createManyAndReturn(
-    { data: profiles }
-  );
+  if (!profiles.length) return [];
+  return await client.profile.createManyAndReturn({ data: profiles });
 };

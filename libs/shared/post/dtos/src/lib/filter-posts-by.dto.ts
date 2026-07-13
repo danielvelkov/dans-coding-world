@@ -11,10 +11,12 @@ import {
   Min,
 } from 'class-validator';
 import {
-  PostStatus,
-  PostVisibility,
   PostStatusEnum,
   PostVisibilityEnum,
+} from '@dans-coding-world/prisma-schema';
+import type {
+  PostStatus,
+  PostVisibility,
 } from '@dans-coding-world/prisma-schema';
 import { Transform } from 'class-transformer';
 import {

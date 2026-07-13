@@ -1,6 +1,6 @@
-import { FetchPostsQueryParams } from '../../types/fetchPostsQueryParams';
+import type { FetchPostsQueryParams } from '../../types/fetchPostsQueryParams';
 import { stripDefaultPostQueryParams } from './strip-default-post-query-params';
-import { PostVisibility } from '@dans-coding-world/prisma-schema';
+import type { PostVisibility } from '@dans-coding-world/prisma-schema';
 
 describe('stripDefaultPostQueryParams()', () => {
   test.each([
@@ -26,7 +26,7 @@ describe('stripDefaultPostQueryParams()', () => {
     (params) => {
       const filteredQueryParams = stripDefaultPostQueryParams(params);
       expect(filteredQueryParams.filterBy?.status).toBeUndefined();
-    }
+    },
   );
 
   test.each(['MEMBERS_ONLY', 'PUBLIC'])(
@@ -40,7 +40,7 @@ describe('stripDefaultPostQueryParams()', () => {
       expect(filteredQueryParams.filterBy?.visibility).toStrictEqual([
         visibility,
       ]);
-    }
+    },
   );
 
   it('removes visibility filter when both MEMBERS_ONLY and PUBLIC', () => {
@@ -73,7 +73,7 @@ describe('stripDefaultPostQueryParams()', () => {
     (params) => {
       const filteredQueryParams = stripDefaultPostQueryParams(params);
       expect(filteredQueryParams.sortBy).toStrictEqual(params.sortBy);
-    }
+    },
   );
 
   it(`removes publishedAt desc sort`, () => {

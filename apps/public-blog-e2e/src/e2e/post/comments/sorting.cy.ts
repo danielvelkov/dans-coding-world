@@ -1,4 +1,4 @@
-import { Comment, Post } from '@dans-coding-world/prisma-schema';
+import type { Comment, Post } from '@dans-coding-world/prisma-schema';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
 
 const SORT_LABELS = ['Most recent', 'Oldest first'] as const;
@@ -55,7 +55,7 @@ describe('Comments - sorting', () => {
     cy.contains(SORT_LABELS[0]);
     checkIfCommentsSortedCorrectly(
       testComments.filter((c) => !c.threadParentId),
-      'desc'
+      'desc',
     );
   });
 
@@ -63,13 +63,13 @@ describe('Comments - sorting', () => {
     cy.selectCommentSorting(SORT_LABELS[1]);
     checkIfCommentsSortedCorrectly(
       testComments.filter((c) => !c.threadParentId),
-      'asc'
+      'asc',
     );
 
     cy.selectCommentSorting(SORT_LABELS[0]);
     checkIfCommentsSortedCorrectly(
       testComments.filter((c) => !c.threadParentId),
-      'desc'
+      'desc',
     );
   });
 
@@ -106,7 +106,7 @@ describe('Comments - sorting', () => {
 
 export function checkIfCommentsSortedCorrectly(
   comments: Comment[],
-  order: 'asc' | 'desc'
+  order: 'asc' | 'desc',
 ) {
   const commentsOrderedByCreatedDateDesc = [...comments].sort((prev, next) => {
     const prevDate = new Date(prev.createdAt as Date);
@@ -116,8 +116,6 @@ export function checkIfCommentsSortedCorrectly(
   });
 
   cy.get('[aria-label="Post comments"] > li p').each(($p, index) => {
-    expect($p.text()).to.equal(
-      commentsOrderedByCreatedDateDesc[index].content
-    );
+    expect($p.text()).to.equal(commentsOrderedByCreatedDateDesc[index].content);
   });
 }

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
+import { client as prisma } from '@dans-coding-world/prisma-schema';
+import type {
   Post,
   PostStatus,
   PostWithAuthorProfile,
   Tag,
   User,
-  client as prisma,
 } from '@dans-coding-world/prisma-schema';
 import {
   seedUsers,
@@ -24,7 +24,7 @@ import {
 } from '@dans-coding-world/shared-constants';
 import { setupClient } from '../helper/test-client.helper';
 import { createPostsRouteHelper } from '../helper/posts-request.helper';
-import {
+import type {
   GetPostsMetadataResponse,
   GetPostsResponseDto,
   GetTagsResponse,

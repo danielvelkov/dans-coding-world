@@ -1,4 +1,4 @@
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import styled from 'styled-components';
 
 const roleConfig: Record<User['role'], { icon: string; color: string }> = {

@@ -1,10 +1,15 @@
-import { Comment, Post, Profile, User } from '@dans-coding-world/prisma-schema';
+import type {
+  Comment,
+  Post,
+  Profile,
+  User,
+} from '@dans-coding-world/prisma-schema';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import {
   ERROR_CODES,
   ERROR_MESSAGES,
 } from '@dans-coding-world/shared-constants';
-import { UserDetail } from '@dans-coding-world/user-data-access';
+import type { UserDetail } from '@dans-coding-world/user-data-access';
 
 describe('Comments - reporting', () => {
   let testPosts: Post[];
@@ -64,21 +69,21 @@ describe('Comments - reporting', () => {
     if (!reporter) throw new Error('Missing user fixture');
 
     const publishedPostIds = new Set(
-      testPosts.filter((p) => p.status === 'PUBLISHED').map((p) => p.id)
+      testPosts.filter((p) => p.status === 'PUBLISHED').map((p) => p.id),
     );
 
     const ownComment = testComments.find(
       (c) =>
         c.depth === 0 &&
         publishedPostIds.has(c.postId) &&
-        c.userId === reporter.id
+        c.userId === reporter.id,
     ) as Comment;
     const othersComment = testComments.find(
       (c) =>
         c.depth === 0 &&
         publishedPostIds.has(c.postId) &&
         c.userId !== reporter.id &&
-        c.postId === ownComment?.postId
+        c.postId === ownComment?.postId,
     ) as Comment;
 
     if (!ownComment || !othersComment)
@@ -179,7 +184,7 @@ describe('Comments - reporting', () => {
         cy.contains('button', 'Submit').click();
         cy.getByTestId('error-message').should(
           'contain.text',
-          ERROR_MESSAGES[ERROR_CODES.VALIDATION.REPORT_EXISTS]
+          ERROR_MESSAGES[ERROR_CODES.VALIDATION.REPORT_EXISTS],
         );
       });
     });
@@ -207,7 +212,7 @@ describe('Comments - reporting', () => {
       cy.get('dialog').within(() => {
         cy.getByTestId('error-message').should(
           'contain.text',
-          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND]
+          ERROR_MESSAGES[ERROR_CODES.SERVER.NOT_FOUND],
         );
       });
     });

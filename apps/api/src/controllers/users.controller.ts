@@ -9,7 +9,7 @@ import {
 } from '@dans-coding-world/api-auth';
 import { IUserService } from '@dans-coding-world/api-users';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
-import { User } from '@dans-coding-world/prisma-schema';
+import type { User } from '@dans-coding-world/prisma-schema';
 import {
   AvatarImageDto,
   GetUsersDto,

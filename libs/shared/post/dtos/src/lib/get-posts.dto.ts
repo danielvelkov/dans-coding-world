@@ -11,7 +11,7 @@ import {
   POST_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
 import { PAGINATION } from '@dans-coding-world/shared-constants';
-import { Post } from '@dans-coding-world/prisma-schema';
+import type { Post } from '@dans-coding-world/prisma-schema';
 import { Type } from 'class-transformer';
 import { FilterPostsByDto } from './filter-posts-by.dto.js';
 

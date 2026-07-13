@@ -1,5 +1,5 @@
 import { generateRandomString } from '@dans-coding-world/helpers';
-import {
+import type {
   Comment,
   CommentWithReplies,
   Post,
@@ -50,7 +50,7 @@ describe('Comments - editing', () => {
       options: { useDefaults: true, clearExisting: true },
     }).then((posts) => {
       testPosts = (posts as Post[]).filter(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!testPosts || !testPosts.length)
         throw new Error('Missing post fixtures');
@@ -99,45 +99,45 @@ describe('Comments - editing', () => {
 
     beforeEach(() => {
       const publishedPostIds = new Set(
-        testPosts.filter((p) => p.status === 'PUBLISHED').map((p) => p.id)
+        testPosts.filter((p) => p.status === 'PUBLISHED').map((p) => p.id),
       );
       const commentsGroupedByPostId = Object.entries(
         Object.groupBy(
           testComments.filter(
-            (c) => c.depth === 0 && publishedPostIds.has(c.postId)
+            (c) => c.depth === 0 && publishedPostIds.has(c.postId),
           ),
-          ({ postId }) => postId
-        )
+          ({ postId }) => postId,
+        ),
       );
       const matchingEntry = commentsGroupedByPostId.find(([, group]) => {
         if (!group || group.length < 2) return false;
         const groupedByAuthor = Object.values(
-          Object.groupBy(group, ({ userId }) => userId)
+          Object.groupBy(group, ({ userId }) => userId),
         );
         return groupedByAuthor.some(
-          (comments) => comments && comments.length >= 2
+          (comments) => comments && comments.length >= 2,
         );
       });
 
       if (!matchingEntry)
         throw new Error(
-          'Missing fixtures - post with more than 2 comments by same user at depth 0'
+          'Missing fixtures - post with more than 2 comments by same user at depth 0',
         );
       editPostId = Number(matchingEntry[0]);
       const postComments = matchingEntry[1] as Comment[];
       ownEditableComments = Object.values(
-        Object.groupBy(postComments, ({ userId }) => userId)
+        Object.groupBy(postComments, ({ userId }) => userId),
       ).find((group) => group && group.length >= 2) as Comment[];
       if (!ownEditableComments || ownEditableComments.length < 2)
         throw new Error('Missing fixtures');
 
       anotherUserComment = postComments.find(
-        (c) => c.userId !== ownEditableComments[0].userId
+        (c) => c.userId !== ownEditableComments[0].userId,
       ) as Comment;
       if (!anotherUserComment) throw new Error('Missing fixtures');
 
       const commentAuthor = testUsers.find(
-        (u) => u.id === ownEditableComments[0].userId
+        (u) => u.id === ownEditableComments[0].userId,
       ) as UserDetail;
       if (!commentAuthor) throw new Error('Missing fixtures');
 
@@ -211,7 +211,7 @@ describe('Comments - editing', () => {
       const editedContent = `Edited-${generateRandomString(8)}`;
       cy.intercept(
         'PATCH',
-        API_ENDPOINTS.COMMENTS.BY_ID(editPostId, commentToEdit.id)
+        API_ENDPOINTS.COMMENTS.BY_ID(editPostId, commentToEdit.id),
       ).as('editComment');
 
       cy.getByTestId(`comment-${commentToEdit.id}`)
@@ -239,7 +239,7 @@ describe('Comments - editing', () => {
             message: 'Resource not found',
             errorCode: 'NOT_FOUND',
           },
-        }
+        },
       ).as('editComment');
 
       cy.getByTestId(`comment-${commentToEdit.id}`)
@@ -253,13 +253,13 @@ describe('Comments - editing', () => {
         .should('exist');
       cy.getByTestId('error-message').should(
         'contain.text',
-        'Resource not found'
+        'Resource not found',
       );
     });
 
     it('disables "Edit" button if logged in user is banned', () => {
       const bannedUser = testUsers.find(
-        (u) => u.isBanned === true
+        (u) => u.isBanned === true,
       ) as UserDetail;
       const bannedUserComment = testComments.find(
         (c) =>
@@ -268,7 +268,7 @@ describe('Comments - editing', () => {
           testPosts
             .filter((p) => p.status === 'PUBLISHED')
             .map((p) => p.id)
-            .includes(c.postId)
+            .includes(c.postId),
       );
       if (!bannedUserComment) throw new Error('Missing fixtures');
 
@@ -296,7 +296,7 @@ describe('Comments - editing', () => {
           req.on('response', (res) => {
             res.setDelay(3000);
           });
-        }
+        },
       ).as('editComment');
 
       cy.getByTestId(`comment-${firstComment.id}`)

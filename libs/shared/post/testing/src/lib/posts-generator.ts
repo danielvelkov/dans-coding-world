@@ -4,12 +4,15 @@ import {
   randProgrammingLanguage,
   randSentence,
 } from '@ngneat/falso';
-import { PostStatus, PostVisibility } from '@dans-coding-world/prisma-schema';
+import type {
+  PostStatus,
+  PostVisibility,
+} from '@dans-coding-world/prisma-schema';
 import { GetPostsResponseDto } from '@dans-coding-world/shared-post-dto';
 import { generateRandomUserPreview } from '@dans-coding-world/shared-user-testing';
 
 export function generateRandomPosts(
-  count: number
+  count: number,
 ): GetPostsResponseDto['items'] {
   const posts = [];
 
@@ -28,7 +31,7 @@ export function generateRandomPosts(
       author: author,
       tags: [
         ...new Set(
-          randProgrammingLanguage({ length: randNumber({ min: 1, max: 5 }) })
+          randProgrammingLanguage({ length: randNumber({ min: 1, max: 5 }) }),
         ),
       ],
     };

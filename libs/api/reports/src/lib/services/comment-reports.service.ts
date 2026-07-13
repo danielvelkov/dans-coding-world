@@ -1,4 +1,5 @@
-import {
+import { client } from '@dans-coding-world/prisma-schema';
+import type {
   Report,
   ReportWhereInput,
   ReportOrderByInput,
@@ -8,7 +9,6 @@ import {
   Comment,
   CommentWhereInput,
   CommentsOrderByInput,
-  client,
 } from '@dans-coding-world/prisma-schema';
 import {
   CreateReportDto,
@@ -74,7 +74,7 @@ export class CommentReportsService implements ICommentReportsService {
       Comment,
       CommentWhereInput,
       CommentsOrderByInput
-    >
+    >,
   ) {}
 
   async getAll(dto: GetReportsDto): Promise<GetReportsResponseDto> {
@@ -147,7 +147,7 @@ export class CommentReportsService implements ICommentReportsService {
     dto = await transformAndValidateDto(dto, UpdateReportDto);
 
     const reportForUpdate = (await this.reports.getById(
-      dto.reportId
+      dto.reportId,
     )) as ReportDetail;
 
     if (!reportForUpdate) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
@@ -155,7 +155,7 @@ export class CommentReportsService implements ICommentReportsService {
     if (reportForUpdate.status === dto.status)
       throw new ApiException(
         ERROR_CODES.VALIDATION.VALIDATION_ERROR,
-        VALIDATION_MESSAGES.reports.sameStatus
+        VALIDATION_MESSAGES.reports.sameStatus,
       );
 
     const { reportedComment } = reportForUpdate;
@@ -209,7 +209,7 @@ export class CommentReportsService implements ICommentReportsService {
    */
   private async validateReportingAccess(
     commentId: number,
-    viewerId: number
+    viewerId: number,
   ): Promise<void> {
     const comment = await this.comments.getById(commentId);
     if (!comment) throw new ApiException(ERROR_CODES.SERVER.NOT_FOUND);
@@ -231,7 +231,7 @@ export class CommentReportsService implements ICommentReportsService {
   }
 
   private buildReportsWhereClause(
-    filters?: FilterReportsByDto
+    filters?: FilterReportsByDto,
   ): ReportWhereInput {
     if (!filters)
       return {

@@ -11,7 +11,7 @@ import '@testing-library/jest-dom';
 import { generateMockPostCommentsResponse } from '@dans-coding-world/shared-post-testing';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse } from '@dans-coding-world/api-types';
-import { CommentWithReplies } from '@dans-coding-world/prisma-schema';
+import type { CommentWithReplies } from '@dans-coding-world/prisma-schema';
 import { mockCreateCommentHook } from './helpers/mockCreateCommentHook';
 import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
 

@@ -1,5 +1,5 @@
 import { generateRandomString } from '@dans-coding-world/helpers';
-import {
+import type {
   Comment,
   CommentWithReplies,
   Post,
@@ -51,7 +51,7 @@ context('Comments - replying', () => {
       options: { useDefaults: true, clearExisting: true },
     }).then((posts) => {
       testPosts = (posts as Post[]).filter(
-        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC'
+        (p) => p.status === 'PUBLISHED' && p.visibility === 'PUBLIC',
       );
       if (!testPosts || !testPosts.length)
         throw new Error('Missing post fixtures');
@@ -98,7 +98,7 @@ context('Comments - replying', () => {
 
     beforeEach(() => {
       const randomUser = Cypress._.sample(
-        testUsers.filter((u) => u.isBanned === false)
+        testUsers.filter((u) => u.isBanned === false),
       ) as UserDetail;
 
       cy.visit('/login');
@@ -109,7 +109,7 @@ context('Comments - replying', () => {
       const publicPost = testPosts.find(
         (p) =>
           p.status === 'PUBLISHED' &&
-          testComments.map((c) => c.postId).includes(p.id)
+          testComments.map((c) => c.postId).includes(p.id),
       );
       if (!publicPost) throw new Error('Missing fixtures');
       POST_UAT_ID = publicPost.id;
@@ -131,7 +131,7 @@ context('Comments - replying', () => {
       const deeplyNestedComment = testComments.find(
         (c) =>
           c.depth === COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH - 1 &&
-          publicPosts.map((p) => p.id).includes(c.postId)
+          publicPosts.map((p) => p.id).includes(c.postId),
       );
 
       if (!deeplyNestedComment) throw new Error('Missing test comment');
@@ -157,7 +157,7 @@ context('Comments - replying', () => {
 
     it('shows added comment after replying and hides reply textarea form', () => {
       const commentToReplyTo = testComments.find(
-        (c) => c.postId === POST_UAT_ID && c.depth === 0
+        (c) => c.postId === POST_UAT_ID && c.depth === 0,
       ) as Comment;
 
       const content = `Comment-${generateRandomString(8)}`;
@@ -178,7 +178,7 @@ context('Comments - replying', () => {
 
     it('shows error message if trying to reply on a non-existent comment', () => {
       const commentToReplyTo = testComments.find(
-        (c) => c.postId === POST_UAT_ID && c.depth === 0
+        (c) => c.postId === POST_UAT_ID && c.depth === 0,
       ) as Comment;
       cy.intercept('POST', API_ENDPOINTS.COMMENTS.LIST(POST_UAT_ID), {
         success: false,
@@ -205,13 +205,13 @@ context('Comments - replying', () => {
 
       cy.getByTestId('error-message').should(
         'contain.text',
-        'Resource not found'
+        'Resource not found',
       );
     });
 
     it('disables "Reply" button if logged in user is banned', () => {
       const bannedUser = testUsers.find(
-        (u) => u.isBanned === true
+        (u) => u.isBanned === true,
       ) as UserDetail;
       cy.logout();
       cy.visit('/login');
@@ -222,7 +222,7 @@ context('Comments - replying', () => {
       const deeplyNestedComment = testComments.find(
         (c) =>
           c.depth === COMMENT_CONSTRAINTS.MAX_REPLY_TREE_DEPTH - 1 &&
-          publicPosts.map((p) => p.id).includes(c.postId)
+          publicPosts.map((p) => p.id).includes(c.postId),
       );
 
       if (!deeplyNestedComment) throw new Error('Missing test comment');
@@ -239,7 +239,7 @@ context('Comments - replying', () => {
     it(`does not show another reply form when clicking "Reply",
          when user is currently submitting reply`, () => {
       const [firstComment, secondComment] = testComments.filter(
-        (c) => c.postId === POST_UAT_ID
+        (c) => c.postId === POST_UAT_ID,
       ) as Comment[];
       if (!firstComment || !secondComment) throw new Error('Missing fixtures');
 
@@ -267,7 +267,7 @@ context('Comments - replying', () => {
 
   function getRootCommentFromReply(reply: Comment) {
     const parentComment = testComments.find(
-      (c) => c.id === reply.threadParentId
+      (c) => c.id === reply.threadParentId,
     );
     if (!parentComment) return reply;
     else return getRootCommentFromReply(parentComment);
