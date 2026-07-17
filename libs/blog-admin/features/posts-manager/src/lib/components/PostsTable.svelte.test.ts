@@ -222,8 +222,23 @@ describe('Rows', () => {
       expect(window.location.pathname).toBe(`/posts/${postUAT.id}/edit`);
     });
 
-    // TODO
-    it.todo('on selecting "Delete" action it opens confirmation dialog');
+    it('on selecting "Delete" action it opens confirmation dialog', async () => {
+      const mockDelete = vi.fn();
+      const screen = await render(PostsTable, {
+        posts,
+        viewer: admin,
+        onPostDelete: mockDelete,
+      });
+      const postUAT = posts[0];
+      const colIndex = TABLE_COLUMNS.indexOf('Actions');
+      const cell = getTableDataCell(0, colIndex);
+      await cell.getByRole('button', { name: /delete/i }).click();
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toBeVisible();
+
+      await dialog.getByRole('button', { name: /delete post/i }).click();
+      expect(mockDelete).toHaveBeenCalledWith(postUAT.id);
+    });
   });
 
   describe('Expanded Row details', async () => {
