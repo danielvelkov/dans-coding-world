@@ -58,7 +58,7 @@
   };
 </script>
 
-<div class="relative grow w-full">
+<div class="relative w-full">
   <!-- Interactive Trigger Container -->
   <div class="relative w-full">
     <search>

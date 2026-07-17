@@ -24,7 +24,7 @@
 <MultiSelect
   id="filter-posts"
   placeholder="Select filtering by post status/visibility"
-  class="shadow rounded-md w-full"
+  class="shadow rounded-md w-full ml-1"
   items={FILTER_OPTIONS}
   onchange={(e) => {
     const selected = Array.from(e.currentTarget.selectedOptions).map(
