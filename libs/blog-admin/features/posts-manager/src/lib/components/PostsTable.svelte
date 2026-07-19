@@ -22,6 +22,7 @@
     Select,
     Table,
     Input,
+    Pill,
   } from '@dans-coding-world/blog-admin-ui-common';
   import type { PostsManagerParams } from '../types/postsManagerParams.js';
   import { debounceCallback } from '@dans-coding-world/blog-admin-data-access-operations';
@@ -175,13 +176,9 @@
     <!-- Status/Visibility -->
     <td class="px-4 py-4">
       <div class="flex flex-col space-y-1">
-        <span
-          class="inline-flex items-center px-2.5 py-0.5 rounded-full
-           text-xs font-semibold bg-(--color-info-bg) text-(--color-info)
-            border border-(--color-info-border) w-fit"
-        >
+        <Pill class="text-xs font-semibold w-fit">
           {post.status.toUpperCase()}
-        </span>
+        </Pill>
         {#if post.visibility === 'MEMBERS_ONLY'}
           <span class="text-xs text-(--color-text-tertiary)">Members-only</span>
         {/if}
