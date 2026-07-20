@@ -9,6 +9,7 @@ import {
   IsArray,
   ArrayUnique,
   ArrayNotEmpty,
+  IsBoolean,
 } from 'class-validator';
 import {
   TAG_CONSTRAINTS,
@@ -24,7 +25,7 @@ import {
   PostVisibilityEnum,
 } from '@dans-coding-world/prisma-schema';
 import { Transform } from 'class-transformer';
-import { ToInteger } from '@dans-coding-world/validation';
+import { ToBoolean, ToInteger } from '@dans-coding-world/validation';
 
 export class UpdatePostDto {
   @ToInteger()
@@ -64,7 +65,7 @@ export class UpdatePostDto {
   @IsOptional()
   @IsEnum(PostVisibilityEnum, {
     message: VALIDATION_MESSAGES.allowedValues(
-      Object.values(PostVisibilityEnum)
+      Object.values(PostVisibilityEnum),
     ),
   })
   visibility?: PostVisibility;
@@ -90,4 +91,9 @@ export class UpdatePostDto {
     message: VALIDATION_MESSAGES.tags.invalid,
   })
   tags?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  @ToBoolean()
+  clearTags?: boolean;
 }
