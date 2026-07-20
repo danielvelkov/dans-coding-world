@@ -22,6 +22,9 @@ export const VALIDATION_MESSAGES = {
       'Page offset must be divisible by page size',
   },
   posts: {
+    contentTooLarge: `Your formatted content is too large.\n  
+      Semantic HTML adds extra tags, which increases the total size.\n
+      Please shorten the content or reduce formatting.`,
     membersOnly: 'Please login to read the blog',
   },
   tags: {
