@@ -89,6 +89,10 @@ export class PrismaPostDataAccess implements IPostRepository<
 
   async update(id: number, data: Partial<PostDetail>): Promise<Post> {
     const { tags, ...postData } = data;
+    // Delete tag relations if empty tags array set
+    if (tags !== undefined && tags.length === 0) {
+      await client.tagsOnPosts.deleteMany({ where: { postId: id } });
+    }
 
     return await client.post.update({
       where: { id },
