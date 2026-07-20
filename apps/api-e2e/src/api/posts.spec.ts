@@ -1432,6 +1432,30 @@ describe('/api/v1/posts', () => {
           tags: ['unique-tag-1234', 'unique-tag-1234'],
         },
       ],
+      [
+        'clearTags is number (1)',
+        {
+          clearTags: 1 as any,
+        },
+      ],
+      [
+        'clearTags is number (0)',
+        {
+          clearTags: 1 as any,
+        },
+      ],
+      [
+        'clearTags is not boolean nor "true" (case-sensitive)',
+        {
+          clearTags: 'True' as any,
+        },
+      ],
+      [
+        'clearTags is not boolean nor "false" (case-sensitive)',
+        {
+          clearTags: 'False' as any,
+        },
+      ],
     ])('should return validation error when %s', async (_, postData) => {
       const postForUpdate = posts.find((p) => p.authorId === author.id);
       if (!postForUpdate) throw new Error('Missing test post');
@@ -1532,6 +1556,28 @@ describe('/api/v1/posts', () => {
 
       for (const tag of testData.publicOnlyTags.map((t) => t.name))
         expect(post.tags.includes(tag)).toBe(true);
+    });
+
+    it('should clear post tags if "clearTags" field is true', async () => {
+      const postForUpdate = posts.find((p) => p.authorId === author.id);
+      if (!postForUpdate) throw new Error('Missing test post');
+
+      const res = await authorHelpers.getPost(postForUpdate.id.toString());
+      const post = getData<Post & { tags: string[] | undefined }>(res, 'post');
+      expect(post.tags?.length).toBeGreaterThan(0);
+
+      const resFromUpdate = await authorHelpers.updatePost(
+        postForUpdate.id.toString(),
+        {
+          clearTags: true,
+          tags: ['tag-2'], // even with tags defined
+        },
+      );
+      const updatedPost = getData<Post & { tags: string[] }>(
+        resFromUpdate,
+        'post',
+      );
+      expect(updatedPost.tags.length).toBe(0);
     });
 
     it(`should return validation error when updating a

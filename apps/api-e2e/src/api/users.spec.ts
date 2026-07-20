@@ -636,6 +636,30 @@ describe('/api/v1/users', () => {
           lastName: generateRandomString(USER_CONSTRAINTS.MAX_BIO_LENGTH + 1),
         },
       ],
+      [
+        'removeAvatar is number (1)',
+        {
+          removeAvatar: 1 as any,
+        },
+      ],
+      [
+        'removeAvatar is number (0)',
+        {
+          removeAvatar: 1 as any,
+        },
+      ],
+      [
+        'removeAvatar is not boolean nor "true" (case-sensitive)',
+        {
+          removeAvatar: 'True' as any,
+        },
+      ],
+      [
+        'removeAvatar is not boolean nor "false" (case-sensitive)',
+        {
+          removeAvatar: 'False' as any,
+        },
+      ],
     ])('should throw validation error when %s', async (_, profileData) => {
       await expect(userHelpers.updateUser(profileData)).rejects.toMatchObject(
         createErrorCodeResponse(ERROR_CODES.VALIDATION.VALIDATION_ERROR),
