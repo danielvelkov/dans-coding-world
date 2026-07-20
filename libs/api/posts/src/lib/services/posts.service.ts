@@ -177,7 +177,7 @@ export class PostsService implements IPostsService {
 
     const post = (await this.posts.update(dto.postId, {
       ...filtered,
-      tags: this.extractUniqueStrings(filtered.tags),
+      tags: dto.clearTags ? [] : this.extractUniqueStrings(filtered.tags),
       updatedAt: new Date(),
       ...(!postForUpdate.publishedAt &&
         dto.status === 'PUBLISHED' && { publishedAt: new Date() }),
