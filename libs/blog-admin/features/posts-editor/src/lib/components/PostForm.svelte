@@ -2,6 +2,7 @@
   import { getValidationErrors } from '@dans-coding-world/public-blog-shared-helpers';
   import {
     Button,
+    ChipInput,
     DropdownSearch,
     Input,
     SpinnerLoader,
@@ -54,6 +55,15 @@
   let isMembersOnly = $state(false);
   let tags: string[] = $state([]);
 
+  let tagsSearchInput: string = $state('');
+  const tagsSearchResult = $derived(
+    tagsSearchInput.length > 0
+      ? tagOptions.filter(({ name }) =>
+          name.toLowerCase().includes(tagsSearchInput.toLowerCase()),
+        )
+      : tagOptions,
+  );
+
   let currentAction: FormAction | null = $state(null);
   let openDialog: boolean = $state(false);
 
@@ -79,10 +89,15 @@
       theme: 'snow',
     });
     quill.on('text-change', () => {
-      const rawText = quill.getSemanticHTML();
-      if (rawText.length > POST_CONSTRAINTS.MAX_CONTENT_LENGTH)
+      const html = quill.root.innerHTML
+        .replace(/<p><br><\/p>/g, '<br>')
+        .replace(/<p><\/p>/g, '<br>');
+
+      if (html.length > POST_CONSTRAINTS.MAX_CONTENT_LENGTH) {
         errors.content = VALIDATION_MESSAGES.posts.contentTooLarge;
-      else content = DOMPurify.sanitize(rawText);
+      } else {
+        content = DOMPurify.sanitize(html);
+      }
     });
     if (mode === 'edit' && postData?.content) {
       quill.clipboard.dangerouslyPasteHTML(
@@ -189,15 +204,41 @@
 
     <label for="tags" class="text-sm font-semibold">Tags</label>
     <DropdownSearch
-      options={tagOptions.map((t) => ({
+      options={tagsSearchResult.map((t) => ({
         label: `#${t.name}`,
         value: t.name,
       }))}
       placeHolder="Search tag..."
       lastOptionRef={null}
-      handleSelect={(tag) => toggleValue(tags, tag)}
+      handleSelect={(tag) => {
+        tags = toggleValue(tags, tag);
+      }}
+      handleSearch={(searchKeyword) => {
+        tagsSearchInput = searchKeyword;
+      }}
+      selected={tags.map((value) => ({
+        value,
+      }))}
       searchInputMaxLength={TAG_CONSTRAINTS.MAX_NAME_LENGTH}
     ></DropdownSearch>
+    <ChipInput
+      bind:values={tags}
+      placeholder="Add tag..."
+      validate={(val) => {
+        errors.tags = undefined;
+        if (val.length < TAG_CONSTRAINTS.MIN_NAME_LENGTH)
+          errors.tags = VALIDATION_MESSAGES.minLength(
+            TAG_CONSTRAINTS.MIN_NAME_LENGTH,
+          );
+        if (val.length > TAG_CONSTRAINTS.MAX_NAME_LENGTH)
+          errors.tags = VALIDATION_MESSAGES.maxLength(
+            TAG_CONSTRAINTS.MAX_NAME_LENGTH,
+          );
+        if (!TAG_CONSTRAINTS.NAME_PATTERN.test(val))
+          errors.tags = VALIDATION_MESSAGES.tags.invalid;
+        return errors.tags === undefined;
+      }}
+    ></ChipInput>
     {#if errors.tags}
       <span class="text-sm text-(--color-error)">
         <i class="fa fa-warning"></i>
@@ -414,6 +455,18 @@
     }
 
     :global(li) {
+      display: revert;
+      margin: revert;
+      padding: revert;
+    }
+
+    :global(p) {
+      display: revert;
+      margin: revert;
+      padding: revert;
+    }
+
+    :global(br) {
       display: revert;
       margin: revert;
       padding: revert;
