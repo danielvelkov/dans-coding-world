@@ -12,7 +12,7 @@
     options?: SelectOption[];
     isLoadingOptions?: boolean;
     isSearching?: boolean;
-    selected?: Pick<SelectOption, 'value'>;
+    selected?: Pick<SelectOption, 'value'>[];
     handleSelect?: (value: string) => void;
     searchInput?: string;
     placeHolder?: string;
@@ -45,8 +45,6 @@
     index: number,
     isSelected: boolean,
   ) => {
-    isSelected ||= selected?.value === option.value;
-
     return `relative cursor-pointer select-none py-2.5 px-4 text-sm text-left w-full transition-colors block
       ${options.length - 1 === index && !isLoadingOptions ? 'rounded-b-md' : ''} 
       ${
@@ -139,7 +137,8 @@
         </div>
       {:else if options.length > 0}
         {#each options as { value, label }, index (label)}
-          {@const isSelected = value === selected?.value}
+          {@const isSelected =
+            selected?.map((o) => o.value).includes(value) ?? false}
           <button
             bind:this={lastOptionRef}
             type="button"
