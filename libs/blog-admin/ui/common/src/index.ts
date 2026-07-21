@@ -7,6 +7,7 @@ export { default as SpinnerLoader } from './lib/SpinnerLoader.svelte';
 export { default as DotsLoader } from './lib/DotsLoader.svelte';
 export { default as Select } from './lib/Select.svelte';
 export { default as Pill } from './lib/Pill.svelte';
+export { default as ChipInput } from './lib/ChipInput.svelte';
 export { default as Chip } from './lib/Chip.svelte';
 export { default as Toggle } from './lib/Toggle.svelte';
 export { default as MultiSelect } from './lib/MultiSelect.svelte';
