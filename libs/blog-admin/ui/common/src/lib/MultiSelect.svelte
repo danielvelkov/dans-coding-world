@@ -85,7 +85,7 @@
       title="Hold Ctrl (Cmd on Mac) to select multiple"
       class="native-select font-medium text-(--color-text-primary) rounded-sm
        disabled:cursor-not-allowed border border-(--color-border-default)
-       bg-(--color-bg-surface) shadow-xs transition-all duration-200
+       bg-(--color-bg-elevated) shadow-xs transition-all duration-200
        focus:ring-2 focus:ring-(--color-focus-ring) focus:border-(--color-border-focus)
        hover:bg-(--color-bg-surface-hover)
        focus:bg-(--color-accent) focus:text-(--color-text-on-accent)

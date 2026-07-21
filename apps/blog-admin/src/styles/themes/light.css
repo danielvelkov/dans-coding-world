@@ -1,13 +1,12 @@
 :root,
 :root.light {
-	/* Background */
-	--color-bg-base: #f9fafb; /* grey-25 */
-	--color-bg-elevated: #ffffff; /* grey-0 */
-	--color-bg-surface: #ffffff; /* grey-0 */
-	--color-bg-surface-hover: #f3f4f6; /* grey-50 */
-	--color-bg-surface-active: #e5e7eb; /* grey-100 */
-	--color-bg-muted: #e5e7eb; /* grey-100 */
-	--color-bg-overlay: rgba(0, 0, 0, 0.5); /* black-a500 */
+	--color-bg-base: #f3f1ee;
+	--color-bg-elevated: #ffffff;
+	--color-bg-surface: #faf9f7;
+	--color-bg-surface-hover: #eeece8;
+	--color-bg-surface-active: #e2e0da;
+	--color-bg-muted: #e2e0da;
+	--color-bg-overlay: rgba(0, 0, 0, 0.5);
 
 	/* Text */
 	--color-text-primary: #0f172a; /* grey-950 */

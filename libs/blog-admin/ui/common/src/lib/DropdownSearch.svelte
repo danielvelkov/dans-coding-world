@@ -79,7 +79,7 @@
           placeholder={placeHolder ?? 'Search...'}
           class="w-full pl-9 pr-10 py-2 text-sm border
           border-(--color-border-default) rounded-md
-          bg-(--color-bg-surface) text-(--color-text-primary)
+          bg-(--color-bg-elevated) text-(--color-text-primary)
           placeholder:text-(--color-text-tertiary) transition-all
           focus:outline-hidden focus:border-(--color-border-focus)
           focus:ring-2 focus:ring-(--color-focus-ring) shadow-xs"

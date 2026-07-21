@@ -168,11 +168,15 @@
     {/if}
 
     <label for="content" class="text-sm font-semibold">Content</label>
-    <div class="flex flex-col h-[30vh] w-auto mb-5 md:mb-5">
+    <div
+      class="flex flex-col h-[30vh] w-auto mb-5 md:mb-5 border border-(--color-border-default)
+      focus-within:outline-none focus-within:border-(--color-border-focus)
+    shadow-xs focus-within:shadow-sm"
+    >
       <div
         data-testid="editor"
         id="content"
-        class="bg-(--color-bg-surface)"
+        class="bg-(--color-bg-elevated)"
         bind:this={editor}
       ></div>
     </div>
@@ -290,11 +294,11 @@
     class="mt-5 flex flex-1 flex-col gap-5 relative min-w-0 overflow-hidden pt-5"
   >
     <h2
-      class="text-xl font-bold absolute top-1 left-4 bg-(--color-bg-base) px-2"
+      class="text-xl font-bold absolute top-1 border rounded-md left-4 bg-(--color-bg-base) px-2"
     >
       Preview
     </h2>
-    <div class="rounded border p-4 min-h-50 w-full">
+    <div class="rounded border p-4 min-h-50 w-full bg-(--color-bg-elevated)">
       <output data-testid="preview" class="wrap-break-word break-all block">
         {@html DOMPurify.sanitize(content)}
       </output>

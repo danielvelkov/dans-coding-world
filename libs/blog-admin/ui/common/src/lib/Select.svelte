@@ -14,7 +14,7 @@
   {...restProps}
   class="w-full font-medium text-(--color-text-primary) px-3 py-2
        disabled:cursor-not-allowed border border-(--color-border-default)
-       bg-(--color-bg-surface) shadow-xs transition-all duration-200
+       bg-(--color-bg-elevated) shadow-xs transition-all duration-200
        focus:ring-2 focus:ring-(--color-focus-ring) focus:border-(--color-border-focus)
        focus:bg-(--color-surface-active) focus:text-(--color-text-primary)
        {className ?? ''}"

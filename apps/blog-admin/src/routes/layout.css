@@ -36,10 +36,12 @@
 	/* Quill text editor custom style */
 	.ql-toolbar {
 		flex-shrink: 0;
+		border: none !important;
 	}
 	.ql-container {
 		flex: 1 1 auto;
 		min-height: 0;
+		border: none !important;
 	}
 	.ql-editor {
 		height: 100%;
@@ -47,6 +49,7 @@
 		overflow-x: hidden;
 		overflow-wrap: break-word;
 		word-break: break-word;
+		border: none !important;
 	}
 }
 

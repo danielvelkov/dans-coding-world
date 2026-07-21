@@ -25,7 +25,12 @@
 	const logout = $derived(authStateManager.logout);
 </script>
 
-<header class="border-b">
+<header
+	class="sticky top-0 z-50 overflow-hidden border-b border-(--color-border-subtle) bg-(--color-bg-elevated)/80 backdrop-blur-md"
+>
+	<div
+		class="pointer-events-none absolute -top-12 left-1/2 -z-10 h-32 w-2/3 -translate-x-1/2 rounded-full bg-linear-to-r from-(--color-accent-subtle) via-(--color-accent-glow) to-(--color-accent-subtle) opacity-80 blur-2xl"
+	></div>
 	<nav
 		class="mx-auto flex w-fit max-w-7xl flex-wrap items-center gap-6 px-6 py-4 text-sm font-medium sm:w-auto"
 	>
@@ -64,6 +69,9 @@
 		{/if}
 		<ThemeToggleButton></ThemeToggleButton>
 	</nav>
+	<div
+		class="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-transparent via-(--color-accent-glow) to-transparent opacity-75"
+	></div>
 </header>
 
 <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col self-center px-4 py-5 sm:px-6 lg:px-8">

@@ -10,7 +10,7 @@
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <QueryClientProvider client={queryClient}>
-	<div class="flex min-h-screen min-w-screen flex-col">
+	<div class="flex min-h-screen w-full flex-col">
 		{@render children()}
 	</div>
 </QueryClientProvider>
