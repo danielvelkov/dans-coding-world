@@ -38,8 +38,8 @@
            rounded-r-md px-3 py-2.5 my-1"
       >
         <i
-          class="not-italic font-medium text-(--color-text-primary) block
-             truncate line-clamp-1"
+          class="not-italic font-medium text-(--color-text-primary
+             truncate break-all"
           title={postTitle}
         >
           {postTitle}
