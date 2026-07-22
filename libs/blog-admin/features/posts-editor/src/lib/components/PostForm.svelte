@@ -138,6 +138,7 @@
     }
 
     const contentText = quill.getText();
+    const contentHtml = quill.root.innerHTML;
 
     if (
       !contentText ||
@@ -146,7 +147,10 @@
       newErrors.content = VALIDATION_MESSAGES.minLength(
         POST_CONSTRAINTS.MIN_CONTENT_LENGTH,
       );
-    } else if (content.trim().length > POST_CONSTRAINTS.MAX_CONTENT_LENGTH) {
+    } else if (
+      contentHtml.length > POST_CONSTRAINTS.MAX_CONTENT_LENGTH ||
+      content.trim().length > POST_CONSTRAINTS.MAX_CONTENT_LENGTH
+    ) {
       newErrors.content = VALIDATION_MESSAGES.posts.contentTooLarge;
     }
 
