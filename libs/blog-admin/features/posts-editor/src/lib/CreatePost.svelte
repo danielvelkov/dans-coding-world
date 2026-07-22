@@ -26,13 +26,6 @@
   const createPostError = $derived(createPostMutation.error);
   const isSubmitting = $derived(createPostMutation.isPending);
   const createdPost = $derived(createPostMutation.data?.post);
-
-  $effect(() => {
-    if (createdPost) {
-      onPostCreated(createdPost);
-      reset();
-    }
-  });
 </script>
 
 <h2 class="text-3xl font-bold mb-5">Create post</h2>
