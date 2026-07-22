@@ -48,11 +48,13 @@
 				class="transition-colors hover:underline"
 				aria-current={page.url.pathname.startsWith('/posts')}>Posts</a
 			>
-			<a
-				href={resolve('/posts/new')}
-				class="transition-colors hover:underline"
-				aria-current={page.url.pathname.startsWith('/posts/new')}>Create post</a
-			>
+			{#if user && (user.role === 'ADMIN' || user.role === 'AUTHOR')}
+				<a
+					href={resolve('/posts/new')}
+					class="transition-colors hover:underline"
+					aria-current={page.url.pathname.startsWith('/posts/new')}>Create post</a
+				>
+			{/if}
 			<button
 				role="link"
 				disabled={isLoading}
