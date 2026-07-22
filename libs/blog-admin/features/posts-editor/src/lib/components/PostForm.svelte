@@ -240,7 +240,7 @@
       }}
     ></ChipInput>
     {#if errors.tags}
-      <span class="text-sm text-(--color-error)">
+      <span data-testid="tag-error" class="text-sm text-(--color-error)">
         <i class="fa fa-warning"></i>
         {' ' + errors.tags}</span
       >

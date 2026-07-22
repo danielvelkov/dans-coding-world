@@ -9,7 +9,10 @@ import { generateRandomPosts } from '@dans-coding-world/shared-post-testing';
 import { FormAction } from '../types/form-actions.type.js';
 import type { PostStatus } from '@dans-coding-world/prisma-schema';
 import { generateRandomString } from '@dans-coding-world/helpers';
-import { POST_CONSTRAINTS } from '@dans-coding-world/shared-constants';
+import {
+  POST_CONSTRAINTS,
+  TAG_CONSTRAINTS,
+} from '@dans-coding-world/shared-constants';
 
 describe('PostForm', () => {
   const renderFeature = async (
@@ -25,9 +28,9 @@ describe('PostForm', () => {
 
   const randomPost = generateRandomPosts(1)[0];
 
-  // const openTagsDropdown = async () => {
-  //   await page.getByRole('searchbox').click();
-  // };
+  const openTagsDropdown = async () => {
+    await page.getByRole('searchbox').click();
+  };
 
   const typeIntoContentEditor = async (value: string) => {
     const user = userEvent.setup();
@@ -78,46 +81,152 @@ describe('PostForm', () => {
     expect(membersOnlyCheckbox.element().tagName).toBe('INPUT');
   });
 
-  it('updates preview section when editing "Content" field editor', async () => {
-    const screen = await renderFeature();
-    await typeIntoContentEditor(randomPost.content);
-    const preview = screen.getByTestId('preview');
-    expect(preview).toHaveTextContent(randomPost.content);
-  });
+  describe('content editor', () => {
+    it('updates preview section when editing "Content" field editor', async () => {
+      const screen = await renderFeature();
+      await typeIntoContentEditor(randomPost.content);
+      const preview = screen.getByTestId('preview');
+      expect(preview).toHaveTextContent(randomPost.content);
+    });
 
-  it(`should reflect the HTML changes from "Content" field editor
+    it(`should reflect the HTML changes from "Content" field editor
     into the "Preview' section as semantic HTML
      when selecting text headers from toolbar`, async () => {
-    const content = 'Hello World';
-    const screen = await renderFeature();
-    await typeIntoContentEditor(content);
-    const preview = screen.getByTestId('preview');
-    await expect
-      .element(preview.getByRole('heading', { name: content }))
-      .not.toBeInTheDocument();
+      const content = 'Hello World';
+      const screen = await renderFeature();
+      await typeIntoContentEditor(content);
+      const preview = screen.getByTestId('preview');
+      await expect
+        .element(preview.getByRole('heading', { name: content }))
+        .not.toBeInTheDocument();
 
-    // Open the header picker
-    const headerPickerLabel = document.querySelector(
-      '.ql-picker.ql-header .ql-picker-label',
-    ) as HTMLElement;
-    headerPickerLabel.click();
+      // Open the header picker
+      const headerPickerLabel = document.querySelector(
+        '.ql-picker.ql-header .ql-picker-label',
+      ) as HTMLElement;
+      headerPickerLabel.click();
 
-    const h1Option = document.querySelector(
-      '.ql-picker.ql-header .ql-picker-item[data-value="1"]', // Heading 1 option
-    ) as HTMLElement;
-    h1Option.click();
+      const h1Option = document.querySelector(
+        '.ql-picker.ql-header .ql-picker-item[data-value="1"]', // Heading 1 option
+      ) as HTMLElement;
+      h1Option.click();
 
-    await expect
-      .element(preview.getByRole('heading', { name: content, level: 1 }))
-      .toBeInTheDocument();
+      await expect
+        .element(preview.getByRole('heading', { name: content, level: 1 }))
+        .toBeInTheDocument();
 
-    const h2Option = document.querySelector(
-      '.ql-picker.ql-header .ql-picker-item[data-value="2"]', // Heading 2 option
-    ) as HTMLElement;
-    h2Option.click();
-    await expect
-      .element(preview.getByRole('heading', { name: content, level: 2 }))
-      .toBeInTheDocument();
+      const h2Option = document.querySelector(
+        '.ql-picker.ql-header .ql-picker-item[data-value="2"]', // Heading 2 option
+      ) as HTMLElement;
+      h2Option.click();
+      await expect
+        .element(preview.getByRole('heading', { name: content, level: 2 }))
+        .toBeInTheDocument();
+    });
+  });
+
+  describe('tag selection', () => {
+    it('should populate tag search input with passed tagOptions on click', async () => {
+      const tags = ['tag-1', 'tag-2'];
+      const screen = await renderFeature({
+        tagOptions: tags.map((name) => ({ name })),
+      });
+      await openTagsDropdown();
+      const dropdownListBox = screen.getByTestId('dropdown-search-listbox');
+      for (const tag of tags)
+        await expect
+          .element(
+            dropdownListBox.getByRole('option', { name: new RegExp(tag) }),
+          )
+          .toBeInTheDocument();
+    });
+
+    it(`should show post's tags as deletable chips if postData present in edit mode`, async () => {
+      const tags = ['tag-1', 'tag-2'];
+      const screen = await renderFeature({
+        mode: 'edit',
+        tagOptions: tags.map((name) => ({ name })),
+        postData: { ...randomPost, tags },
+      });
+      const chips = screen.getByTestId(/chip-/).elements();
+      expect(chips.length).toBe(tags.length);
+    });
+
+    it('selecting a tag from the search input toggles it', async () => {
+      const [first, second] = ['tag-1', 'tag-2'];
+      const screen = await renderFeature({
+        tagOptions: [first, second].map((name) => ({ name })),
+      });
+      await openTagsDropdown();
+      const dropdownListBox = screen.getByTestId('dropdown-search-listbox');
+      expect(screen.getByTestId(/chip-\s+/)).not.toBeInTheDocument();
+      await dropdownListBox
+        .getByRole('option', { name: new RegExp(first) })
+        .click();
+      expect(screen.getByTestId(`chip-${first}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`chip-${second}`)).not.toBeInTheDocument();
+
+      // Toggle
+      await openTagsDropdown();
+      await dropdownListBox
+        .getByRole('option', { name: new RegExp(first) })
+        .click();
+      expect(screen.getByTestId(`chip-${first}`)).not.toBeInTheDocument();
+    });
+
+    it('adding a tag through the tag input toggles it in search input dropdown', async () => {
+      const user = userEvent.setup();
+      const [first, second] = ['tag-1', 'tag-2'];
+      const screen = await renderFeature({
+        tagOptions: [first, second].map((name) => ({ name })),
+      });
+
+      const input = screen.getByPlaceholder(/add tag.../i);
+      await user.click(input);
+      await user.keyboard(first);
+      await user.keyboard('[Enter]');
+
+      await openTagsDropdown();
+      const dropdownListBox = screen.getByTestId('dropdown-search-listbox');
+      expect(
+        dropdownListBox.getByRole('option', { name: new RegExp(first) }),
+      ).toHaveAttribute('aria-selected', 'true');
+      expect(
+        dropdownListBox.getByRole('option', { name: new RegExp(second) }),
+      ).not.toHaveAttribute('aria-selected', 'true');
+    });
+
+    it(`should call handleSubmit() with selected tags from search or 
+      newly added tags typed through tag input`, async () => {
+      const user = userEvent.setup();
+      const mockSubmitFn = vi.fn();
+      const customTagName = 'unique';
+      const [first, second] = ['tag-1', 'tag-2'];
+      const screen = await renderFeature({
+        mode: 'create',
+        tagOptions: [first, second].map((name) => ({ name })),
+        handleSubmit: mockSubmitFn,
+      });
+
+      const input = screen.getByPlaceholder(/add tag.../i);
+      await user.click(input);
+      await user.keyboard(customTagName);
+      await user.keyboard('[Enter]');
+
+      await openTagsDropdown();
+      const dropdownListBox = screen.getByTestId('dropdown-search-listbox');
+      await dropdownListBox
+        .getByRole('option', { name: new RegExp(first) })
+        .click();
+      // fill required data
+      await typeIntoTitleInput(randomPost.title);
+      await typeIntoContentEditor(randomPost.content);
+      await screen.getByRole('button', { name: /save as draft$/i }).click();
+      expect(mockSubmitFn).toHaveBeenCalled();
+      expect(mockSubmitFn).toHaveBeenCalledWith(
+        expect.objectContaining({ tags: [customTagName, first] }),
+      );
+    });
   });
 
   describe('Create mode', () => {
@@ -287,7 +396,7 @@ describe('PostForm', () => {
           .not.toHaveAttribute('checked');
     });
 
-    it('should not execute any js if content contains XSS injection', async () => {
+    it('should not execute any js if postData content contains XSS injection', async () => {
       const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
       const xssInjectionHTML =
         "<img src='x' onerror='confirm(\"hacked\")' width='0' height='0'>";
@@ -439,6 +548,56 @@ describe('PostForm', () => {
           .toBeInTheDocument();
       },
     );
+
+    const INVALID_TAG_CHARS = [
+      'A',
+      'Z',
+      'Q', // uppercase
+      '_',
+      '&',
+      '(',
+      ')',
+      '@',
+      '#',
+      '$',
+      '%',
+      '^',
+      '*',
+      '+',
+      '=',
+      '/',
+      '\\',
+      '|',
+      ':',
+      ';',
+      '"',
+      "'",
+      '<',
+      '>',
+    ];
+
+    test.each([
+      ['too short', generateRandomString(TAG_CONSTRAINTS.MIN_NAME_LENGTH - 1)],
+      ['too long', generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH + 1)],
+      ...INVALID_TAG_CHARS.map((char) => [
+        `contains invalid character "${char}"`,
+        generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH - 4) + char,
+      ]),
+    ])('should show error message if entered tag is %s', async (_, tag) => {
+      const user = userEvent.setup();
+      const screen = await renderFeature({ mode: 'create' });
+      const input = screen.getByPlaceholder(/add tag.../i);
+      await user.click(input);
+      await user.keyboard(tag);
+
+      await expect.element(input).toHaveValue(tag);
+
+      expect(screen.getByTestId('tag-error')).not.toBeInTheDocument();
+      await user.keyboard('[Enter]');
+      expect(screen.getByTestId(`chip-${tag}`)).not.toBeInTheDocument();
+      expect(screen.getByTestId('tag-error')).toBeInTheDocument();
+    });
+
     it('should render error message if apiError param is present', async () => {
       const errorMessage = new Error('Failed to create post');
       const screen = await renderFeature({ apiError: errorMessage });

@@ -52,6 +52,7 @@
 >
   {#each values as value (value)}
     <Chip
+      data-testid={`chip-${value}`}
       deletable
       onDelete={() => {
         values = values?.filter((v) => v !== value);
