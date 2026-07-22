@@ -1524,7 +1524,7 @@ describe('/api/v1/posts', () => {
       const postForUpdate = posts.find((p) => p.authorId === author.id);
       if (!postForUpdate) throw new Error('Missing test post');
       const uniqueTags = Array.from({ length: 3 }).map(() =>
-        generateRandomString(10, {
+        generateRandomString(TAG_CONSTRAINTS.MAX_NAME_LENGTH - 1, {
           includeSymbols: false,
           includeUppercase: false,
         }),

@@ -89,51 +89,49 @@ export class PrismaPostDataAccess implements IPostRepository<
 
   async update(id: number, data: Partial<PostDetail>): Promise<Post> {
     const { tags, ...postData } = data;
-    // Delete tag relations if empty tags array set
-    if (tags !== undefined && tags.length === 0) {
-      await client.tagsOnPosts.deleteMany({ where: { postId: id } });
-    }
 
-    return await client.post.update({
-      where: { id },
-      data: {
-        ...postData,
-        ...(tags &&
-          tags.length > 0 && {
-            tags: {
-              create: tags.map((name: string) => ({
-                tag: {
-                  connectOrCreate: {
-                    where: {
-                      name,
-                    },
-                    create: {
-                      name,
+    return await client.$transaction(async (tx) => {
+      // Clear existing tag associations for this post
+      if (tags !== undefined)
+        await tx.tagsOnPosts.deleteMany({ where: { postId: id } });
+
+      return await tx.post.update({
+        where: { id },
+        data: {
+          ...postData,
+          ...(tags &&
+            tags.length > 0 && {
+              tags: {
+                create: tags.map((name: string) => ({
+                  tag: {
+                    connectOrCreate: {
+                      where: { name },
+                      create: { name },
                     },
                   },
-                },
-              })),
+                })),
+              },
+            }),
+        },
+        include: {
+          tags: {
+            include: {
+              tag: true,
             },
-          }),
-      },
-      include: {
-        tags: {
-          include: {
-            tag: true,
+          },
+          author: {
+            omit: {
+              password: true,
+              role: true,
+              isBanned: true,
+              email: true,
+            },
+            include: {
+              profile: true,
+            },
           },
         },
-        author: {
-          omit: {
-            password: true,
-            role: true,
-            isBanned: true,
-            email: true,
-          },
-          include: {
-            profile: true,
-          },
-        },
-      },
+      });
     });
   }
 
