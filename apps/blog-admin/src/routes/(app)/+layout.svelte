@@ -9,6 +9,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import ThemeToggleButton from '$lib/shared/ThemeToggleButton.svelte';
+	import Toast from '$lib/shared/Toast.svelte';
 
 	const authStateManager = new AuthStateManager();
 	authStateManager.init();
@@ -47,6 +48,11 @@
 				class="transition-colors hover:underline"
 				aria-current={page.url.pathname.startsWith('/posts')}>Posts</a
 			>
+			<a
+				href={resolve('/posts/new')}
+				class="transition-colors hover:underline"
+				aria-current={page.url.pathname.startsWith('/posts/new')}>Create post</a
+			>
 			<button
 				role="link"
 				disabled={isLoading}
@@ -77,3 +83,7 @@
 <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col self-center px-4 py-5 sm:px-6 lg:px-8">
 	{@render children()}
 </main>
+
+<footer class="mt-20"></footer>
+
+<Toast></Toast>
