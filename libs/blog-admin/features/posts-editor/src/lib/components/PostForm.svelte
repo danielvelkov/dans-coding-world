@@ -39,6 +39,7 @@
       'title' | 'content' | 'tags' | 'status' | 'visibility'
     >;
     tagOptions?: { name: string }[];
+    isLoadingTags?: boolean;
   };
 
   let {
@@ -48,6 +49,7 @@
     isLoading,
     postData,
     tagOptions = [],
+    isLoadingTags,
   }: Props = $props();
 
   let title = $state('');
@@ -220,6 +222,7 @@
         value,
       }))}
       searchInputMaxLength={TAG_CONSTRAINTS.MAX_NAME_LENGTH}
+      isLoadingOptions={isLoadingTags}
     ></DropdownSearch>
     <ChipInput
       bind:values={tags}

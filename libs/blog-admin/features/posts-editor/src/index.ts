@@ -1,4 +1,4 @@
 /// <reference types="svelte" />
 
 // Example export of component. Notice the "default as", svelte components must be the default export
-// export { default as CardItem } from './lib/CardItem.svelte';
+export { default as CreatePost } from './lib/CreatePost.svelte';
