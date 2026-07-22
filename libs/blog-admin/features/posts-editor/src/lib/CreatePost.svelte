@@ -6,6 +6,8 @@
   import PostForm from './components/PostForm.svelte';
   import type { CreateSubmitData } from './types/submit-data.type.js';
 
+  let postFormRef: ReturnType<typeof PostForm> | undefined = $state();
+
   const {
     onPostCreated,
   }: { onPostCreated: (post: NonNullable<typeof createdPost>) => void } =
@@ -24,6 +26,9 @@
   const createPostError = $derived(createPostMutation.error);
   const isSubmitting = $derived(createPostMutation.isPending);
   const createdPost = $derived(createPostMutation.data?.post);
+  const isSettled = $derived(
+    createPostMutation.isSuccess || createPostMutation.isError,
+  );
 
   $effect(() => {
     if (createdPost) {
@@ -31,10 +36,15 @@
       reset();
     }
   });
+
+  $effect(() => {
+    if (isSettled) postFormRef?.reset();
+  });
 </script>
 
 <h2 class="text-3xl font-bold mb-5">Create post</h2>
 <PostForm
+  bind:this={postFormRef}
   mode="create"
   handleSubmit={(data) =>
     mutate({
