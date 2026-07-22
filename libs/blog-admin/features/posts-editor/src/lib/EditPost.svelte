@@ -5,6 +5,7 @@
   } from '@dans-coding-world/blog-admin-data-access-operations';
   import PostForm from './components/PostForm.svelte';
   import type { PostFull } from '@dans-coding-world/post-data-access';
+  import type { EditSubmitData } from './types/submit-data.type.js';
 
   let postFormRef: ReturnType<typeof PostForm> | undefined = $state();
 
@@ -28,21 +29,7 @@
   const mutate = $derived(createEditPostMutation.mutate);
   const editPostError = $derived(createEditPostMutation.error);
   const isSubmitting = $derived(createEditPostMutation.isPending);
-  const isSettled = $derived(
-    createEditPostMutation.isSuccess || createEditPostMutation.isError,
-  );
   const editedPost = $derived(createEditPostMutation.data?.post);
-
-  $effect(() => {
-    if (editedPost) {
-      onPostEdit(editedPost);
-      reset();
-    }
-  });
-
-  $effect(() => {
-    if (isSettled) postFormRef?.reset();
-  });
 </script>
 
 <div class="flex items-center gap-3 mb-6">
@@ -53,14 +40,28 @@
 <PostForm
   bind:this={postFormRef}
   mode="edit"
-  handleSubmit={(data) =>
-    mutate({
-      ...data,
-      title: data.title?.trim(),
-      content: data.content?.replaceAll('&nbsp;', ' ').trim(),
-      tags: (data.tags?.length ?? 0) > 0 ? data.tags : undefined,
-      clearTags: data.tags?.length === 0,
-    })}
+  handleSubmit={(data) => {
+    mutate(
+      {
+        ...data,
+        title: data.title?.trim(),
+        content: data.content?.replaceAll('&nbsp;', ' ').trim(),
+        tags: (data.tags?.length ?? 0) > 0 ? data.tags : undefined,
+        clearTags: data.tags?.length === 0,
+      } as EditSubmitData,
+      {
+        onSuccess: (data) => {
+          if (data?.post) {
+            onPostEdit(data.post);
+            reset();
+          }
+        },
+        onSettled: () => {
+          postFormRef?.reset();
+        },
+      },
+    );
+  }}
   isLoading={isSubmitting}
   apiError={editPostError ?? tagsQueryError ?? undefined}
   tagOptions={availableTags}

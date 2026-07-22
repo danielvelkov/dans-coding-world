@@ -26,9 +26,6 @@
   const createPostError = $derived(createPostMutation.error);
   const isSubmitting = $derived(createPostMutation.isPending);
   const createdPost = $derived(createPostMutation.data?.post);
-  const isSettled = $derived(
-    createPostMutation.isSuccess || createPostMutation.isError,
-  );
 
   $effect(() => {
     if (createdPost) {
@@ -36,23 +33,33 @@
       reset();
     }
   });
-
-  $effect(() => {
-    if (isSettled) postFormRef?.reset();
-  });
 </script>
 
 <h2 class="text-3xl font-bold mb-5">Create post</h2>
 <PostForm
   bind:this={postFormRef}
   mode="create"
-  handleSubmit={(data) =>
-    mutate({
-      ...data,
-      title: data.title?.trim(),
-      content: data.content?.trim(),
-      tags: (data.tags?.length ?? 0) > 0 ? data.tags : undefined,
-    } as CreateSubmitData)}
+  handleSubmit={(data) => {
+    mutate(
+      {
+        ...data,
+        title: data.title?.trim(),
+        content: data.content?.trim(),
+        tags: (data.tags?.length ?? 0) > 0 ? data.tags : undefined,
+      } as CreateSubmitData,
+      {
+        onSuccess: (data) => {
+          if (data?.post) {
+            onPostCreated(data.post);
+            reset();
+          }
+        },
+        onSettled: () => {
+          postFormRef?.reset();
+        },
+      },
+    );
+  }}
   isLoading={isSubmitting}
   apiError={tagsQueryError ?? createPostError ?? undefined}
   tagOptions={availableTags}
