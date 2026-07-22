@@ -4,6 +4,7 @@ export * from './lib/mutations/createLoginMutation.js';
 export * from './lib/mutations/createLogoutMutation.js';
 export * from './lib/mutations/createRefreshUserAuthMutation.js';
 export * from './lib/mutations/createDeletePostMutation.js';
+export * from './lib/mutations/createPostCreationMutation.js';
 export * from './lib/types/fetchPostsQueryParams.js';
 export * from './lib/types/fetchUsersQueryParams.js';
 export * from './lib/util/debounceCallback.js';
