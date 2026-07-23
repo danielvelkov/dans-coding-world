@@ -383,8 +383,8 @@ describe('PostForm', () => {
         .element(screen.getByRole('textbox', { name: 'Title' }))
         .toHaveValue(randomPost.title);
 
-      expect(screen.getByTestId('editor')).toBeInTheDocument();
-      expect(screen.getByTestId('editor')).toContainHTML(randomPost.content);
+      const editorEl = screen.getByTestId('editor').element() as HTMLElement;
+      expect(editorEl.innerHTML).toContain(randomPost.content);
 
       if (randomPost.visibility === 'MEMBERS_ONLY')
         await expect
