@@ -16,27 +16,13 @@ import {
 } from '../helpers/user-login.helper';
 import { waitOutLoader } from '../helpers/loading.helper';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
+import {
+  fillContentEditor,
+  fillFormFields,
+} from '../helpers/posts-editor.helper';
 
 const EXISTING_POST_TITLE = 'Already Taken Post Title';
 const VALID_CONTENT = 'This is enough content for the form.';
-
-async function fillContentEditor(page: Page, content: string) {
-  const editor = page.locator('[data-testid="editor"] .ql-editor');
-  await editor.click();
-  await editor.fill(content);
-}
-
-async function fillFormFields(
-  page: Page,
-  title?: string,
-  isMembersOnly?: boolean,
-  content?: string,
-) {
-  if (title) await page.getByLabel(/^title$/i).fill(title);
-  if (content) await fillContentEditor(page, content);
-  if (isMembersOnly !== undefined)
-    await page.getByLabel(/members.only/i).setChecked(isMembersOnly);
-}
 
 async function setTitleBeyondMaxLength(page: Page, title: string) {
   const input = page.getByLabel(/^title$/i);
