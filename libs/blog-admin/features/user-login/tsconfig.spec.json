@@ -11,7 +11,8 @@
     ],
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["DOM"]
   },
   "include": [
     "vite.config.ts",
