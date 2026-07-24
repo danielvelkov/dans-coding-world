@@ -60,6 +60,14 @@ This is a monorepo containing:
 
 - Report: represents the reports made for a comment. Users cannot report their own comments. Cannot be made on non-published posts when not the author of the post
 
+  Depending on status can be:
+  - `PENDING`: is not being reviewed by anyone atm
+  - `REVIEWING`: is currently reviewed by an admin or mod
+  - `RESOLVED`: an action is taken against the user/entity
+  - `DISMISSED`: report is dismissed
+
+- Report History: entries about what a moderator or admin did regarding a report. Each entry contains the status change, reported comment, the reporter and a note regarding what happened.
+
 ## Project Setup
 
 ### Prerequisites
