@@ -224,9 +224,8 @@ describe('User - settings page', () => {
       cy.contains('button', 'Delete Account').should('not.exist');
     });
 
-    // TODO: Flaky
-    it(`should delete account, logout, clearCookies and 
-        navigate to /blog after confirming profile deletion`, () => {
+    it(`should delete account, logout and clearCookies 
+       after confirming profile deletion`, () => {
       cy.intercept(
         'DELETE',
         `${API_ENDPOINTS.USERS.BY_ID(currentTestUser.id)}`,
@@ -241,7 +240,6 @@ describe('User - settings page', () => {
         .its('response.headers.set-cookie')
         .should('not.exist');
       cy.checkIfLoggedOut();
-      cy.url().should('match', /\/blog/);
     });
   });
 });

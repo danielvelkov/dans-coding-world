@@ -212,6 +212,9 @@ describe('Blog - filters', () => {
         if (!randomTag) throw new Error('Tag must exist');
 
         cy.selectPostTagFilter(randomTag);
+        cy.get(`button[aria-label="Remove ${randomTag} filter"]`).should(
+          'exist',
+        );
         assertCorrectPostsShown(
           (p) => p.tags.includes(randomTag),
           (p) => !p.tags.includes(randomTag),
