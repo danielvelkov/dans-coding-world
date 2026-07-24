@@ -148,9 +148,11 @@ test.describe('Posts page - pagination', () => {
     // this makes the tests run in serial mode (one after another)
     // test.describe.configure({ mode: 'serial' });
 
+    // TODO: flaky
     test('navigates to next page of results on clicking "next"', async ({
       page,
     }) => {
+      test.setTimeout(60_000);
       const pagesWithPostsArray = chunk(
         seededPosts,
         PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,

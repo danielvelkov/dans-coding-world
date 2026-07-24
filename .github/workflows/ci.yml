@@ -89,4 +89,4 @@ jobs:
       - name: Run Blog Admin E2E tests
         run: |
           export NODE_ENV=test_e2e
-          npx nx e2e blog-admin-e2e
+          npx nx e2e blog-admin-e2e --reporter dot
