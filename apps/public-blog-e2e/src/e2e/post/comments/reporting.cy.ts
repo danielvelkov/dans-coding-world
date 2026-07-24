@@ -51,7 +51,11 @@ describe('Comments - reporting', () => {
         comments: [
           ...fixtureComments.map((c: Comment) => {
             if (!testPosts.map((p) => p.id).includes(c.postId))
-              c.postId = Cypress._.sample(testPosts.map((p) => p.id)) as number;
+              c.postId = Cypress._.sample(
+                testPosts
+                  .filter((p) => p.status === 'PUBLISHED')
+                  .map((p) => p.id),
+              ) as number;
             return c;
           }),
         ],
