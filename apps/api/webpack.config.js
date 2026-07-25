@@ -2,6 +2,12 @@ const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
 const { join } = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
+const isCI = process.env.CI === 'true';
+const enginePath = join(
+  __dirname,
+  '../../libs/prisma-schema/src/generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node',
+);
+
 module.exports = {
   output: {
     path: join(__dirname, 'dist'),
@@ -22,13 +28,25 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: join(
-            __dirname,
-            '../../libs/prisma-schema/src/generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node',
-          ),
-          to: '.',
+          from: enginePath,
+          to: 'src/generated/prisma/',
           noErrorOnMissing: false,
         },
+        {
+          from: enginePath,
+          to: '.prisma/client/',
+          noErrorOnMissing: false,
+        },
+        // Trying this last resort tmp folder engine copy
+        ...(isCI
+          ? [
+              {
+                from: enginePath,
+                to: '/tmp/prisma-engines/',
+                noErrorOnMissing: false,
+              },
+            ]
+          : []),
       ],
     }),
   ],
