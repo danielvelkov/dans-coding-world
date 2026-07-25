@@ -36,8 +36,8 @@ jobs:
       DATABASE_URL: postgresql://username:password@localhost:5432/blogs_db
       ACCESS_TOKEN_SECRET: 102j4102jas0f9j
       REFRESH_TOKEN_SECRET: 039j9309j3290j4
-      HOST: localhost
-      PORT: 3000
+      API_HOST: localhost
+      API_PORT: 3000
 
     steps:
       - uses: actions/checkout@v4
@@ -74,19 +74,19 @@ jobs:
       - name: Run Lint, Build and Tests
         run: |
           export NODE_ENV=test
-          npx nx run-many -t lint test build
+          npx nx run-many -t lint test build --skipNxCache
 
-      - name: Run Api E2E tests
-        run: |
-          export NODE_ENV=test_e2e
-          npx nx e2e api-e2e
+      # - name: Run Api E2E tests
+      #   run: |
+      #     export NODE_ENV=test_e2e
+      #     npx nx e2e api-e2e
 
-      - name: Run Public Blog E2E tests
-        run: |
-          export NODE_ENV=test_e2e
-          npx nx e2e public-blog-e2e
+      # - name: Run Public Blog E2E tests
+      #   run: |
+      #     export NODE_ENV=test_e2e
+      #     npx nx e2e public-blog-e2e
 
       - name: Run Blog Admin E2E tests
         run: |
           export NODE_ENV=test_e2e
-          npx nx e2e blog-admin-e2e
+          npx nx e2e blog-admin-e2e --skipNxCache

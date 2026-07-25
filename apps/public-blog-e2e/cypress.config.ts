@@ -9,8 +9,8 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '../../libs/shared/data-access/api/src/lib/routes';
 import fs from 'fs/promises';
 
-const host = process.env.HOST ?? 'localhost';
-const port = process.env.PORT ?? '3000';
+const host = process.env.API_HOST ?? 'localhost';
+const port = process.env.API_PORT ?? '3000';
 axios.defaults.baseURL = `http://${host}:${port}`;
 
 const nxConfig = nxE2EPreset(__filename, {
@@ -69,7 +69,7 @@ export default defineConfig({
             profiles,
             {
               params: options,
-            }
+            },
           );
           return data;
         },
@@ -91,7 +91,7 @@ export default defineConfig({
             comments,
             {
               params: options,
-            }
+            },
           );
           return data;
         },
@@ -112,8 +112,8 @@ export default defineConfig({
               requests.push(
                 axios.patch(
                   `${API_ENDPOINTS.TEST_DATA.POSTS}/${postId}/tags`,
-                  tagIds
-                )
+                  tagIds,
+                ),
               );
           }
           const results = await Promise.all(requests);
