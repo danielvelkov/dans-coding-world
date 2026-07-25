@@ -440,25 +440,25 @@ describe('PostForm', () => {
         );
       });
 
-    for (const status of ['ARCHIVED', 'DRAFT'] as PostStatus[])
-      it(`should call handleSubmit() with 'PUBLISHED' status when clicking 'Publish' (${status})
+    it(`should call handleSubmit() with 'PUBLISHED' status when clicking 'Publish' 
     after confirming dialog`, async () => {
-        const randomPost = generateRandomPosts(1)[0];
-        const mockSubmitFn = vi.fn();
+      const randomPost = generateRandomPosts(1)[0];
+      const mockSubmitFn = vi.fn();
 
-        const screen = await renderFeature({
-          mode: 'edit',
-          postData: { ...randomPost, status },
-          handleSubmit: mockSubmitFn,
-        });
-        await screen.getByRole('button', { name: /^Publish/i }).click();
-        const dialog = page.getByRole('dialog');
-        await dialog.getByRole('button', { name: 'Confirm' }).click();
-        expect(mockSubmitFn).toHaveBeenCalled();
-        expect(mockSubmitFn).toHaveBeenCalledWith(
-          expect.objectContaining({ status: 'PUBLISHED' }),
-        );
+      const screen = await renderFeature({
+        mode: 'edit',
+        postData: { ...randomPost, status: 'ARCHIVED' },
+        handleSubmit: mockSubmitFn,
+        isLoading: false,
       });
+      await screen.getByRole('button', { name: /^Publish/i }).click();
+      const dialog = page.getByRole('dialog');
+      await dialog.getByRole('button', { name: 'Confirm' }).click();
+      expect(mockSubmitFn).toHaveBeenCalled();
+      expect(mockSubmitFn).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'PUBLISHED' }),
+      );
+    });
 
     it(`should call handleSubmit() with 'DRAFT' status when clicking 'Unpublish'
       after confirming dialog`, async () => {

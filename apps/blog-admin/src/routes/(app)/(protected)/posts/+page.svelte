@@ -23,7 +23,9 @@
 		if (success)
 			return mergePostQueryDefaults((data as PostsManagerParams) || {}, isAdmin, user?.id);
 		// TODO: handle errors
-		if (error) console.error(error);
+		if (error) {
+			// console.error(error);
+		}
 		return;
 	});
 

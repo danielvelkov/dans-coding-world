@@ -60,16 +60,6 @@
     "authorId": 4
   },
   {
-    "title": "Mastering Async Patterns in csharp",
-    "content": "A deep dive into promises, async/await, and how to write predictable asynchronous code.",
-    "createdAt": "2017-12-05T09:20:00.000Z",
-    "publishedAt": "2017-14-06T07:25:00.000Z",
-    "updatedAt": "2017-11-06T09:10:00.000Z",
-    "status": "ARCHIVED",
-    "visibility": "PUBLIC",
-    "authorId": 4
-  },
-  {
     "title": "Mastering Async Patterns in JavaScript",
     "content": "A deep dive into promises, async/await, and how to write predictable asynchronous code.",
     "createdAt": "2017-11-05T09:20:00.000Z",
