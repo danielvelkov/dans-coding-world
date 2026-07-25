@@ -93,4 +93,4 @@ jobs:
       - name: (DEBUG):Run Blog Admin E2E tests
         run: |
           export NODE_ENV=test_e2e
-          nx e2e blog-admin-e2e e2e/posts/create-post.spec.ts
+          npx nx e2e blog-admin-e2e e2e/posts/create-post.spec.ts
