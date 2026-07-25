@@ -16,7 +16,7 @@ const E2E_DB_NAME = process.env.E2E_DB_NAME || 'blog_db_e2e';
 
 const pgConfig = {
   user: process.env.PG_USER,
-  host: process.env.PG_HOST,
+  host: process.env.PG_API_HOST,
   password: process.env.PG_PASSWORD,
   database: process.env.PG_NAME,
   port: process.env.PG_PORT,
@@ -28,7 +28,7 @@ async function main() {
 
   if (!isDev) {
     console.log(
-      'Skipping database creation. Not in a development environment.'
+      'Skipping database creation. Not in a development environment.',
     );
     return;
   }
@@ -46,18 +46,18 @@ async function main() {
     for (const dbName of dbNames) {
       const res = await client.query(
         `SELECT 1 FROM pg_database WHERE datname = $1`,
-        [dbName]
+        [dbName],
       );
 
       if (res.rowCount === 0) {
         console.log(
-          `The database '${dbName}' was not found. Creating it now...`
+          `The database '${dbName}' was not found. Creating it now...`,
         );
         await client.query(`CREATE DATABASE "${dbName}";`);
         console.log(`Successfully created database '${dbName}'.`);
       } else {
         console.log(
-          `The database '${dbName}' already exists. Skipping creation.`
+          `The database '${dbName}' already exists. Skipping creation.`,
         );
       }
     }

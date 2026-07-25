@@ -27,7 +27,8 @@ export default defineConfig({
   workers: 1,
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npx nx dev blog-admin',
+    command:
+      'echo "Starting blog-admin dev server..." && npx nx dev blog-admin',
     url: 'http://localhost:5173',
     reuseExistingServer: true,
     cwd: workspaceRoot,
