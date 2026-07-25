@@ -9,14 +9,6 @@
       "layer:api"
     ],
     "targets": {
-      "build": {
-        "options": {
-          "external": [
-            "@prisma/client",
-            "prisma"
-          ]
-        }
-      },
       "serve": {
         "continuous": true,
         "executor": "@nx/js:node",

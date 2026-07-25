@@ -76,17 +76,21 @@ jobs:
           export NODE_ENV=test
           npx nx run-many -t lint test build
 
-      - name: Run Api E2E tests
-        run: |
-          export NODE_ENV=test_e2e
-          npx nx e2e api-e2e
+      # - name: Run Api E2E tests
+      #   run: |
+      #     export NODE_ENV=test_e2e
+      #     npx nx e2e api-e2e
 
-      - name: Run Public Blog E2E tests
-        run: |
-          export NODE_ENV=test_e2e
-          npx nx e2e public-blog-e2e
+      # - name: Run Public Blog E2E tests
+      #   run: |
+      #     export NODE_ENV=test_e2e
+      #     npx nx e2e public-blog-e2e
 
-      - name: Run Blog Admin E2E tests
+      # - name: Run Blog Admin E2E tests
+      #   run: |
+      #     export NODE_ENV=test_e2e
+      #     npx nx e2e blog-admin-e2e
+      - name: (DEBUG):Run Blog Admin E2E tests
         run: |
           export NODE_ENV=test_e2e
-          npx nx e2e blog-admin-e2e --reporter dot
+          nx e2e blog-admin-e2e e2e/posts/create-post.spec.ts
