@@ -1628,6 +1628,77 @@ describe('PostsService', () => {
         expect((updatedPostWithNewTags as any).tags.includes(tag)).toBe(true);
     });
 
+    it('should not remove tags if undefined is passed', async () => {
+      const tags = ['tag-1', 'tag-2'];
+
+      const updatedPost = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags,
+      });
+
+      for (const tag of tags)
+        expect((updatedPost as PostDetail).tags?.includes(tag)).toBe(true);
+
+      const updatedPostWitSameTags = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags: undefined,
+        clearTags: undefined,
+      });
+
+      for (const tag of tags)
+        expect((updatedPostWitSameTags as PostDetail).tags?.includes(tag)).toBe(
+          true,
+        );
+    });
+
+    it('should remove tags from post if "clearTags" is true', async () => {
+      const tags = ['tag-1', 'tag-2'];
+
+      const updatedPost = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags,
+      });
+
+      for (const tag of tags)
+        expect((updatedPost as PostDetail).tags?.includes(tag)).toBe(true);
+
+      const updatedPostWithTagsRemoved = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        clearTags: true,
+      });
+
+      expect(
+        (updatedPostWithTagsRemoved as PostDetail).tags?.length,
+      ).toBeFalsy();
+    });
+
+    it(`should remove tags from post even though "tags" are specified,
+       if "clearTags" is true`, async () => {
+      const tags = ['tag-1', 'tag-2'];
+
+      const updatedPost = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags,
+      });
+
+      for (const tag of tags)
+        expect((updatedPost as PostDetail).tags?.includes(tag)).toBe(true);
+
+      const updatedPostWithTagsRemoved = await postsService.update({
+        userId: admin.id,
+        postId: postForUpdate.id,
+        tags,
+        clearTags: true,
+      });
+
+      expect((updatedPostWithTagsRemoved as PostDetail).tags?.length).toBe(0);
+    });
+
     test.each([
       ['is null', null],
       ['is undefined', undefined],
@@ -1739,6 +1810,19 @@ describe('PostsService', () => {
           });
       },
     );
+
+    it('should throw validation error when tags is empty array', async () => {
+      expect.assertions(1);
+      return postsService
+        .update({
+          postId: postForUpdate.id,
+          userId: admin.id,
+          tags: [],
+        })
+        .catch((error) => {
+          expect(error.message).toMatch(/failed.*validation/i);
+        });
+    });
 
     it(`should throw when trying to update the post title
        to match another post's title`, async () => {

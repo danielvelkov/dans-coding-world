@@ -12,7 +12,7 @@
     options?: SelectOption[];
     isLoadingOptions?: boolean;
     isSearching?: boolean;
-    selected?: Pick<SelectOption, 'value'>;
+    selected?: Pick<SelectOption, 'value'>[];
     handleSelect?: (value: string) => void;
     searchInput?: string;
     placeHolder?: string;
@@ -45,8 +45,6 @@
     index: number,
     isSelected: boolean,
   ) => {
-    isSelected ||= selected?.value === option.value;
-
     return `relative cursor-pointer select-none py-2.5 px-4 text-sm text-left w-full transition-colors block
       ${options.length - 1 === index && !isLoadingOptions ? 'rounded-b-md' : ''} 
       ${
@@ -58,7 +56,7 @@
   };
 </script>
 
-<div class="relative grow w-full">
+<div class="relative w-full">
   <!-- Interactive Trigger Container -->
   <div class="relative w-full">
     <search>
@@ -79,7 +77,7 @@
           placeholder={placeHolder ?? 'Search...'}
           class="w-full pl-9 pr-10 py-2 text-sm border
           border-(--color-border-default) rounded-md
-          bg-(--color-bg-surface) text-(--color-text-primary)
+          bg-(--color-bg-elevated) text-(--color-text-primary)
           placeholder:text-(--color-text-tertiary) transition-all
           focus:outline-hidden focus:border-(--color-border-focus)
           focus:ring-2 focus:ring-(--color-focus-ring) shadow-xs"
@@ -139,7 +137,8 @@
         </div>
       {:else if options.length > 0}
         {#each options as { value, label }, index (label)}
-          {@const isSelected = value === selected?.value}
+          {@const isSelected =
+            selected?.map((o) => o.value).includes(value) ?? false}
           <button
             bind:this={lastOptionRef}
             type="button"

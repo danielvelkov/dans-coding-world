@@ -589,6 +589,10 @@ export default postsRouter;
  *           items:
  *             $ref: '#/components/schemas/PostTag'
  *           description: Attach or create tags just by specifying names (can specify multiple | no repeating tags)
+ *         clearTags:
+ *           type: boolean
+ *           description: Whether to remove all tags from post. (If "true", tags field wont be taken into account even if specified)
+ *
  *       example:
  *         content: Some new random content.
  *         title: Some new title name

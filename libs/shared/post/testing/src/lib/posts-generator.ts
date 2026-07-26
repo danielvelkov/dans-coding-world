@@ -3,6 +3,7 @@ import {
   randPastDate,
   randProgrammingLanguage,
   randSentence,
+  randWord,
 } from '@ngneat/falso';
 import type {
   PostStatus,
@@ -10,6 +11,7 @@ import type {
 } from '@dans-coding-world/prisma-schema';
 import { GetPostsResponseDto } from '@dans-coding-world/shared-post-dto';
 import { generateRandomUserPreview } from '@dans-coding-world/shared-user-testing';
+import { POST_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
 export function generateRandomPosts(
   count: number,
@@ -20,7 +22,7 @@ export function generateRandomPosts(
     const author = generateRandomUserPreview();
     const post = {
       id: randNumber({ min: 1, max: 1000 }),
-      title: randSentence({ maxCharCount: 15 }),
+      title: generateTitle(POST_CONSTRAINTS.MAX_TITLE_LENGTH - 1),
       content: randSentence({ length: randNumber({ max: 20 }) }).join(' '),
       createdAt: randPastDate(),
       publishedAt: randPastDate(),
@@ -39,4 +41,20 @@ export function generateRandomPosts(
     count--;
   }
   return posts;
+}
+
+export function generateTitle(maxLength: number): string {
+  let title = '';
+
+  while (true) {
+    const word = randWord({ capitalize: true });
+
+    const next = title ? `${title} ${word}` : word;
+
+    if (next.length > maxLength) break;
+
+    title = next;
+  }
+
+  return title;
 }

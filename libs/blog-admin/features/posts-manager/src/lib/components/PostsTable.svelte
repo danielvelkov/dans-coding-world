@@ -1,5 +1,6 @@
 <script lang="ts">
   import { slide, fade } from 'svelte/transition';
+  import DOMPurify from 'dompurify';
   import {
     ADMIN_ONLY_COLUMN,
     OMITTED_COLUMN_NAMES,
@@ -17,7 +18,12 @@
     toggleValue,
   } from '@dans-coding-world/helpers';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
-  import { Select, Table } from '@dans-coding-world/blog-admin-ui-common';
+  import {
+    Select,
+    Table,
+    Input,
+    Pill,
+  } from '@dans-coding-world/blog-admin-ui-common';
   import type { PostsManagerParams } from '../types/postsManagerParams.js';
   import { debounceCallback } from '@dans-coding-world/blog-admin-data-access-operations';
   import PostsFilter from './PostsFilter.svelte';
@@ -170,13 +176,9 @@
     <!-- Status/Visibility -->
     <td class="px-4 py-4">
       <div class="flex flex-col space-y-1">
-        <span
-          class="inline-flex items-center px-2.5 py-0.5 rounded-full
-           text-xs font-semibold bg-(--color-info-bg) text-(--color-info)
-            border border-(--color-info-border) w-fit"
-        >
+        <Pill class="text-xs font-semibold w-fit">
           {post.status.toUpperCase()}
-        </span>
+        </Pill>
         {#if post.visibility === 'MEMBERS_ONLY'}
           <span class="text-xs text-(--color-text-tertiary)">Members-only</span>
         {/if}
@@ -290,7 +292,7 @@
         Content Preview
       </h5>
       <p class="text-(--color-text-secondary) line-clamp-2 leading-relaxed">
-        {post.content}
+        {@html DOMPurify.sanitize(post.content)}
       </p>
     </div>
 
@@ -338,11 +340,9 @@
         <label class="sr-only" for="search-posts"
           >Search by title or content:</label
         >
-        <input
+        <Input
           id="search-posts"
           type="text"
-          class="p-2 m-2 border border-(--color-border-default) bg-(--color-bg-surface)
-           text-(--color-text-primary) rounded-md focus:outline-hidden focus:border-(--color-border-focus)"
           placeholder="Search..."
           maxlength={POST_CONSTRAINTS.MAX_TITLE_LENGTH}
           value={params?.searchQuery ?? ''}

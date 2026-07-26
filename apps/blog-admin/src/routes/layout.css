@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '../styles/_index.css';
+@import 'quill/dist/quill.snow.css';
 
 @layer base {
 	* {
@@ -16,10 +17,45 @@
 	input {
 		color: var(--color-text-primary);
 	}
+
+	h1 {
+		font-size: var(--text-4xl);
+		font-weight: bold;
+	}
+
+	h2 {
+		font-size: var(--text-xl);
+		font-weight: bold;
+	}
+
+	h3 {
+		font-size: var(--text-lg);
+		font-weight: bold;
+	}
+
+	/* Quill text editor custom style */
+	.ql-toolbar {
+		flex-shrink: 0;
+		border: none !important;
+	}
+	.ql-container {
+		flex: 1 1 auto;
+		min-height: 0;
+		border: none !important;
+	}
+	.ql-editor {
+		height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+		overflow-wrap: break-word;
+		word-break: break-word;
+		border: none !important;
+	}
 }
 
 /* You have to do this for every lib... */
 @source '../../../../libs/blog-admin/features/user-login/src';
 @source '../../../../libs/blog-admin/features/posts-manager/src';
+@source '../../../../libs/blog-admin/features/posts-editor/src';
 @source '../../../../libs/blog-admin/ui/common/src';
 @source '../../../../libs/blog-admin/ui/errors/src';

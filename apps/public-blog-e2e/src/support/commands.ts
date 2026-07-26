@@ -17,26 +17,26 @@ declare namespace Cypress {
     login(
       email: string,
       password: string,
-      options?: { waitForRequest?: boolean }
+      options?: { waitForRequest?: boolean },
     ): void;
     register(
       email: string,
       username: string,
       password: string,
       confirmPassword: string,
-      options?: { waitForRequest?: boolean }
+      options?: { waitForRequest?: boolean },
     ): void;
     editProfile(
       firstName: string,
       lastName: string,
       bio: string,
-      options?: { waitForRequest?: boolean }
+      options?: { waitForRequest?: boolean },
     ): void;
     changePassword(
       oldPassword: string,
       newPassword: string,
       confirmPassword: string,
-      options?: { waitForRequest?: boolean }
+      options?: { waitForRequest?: boolean },
     ): void;
     logout(): void;
     navigateToProfile(): void;
@@ -86,7 +86,7 @@ Cypress.Commands.add(
         .its('response.statusCode')
         .should('be.oneOf', [201, 400, 401, 409]);
     }
-  }
+  },
 );
 
 Cypress.Commands.add(
@@ -107,7 +107,7 @@ Cypress.Commands.add(
         .its('response.statusCode')
         .should('be.oneOf', [200, 400, 401, 403, 404]);
     }
-  }
+  },
 );
 
 Cypress.Commands.add(
@@ -116,7 +116,7 @@ Cypress.Commands.add(
     const { waitForRequest = true } = options;
     if (waitForRequest)
       cy.intercept('PATCH', `/api/v1/users/password`).as(
-        'changePasswordRequest'
+        'changePasswordRequest',
       );
     cy.get('[name="oldPassword"]').clear();
     cy.get('[name="oldPassword"]').type(oldPassword);
@@ -130,7 +130,7 @@ Cypress.Commands.add(
         .its('response.statusCode')
         .should('be.oneOf', [200, 400, 401, 404]);
     }
-  }
+  },
 );
 
 Cypress.Commands.add('logout', () => {

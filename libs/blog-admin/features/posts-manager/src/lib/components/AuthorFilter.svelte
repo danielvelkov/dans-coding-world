@@ -85,8 +85,8 @@
       searchInput = user.username;
       onChange({ ...filters, userId: +id });
     }}
-    selected={selectedAuthor != undefined
-      ? { value: selectedAuthor.toString() }
+    selected={selectedAuthor !== undefined
+      ? [{ value: selectedAuthor.toString() }]
       : selectedAuthor}
   ></DropdownSearch>
 

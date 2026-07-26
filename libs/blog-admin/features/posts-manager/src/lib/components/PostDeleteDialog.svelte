@@ -11,7 +11,9 @@
 </script>
 
 <Modal
+  open
   modalTitle={'Confirm Delete'}
+  closedby="none"
   onClose={() => {
     postForDeletion = null;
   }}

@@ -22,7 +22,7 @@ export function usePostsQueryParams() {
 
     if (success) {
       const merged = mergePostQueryDefaults(
-        (data as FetchPostsQueryParams) || {}
+        (data as FetchPostsQueryParams) || {},
       );
       return {
         queryParams: merged,
@@ -31,7 +31,9 @@ export function usePostsQueryParams() {
     }
 
     // TODO: handle errors
-    if (error) console.error(error);
+    if (error) {
+      // console.error(error);
+    }
 
     return {
       queryParams: defaultFilters,

@@ -6,6 +6,7 @@ import {
   checkIfLoggedOut,
 } from '../helpers/user-login.helper';
 import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
+import { waitOutLoader } from '../helpers/loading.helper';
 
 test.describe('User - BANNED status', () => {
   let bannedUser: UserDetail;
@@ -25,8 +26,10 @@ test.describe('User - BANNED status', () => {
   test('on valid login, shows "You are banned" message and automatically logs user out', async ({
     page,
   }) => {
+    test.slow();
     await page.clock.install({ time: new Date() });
     await login(page, bannedUser.email, bannedUser.password);
+    await waitOutLoader(page);
 
     await expect(page.getByText(/you.*banned/i)).toBeVisible();
 

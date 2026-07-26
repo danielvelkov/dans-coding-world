@@ -68,7 +68,7 @@ export const attachTagsToPost = async (
         create: tagIds.map((id) => ({
           tag: {
             connect: {
-              id,
+              id: +id,
             },
           },
         })),

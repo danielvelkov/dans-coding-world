@@ -46,7 +46,7 @@
     e.preventDefault();
     handleSubmit(email, password);
   }}
-  class="m-auto py-8 px-10 border rounded-md flex flex-col gap-6"
+  class="m-auto py-8 px-10 border rounded-md flex flex-col gap-6 bg-(--color-bg-surface)"
 >
   <h1
     class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight m-4 text-center"

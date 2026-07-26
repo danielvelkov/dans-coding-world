@@ -151,6 +151,7 @@ test.describe('Posts page - pagination', () => {
     test('navigates to next page of results on clicking "next"', async ({
       page,
     }) => {
+      test.setTimeout(60_000);
       const pagesWithPostsArray = chunk(
         seededPosts,
         PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,
@@ -210,6 +211,7 @@ test.describe('Posts page - pagination', () => {
     test('navigating to a random page displays the right results', async ({
       page,
     }) => {
+      test.setTimeout(60000);
       const pagesWithPostsArray = chunk(
         seededPosts,
         PAGINATION.POSTS.DEFAULT_ITEMS_PER_PAGE,

@@ -41,14 +41,14 @@ if (!isTest) {
       windowMs: 15 * 60 * 1000, // 15 mins
       delayAfter: 50, // start delaying after 50 requests
       delayMs: () => 2000, // delay of 2 seconds
-    })
+    }),
   );
 
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000, // 15 mins
       max: 200, // 200 requests total
-    })
+    }),
   );
 }
 
@@ -58,7 +58,7 @@ app.use(
   helmet({
     crossOriginResourcePolicy: false,
     contentSecurityPolicy: false,
-  })
+  }),
 );
 
 app.use(
@@ -68,21 +68,21 @@ app.use(
     origin: true, // allow requests from everywhere
     credentials: true,
     exposedHeaders: ['set-cookie'],
-  })
+  }),
 );
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 const { strategy } = authInjector.get(
-  PassportJwtStrategy
+  PassportJwtStrategy,
 ) as PassportJwtStrategy;
 passport.use(JWT_STRATEGY_NAME, strategy);
 
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 app.get('/api/v1', (req, res) =>
-  res.status(200).send({ message: 'Welcome to v1 of the api!' })
+  res.status(200).send({ message: 'Welcome to v1 of the api!' }),
 );
 
 app.use(responseWrapper);
@@ -122,7 +122,7 @@ app.use(
   swaggerUI.serve,
   swaggerUI.setup(specs, {
     explorer: true, // adds a search bar
-  })
+  }),
 );
 
 // All unmapped routes handled here
@@ -132,7 +132,7 @@ app.use((req, res, next) => {
 
 app.use(errorHandler);
 
-const port = process.env.PORT || 3333;
+const port = process.env.API_PORT || 3333;
 const server = app.listen(port, () => {
   console.log(`Listening at http://localhost:${port}/api`);
 });

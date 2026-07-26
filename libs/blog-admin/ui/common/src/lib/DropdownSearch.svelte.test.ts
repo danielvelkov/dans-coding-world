@@ -62,8 +62,8 @@ describe('DropdownSearch', () => {
     });
   });
 
-  it('marks selected option with aria-selected', async () => {
-    await renderFeature({ selected: { value: '2' } });
+  it('marks selected options with aria-selected', async () => {
+    await renderFeature({ selected: [{ value: '2' }] });
     await openDropdown();
     await expect
       .element(page.getByRole('option', { name: 'Bob' }))

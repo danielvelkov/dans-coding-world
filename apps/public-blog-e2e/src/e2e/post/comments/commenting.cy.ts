@@ -18,7 +18,6 @@ import { mockBlogPostPage } from './helpers/comments.helper';
 
 describe('Comments - commenting', () => {
   let testPosts: Post[];
-  let testComments: Comment[];
   const testUsers: UserDetail[] = [];
 
   before(() => {
@@ -74,10 +73,6 @@ describe('Comments - commenting', () => {
           }),
         ],
         options: { useDefaults: true, clearExisting: true },
-      }).then((comments) => {
-        testComments = comments as Comment[];
-        if (!testPosts || !testPosts.length)
-          throw new Error('Missing comment fixtures');
       });
     });
   });
