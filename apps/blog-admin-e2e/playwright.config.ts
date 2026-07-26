@@ -4,6 +4,8 @@ import { workspaceRoot } from '@nx/devkit';
 
 // For CI, you may want to set BASE_URL to the deployed application.
 const baseURL = process.env['BASE_URL'] || 'http://localhost:5173';
+const host = process.env.API_HOST ?? 'localhost';
+const port = process.env.API_PORT ?? '3000';
 
 /**
  * Read environment variables from file.
@@ -17,7 +19,6 @@ const baseURL = process.env['BASE_URL'] || 'http://localhost:5173';
 export default defineConfig({
   ...nxE2EPreset(__filename, { testDir: './e2e' }),
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  timeout: 3000,
   use: {
     baseURL,
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
@@ -26,13 +27,20 @@ export default defineConfig({
   // (DO NOT CHANGE) Specify workers to 1 to provide stability and reproductivity
   workers: 1,
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command:
-      'echo "Starting blog-admin dev server..." && npx nx dev blog-admin',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    cwd: workspaceRoot,
-  },
+  webServer: [
+    {
+      command: 'npx nx serve @dans-coding-world/api',
+      url: `http://${host}:${port}/api-docs`,
+      reuseExistingServer: !process.env.CI,
+      cwd: workspaceRoot,
+    },
+    {
+      command: 'npx nx dev blog-admin',
+      url: baseURL,
+      reuseExistingServer: !process.env.CI,
+      cwd: workspaceRoot,
+    },
+  ],
   projects: [
     // {
     //   name: 'chromium',
