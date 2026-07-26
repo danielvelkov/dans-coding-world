@@ -29,7 +29,7 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: 'npx nx serve @dans-coding-world/api',
+      command: 'npx nx serve:e2e @dans-coding-world/api',
       url: `http://${host}:${port}/api-docs`,
       reuseExistingServer: !process.env.CI,
       cwd: workspaceRoot,

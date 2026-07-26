@@ -37,7 +37,7 @@ module.exports = {
           to: '.prisma/client/',
           noErrorOnMissing: false,
         },
-        // Trying this last resort tmp folder engine copy
+        // In order for prisma client to find engine, we copy it into /tmp/prisma-engine if in CI action
         ...(isCI
           ? [
               {
