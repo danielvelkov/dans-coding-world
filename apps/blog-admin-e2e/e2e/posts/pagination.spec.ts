@@ -148,7 +148,6 @@ test.describe('Posts page - pagination', () => {
     // this makes the tests run in serial mode (one after another)
     // test.describe.configure({ mode: 'serial' });
 
-    // TODO: flaky
     test('navigates to next page of results on clicking "next"', async ({
       page,
     }) => {
