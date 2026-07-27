@@ -26,11 +26,20 @@ import tagsRouter from './routes/tags.router.js';
 import commentReportsRouter from './routes/comment-reports.router.js';
 import testDataRouter from './routes/test-data.router.js';
 
+const apiHost = process.env['API_HOST'];
+const apiPort = process.env['API_PORT'];
+
+const publicBlogHost = process.env['VITE_PUBLIC_BLOG_HOST'];
+const publicBlogPort = process.env['VITE_PUBLIC_BLOG_PORT'];
+
+const adminBlogHost = process.env['VITE_ADMIN_BLOG_HOST'];
+const adminBlogPort = process.env['VITE_ADMIN_BLOG_PORT'];
+
 const isTest =
   process.env.NODE_ENV === 'test' ||
   process.env.NODE_ENV === 'development' ||
   process.env.NODE_ENV === 'test_e2e' ||
-  process.env.NODE_ENV !== 'production';
+  process.env.NODE_ENV !== 'production'; // TODO: this is not right imo
 
 const app = express();
 
@@ -63,9 +72,12 @@ app.use(
 
 app.use(
   cors({
-    // TODO: specify frontends' origins from .env
-    // origin: 'http://localhost:3000', // allow only requests from that origin (*PORT is also part of origin)
-    origin: true, // allow requests from everywhere
+    // allow only requests from that origin (*PORT is also part of origin)
+    origin: [
+      `http://${apiHost}:${apiPort}`,
+      `http://${publicBlogHost}:${publicBlogPort}`,
+      `http://${adminBlogHost}:${adminBlogPort}`,
+    ],
     credentials: true,
     exposedHeaders: ['set-cookie'],
   }),
@@ -108,7 +120,7 @@ const swaggerDocOptions = {
     },
     servers: [
       {
-        url: `http://localhost:3000/api/v1`,
+        url: `http://${apiHost}:${apiPort}/api/v1`,
       },
     ],
   },
@@ -132,8 +144,7 @@ app.use((req, res, next) => {
 
 app.use(errorHandler);
 
-const port = process.env.API_PORT || 3333;
-const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
+const server = app.listen(apiPort, () => {
+  console.log(`Listening at http://${apiHost}:${apiPort}/api`);
 });
 server.on('error', console.error);

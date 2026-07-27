@@ -1,19 +1,18 @@
 import { JwtConfiguration } from './jwt.config.js';
 import { TOKEN_CONSTRAINTS } from '@dans-coding-world/shared-constants';
 
-const tryGetEnvVariable = (envVarName: string) => {
-  if (!process.env[envVarName] || !process.env[envVarName].length)
-    throw new Error(`Missing env variable '${envVarName}'`);
-  return process.env[envVarName];
-};
+const accessTokenSecret = process.env['ACCESS_TOKEN_SECRET'];
+const refreshTokenSecret = process.env['REFRESH_TOKEN_SECRET'];
+if (!accessTokenSecret || !refreshTokenSecret)
+  throw new Error('Missing env variables');
 
 export type AuthConfiguration = Required<Readonly<JwtConfiguration>>;
 
 export const config: AuthConfiguration = {
   options: {
-    accessSecret: tryGetEnvVariable('ACCESS_TOKEN_SECRET'),
+    accessSecret: accessTokenSecret,
     accessExpiration: TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION,
-    refreshSecret: tryGetEnvVariable('REFRESH_TOKEN_SECRET'),
+    refreshSecret: refreshTokenSecret,
     refreshExpiration: TOKEN_CONSTRAINTS.REFRESH_TOKEN_EXPIRATION,
   },
 };
