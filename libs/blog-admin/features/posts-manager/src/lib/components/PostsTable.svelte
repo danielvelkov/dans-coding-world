@@ -29,6 +29,8 @@
   import PostsFilter from './PostsFilter.svelte';
   import PostDeleteDialog from './PostDeleteDialog.svelte';
 
+  const blogURL = __PUBLIC_BLOG_URL__;
+
   interface Props {
     posts?: PostFull[];
     isLoading?: boolean;
@@ -270,7 +272,7 @@
         <span class="text-sm text-(--color-text-tertiary)">ID: {post.id}</span>
       </div>
       <a
-        href={`[PUBLIC_BLOG_URL]/posts/${post.id}`}
+        href={`${blogURL}/blog/${post.id}`}
         class="inline-flex items-center gap-2 px-3 py-1.5 text-sm
          font-medium text-(--color-link) transition-colors
           border border-(--color-border-emphasis) rounded-md
