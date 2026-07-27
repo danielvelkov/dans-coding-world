@@ -15,6 +15,13 @@ import { expandPostRow, getPostRow } from '../helpers/posts-actions.helper';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
 
+const publicBlogHost = process.env['VITE_PUBLIC_BLOG_HOST'];
+const publicBlogPort = process.env['VITE_PUBLIC_BLOG_PORT'];
+if (!publicBlogHost || !publicBlogPort)
+  throw new Error('Missing env variables');
+
+const blogURL = `http://${publicBlogHost}:${publicBlogPort}`;
+
 function getVisiblePostsForUser(
   posts: Post[],
   user: User,
@@ -142,6 +149,23 @@ test.describe('Posts page - posts table', () => {
       ).toBeVisible();
       await expect(expandedRow.getByText(`ID: ${post.id}`)).toBeVisible();
       await expect(expandedRow.getByText(post.content)).toBeVisible();
+    });
+
+    test(`expanded row details contains "View post" link which 
+      opens a new tab with the post in the public blog`, async ({ page }) => {
+      const visiblePosts = getVisiblePostsForUser(seededPosts, loggedInUser);
+      const post = visiblePosts[0];
+
+      await expandPostRow(page, 0);
+
+      const expandedRow = page.getByTestId(`row-details-${post.id}`);
+      const [popup] = await Promise.all([
+        page.waitForEvent('popup'),
+        expandedRow.getByRole('link', { name: /view.*post/i }).click(),
+      ]);
+
+      await popup.waitForLoadState('domcontentloaded');
+      expect(popup.url()).toBe(`${blogURL}/blog/${post.id}`);
     });
 
     test(`selecting "Edit" link in "Actions" column navigates to post's edit page`, async ({
