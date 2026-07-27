@@ -10,6 +10,7 @@
 	import { goto } from '$app/navigation';
 	import ThemeToggleButton from '$lib/shared/ThemeToggleButton.svelte';
 	import Toast from '$lib/shared/Toast.svelte';
+	import { PUBLIC_BLOG_URL } from '$lib/shared/constants';
 
 	const authStateManager = new AuthStateManager();
 	authStateManager.init();
@@ -24,6 +25,8 @@
 	const authBootstrapPending = $derived(authStateManager.authBootstrapPending);
 	const user = $derived(authStateManager.user);
 	const logout = $derived(authStateManager.logout);
+
+	const blogURL = PUBLIC_BLOG_URL;
 </script>
 
 <header
@@ -86,6 +89,10 @@
 	{@render children()}
 </main>
 
-<footer class="mt-20"></footer>
+<footer class="mt-20">
+	<a rel="external" href={blogURL} target="_blank" class="transition-colors hover:underline"
+		>Dan's Coding World</a
+	>
+</footer>
 
 <Toast></Toast>

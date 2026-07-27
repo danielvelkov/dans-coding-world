@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { PUBLIC_BLOG_URL } from '$lib/shared/constants';
+	const blogURL = PUBLIC_BLOG_URL;
 </script>
 
 <section class="relative overflow-hidden bg-(--color-bg-base) py-20 lg:py-32">
@@ -26,7 +28,8 @@
 			class="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-(--color-text-secondary) sm:text-xl"
 		>
 			Welcome to the private engine behind <a
-				href="https://[PUBLIC_BLOG_URL]"
+				rel="external"
+				href={blogURL}
 				class="bg-linear-to-r from-(--color-accent) to-(--color-accent-hover) bg-clip-text text-transparent"
 				>Dan's Coding World</a
 			>
