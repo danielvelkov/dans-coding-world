@@ -106,7 +106,7 @@
           onclick={clearUserFilter}
           class="p-0.5 rounded-sm hover:bg-(--color-bg-surface-active) text-(--color-accent) transition-colors focus:outline-hidden"
           title="Clear user filter"
-          aria-label="Clear filter"
+          aria-label="Clear user filter"
         >
           <i class="fa fa-times text-[10px]"></i>
         </button>

@@ -146,9 +146,7 @@
 
     <!-- Reason -->
     <td class="px-4 py-4">
-      <div
-        class="text-sm font-medium text-(--color-text-primary) line-clamp-2 max-w-[15ch]"
-      >
+      <div class="text-sm font-medium text-(--color-text-primary) max-w-[20ch]">
         {report.reason}
       </div>
     </td>
@@ -213,7 +211,7 @@
       data-testid={`row-details-${report.id}`}
       class="bg-(--color-bg-surface-hover)"
     >
-      <td colspan={TABLE_COLUMNS.length} class="px-0 py-0">
+      <td colspan={TABLE_COLUMNS.length} class="px-0 py-0 w-0 min-w-full">
         <div class="p-2" transition:slide>
           {@render RowDetails(report)}
         </div>
@@ -294,7 +292,7 @@
           </span>
           <blockquote
             class="mt-1 p-3 text-sm text-(--color-text-secondary) bg-(--color-bg-surface)
-             border-l-2 border-(--color-border-emphasis) rounded-r italic break-all max-w-fit"
+         border-l-2 border-(--color-border-emphasis) rounded-r italic wrap-break-word w-full"
           >
             "{report.reportedComment.content}"
           </blockquote>
@@ -351,9 +349,7 @@
 
 {#snippet ControlRow()}
   <tr class="bg-(--color-bg-surface)">
-    <th colspan="2">
-      <!-- Empty -->
-    </th>
+    <th colspan="2"> </th>
     <th class="text-xs font-medium" scope="col" align="left">
       <ReportsFilter
         filters={{ ...params?.filterBy }}
@@ -382,8 +378,32 @@
         items={SORT_OPTIONS}
       ></Select>
     </th>
-    <th>
-      <!-- Empty -->
+    <th align="center">
+      {#if params?.filterBy?.postId}
+        <div class="block text-xs text-(--color-text-secondary)">
+          <div
+            class="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 font-medium rounded-md bg-(--color-accent-subtle) text-(--color-accent) border border-(--color-border-subtle)"
+          >
+            <span class="max-w-30 truncate">
+              {`Post #${params.filterBy.postId}`}
+            </span>
+            <button
+              type="button"
+              onclick={() => {
+                onParamsChange?.({
+                  ...params,
+                  filterBy: { ...params.filterBy, postId: undefined },
+                });
+              }}
+              class="p-0.5 rounded-sm hover:bg-(--color-bg-surface-active) text-(--color-accent) transition-colors focus:outline-hidden"
+              title="Clear post filter"
+              aria-label="Clear post filter"
+            >
+              <i class="fa fa-times text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      {/if}
     </th>
   </tr>
 {/snippet}
