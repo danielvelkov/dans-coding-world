@@ -106,7 +106,6 @@
           {deletePostError.message}
         </div>
       {/if}
-      <!-- <CreatePostButton /> -->
       {#if loggedInUser.role === 'ADMIN'}
         <AuthorFilter
           handleSearch={(val) => {
