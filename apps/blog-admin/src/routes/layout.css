@@ -57,5 +57,6 @@
 @source '../../../../libs/blog-admin/features/user-login/src';
 @source '../../../../libs/blog-admin/features/posts-manager/src';
 @source '../../../../libs/blog-admin/features/posts-editor/src';
+@source '../../../../libs/blog-admin/features/reports-manager/src';
 @source '../../../../libs/blog-admin/ui/common/src';
 @source '../../../../libs/blog-admin/ui/errors/src';
