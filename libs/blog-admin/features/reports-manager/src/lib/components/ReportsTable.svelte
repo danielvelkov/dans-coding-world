@@ -18,7 +18,7 @@
   import { Select, Table, Pill } from '@dans-coding-world/blog-admin-ui-common';
   import type { ReportsManagerParams } from '../types/reportsManagerParams.js';
   import ReportsFilter from './ReportsFilter.svelte';
-  //   import ReportDeleteDialog from './ReportDeleteDialog.svelte';
+  import ReportDeleteDialog from './ReportDeleteDialog.svelte';
 
   const blogURL = __PUBLIC_BLOG_URL__;
 
@@ -39,7 +39,7 @@
     viewer,
     params,
     onParamsChange,
-    // onReportDelete,
+    onReportDelete,
   }: Props = $props();
 
   let expandedRows = $state<ReportDetail['id'][]>([]);
@@ -389,7 +389,6 @@
 {/snippet}
 
 {#if reportForDeletion}
-  <!-- TODO -->
-  <!-- <ReportDeleteDialog bind:reportForDeletion {onReportDelete}
-  ></ReportDeleteDialog> -->
+  <ReportDeleteDialog bind:reportForDeletion {onReportDelete}
+  ></ReportDeleteDialog>
 {/if}
