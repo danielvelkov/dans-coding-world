@@ -5,8 +5,6 @@ export const TABLE_COLUMNS = [
   'Reason',
   'Status',
   'Created Date',
-  'Post',
-  'Reported',
   'Actions',
 ] as const;
 
