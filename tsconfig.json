@@ -164,6 +164,9 @@
     },
     {
       "path": "./libs/blog-admin/features/reports-manager"
+    },
+    {
+      "path": "./libs/shared/report/testing"
     }
   ]
 }
