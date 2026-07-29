@@ -43,7 +43,7 @@ export const ReportQueryParamsParser = () =>
 			pageSize: z.optional(
 				z.coerce
 					.number()
-					.pipe(z.union(PAGINATION.POSTS.ITEMS_PER_PAGE_OPTIONS.map((size) => z.literal(size))))
+					.pipe(z.union(PAGINATION.REPORTS.ITEMS_PER_PAGE_OPTIONS.map((size) => z.literal(size))))
 			),
 			pageOffset: z.optional(z.coerce.number())
 		})
