@@ -6,6 +6,7 @@ import type {
   Profile,
   Comment,
   Tag,
+  Report,
 } from '@dans-coding-world/prisma-schema';
 import type { SeedOptions } from '@dans-coding-world/api-tools';
 import axios from 'axios';
@@ -22,6 +23,7 @@ export interface Db {
     options?: SeedOptions;
   }): Promise<Comment[]>;
   seedTags(args: { tags: any; options?: SeedOptions }): Promise<Tag[]>;
+  seedReports(args: { reports: any; options?: SeedOptions }): Promise<Report[]>;
   attachTags(args: {
     data: { postId: string; tagIds: string[] }[];
   }): Promise<any[]>;
@@ -74,6 +76,15 @@ export const test = base.extend<{ db: Db }>({
         const {
           data: { data },
         } = await axios.post(API_ENDPOINTS.TEST_DATA.TAGS, tags, {
+          params: options,
+        });
+        return data;
+      },
+
+      async seedReports({ reports, options }) {
+        const {
+          data: { data },
+        } = await axios.post(API_ENDPOINTS.TEST_DATA.REPORTS, reports, {
           params: options,
         });
         return data;
