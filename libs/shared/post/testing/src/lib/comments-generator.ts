@@ -15,7 +15,7 @@ export function generateRandomComments(
     user.id = authorId;
 
     const comment = {
-      id: randNumber({ min: 1, max: 1000 }),
+      id: randNumber({ min: 1, max: 100000 }),
       content: randSentence({ length: randNumber({ min: 1, max: 2 }) }).join(
         ' ',
       ),

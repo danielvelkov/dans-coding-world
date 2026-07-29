@@ -26,16 +26,19 @@
   ],
   "references": [
     {
-      "path": "../../libs/shared/user/testing"
+      "path": "../../libs/shared/report/testing"
     },
     {
       "path": "../../libs/shared/util/exceptions"
     },
     {
-      "path": "../../libs/shared/util/shared-constants"
+      "path": "../../libs/shared/user/testing"
     },
     {
       "path": "../../libs/shared/post/testing"
+    },
+    {
+      "path": "../../libs/shared/util/shared-constants"
     },
     {
       "path": "../../libs/api/data-access/user"
@@ -47,10 +50,10 @@
       "path": "../../libs/tools/api"
     },
     {
-      "path": "../../libs/shared/data-access/api"
+      "path": "../../libs/prisma-schema"
     },
     {
-      "path": "../../libs/prisma-schema"
+      "path": "../../libs/shared/data-access/api"
     }
   ]
 }

@@ -27,8 +27,9 @@ export function generateRandomCommentReports(
     });
     const report = {
       id: reportId,
-      note: randSentence({ length: randNumber({ max: 10 }) }).join(' '),
-      reason: randSentence({ length: randNumber({ max: 10 }) }).join(' '),
+      reason: randSentence({ length: randNumber({ min: 1, max: 1 }) }).join(
+        ' ',
+      ),
       createdAt: randPastDate(),
       status: 'PENDING' as ReportStatus,
       commentId: randNumber({ min: 1, max: 1000 }),

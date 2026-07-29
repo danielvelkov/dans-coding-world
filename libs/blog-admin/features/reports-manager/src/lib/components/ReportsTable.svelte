@@ -146,7 +146,9 @@
 
     <!-- Reason -->
     <td class="px-4 py-4">
-      <div class="text-sm font-medium text-(--color-text-primary) max-w-[20ch]">
+      <div
+        class="text-sm font-medium text-(--color-text-primary) max-w-[20ch] line-clamp-3"
+      >
         {report.reason}
       </div>
     </td>
