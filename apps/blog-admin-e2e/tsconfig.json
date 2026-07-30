@@ -29,10 +29,13 @@
       "path": "../../libs/shared/report/testing"
     },
     {
-      "path": "../../libs/shared/util/exceptions"
+      "path": "../../libs/api/data-access/report"
     },
     {
       "path": "../../libs/shared/user/testing"
+    },
+    {
+      "path": "../../libs/shared/util/exceptions"
     },
     {
       "path": "../../libs/shared/post/testing"
