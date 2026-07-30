@@ -56,9 +56,9 @@
   };
 </script>
 
-<div class="relative w-full">
+<div class="relative w-fit">
   <!-- Interactive Trigger Container -->
-  <div class="relative w-full">
+  <div class="relative">
     <search>
       <label for={randomId} class="sr-only">Search for:</label>
       <div class="relative flex items-center">
@@ -75,7 +75,7 @@
           }}
           value={searchInput}
           placeholder={placeHolder ?? 'Search...'}
-          class="w-full pl-9 pr-10 py-2 text-sm border
+          class="w-max-[30ch] pl-9 pr-10 py-2 text-sm border
           border-(--color-border-default) rounded-md
           bg-(--color-bg-elevated) text-(--color-text-primary)
           placeholder:text-(--color-text-tertiary) transition-all

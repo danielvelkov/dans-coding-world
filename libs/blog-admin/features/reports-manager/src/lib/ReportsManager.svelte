@@ -95,7 +95,7 @@
   };
 </script>
 
-<div class="space-y-6 flex flex-col items-stretch mx-auto">
+<div class="space-y-6 flex flex-col items-stretch mx-auto lg:px-20 w-full">
   <div class="flex flex-col gap-5">
     <h2 class="text-3xl font-bold">Reports</h2>
     {#if loggedInUser}
@@ -108,22 +108,78 @@
           {deleteReportError.message}
         </div>
       {/if}
-      <ReportedUserFilter
-        handleSearch={(val) => {
-          handleSearchDebounced(val);
-        }}
-        filters={{ maliciousUserId: params?.filterBy?.maliciousUserId }}
-        onChange={(val) =>
-          onParamsChange({
-            ...params,
-            filterBy: { ...params?.filterBy, ...val },
-          })}
-        queryData={usersQueryResult}
-        loadNext={async () => {
-          await usersQueryResult.fetchNextPage();
-        }}
-        isSearching={isSearchingAuthor}
-      ></ReportedUserFilter>
+      {#if loggedInUser.role === 'ADMIN'}
+        <ReportedUserFilter
+          handleSearch={(val) => {
+            handleSearchDebounced(val);
+          }}
+          filters={{ maliciousUserId: params?.filterBy?.maliciousUserId }}
+          onChange={(val) =>
+            onParamsChange({
+              ...params,
+              filterBy: { ...params?.filterBy, ...val },
+            })}
+          queryData={usersQueryResult}
+          loadNext={async () => {
+            await usersQueryResult.fetchNextPage();
+          }}
+          isSearching={isSearchingAuthor}
+        ></ReportedUserFilter>
+      {:else if params?.filterBy?.maliciousUserId}
+        <div
+          class="flex items-center gap-2 mt-1.5 text-xs text-(--color-text-secondary)"
+        >
+          <span>Show reports for:</span>
+          <div
+            class="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 font-medium rounded-md bg-(--color-accent-subtle) text-(--color-accent) border border-(--color-border-subtle)"
+          >
+            <span class="max-w-30 truncate">
+              {`User #${params.filterBy.maliciousUserId}`}
+            </span>
+            <button
+              type="button"
+              onclick={() =>
+                onParamsChange({
+                  ...params,
+                  filterBy: { ...params.filterBy, maliciousUserId: undefined },
+                })}
+              class="p-0.5 rounded-sm hover:bg-(--color-bg-surface-active) text-(--color-accent) transition-colors focus:outline-hidden"
+              title="Clear user filter"
+              aria-label="Clear user filter"
+            >
+              <i class="fa fa-times text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      {/if}
+      {#if params?.filterBy?.postId}
+        <div
+          class="flex gap-2 items-center text-xs text-(--color-text-secondary)"
+        >
+          <span>For post:</span>
+          <div
+            class="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 font-medium rounded-md bg-(--color-accent-subtle) text-(--color-accent) border border-(--color-border-subtle)"
+          >
+            <span class="max-w-30 truncate">
+              {`Post #${params.filterBy.postId}`}
+            </span>
+            <button
+              type="button"
+              onclick={() => {
+                onParamsChange?.({
+                  ...params,
+                  filterBy: { ...params.filterBy, postId: undefined },
+                });
+              }}
+              class="p-0.5 rounded-sm hover:bg-(--color-bg-surface-active) text-(--color-accent) transition-colors focus:outline-hidden"
+              title="Clear post filter"
+              aria-label="Clear post filter"
+            >
+              <i class="fa fa-times text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      {/if}
     {/if}
   </div>
 

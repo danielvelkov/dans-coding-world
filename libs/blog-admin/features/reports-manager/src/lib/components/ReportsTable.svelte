@@ -147,7 +147,7 @@
     <!-- Reason -->
     <td class="px-4 py-4">
       <div
-        class="text-sm font-medium text-(--color-text-primary) max-w-[20ch] line-clamp-3"
+        class="text-sm font-medium text-(--color-text-primary) max-w-[40ch] line-clamp-3"
       >
         {report.reason}
       </div>
@@ -244,6 +244,7 @@
         <span class="flex gap-2">
           Post ID:
           <button
+            aria-label="filter by post ID"
             onclick={() =>
               onParamsChange?.({
                 ...params,
@@ -280,7 +281,7 @@
             Report Reason
           </span>
           <p
-            class="mt-1 text-sm text-(--color-text-primary) font-medium leading-relaxed"
+            class="mt-1 text-sm text-(--color-text-primary) font-medium leading-relaxed break-all"
           >
             {report.reason}
           </p>
@@ -314,6 +315,7 @@
           <div class="flex items-center justify-between gap-1">
             <span class="text-(--color-text-secondary)">Reported User:</span>
             <button
+              aria-label="Filter by reported user ID"
               onclick={() =>
                 onParamsChange?.({
                   ...params,
@@ -330,6 +332,7 @@
           <div class="flex items-center justify-between gap-1">
             <span class="text-(--color-text-secondary)">Reporter:</span>
             <button
+              aria-label="Filter by reporter user ID"
               onclick={() =>
                 onParamsChange?.({
                   ...params,
@@ -380,33 +383,7 @@
         items={SORT_OPTIONS}
       ></Select>
     </th>
-    <th align="center">
-      {#if params?.filterBy?.postId}
-        <div class="block text-xs text-(--color-text-secondary)">
-          <div
-            class="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 font-medium rounded-md bg-(--color-accent-subtle) text-(--color-accent) border border-(--color-border-subtle)"
-          >
-            <span class="max-w-30 truncate">
-              {`Post #${params.filterBy.postId}`}
-            </span>
-            <button
-              type="button"
-              onclick={() => {
-                onParamsChange?.({
-                  ...params,
-                  filterBy: { ...params.filterBy, postId: undefined },
-                });
-              }}
-              class="p-0.5 rounded-sm hover:bg-(--color-bg-surface-active) text-(--color-accent) transition-colors focus:outline-hidden"
-              title="Clear post filter"
-              aria-label="Clear post filter"
-            >
-              <i class="fa fa-times text-[10px]"></i>
-            </button>
-          </div>
-        </div>
-      {/if}
-    </th>
+    <th align="center"> </th>
   </tr>
 {/snippet}
 
