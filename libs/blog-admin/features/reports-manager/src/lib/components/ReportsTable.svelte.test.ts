@@ -108,7 +108,7 @@ describe('Rows', () => {
       });
     });
 
-    it(`displays actions "View" and "Delete" for logged-in viewer`, async () => {
+    it(`displays actions "View" and "Delete" for admin`, async () => {
       await render(ReportsTable, { reports, viewer: admin });
 
       const colIndex = TABLE_COLUMNS.indexOf('Actions');
@@ -120,7 +120,19 @@ describe('Rows', () => {
       expect(deleteButton).toBeInTheDocument();
     });
 
-    it('disables actions if the moderator created the reported comment', async () => {
+    it('displays only "View" action if moderator', async () => {
+      await render(ReportsTable, { reports, viewer: moderator });
+
+      const colIndex = TABLE_COLUMNS.indexOf('Actions');
+      const cell = getTableDataCell(0, colIndex);
+      const viewLink = cell.getByRole('link', { name: /view/i });
+      const deleteButton = cell.getByRole('button', { name: /delete/i });
+
+      expect(viewLink).toBeInTheDocument();
+      expect(deleteButton).not.toBeInTheDocument();
+    });
+
+    it('disables "view" action if the moderator created the reported comment', async () => {
       const selfReportedCommentReport = generateRandomCommentReports(1, {
         reportedComment: { userId: moderator.id },
       })[0];
@@ -132,9 +144,9 @@ describe('Rows', () => {
 
       const colIndex = TABLE_COLUMNS.indexOf('Actions');
       const cell = getTableDataCell(0, colIndex);
-      const deleteButton = cell.getByRole('button', { name: /delete/i });
+      const viewButton = cell.getByRole('link', { name: /view/i });
 
-      expect(deleteButton).toBeDisabled();
+      expect(viewButton).toBeDisabled();
     });
 
     it('opens confirmation dialog on selecting "Delete" action', async () => {
@@ -213,9 +225,9 @@ describe('Rows', () => {
 
       const expandedRow = page.getByTestId(`row-details-${reportTarget.id}`);
 
-      // Click Post ID button
+      // // Click Post ID button
       const postIdButton = expandedRow.getByRole('button', {
-        name: `#${reportTarget.reportedComment.postId}`,
+        name: /filter by post id/i,
       });
       await postIdButton.click();
       expect(onParamsChange).toHaveBeenLastCalledWith(
@@ -228,7 +240,7 @@ describe('Rows', () => {
 
       // Click Reported User button
       const reportedUserButton = expandedRow.getByRole('button', {
-        name: `User #${reportTarget.reportedComment.userId}`,
+        name: /filter by reported user/i,
       });
       await reportedUserButton.click();
       expect(onParamsChange).toHaveBeenLastCalledWith(
@@ -241,7 +253,7 @@ describe('Rows', () => {
 
       // Click Reporter button
       const reporterButton = expandedRow.getByRole('button', {
-        name: `User #${reportTarget.reporterId}`,
+        name: /filter by reporter user/i,
       });
       await reporterButton.click();
       expect(onParamsChange).toHaveBeenLastCalledWith(

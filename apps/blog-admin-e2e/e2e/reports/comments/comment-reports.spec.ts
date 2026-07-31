@@ -22,6 +22,7 @@ import { generateRandomCommentReports } from '@dans-coding-world/shared-report-t
 import {
   expandReportRow,
   getReportRow,
+  selectReportFilter,
 } from '../../helpers/reports-actions.helper';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
@@ -73,6 +74,9 @@ test.describe('Comment reports page', () => {
       options: { clearExisting: true, useDefaults: true },
     });
 
+    const mod = users.find((u) => u.role === 'MOD');
+    if (!mod) throw new Error('Missing moderator fixture');
+
     const [seededPost] = await db.seedPosts({
       posts,
       options: { useDefaults: false, clearExisting: true },
@@ -82,12 +86,12 @@ test.describe('Comment reports page', () => {
       throw new Error('Missing post fixture');
     }
 
-    const numOfComments = PAGINATION.REPORTS.DEFAULT_ITEMS_PER_PAGE;
+    const numOfComments = PAGINATION.REPORTS.DEFAULT_ITEMS_PER_PAGE + 1;
 
     const commentsToSeed = generateRandomComments(1, numOfComments);
 
     const seededComments = await db.seedComments({
-      comments: commentsToSeed.map((c) => ({
+      comments: commentsToSeed.map((c, i) => ({
         id: c.id,
         threadParentId: null,
         content: c.content,
@@ -95,7 +99,7 @@ test.describe('Comment reports page', () => {
         depth: c.depth,
         updatedAt: c.updatedAt,
         postId: seededPost.id,
-        userId: randomSelect(users.map((u) => u.id)),
+        userId: i === 0 ? mod.id : randomSelect(users.map((u) => u.id)), // ensure first comment is made by mod
       })),
       options: {
         useDefaults: false,
@@ -122,7 +126,7 @@ test.describe('Comment reports page', () => {
         reason: mockReports[i - 1].reason,
         commentId: reportedComment.id,
         reporterId: userDifferentThanCommentAuthor.id,
-        status: 'PENDING',
+        status: i === 1 ? 'REVIEWING' : 'PENDING',
       };
     });
 
@@ -249,6 +253,41 @@ test.describe('Comment reports page', () => {
       await expect(page).toHaveURL(
         new RegExp(`/reports/comments/${report.id}$`),
       );
+    });
+
+    test.describe('Logged in as MOD', () => {
+      test.beforeEach(async ({ page }) => {
+        await logout(page);
+        await checkIfLoggedOut(page);
+        await loginAsRandomUser(
+          page,
+          users.filter((u) => u.role === 'MOD'),
+        );
+        await waitOutLoader(page);
+        expect(await checkIfLoggedIn(page)).toBe(true);
+        await page.goto('/reports/comments');
+        await waitOutLoader(page);
+      });
+
+      test('disables actions if report is about a comment the mod made', async ({
+        page,
+      }) => {
+        const modId = users.find((u) => u.role === 'MOD')!.id;
+        await page.goto('/reports/comments?filterBy[maliciousUserId]=' + modId);
+        await selectReportFilter(page, ['REVIEWING']);
+
+        // Should be only report made about  the mod and it will have status 'REVIEWING'
+        await expect(
+          getReportRow(page, 0).getByRole('button', {
+            name: /delete/i,
+          }),
+        ).toBeDisabled();
+        await expect(
+          getReportRow(page, 0).getByRole('link', {
+            name: /view/i,
+          }),
+        ).toBeDisabled();
+      });
     });
 
     test.describe('Report deletion', () => {

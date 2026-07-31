@@ -24,12 +24,17 @@ export async function selectReportSorting(page: Page, label: SortLabel) {
   await page.getByLabel(/sort by:/i).selectOption({ label });
 }
 
+/**
+ * @note Only works for admins
+ */
 export async function searchForUser(page: Page, text: string) {
-  const input = page
-    .locator('search')
-    .getByRole('textbox', { name: /search by/i });
-  await input.clear();
-  await input.fill(text);
+  const search = page.getByRole('searchbox', { name: 'Search for:' });
+  await search.click();
+  await search.fill(text);
+  await page
+    .getByTestId('dropdown-search-listbox')
+    .getByRole('option', { name: text })
+    .click();
 }
 
 export async function selectReportFilter(page: Page, labels: string[]) {

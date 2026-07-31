@@ -186,21 +186,28 @@
             href={actionsDisabled
               ? undefined
               : `/reports/comments/${report.id}`}
-            class="text-(--color-link) hover:text-(--color-link-hover)"
+            class={actionsDisabled
+              ? 'text-(--color-accent-muted)'
+              : 'text-(--color-link) hover:text-(--color-link-hover) pointer-none'}
+            title={actionsDisabled
+              ? 'You cannot act on reports made about yourself'
+              : undefined}
           >
             View
           </a>
-          <button
-            disabled={actionsDisabled}
-            onclick={() => {
-              reportForDeletion = report;
-            }}
-            class="text-(--color-error) hover:text-(--color-error-muted)
+          {#if viewer.role === 'ADMIN'}
+            <button
+              disabled={actionsDisabled}
+              onclick={() => {
+                reportForDeletion = report;
+              }}
+              class="text-(--color-error) hover:text-(--color-error-muted)
            focus:outline-hidden cursor-pointer"
-            aria-label="Delete report"
-          >
-            Delete
-          </button>
+              aria-label="Delete report"
+            >
+              Delete
+            </button>
+          {/if}
         </div>
       {/if}
     </td>
