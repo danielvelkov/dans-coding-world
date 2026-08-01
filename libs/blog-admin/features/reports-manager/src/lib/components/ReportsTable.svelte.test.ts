@@ -9,7 +9,7 @@ import {
   REPORTS_LOADING_MESSAGE,
   REPORTS_NO_RESULTS_MESSAGE,
   TABLE_COLUMNS,
-} from '../shared/constants.js';
+} from '../shared/report-table.constants.js';
 import { generateRandomCommentReports } from '@dans-coding-world/shared-report-testing';
 import { formatDateTo_DD_MM_YYYY } from '@dans-coding-world/helpers';
 import { generateRandomUser } from '@dans-coding-world/shared-user-testing';

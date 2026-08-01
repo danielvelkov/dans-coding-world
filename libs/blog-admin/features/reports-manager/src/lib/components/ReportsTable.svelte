@@ -7,8 +7,8 @@
     REPORTS_NO_RESULTS_MESSAGE,
     SORT_OPTIONS,
     TABLE_COLUMNS,
-  } from '../shared/constants.js';
-  import type { ReportSorting } from '../shared/constants.js';
+  } from '../shared/report-table.constants.js';
+  import type { ReportSorting } from '../shared/report-table.constants.js';
   import type { ReportDetail } from '@dans-coding-world/report-data-access';
   import {
     formatDateTo_DD_MM_YYYY,

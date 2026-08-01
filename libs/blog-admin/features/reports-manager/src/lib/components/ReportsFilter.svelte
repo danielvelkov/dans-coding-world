@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { GetReportsDto } from '@dans-coding-world/shared-report-dto';
-  import type { ReportStatus } from '../shared/constants.js';
+  import type { ReportStatus } from '../shared/report-table.constants.js';
   import { MultiSelect } from '@dans-coding-world/blog-admin-ui-common';
-  import { FILTER_OPTIONS } from '../shared/constants.js';
+  import { FILTER_OPTIONS } from '../shared/report-table.constants.js';
 
   interface Props {
     filters: Pick<NonNullable<GetReportsDto['filterBy']>, 'status'>;

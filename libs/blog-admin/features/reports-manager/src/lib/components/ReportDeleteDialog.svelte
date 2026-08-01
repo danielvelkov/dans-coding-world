@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Button, Modal } from '@dans-coding-world/blog-admin-ui-common';
-  import type { ReportDetails } from '@dans-coding-world/report-data-access';
+  import type { ReportDetail } from '@dans-coding-world/report-data-access';
 
   interface Props {
-    reportForDeletion: ReportDetails | null;
+    reportForDeletion: ReportDetail | null;
     onReportDelete?: (id: number) => void;
   }
 
