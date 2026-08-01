@@ -15,10 +15,11 @@
     toggleValue,
   } from '@dans-coding-world/helpers';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
-  import { Select, Table, Pill } from '@dans-coding-world/blog-admin-ui-common';
+  import { Select, Table } from '@dans-coding-world/blog-admin-ui-common';
   import type { ReportsManagerParams } from '../types/reportsManagerParams.js';
   import ReportsFilter from './ReportsFilter.svelte';
   import ReportDeleteDialog from './ReportDeleteDialog.svelte';
+  import ReportStatusPill from './ReportStatusPill.svelte';
 
   const blogURL = __PUBLIC_BLOG_URL__;
 
@@ -119,13 +120,19 @@
 {/snippet}
 
 {#snippet ReportRow(report: ReportDetail, rowIndex: number)}
+  {@const disabled =
+    viewer &&
+    viewer.role === 'MOD' &&
+    report.reportedComment.userId === viewer.id}
   {@const isExpanded = expandedRows.includes(report.id)}
 
   <tr
     in:fade
     aria-label={`Row entry #${rowIndex + 1}`}
     class="bg-(--color-bg-surface) border-b border-(--color-border-subtle)
-    hover:bg-(--color-bg-surface-hover) group transition-colors"
+    hover:bg-(--color-bg-surface-hover) group transition-colors {disabled
+      ? 'opacity-20'
+      : ''}"
     aria-expanded={isExpanded}
     aria-controls={`row-details-${report.id}`}
   >
@@ -156,9 +163,7 @@
     <!-- Status -->
     <td class="px-4 py-4">
       <div class="flex flex-col space-y-1">
-        <Pill class="text-xs font-semibold w-fit">
-          {report.status.toUpperCase()}
-        </Pill>
+        <ReportStatusPill status={report.status}></ReportStatusPill>
       </div>
     </td>
 
@@ -218,7 +223,7 @@
     <tr
       id={`row-details-${report.id}`}
       data-testid={`row-details-${report.id}`}
-      class="bg-(--color-bg-surface-hover)"
+      class="bg-(--color-bg-surface-hover) {disabled ? 'opacity-20' : ''}"
     >
       <td colspan={TABLE_COLUMNS.length} class="px-0 py-0 w-0 min-w-full">
         <div class="p-2" transition:slide>
