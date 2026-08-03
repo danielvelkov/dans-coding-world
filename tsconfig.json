@@ -167,6 +167,9 @@
     },
     {
       "path": "./libs/shared/report/testing"
+    },
+    {
+      "path": "./libs/blog-admin/features/report-details"
     }
   ]
 }
