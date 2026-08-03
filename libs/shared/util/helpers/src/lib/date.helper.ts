@@ -35,3 +35,7 @@ export function formatDateTo_Month_DD_YYYY(date: Date) {
 export function formatToRelativeTimeFromNow(date: Date) {
   return moment(date).fromNow();
 }
+
+export function formatToRelativeTimeFromDate(date: Date, relativeDate: Date) {
+  return moment(date).from(relativeDate);
+}
