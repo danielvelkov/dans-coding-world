@@ -407,6 +407,7 @@ test.describe('Comment reports page', () => {
           await dialog.getByRole('button', { name: /delete report/i }).click();
 
           await expect(page.getByText(report.reason)).not.toBeInViewport();
+          await expect(page.getByText(/report.*deleted/i)).toBeVisible();
         });
       });
     });
