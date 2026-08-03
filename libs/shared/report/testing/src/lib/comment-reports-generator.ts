@@ -21,7 +21,7 @@ export function generateRandomCommentReports(
       randNumber({ min: 1, max: 1000 }),
       1,
     )[0];
-    const reportId = randNumber({ min: 1, max: 1000 });
+    const reportId = randNumber({ min: 1, max: 5_000_000 });
     const history = generateReportHistoryList(randNumber({ min: 0, max: 3 }), {
       reportId,
     });

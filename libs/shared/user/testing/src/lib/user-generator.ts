@@ -10,12 +10,12 @@ import {
 import type { UserDetail } from '@dans-coding-world/user-data-access';
 
 export const generateRandomUserPreview = (): UserPreview => {
-  const authorId = randNumber({ min: 30, max: 1000 });
+  const authorId = randNumber({ min: 30, max: 5_000_000 });
   return {
     id: authorId,
     username: randFirstName() + randNumber({ min: 1, max: 1000 }),
     profile: {
-      id: randNumber({ min: 1, max: 1000 }),
+      id: randNumber({ min: 1, max: 5_000_000 }),
       avatarURL: '',
       firstName: randFirstName(),
       lastName: randLastName(),
@@ -28,7 +28,7 @@ export const generateRandomUserPreview = (): UserPreview => {
 export const generateRandomUser = (
   userOverrides?: Partial<UserDetail>,
 ): UserDetail => {
-  const authorId = randNumber({ min: 1, max: 1000 });
+  const authorId = randNumber({ min: 1, max: 5_000_000 });
   return {
     id: authorId,
     username: randFirstName() + randNumber({ min: 1, max: 1000 }),
@@ -37,7 +37,7 @@ export const generateRandomUser = (
     isBanned: false,
     role: 'USER',
     profile: {
-      id: randNumber({ min: 1, max: 1000 }),
+      id: randNumber({ min: 1, max: 5_000_000 }),
       avatarURL: '',
       firstName: randFirstName(),
       lastName: randLastName(),

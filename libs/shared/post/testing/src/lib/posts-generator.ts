@@ -21,7 +21,7 @@ export function generateRandomPosts(
   while (count > 0) {
     const author = generateRandomUserPreview();
     const post = {
-      id: randNumber({ min: 1, max: 100000 }),
+      id: randNumber({ min: 1, max: 5_000_000 }),
       title: generateTitle(POST_CONSTRAINTS.MAX_TITLE_LENGTH - 1),
       content: randSentence({ length: randNumber({ max: 20 }) }).join(' '),
       createdAt: randPastDate(),

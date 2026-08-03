@@ -3,12 +3,7 @@ import type {
   ReportStatus,
   ReportHistory,
 } from '@dans-coding-world/prisma-schema';
-import {
-  randNumber,
-  randPastDate,
-  randParagraph,
-  randBoolean,
-} from '@ngneat/falso';
+import { randNumber, randPastDate, randParagraph } from '@ngneat/falso';
 
 const ReportStatusEnum = [
   'DISMISSED',
@@ -28,10 +23,10 @@ export function generateReportHistory(
   const newStatus = randomSelect(remainingStatuses);
 
   const defaultReportHistory: ReportHistory = {
-    id: randNumber({ min: 1, max: 100000 }),
-    note: randBoolean() ? randParagraph() : null,
-    reportId: randNumber({ min: 1, max: 50000 }),
-    moderatorId: randBoolean() ? randNumber({ min: 1, max: 1000 }) : null,
+    id: randNumber({ min: 1, max: 5_000_000 }),
+    note: randParagraph(),
+    reportId: randNumber({ min: 1, max: 5_000_000 }),
+    moderatorId: randNumber({ min: 1, max: 5_000_000 }),
     previousStatus,
     newStatus,
     changedAt: randPastDate(),
