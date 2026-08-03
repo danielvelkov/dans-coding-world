@@ -15,11 +15,14 @@
     toggleValue,
   } from '@dans-coding-world/helpers';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
-  import { Select, Table } from '@dans-coding-world/blog-admin-ui-common';
+  import {
+    Select,
+    Table,
+    ReportStatusPill,
+  } from '@dans-coding-world/blog-admin-ui-common';
   import type { ReportsManagerParams } from '../types/reportsManagerParams.js';
   import ReportsFilter from './ReportsFilter.svelte';
   import ReportDeleteDialog from './ReportDeleteDialog.svelte';
-  import ReportStatusPill from './ReportStatusPill.svelte';
 
   const blogURL = __PUBLIC_BLOG_URL__;
 

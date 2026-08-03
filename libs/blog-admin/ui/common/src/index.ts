@@ -16,5 +16,6 @@ export { default as TablePaginationInfo } from './lib/TablePaginationInfo.svelte
 export { default as TablePagination } from './lib/TablePagination.svelte';
 export { default as TableItemsPerPageSelect } from './lib/TableItemsPerPageSelect.svelte';
 export { default as UserRoleBadge } from './lib/UserRoleBadge.svelte';
+export { default as ReportStatusPill } from './lib/ReportStatusPill.svelte';
 export { default as DropdownSearch } from './lib/DropdownSearch.svelte';
 export { default as Modal } from './lib/Modal.svelte';

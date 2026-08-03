@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { ReportStatus } from '../shared/report-table.constants.js';
+  import type { Report } from '@dans-coding-world/prisma-schema';
+  type ReportStatus = Report['status'];
   interface Props {
     status?: ReportStatus;
   }
@@ -42,7 +43,7 @@
 </script>
 
 <span
-  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+  class="w-fit inline-flex items-center gap-1.5 px-3 py-1 rounded-full
    text-xs font-semibold tracking-wider uppercase border transition-colors {config.bg} {config.text} {config.border}"
 >
   {status}
