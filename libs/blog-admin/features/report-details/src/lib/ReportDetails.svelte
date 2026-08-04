@@ -533,9 +533,12 @@
           </p>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-2 text-sm">
-          <Button type="button" onclick={closeModal}>Cancel</Button>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <Button class="text-sm font-medium" type="button" onclick={closeModal}
+            >Cancel</Button
+          >
           <Button
+            class="text-sm font-medium"
             type="button"
             disabled={isChangingStatus}
             onclick={() => handleConfirmStatusChange(status)}
@@ -705,7 +708,7 @@
             onclick={() => {
               handleConfirmDeleteReport();
             }}
-            class="bg-(--color-error) disabled:bg-(--color-error-muted) hover:bg-(--color-error-muted) text-(--color-text-primary)
+            class="bg-(--color-error) disabled:bg-(--color-error-muted) hover:bg-(--color-error-muted) text-white
            font-medium px-4 py-2 rounded-md shadow-xs transition-colors text-sm"
           >
             {#if isDeletingReport}

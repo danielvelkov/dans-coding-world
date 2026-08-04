@@ -63,7 +63,7 @@
           if (reportForDeletion) onReportDelete?.(reportForDeletion.id);
           reportForDeletion = null;
         }}
-        class="bg-(--color-error) hover:bg-(--color-error-hover) text-(--color-text-primary)
+        class="disabled:bg-(--color-error-muted) hover:bg-(--color-error-muted) text-white
            font-medium px-4 py-2 rounded-md shadow-xs transition-colors text-sm"
       >
         Delete report
