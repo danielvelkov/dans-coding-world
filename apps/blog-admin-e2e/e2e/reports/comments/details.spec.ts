@@ -363,9 +363,10 @@ test.describe('Comment reports page - details', () => {
 
           const historyContainer = page.getByTestId('history-container');
           await expect(historyContainer.getByTestId(/entry-\d+/)).toHaveCount(
-            selectedReport.history.length +
-              1 + // the report reason itself is an entry
-              1, // the new entry
+            selectedReport.history?.length ??
+              0 +
+                1 + // the report reason itself is an entry
+                1, // the new entry
           );
         });
       });
