@@ -16,7 +16,7 @@
 <div class="p-4 relative">
   <!-- Vertical Timeline Connector Line -->
   <div
-    class="absolute left-6.75 top-6 bottom-6 w-0.5 bg-(--color-border-subtle) z-0"
+    class="absolute left-6.75 top-6 bottom-6 w-0.5 bg-(--color-border-subtle)"
   ></div>
 
   <div class="space-y-6 relative z-10">
