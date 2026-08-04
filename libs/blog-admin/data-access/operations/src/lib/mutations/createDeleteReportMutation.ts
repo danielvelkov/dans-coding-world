@@ -42,6 +42,9 @@ export function createDeleteReportMutation(
     onMutate: async (deleteReportDto) => {
       await queryClient.cancelQueries({ queryKey: ['comment_reports'] });
 
+      queryClient.invalidateQueries({
+        queryKey: ['comment_report', deleteReportDto.reportId],
+      });
       const previousQueries = queryClient.getQueriesData({
         queryKey: ['comment_reports'],
       });
@@ -81,10 +84,6 @@ export function createDeleteReportMutation(
           queryClient.setQueryData(queryKey, oldData);
         });
       }
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['comment_reports'] });
     },
     ...options,
   }));

@@ -42,6 +42,9 @@ export function createDeletePostMutation(
     onMutate: async (deletePostDto) => {
       await queryClient.cancelQueries({ queryKey: ['posts'] });
 
+      queryClient.invalidateQueries({
+        queryKey: ['post', deletePostDto.postId],
+      });
       const previousQueries = queryClient.getQueriesData({
         queryKey: ['posts'],
       });
@@ -81,10 +84,6 @@ export function createDeletePostMutation(
           queryClient.setQueryData(queryKey, oldData);
         });
       }
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     ...options,
   }));
