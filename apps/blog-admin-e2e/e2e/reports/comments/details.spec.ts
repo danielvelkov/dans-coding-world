@@ -5,7 +5,7 @@ import type {
   Post,
   User,
   Report,
-  Role,
+  ReportHistory,
 } from '@dans-coding-world/prisma-schema';
 import { test, expect } from '../../fixtures/dbFixture';
 import type { Page } from '../../fixtures/dbFixture';
@@ -124,6 +124,7 @@ test.describe('Comment reports page - details', () => {
           ...r,
           reportedComment: seededComments.find((c) => c.id === r.commentId),
           reportedBy: users.find((u) => u.id === r.reporterId),
+          history: [] as ReportHistory[],
         }) as ReportDetailExtended,
     );
 
@@ -363,10 +364,9 @@ test.describe('Comment reports page - details', () => {
 
           const historyContainer = page.getByTestId('history-container');
           await expect(historyContainer.getByTestId(/entry-\d+/)).toHaveCount(
-            selectedReport.history?.length ??
-              0 +
-                1 + // the report reason itself is an entry
-                1, // the new entry
+            selectedReport.history.length +
+              1 + // the report reason itself is an entry
+              1, // the new entry
           );
         });
       });

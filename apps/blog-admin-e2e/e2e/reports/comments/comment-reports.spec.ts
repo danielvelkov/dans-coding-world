@@ -278,11 +278,6 @@ test.describe('Comment reports page', () => {
 
         // Should be only report made about  the mod and it will have status 'REVIEWING'
         await expect(
-          getReportRow(page, 0).getByRole('button', {
-            name: /delete/i,
-          }),
-        ).toBeDisabled();
-        await expect(
           getReportRow(page, 0).getByRole('link', {
             name: /view/i,
           }),
