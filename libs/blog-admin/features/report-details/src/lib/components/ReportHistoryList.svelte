@@ -21,6 +21,7 @@
 
   <div class="space-y-6 relative z-10">
     {@render ReportHistoryEntry({
+      id: 0,
       previousStatus: null,
       newStatus: 'PENDING',
       actor: report.reportedBy.username,
@@ -30,6 +31,7 @@
     })}
     {#each report.history as entry (entry.id)}
       {@render ReportHistoryEntry({
+        id: entry.id,
         previousStatus: entry.previousStatus,
         newStatus: entry.newStatus,
         actor: entry.moderator.username,
@@ -45,6 +47,7 @@
 </div>
 
 {#snippet ReportHistoryEntry(data: {
+  id: number;
   previousStatus?: ReportDetailExtended['status'] | null;
   newStatus: ReportDetailExtended['status'];
   actor: string;
@@ -52,7 +55,7 @@
   note: string;
   time: string;
 })}
-  <div class="flex gap-4 items-start group">
+  <div class="flex gap-4 items-start group" data-testid={`entry-${data.id}`}>
     <div
       class="w-6 aspect-square rounded-full bg-(--color-bg-surface) border-2 border-(--color-border-emphasis)
        flex items-center justify-center shrink-0 text-(--color-text-secondary) shadow-xs mt-1"
@@ -60,15 +63,12 @@
       <i class="fa fa-circle text-[10px]"></i>
     </div>
 
-    <!-- Content Card -->
     <div
       class="flex-1 bg-(--color-bg-surface) p-3 rounded-lg border border-(--color-border-subtle) space-y-2"
     >
-      <!-- Header: Status Change & Timestamp -->
       <div
         class="flex flex-wrap items-center justify-between gap-2 border-b border-(--color-border-subtle) pb-2"
       >
-        <!-- Status Transition Badges -->
         <div class="flex items-center gap-1.5 flex-wrap">
           {#if data.previousStatus}
             <ReportStatusPill status={data.previousStatus} />
@@ -84,7 +84,6 @@
         </time>
       </div>
 
-      <!-- Actor & Note Body -->
       <div class="text-xs space-y-1">
         <div class="flex items-center gap-1.5 text-(--color-text-secondary)">
           <span class="font-semibold text-(--color-text-primary)"
