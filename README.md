@@ -3,8 +3,16 @@
 A task project for The Odin Project (TOP).
 A basic blog full stack app with an express backend and two React front ends:
 
-- one for the author(s) writing the posts
-- one for the readers
+- one for the author(s) writing the posts, the moderators and admins (blog-admin)
+- one for the readers (public-blog)
+
+You can comment and report comments in case they are inappropriate.
+Moderators can then log onto the blog-admin app and take action.
+
+Whats the point of adding content moderation to this simple blog project?
+
+Idk, it seemed nice to have at the beginning, but now I regret it immensely.
+At its current state it doesn't even work properly.
 
 ## Architecture
 

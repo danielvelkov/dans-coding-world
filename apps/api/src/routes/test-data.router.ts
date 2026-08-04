@@ -7,6 +7,7 @@ import {
   seedUsers,
   attachTagsToPost,
   seedUserProfiles,
+  seedReportHistories,
 } from '@dans-coding-world/api-tools';
 import { Router } from 'express';
 
@@ -78,6 +79,16 @@ testDataRouter.post('/reports', async (req: Request, res: Response) => {
   });
 
   return res.status(200).json(reports);
+});
+
+testDataRouter.post('/report-history', async (req: Request, res: Response) => {
+  const { clearExisting, useDefaults } = req.query;
+  const reportHistories = await seedReportHistories(req.body, {
+    clearExisting: getOptionParam(clearExisting as string),
+    useDefaults: getOptionParam(useDefaults as string),
+  });
+
+  return res.status(200).json(reportHistories);
 });
 
 export default testDataRouter;

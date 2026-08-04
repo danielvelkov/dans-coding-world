@@ -48,5 +48,6 @@ export const API_ENDPOINTS = {
     COMMENTS: `${TEST_DATA_PREFIX}/comments`,
     TAGS: `${TEST_DATA_PREFIX}/tags`,
     REPORTS: `${TEST_DATA_PREFIX}/reports`,
+    REPORT_HISTORY: `${TEST_DATA_PREFIX}/report-history`,
   },
 };
