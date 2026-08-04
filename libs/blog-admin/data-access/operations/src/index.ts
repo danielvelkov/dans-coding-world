@@ -1,6 +1,7 @@
 export * from './lib/queries/createPostsQuery.js';
 export * from './lib/queries/createUsersQueryInfinite.js';
 export * from './lib/queries/createPostQuery.js';
+export * from './lib/queries/createReportQuery.js';
 export * from './lib/queries/createTagsQuery.js';
 export * from './lib/queries/createReportsQuery.js';
 export * from './lib/mutations/createLoginMutation.js';
