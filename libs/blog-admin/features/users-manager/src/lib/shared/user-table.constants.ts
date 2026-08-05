@@ -2,6 +2,7 @@ import { GetUsersDto } from '@dans-coding-world/shared-user-dto';
 
 export const TABLE_COLUMNS = [
   'Show Row Details',
+  'Avatar',
   'Username',
   'Email',
   'Role',
@@ -12,6 +13,7 @@ export const TABLE_COLUMNS = [
 /** Columns that will exist but will not have their column name visible */
 export const OMITTED_COLUMN_NAMES: (typeof TABLE_COLUMNS)[number][] = [
   'Show Row Details',
+  'Avatar',
 ];
 
 export const USERS_LOADING_MESSAGE = 'Loading users...';
