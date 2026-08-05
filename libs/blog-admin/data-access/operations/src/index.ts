@@ -1,4 +1,5 @@
 export * from './lib/queries/createPostsQuery.js';
+export * from './lib/queries/createUsersQuery.js';
 export * from './lib/queries/createUsersQueryInfinite.js';
 export * from './lib/queries/createPostQuery.js';
 export * from './lib/queries/createReportQuery.js';

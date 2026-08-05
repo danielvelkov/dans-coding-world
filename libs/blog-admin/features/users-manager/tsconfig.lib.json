@@ -15,7 +15,20 @@
     // Added for svelte
     "src/**/*.svelte"
   ],
-  "references": [],
+  "references": [
+    {
+      "path": "../../data-access/operations/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/user/dtos/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/user/testing/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/helpers/tsconfig.lib.json"
+    }
+  ],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",
