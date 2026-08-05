@@ -9,12 +9,6 @@ const enginePath = join(
   '../../libs/prisma-schema/src/generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node',
 );
 
-const isCI = process.env.CI === 'true';
-const enginePath = join(
-  __dirname,
-  '../../libs/prisma-schema/src/generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node',
-);
-
 module.exports = {
   output: {
     path: join(__dirname, 'dist'),
