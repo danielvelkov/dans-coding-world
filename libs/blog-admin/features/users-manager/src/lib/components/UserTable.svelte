@@ -20,9 +20,10 @@
     Select,
     Table,
     UserRoleBadge,
+    Modal,
   } from '@dans-coding-world/blog-admin-ui-common';
   import type { UsersManagerParams } from '../types/usersManagerParams.js';
-  // import UserDeleteDialog from './UserDeleteDialog.svelte';
+  import UserDeleteDialog from './UserDeleteDialog.svelte';
 
   interface Props {
     users?: UserDetail[];
@@ -32,6 +33,7 @@
     params?: UsersManagerParams;
     onParamsChange?: (value: UsersManagerParams) => void;
     onUserDelete?: (id: number) => void;
+    onUserBanStatusChange?: (id: number, banned: boolean) => void;
   }
 
   const {
@@ -41,7 +43,8 @@
     viewer,
     params,
     onParamsChange,
-    // onUserDelete,
+    onUserDelete,
+    onUserBanStatusChange,
   }: Props = $props();
 
   let expandedRows = $state<UserDetail['id'][]>([]);
@@ -125,7 +128,7 @@
 {/snippet}
 
 {#snippet UserRow(user: UserDetail, rowIndex: number)}
-  {@const disabled = viewer && user.role === 'ADMIN' && user.id !== viewer.id}
+  {@const disabled = viewer && user.role === 'ADMIN'}
   {@const isExpanded = expandedRows.includes(user.id)}
 
   <tr
@@ -207,8 +210,7 @@
     <!-- Actions -->
     <td class="px-4 py-4 text-sm font-medium">
       {#if viewer}
-        {@const actionsDisabled =
-          viewer && user.role === 'ADMIN' && viewer.id !== user.id}
+        {@const actionsDisabled = viewer && user.role === 'ADMIN'}
         <div class="flex space-x-3 flex-wrap">
           <button
             disabled={actionsDisabled}
@@ -243,8 +245,7 @@
 {/snippet}
 
 {#snippet RowDetails(user: UserDetail)}
-  {@const actionsDisabled =
-    viewer && user.role === 'ADMIN' && viewer.id !== user.id}
+  {@const actionsDisabled = viewer && user.role === 'ADMIN'}
 
   <div class="space-y-4 p-4">
     <!-- Header Section -->
@@ -263,9 +264,7 @@
             onclick={() => {
               userForRoleChange = user;
             }}
-            class=" text-sm font-medium
-             text-(--color-text-primary) bg-(--color-bg-surface) hover:bg-(--color-bg-surface-hover)
-             border border-(--color-border-emphasis) disabled:opacity-50"
+            class=" text-sm font-medium disabled:opacity-50"
           >
             Change Role
           </Button>
@@ -275,8 +274,7 @@
               userForBanning = user;
             }}
             class=" text-sm font-medium
-             text-(--color-text-primary) bg-(--color-bg-surface) hover:bg-(--color-bg-surface-hover)
-             border border-(--color-border-emphasis) disabled:opacity-50"
+              disabled:opacity-50"
           >
             {user.isBanned ? 'Unban User' : 'Ban User'}
           </Button>
@@ -387,5 +385,48 @@
 {/snippet}
 
 {#if userForDeletion}
-  <!-- <UserDeleteDialog bind:userForDeletion {onUserDelete}></UserDeleteDialog> -->
-{:else if userForRoleChange}{:else if userForBanning}{/if}
+  <UserDeleteDialog bind:userForDeletion {onUserDelete}></UserDeleteDialog>
+{:else if userForRoleChange}{:else if userForBanning}
+  <Modal
+    open
+    modalTitle={userForBanning.isBanned ? 'Unban User' : 'Ban User'}
+    onClose={() => (userForBanning = null)}
+  >
+    <div class="space-y-4">
+      <p class="text-sm text-(--color-text-secondary) max-w-80">
+        {#if userForBanning.isBanned}
+          Are you sure you want to unban <strong
+            >{userForBanning.username}</strong
+          >? Their access to create posts and comments will be restored.
+        {:else}
+          Are you sure you want to ban <strong>{userForBanning.username}</strong
+          >? They will no longer be able to interact with the platform.
+        {/if}
+      </p>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <Button
+          class="font-medium text-sm"
+          type="button"
+          onclick={() => (userForBanning = null)}>Cancel</Button
+        >
+        <Button
+          type="button"
+          onclick={() => {
+            if (userForBanning) {
+              onUserBanStatusChange?.(
+                userForBanning.id,
+                !userForBanning.isBanned,
+              );
+            }
+            userForBanning = null;
+          }}
+          class="bg-(--color-error) disabled:bg-(--color-error-muted)
+             hover:bg-(--color-error-muted) text-white font-medium text-sm"
+        >
+          {userForBanning.isBanned ? 'Confirm Unban' : 'Confirm Ban'}
+        </Button>
+      </div>
+    </div>
+  </Modal>
+{/if}
