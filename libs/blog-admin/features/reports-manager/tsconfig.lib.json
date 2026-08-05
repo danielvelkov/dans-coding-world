@@ -1,0 +1,50 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
+    "emitDeclarationOnly": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
+  },
+  "include": [
+    "src/**/*.ts",
+    // Added for svelte
+    "src/**/*.svelte"
+  ],
+  "references": [
+    {
+      "path": "../../data-access/operations/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/report/dtos/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/user/testing/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/util/helpers/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/report/testing/tsconfig.lib.json"
+    }
+  ],
+  "exclude": [
+    "vite.config.ts",
+    "vite.config.mts",
+    "vitest.config.ts",
+    "vitest.config.mts",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.js",
+    "src/**/*.spec.js",
+    // Added for svelte
+    "src/**/*.svelte.test.js",
+    "src/**/*.svelte.test.ts",
+    "src/**/*.svelte.spec.js",
+    "src/**/*.svelte.spec.ts"
+  ]
+}

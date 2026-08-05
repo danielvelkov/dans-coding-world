@@ -161,6 +161,15 @@
     },
     {
       "path": "./libs/blog-admin/features/posts-editor"
+    },
+    {
+      "path": "./libs/blog-admin/features/reports-manager"
+    },
+    {
+      "path": "./libs/shared/report/testing"
+    },
+    {
+      "path": "./libs/blog-admin/features/report-details"
     }
   ]
 }

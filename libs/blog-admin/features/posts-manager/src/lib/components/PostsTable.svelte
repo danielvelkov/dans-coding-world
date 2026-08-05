@@ -29,6 +29,8 @@
   import PostsFilter from './PostsFilter.svelte';
   import PostDeleteDialog from './PostDeleteDialog.svelte';
 
+  const blogURL = __PUBLIC_BLOG_URL__;
+
   interface Props {
     posts?: PostFull[];
     isLoading?: boolean;
@@ -166,7 +168,7 @@
     <!-- Title -->
     <td class="px-4 py-4">
       <div
-        class="text-sm font-medium text-(--color-text-primary) line-clamp-2 max-w-[15ch]"
+        class="text-sm font-medium text-(--color-text-primary) line-clamp-2 max-w-[40ch]"
         title={post.title}
       >
         {post.title}
@@ -210,6 +212,7 @@
     <!-- Author (admin-only) -->
     {#if isAdmin}
       <td class="px-4 py-4 text-sm text-(--color-text-secondary)">
+        <!-- TODO -->
         <a
           href={`/users?search=${post.authorId}`}
           class="text-(--color-link) hover:text-(--color-link-hover)
@@ -270,7 +273,7 @@
         <span class="text-sm text-(--color-text-tertiary)">ID: {post.id}</span>
       </div>
       <a
-        href={`[PUBLIC_BLOG_URL]/posts/${post.id}`}
+        href={`${blogURL}/blog/${post.id}`}
         class="inline-flex items-center gap-2 px-3 py-1.5 text-sm
          font-medium text-(--color-link) transition-colors
           border border-(--color-border-emphasis) rounded-md

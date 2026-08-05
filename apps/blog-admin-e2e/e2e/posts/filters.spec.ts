@@ -136,7 +136,7 @@ test.describe('Posts - filtering', () => {
         ['Status', STATUSES],
         ['Visibility', VISIBILITIES],
       ] as const) {
-        test(`disables the last remaining option in category: ${categoryName}`, async ({
+        test(`disables the last remaining selected option in category: ${categoryName}`, async ({
           page,
         }) => {
           test.slow();

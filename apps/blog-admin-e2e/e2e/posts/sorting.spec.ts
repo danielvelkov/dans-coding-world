@@ -25,7 +25,7 @@ async function checkIfSortedCorrectly(
   });
 
   for (let i = 0; i < sorted.length; i++) {
-    const row = page.getByLabel(new RegExp(`row entry #${i + 1}`, 'i'));
+    const row = page.getByLabel(new RegExp(`row entry #${i + 1}$`, 'i'));
     await expect(row).toContainText(sorted[i].title);
   }
   return true;

@@ -15,6 +15,20 @@ export type ReportDetail = Report & {
   history: ReportHistory[];
 };
 
+export type ReportDetailExtended = Omit<
+  ReportDetail,
+  'reportedComment' | 'history'
+> & {
+  reportedComment: ReportDetail['reportedComment'] & {
+    user: User;
+  };
+  history: Array<
+    ReportDetail['history'][number] & {
+      moderator: User;
+    }
+  >;
+};
+
 export class PrismaCommentReportDataAccess implements IReportRepository<
   Report,
   ReportWhereInput,
@@ -33,6 +47,7 @@ export class PrismaCommentReportDataAccess implements IReportRepository<
                 username: true,
                 role: true,
                 password: false,
+                isBanned: true,
               },
             },
           },
@@ -46,7 +61,20 @@ export class PrismaCommentReportDataAccess implements IReportRepository<
             password: false,
           },
         },
-        history: true,
+        history: {
+          include: {
+            moderator: {
+              select: {
+                id: true,
+                email: true,
+                username: true,
+                role: true,
+                isBanned: true,
+                password: false,
+              },
+            },
+          },
+        },
       },
     });
   }

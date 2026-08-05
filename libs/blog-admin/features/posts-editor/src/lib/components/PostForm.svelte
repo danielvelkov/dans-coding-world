@@ -434,7 +434,7 @@
 {#snippet Action(name: FormAction, onclick: () => void)}
   <Button
     type="button"
-    class="flex-1 flex flex-col items-center rounded-l-none
+    class="flex-1 flex flex-col items-center rounded-l-none text-sm
      rounded-r-none first:rounded-l-lg last:rounded-r-lg"
     onclick={() => {
       if (validateForm()) {

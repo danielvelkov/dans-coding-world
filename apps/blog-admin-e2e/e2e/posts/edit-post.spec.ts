@@ -129,6 +129,16 @@ test.describe('Edit post page', () => {
       await waitOutLoader(page);
     });
 
+    test('shows 500 generic error message if invalid post id', async ({
+      page,
+    }) => {
+      test.setTimeout(30_000);
+      await page.goto(`/posts/abc/edit`);
+      await waitOutLoader(page);
+      await expect(page.getByText(/500/i)).toBeVisible();
+      await expect(page.getByText(/invalid post id/i)).toBeVisible();
+    });
+
     test('shows 404 "Not Found" message when post does not exist', async ({
       page,
     }) => {
@@ -139,8 +149,8 @@ test.describe('Edit post page', () => {
       await expect(page.getByText(/not found/i)).toBeVisible();
     });
 
-    test(`shows 403 "Forbidden" message when post exists but user
-    has role AUTHOR and is not the author`, async ({ page }) => {
+    test(`shows 403 "Forbidden" message when post exists and user
+    has role AUTHOR, but post is made by another user`, async ({ page }) => {
       test.setTimeout(30_000);
       await logout(page);
       await checkIfLoggedOut(page);

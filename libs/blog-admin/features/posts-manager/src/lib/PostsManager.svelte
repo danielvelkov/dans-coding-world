@@ -87,7 +87,7 @@
   };
 </script>
 
-<div class="space-y-6 flex flex-col items-stretch mx-auto">
+<div class="space-y-6 flex flex-col items-stretch lg:px-20 mx-auto w-full">
   <div class="flex flex-col gap-5">
     <h2 class="text-3xl font-bold">
       {#if loggedInUser && loggedInUser.role === 'ADMIN'}
@@ -106,7 +106,6 @@
           {deletePostError.message}
         </div>
       {/if}
-      <!-- <CreatePostButton /> -->
       {#if loggedInUser.role === 'ADMIN'}
         <AuthorFilter
           handleSearch={(val) => {

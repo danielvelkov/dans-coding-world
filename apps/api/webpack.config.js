@@ -1,6 +1,7 @@
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
 const { join } = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const { workspaceRoot } = require('@nx/devkit');
 
 const isCI = process.env.CI === 'true';
 const enginePath = join(
@@ -27,16 +28,25 @@ module.exports = {
     }),
     new CopyWebpackPlugin({
       patterns: [
-        {
-          from: enginePath,
-          to: 'src/generated/prisma/',
-          noErrorOnMissing: false,
-        },
-        {
-          from: enginePath,
-          to: '.prisma/client/',
-          noErrorOnMissing: false,
-        },
+        // {
+        //   from: enginePath,
+        //   to: 'src/generated/prisma/',
+        //   noErrorOnMissing: false,
+        // },
+        // {
+        //   from: enginePath,
+        //   to: '.prisma/client/',
+        //   noErrorOnMissing: false,
+        // },
+        ...(!isCI
+          ? [
+              {
+                from: enginePath,
+                to: join(workspaceRoot, '.prisma/client'),
+                noErrorOnMissing: false,
+              },
+            ]
+          : []),
         // In order for prisma client to find engine, we copy it into /tmp/prisma-engine if in CI action
         ...(isCI
           ? [

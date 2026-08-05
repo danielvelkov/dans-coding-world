@@ -19,6 +19,9 @@
       "path": "../../../shared/user/dtos/tsconfig.lib.json"
     },
     {
+      "path": "../../../api/data-access/report/tsconfig.lib.json"
+    },
+    {
       "path": "../../../api/data-access/post/tsconfig.lib.json"
     },
     {
@@ -26,6 +29,9 @@
     },
     {
       "path": "../../../shared/auth/dtos/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../shared/report/dtos/tsconfig.lib.json"
     },
     {
       "path": "../../../shared/data-access/api/tsconfig.lib.json"

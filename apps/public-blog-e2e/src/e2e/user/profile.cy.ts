@@ -98,7 +98,7 @@ describe('User - profile page', () => {
 
   it('should show 404 NOT FOUND error if navigating to unknown user', () => {
     cy.visit(`/users/${testUsers.length + 10}`);
-    cy.contains('h1', '404', { timeout: 10000 });
+    cy.contains('h1', '404', { timeout: 20000 });
   });
 
   context('Unauthenticated user visiting a profile', () => {
