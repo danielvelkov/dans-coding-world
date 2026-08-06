@@ -14,6 +14,7 @@ export * from './lib/mutations/createPostEditMutation.js';
 export * from './lib/mutations/createEditReportMutation.js';
 export * from './lib/mutations/createDeleteReportMutation.js';
 export * from './lib/mutations/createDeleteCommentMutation.js';
+export * from './lib/mutations/createDeleteUserMutation.js';
 export * from './lib/mutations/createUpdateUserBanStatusMutation.js';
 export * from './lib/types/fetchPostsQueryParams.js';
 export * from './lib/types/fetchUsersQueryParams.js';
