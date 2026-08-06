@@ -21,6 +21,7 @@
     Table,
     UserRoleBadge,
     Modal,
+    SpinnerLoader,
   } from '@dans-coding-world/blog-admin-ui-common';
   import type { UsersManagerParams } from '../types/usersManagerParams.js';
   import UserDeleteDialog from './UserDeleteDialog.svelte';
@@ -33,7 +34,16 @@
     params?: UsersManagerParams;
     onParamsChange?: (value: UsersManagerParams) => void;
     onUserDelete?: (id: number) => void;
-    onUserBanStatusChange?: (id: number, banned: boolean) => void;
+    onUserBanStatusChange?: (
+      id: number,
+      banned: boolean,
+      onSettled?: () => void,
+    ) => void;
+    onUserRoleChange?: (
+      id: number,
+      newRole: NonNullable<UserRole>,
+      onSettled?: () => void,
+    ) => void;
   }
 
   const {
@@ -45,12 +55,15 @@
     onParamsChange,
     onUserDelete,
     onUserBanStatusChange,
+    onUserRoleChange,
   }: Props = $props();
 
   let expandedRows = $state<UserDetail['id'][]>([]);
   let userForDeletion: UserDetail | null = $state(null);
   let userForRoleChange: UserDetail | null = $state(null);
   let userForBanning: UserDetail | null = $state(null);
+  let selectedRole: UserRole | null = $state('USER');
+  let committingAction: boolean = $state(false);
 
   const showEmptyMessage = $derived(users.length === 0);
 </script>
@@ -386,7 +399,66 @@
 
 {#if userForDeletion}
   <UserDeleteDialog bind:userForDeletion {onUserDelete}></UserDeleteDialog>
-{:else if userForRoleChange}{:else if userForBanning}
+{:else if userForRoleChange}
+  {@const availableOptions = FILTER_OPTIONS.filter(
+    (o) => o.value !== userForRoleChange?.role && o.value !== 'ADMIN',
+  )}
+  <Modal
+    open
+    modalTitle="Change Role"
+    onClose={() => (userForRoleChange = null)}
+  >
+    <div class="space-y-4 max-w-50">
+      <p class="text-sm text-(--color-text-secondary)">
+        Select a new role for this user.
+      </p>
+      <label class="sr-only" for="new-role-select">New role</label>
+      <Select
+        id="new-role-select"
+        value={selectedRole}
+        items={availableOptions}
+        onchange={(e) => {
+          selectedRole = e.currentTarget.value as UserRole;
+        }}
+        class="w-full border border-(--color-border-subtle) rounded-md px-3 py-2
+         text-sm bg-(--color-bg-surface) text-(--color-text-primary)"
+      >
+        <option value="USER">User</option>
+        <option value="MOD">Moderator</option>
+        <option value="ADMIN">Admin</option>
+      </Select>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <Button
+          class="font-medium text-sm"
+          type="button"
+          onclick={() => (userForRoleChange = null)}>Cancel</Button
+        >
+        <Button
+          type="button"
+          disabled={committingAction}
+          onclick={() => {
+            if (userForRoleChange && selectedRole) {
+              committingAction = true;
+              const onSettled = () => {
+                committingAction = false;
+                userForRoleChange = null;
+                selectedRole = null;
+              };
+              onUserRoleChange?.(userForRoleChange.id, selectedRole, onSettled);
+            }
+          }}
+          class="bg-(--color-error) disabled:bg-(--color-error-muted) flex justify-center
+             hover:bg-(--color-error-muted) text-white font-medium text-sm min-w-20"
+        >
+          {#if !committingAction}
+            {'Confirm change'}
+          {:else}<SpinnerLoader></SpinnerLoader>{/if}
+        </Button>
+      </div>
+    </div>
+  </Modal>
+{:else if userForBanning}
   <Modal
     open
     modalTitle={userForBanning.isBanned ? 'Unban User' : 'Ban User'}
@@ -411,20 +483,28 @@
           onclick={() => (userForBanning = null)}>Cancel</Button
         >
         <Button
+          disabled={committingAction}
           type="button"
           onclick={() => {
             if (userForBanning) {
+              committingAction = true;
+              const onSettled = () => {
+                committingAction = false;
+                userForBanning = null;
+              };
               onUserBanStatusChange?.(
                 userForBanning.id,
                 !userForBanning.isBanned,
+                onSettled,
               );
             }
-            userForBanning = null;
           }}
-          class="bg-(--color-error) disabled:bg-(--color-error-muted)
-             hover:bg-(--color-error-muted) text-white font-medium text-sm"
+          class="bg-(--color-error) disabled:bg-(--color-error-muted) flex justify-center
+             hover:bg-(--color-error-muted) text-white font-medium text-sm min-w-20"
         >
-          {userForBanning.isBanned ? 'Confirm Unban' : 'Confirm Ban'}
+          {#if !committingAction}
+            {userForBanning.isBanned ? 'Confirm Unban' : 'Confirm Ban'}
+          {:else}<SpinnerLoader></SpinnerLoader>{/if}
         </Button>
       </div>
     </div>
