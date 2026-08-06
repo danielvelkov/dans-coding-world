@@ -381,14 +381,19 @@
       <Select
         id="filter-users"
         class="p-2 m-2 w-max border border-(--color-border-default) rounded-md"
-        value={JSON.stringify(params?.filterBy?.role)}
+        value={params?.filterBy?.role ?? ''}
         onchange={(e) => {
           const value = e.currentTarget.value;
-          const role = JSON.parse(value) as UserRole;
-          onParamsChange?.({
-            ...params,
-            filterBy: { ...params?.filterBy, role },
-          });
+          if (value !== '')
+            onParamsChange?.({
+              ...params,
+              filterBy: { ...params?.filterBy, role: value as UserRole },
+            });
+          else
+            onParamsChange?.({
+              ...params,
+              filterBy: { ...params?.filterBy, role: undefined },
+            });
         }}
         items={FILTER_OPTIONS}
       ></Select>

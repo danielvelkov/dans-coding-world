@@ -26,7 +26,7 @@ type SortOption = { value: UserSorting; label: string };
 export type UserRole = NonNullable<GetUsersDto['filterBy']>['role'];
 
 type FilterOption = {
-  value: UserRole;
+  value: UserRole | '';
   label: string;
 };
 
@@ -46,6 +46,10 @@ export const SORT_OPTIONS: SortOption[] = [
 ] as const;
 
 export const FILTER_OPTIONS: FilterOption[] = [
+  {
+    value: '',
+    label: 'All Roles',
+  },
   {
     value: 'USER',
     label: 'User',
