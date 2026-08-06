@@ -73,7 +73,7 @@ async function assertRowContainsPostInfo(
   if (isAdmin && author) {
     await expect(
       row.getByRole('link', { name: author.username }),
-    ).toHaveAttribute('href', `/users?search=${post.authorId}`);
+    ).toHaveAttribute('href', `/users?searchQuery=${author.username}`);
   }
   return true;
 }
