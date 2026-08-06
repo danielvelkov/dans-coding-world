@@ -16,6 +16,7 @@ export * from './lib/mutations/createDeleteReportMutation.js';
 export * from './lib/mutations/createDeleteCommentMutation.js';
 export * from './lib/mutations/createDeleteUserMutation.js';
 export * from './lib/mutations/createUpdateUserBanStatusMutation.js';
+export * from './lib/mutations/createUpdateUserRoleMutation.js';
 export * from './lib/types/fetchPostsQueryParams.js';
 export * from './lib/types/fetchUsersQueryParams.js';
 export * from './lib/util/debounceCallback.js';
