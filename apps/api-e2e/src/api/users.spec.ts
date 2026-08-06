@@ -330,6 +330,20 @@ describe('/api/v1/users', () => {
           },
         );
 
+        test('should sort items by ID if no sorting specified', async () => {
+          const res = await adminHelpers.getUsers({});
+
+          const usersData = getData<GetUsersResponseDto>(res);
+
+          const sortedItems = [...usersData.items].sort(
+            (prev, next) => prev.id - next.id,
+          );
+
+          sortedItems.forEach((user, i) => {
+            expect(user.id).toBe(usersData.items[i].id);
+          });
+        });
+
         // TODO - not sure about this
         test.concurrent.each([
           ['username (ASC)', 'username', false],

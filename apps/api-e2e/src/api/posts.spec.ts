@@ -557,6 +557,20 @@ describe('/api/v1/posts', () => {
         },
       );
 
+      test('should sort items by ID if no sorting specified', async () => {
+        const res = await anonHelpers.getPosts({});
+
+        const postsData = getData<GetPostsResponseDto>(res);
+
+        const sortedItems = [...postsData.items].sort(
+          (prev, next) => prev.id - next.id,
+        );
+
+        sortedItems.forEach((post, i) => {
+          expect(post.id).toBe(postsData.items[i].id);
+        });
+      });
+
       test.concurrent.each([
         ['published date (ASC)', 'publishedAt', false],
         ['published date (DESC)', 'publishedAt', true],
