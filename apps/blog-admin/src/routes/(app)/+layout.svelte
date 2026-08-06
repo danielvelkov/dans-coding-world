@@ -65,6 +65,13 @@
 					aria-current={page.url.pathname.startsWith('/reports/comments')}>Reports</a
 				>
 			{/if}
+			{#if user && user.role === 'ADMIN'}
+				<a
+					href={resolve('/users')}
+					class="transition-colors hover:underline"
+					aria-current={page.url.pathname.startsWith('/users')}>Users</a
+				>
+			{/if}
 			<button
 				role="link"
 				disabled={isLoading}
