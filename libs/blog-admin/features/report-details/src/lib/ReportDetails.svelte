@@ -93,11 +93,8 @@
 
   $effect(() => {
     if (activeError) {
-      // 1. Close modal
-      console.log('closing modal');
       closeModal();
 
-      // 2. Scroll/pan to error
       queueMicrotask(() => {
         errorEl?.scrollIntoView({
           behavior: 'smooth',

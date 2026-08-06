@@ -23,6 +23,9 @@
       "path": "../../../shared/user/dtos/tsconfig.lib.json"
     },
     {
+      "path": "../../../prisma-schema/tsconfig.lib.json"
+    },
+    {
       "path": "../../../shared/user/testing/tsconfig.lib.json"
     },
     {
