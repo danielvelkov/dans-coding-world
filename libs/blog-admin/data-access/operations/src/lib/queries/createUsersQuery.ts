@@ -14,11 +14,11 @@ export function createUsersQuery(
 ) {
   return createQuery<GetUsersResponseDto | null, Error>(() => ({
     queryKey: ['users', params],
-    queryFn: async (data) => {
+    queryFn: async () => {
       const response = await api.get<BaseResponse<GetUsersResponseDto>>(
         API_ENDPOINTS.USERS.LIST,
         {
-          ...data,
+          params,
         },
       );
       return handleQueryResponse(response);
