@@ -277,9 +277,8 @@ test.describe('Posts page - posts table', () => {
       ).toBeVisible();
     });
 
-    test(`clicking the link inside row's "Author" column navigates to /users?search={userId}`, async ({
-      page,
-    }) => {
+    test(`clicking the link inside row's "Author" column
+       navigates to /users?searchQuery={username}`, async ({ page }) => {
       const visiblePosts = getVisiblePostsForUser(seededPosts, loggedInUser);
       const post = visiblePosts[0];
       const author = users.find((u) => u.id === post.authorId);
@@ -289,7 +288,7 @@ test.describe('Posts page - posts table', () => {
         .getByRole('link', { name: author.username })
         .click();
       await expect(page).toHaveURL(
-        new RegExp(`/users\\?search=${post.authorId}`),
+        new RegExp(`/users\\?searchQuery=${author.username}`),
       );
     });
 
