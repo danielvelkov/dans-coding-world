@@ -369,8 +369,10 @@
         value={JSON.stringify(params?.sortBy)}
         onchange={(e) => {
           const value = e.currentTarget.value;
-          const userSorting = JSON.parse(value) as UserSorting;
-          onParamsChange?.({ ...params, sortBy: userSorting });
+          if (value) {
+            const userSorting = JSON.parse(value) as UserSorting;
+            onParamsChange?.({ ...params, sortBy: userSorting });
+          } else onParamsChange?.({ ...params, sortBy: undefined });
         }}
         items={SORT_OPTIONS}
       ></Select>
@@ -406,7 +408,10 @@
   <UserDeleteDialog bind:userForDeletion {onUserDelete}></UserDeleteDialog>
 {:else if userForRoleChange}
   {@const availableOptions = FILTER_OPTIONS.filter(
-    (o) => o.value !== userForRoleChange?.role && o.value !== 'ADMIN',
+    (o) =>
+      o.value !== userForRoleChange?.role &&
+      o.value !== 'ADMIN' &&
+      o.value !== '',
   )}
   <Modal
     open
@@ -427,11 +432,7 @@
         }}
         class="w-full border border-(--color-border-subtle) rounded-md px-3 py-2
          text-sm bg-(--color-bg-surface) text-(--color-text-primary)"
-      >
-        <option value="USER">User</option>
-        <option value="MOD">Moderator</option>
-        <option value="ADMIN">Admin</option>
-      </Select>
+      ></Select>
 
       <div class="flex items-center justify-end gap-2 pt-2">
         <Button

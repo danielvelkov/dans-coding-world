@@ -32,13 +32,17 @@ type FilterOption = {
 
 export const SORT_OPTIONS: SortOption[] = [
   {
-    label: 'Username (Z-A)',
+    label: 'By User ID',
+    value: undefined,
+  },
+  {
+    label: 'Username (z-a, then Z-A)',
     value: {
       username: 'desc',
     },
   },
   {
-    label: 'Username (A-Z)',
+    label: 'Username (A-Z, then a-z)',
     value: {
       username: 'asc',
     },
