@@ -163,9 +163,10 @@ test.describe('Comment reports page', () => {
 
   test.describe('Authenticated MOD/ADMIN', () => {
     const allowedRoles: Role[] = ['ADMIN', 'MOD'];
+    let loggedInUser: User;
 
     test.beforeEach(async ({ page }) => {
-      await loginAsRandomUser(
+      loggedInUser = await loginAsRandomUser(
         page,
         users.filter((u) => allowedRoles.includes(u.role)),
       );
@@ -224,9 +225,14 @@ test.describe('Comment reports page', () => {
     test(`expanded row details contains "View post" link which 
       opens a new tab with the post in the public blog`, async ({ page }) => {
       const visibleReports = getVisibleReportsForUser(seededReports);
-      const report = visibleReports[0];
+      const report = visibleReports.find(
+        (r) => r.reportedComment.userId !== loggedInUser.id,
+      );
+      if (!report) throw new Error('Missing report fixture');
 
-      await expandReportRow(page, 0);
+      const rowIndex = visibleReports.indexOf(report);
+
+      await expandReportRow(page, rowIndex);
 
       const expandedRow = page.getByTestId(`row-details-${report.id}`);
       const [popup] = await Promise.all([
@@ -244,9 +250,14 @@ test.describe('Comment reports page', () => {
       page,
     }) => {
       const visibleReports = getVisibleReportsForUser(seededReports);
-      const report = visibleReports[0];
+      const report = visibleReports.find(
+        (r) => r.reportedComment.userId !== loggedInUser.id,
+      );
+      if (!report) throw new Error('Missing report fixture');
 
-      const reportRow = getReportRow(page, 0);
+      const rowIndex = visibleReports.indexOf(report);
+
+      const reportRow = getReportRow(page, rowIndex);
 
       await reportRow.getByRole('link', { name: /view$/i }).click();
 
