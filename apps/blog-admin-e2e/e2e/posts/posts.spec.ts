@@ -147,7 +147,9 @@ test.describe('Posts page - posts table', () => {
       await expect(
         expandedRow.getByRole('heading', { name: /post details/i }),
       ).toBeVisible();
-      await expect(expandedRow.getByText(`ID: ${post.id}`)).toBeVisible();
+      await expect(
+        expandedRow.getByText(new RegExp(`^ID: ${post.id}`, 'i')),
+      ).toBeVisible();
       await expect(expandedRow.getByText(post.content)).toBeVisible();
     });
 
