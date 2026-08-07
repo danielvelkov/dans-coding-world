@@ -79,16 +79,6 @@ test.describe('User management page - filtering', () => {
     await waitOutLoader(page);
   });
 
-  test.beforeEach(async ({ page }) => {
-    await loginAsRandomUser(
-      page,
-      users.filter((u) => u.role === 'ADMIN'),
-    );
-    expect(await checkIfLoggedIn(page)).toBe(true);
-    await page.goto('/users');
-    await waitOutLoader(page);
-  });
-
   test.describe('by Role', () => {
     test('filters by All roles by default', async ({ page }) => {
       const options = await page

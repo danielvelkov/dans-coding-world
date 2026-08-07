@@ -36,5 +36,6 @@ export async function searchForUser(page: Page, text: string) {
 }
 
 export async function selectUserFilter(page: Page, label: string) {
-  await page.getByRole('listbox').selectOption([label]);
+  const select = page.getByLabel(/filter by:/i);
+  await select.selectOption([label]);
 }
