@@ -4,19 +4,21 @@
     createUpdateUserBanStatusMutation,
     createUpdateUserRoleMutation,
     createUsersQuery,
-    createUsersQueryInfinite,
     debounceCallback,
   } from '@dans-coding-world/blog-admin-data-access-operations';
   import {
     TablePaginationInfo,
     TablePagination,
     TableItemsPerPageSelect,
+    Input,
   } from '@dans-coding-world/blog-admin-ui-common';
   import { createPaginationHandlers } from '@dans-coding-world/helpers';
-  import { PAGINATION } from '@dans-coding-world/shared-constants';
+  import {
+    PAGINATION,
+    USER_CONSTRAINTS,
+  } from '@dans-coding-world/shared-constants';
   import type { UserDetail } from '@dans-coding-world/user-data-access';
   import type { UsersManagerParams } from './types/usersManagerParams.js';
-  import UserFilter from './components/UserFilter.svelte';
   import UsersTable from './components/UserTable.svelte';
   import type { UserRole } from './shared/user-table.constants.js';
 
@@ -42,12 +44,6 @@
 
   // Get users
   const usersQueryResult = $derived(createUsersQuery(params));
-  const usersQueryInfiniteResult = $derived(
-    createUsersQueryInfinite({
-      sortBy: { username: 'asc' },
-      searchQuery: searchedUser.length > 0 ? searchedUser : undefined,
-    }),
-  );
   const refetch = $derived(usersQueryResult.refetch);
   const isLoading = $derived(usersQueryResult.isLoading);
   const users = $derived(usersQueryResult.data?.items ?? []);
@@ -96,12 +92,13 @@
     });
   });
 
-  const isSearchingAuthor = $derived(
-    usersQueryResult.isFetching && searchedUser.length > 0,
-  );
-
   const handleSearchDebounced = debounceCallback(async (value: string) => {
     searchedUser = value;
+    onParamsChange({
+      ...params,
+      searchQuery:
+        searchedUser && searchedUser.length ? searchedUser : undefined,
+    });
   }, 300);
 
   const handleUserDelete = (id: number) => {
@@ -185,22 +182,19 @@
         {activeError.message}
       </div>
     {/if}
-    <UserFilter
-      handleSearch={(val) => {
-        handleSearchDebounced(val);
-      }}
-      filters={{ searchQuery: params?.searchQuery }}
-      onChange={(val) =>
-        onParamsChange({
-          ...params,
-          searchQuery: val.searchQuery,
-        })}
-      queryData={usersQueryInfiniteResult}
-      loadNext={async () => {
-        await usersQueryInfiniteResult.fetchNextPage();
-      }}
-      isSearching={isSearchingAuthor}
-    ></UserFilter>
+    <search class="w-max-40 self-start">
+      <label class="sr-only" for="search-users">Search by username:</label>
+      <Input
+        id="search-users"
+        type="text"
+        placeholder="Search..."
+        maxlength={USER_CONSTRAINTS.MAX_USERNAME_LENGTH}
+        value={params?.searchQuery ?? ''}
+        oninput={(e: Event & { currentTarget: HTMLInputElement }) => {
+          handleSearchDebounced(e.currentTarget.value);
+        }}
+      />
+    </search>
   </div>
 
   <UsersTable
