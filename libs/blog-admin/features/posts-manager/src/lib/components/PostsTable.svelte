@@ -212,7 +212,6 @@
     <!-- Author (admin-only) -->
     {#if isAdmin}
       <td class="px-4 py-4 text-sm text-(--color-text-secondary)">
-        <!-- TODO -->
         <a
           href={`/users?searchQuery=${post.author.username}`}
           class="text-(--color-link) hover:text-(--color-link-hover)
