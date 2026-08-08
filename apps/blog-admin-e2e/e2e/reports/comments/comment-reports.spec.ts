@@ -214,11 +214,15 @@ test.describe('Comment reports page', () => {
       ).toBeVisible();
 
       await expect(
-        expandedRow.getByText(report.reportedComment.userId.toString()),
+        expandedRow.getByText(
+          new RegExp(`User #${report.reportedComment.userId.toString()}$`, 'i'),
+        ),
       ).toBeVisible();
 
       await expect(
-        expandedRow.getByText(report.reporterId.toString()),
+        expandedRow.getByText(
+          new RegExp(`User #${report.reporterId.toString()}$`, 'i'),
+        ),
       ).toBeVisible();
     });
 

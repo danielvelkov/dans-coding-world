@@ -82,7 +82,7 @@ test.describe('User management page', () => {
     test.beforeEach(async ({ page }) => {
       await loginAsRandomUser(
         page,
-        seededUsers.filter((u) => u.role === 'ADMIN'),
+        seededUsers.filter((u) => u.role === 'ADMIN' && !u.isBanned),
       );
       await waitOutLoader(page);
       expect(await checkIfLoggedIn(page)).toBe(true);
