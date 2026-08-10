@@ -194,7 +194,7 @@ describe('Rows', () => {
         expect(usernameLink.element().textContent).toBe(post.author.username);
         expect(usernameLink).toHaveAttribute(
           'href',
-          `/users?search=${post.authorId}`,
+          `/users?searchQuery=${post.author.username}`,
         );
       });
     });

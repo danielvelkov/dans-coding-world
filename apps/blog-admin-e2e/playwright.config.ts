@@ -25,8 +25,10 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
+  maxFailures: process.env.CI ? 1 : 0,
   // (DO NOT CHANGE) Specify workers to 1 to provide stability and reproductivity
   workers: 1,
+  retries: 3,
   /* Run your local dev server before starting the tests */
   webServer: [
     {

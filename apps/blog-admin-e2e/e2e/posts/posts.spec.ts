@@ -73,7 +73,7 @@ async function assertRowContainsPostInfo(
   if (isAdmin && author) {
     await expect(
       row.getByRole('link', { name: author.username }),
-    ).toHaveAttribute('href', `/users?search=${post.authorId}`);
+    ).toHaveAttribute('href', `/users?searchQuery=${author.username}`);
   }
   return true;
 }
@@ -147,7 +147,9 @@ test.describe('Posts page - posts table', () => {
       await expect(
         expandedRow.getByRole('heading', { name: /post details/i }),
       ).toBeVisible();
-      await expect(expandedRow.getByText(`ID: ${post.id}`)).toBeVisible();
+      await expect(
+        expandedRow.getByText(new RegExp(`^ID: ${post.id}`, 'i')),
+      ).toBeVisible();
       await expect(expandedRow.getByText(post.content)).toBeVisible();
     });
 
@@ -277,9 +279,8 @@ test.describe('Posts page - posts table', () => {
       ).toBeVisible();
     });
 
-    test(`clicking the link inside row's "Author" column navigates to /users?search={userId}`, async ({
-      page,
-    }) => {
+    test(`clicking the link inside row's "Author" column
+       navigates to /users?searchQuery={username}`, async ({ page }) => {
       const visiblePosts = getVisiblePostsForUser(seededPosts, loggedInUser);
       const post = visiblePosts[0];
       const author = users.find((u) => u.id === post.authorId);
@@ -289,7 +290,7 @@ test.describe('Posts page - posts table', () => {
         .getByRole('link', { name: author.username })
         .click();
       await expect(page).toHaveURL(
-        new RegExp(`/users\\?search=${post.authorId}`),
+        new RegExp(`/users\\?searchQuery=${author.username}`),
       );
     });
 

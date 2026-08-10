@@ -78,7 +78,7 @@ jobs:
       - name: Run Lint, Build and Tests
         run: |
           export NODE_ENV=test
-          npx nx run-many -t lint test build --skipNxCache
+          npx nx run-many -t lint build test --skipNxCache
 
       - name: Run Api E2E tests
         run: |

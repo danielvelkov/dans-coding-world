@@ -170,6 +170,9 @@
     },
     {
       "path": "./libs/blog-admin/features/report-details"
+    },
+    {
+      "path": "./libs/blog-admin/features/users-manager"
     }
   ]
 }

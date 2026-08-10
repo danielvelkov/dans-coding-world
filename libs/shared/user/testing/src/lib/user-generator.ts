@@ -2,6 +2,7 @@ import type { UserPreview } from '@dans-coding-world/prisma-schema';
 import {
   randEmail,
   randFirstName,
+  randUserName,
   randLastName,
   randNumber,
   randPassword,
@@ -13,7 +14,7 @@ export const generateRandomUserPreview = (): UserPreview => {
   const authorId = randNumber({ min: 30, max: 5_000_000 });
   return {
     id: authorId,
-    username: randFirstName() + randNumber({ min: 1, max: 1000 }),
+    username: randUserName() + randNumber({ min: 1, max: 1_000_000 }),
     profile: {
       id: randNumber({ min: 1, max: 5_000_000 }),
       avatarURL: '',
@@ -31,7 +32,7 @@ export const generateRandomUser = (
   const authorId = randNumber({ min: 1, max: 5_000_000 });
   return {
     id: authorId,
-    username: randFirstName() + randNumber({ min: 1, max: 1000 }),
+    username: randUserName() + randNumber({ min: 1, max: 1000 }),
     password: randPassword(),
     email: randEmail(),
     isBanned: false,

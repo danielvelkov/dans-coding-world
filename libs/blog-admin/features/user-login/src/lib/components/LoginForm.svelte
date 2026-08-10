@@ -118,17 +118,3 @@
     {/if}
   </Button>
 </form>
-
-<!-- TODO: remove -->
-<div class="flex flex-col">
-  <span class="uppercase font-extrabold">DEBUG ACTIONS - Login</span>
-  <a onclick={() => handleSubmit('admin123@gmail.com', 'Admin123@')}>as admin</a
-  >
-  <a onclick={() => handleSubmit('author123@gmail.com', 'Author123@')}
-    >as author</a
-  >
-  <a onclick={() => handleSubmit('moderator123@gmail.com', 'Moderator123@')}
-    >as moderator</a
-  >
-  <a onclick={() => handleSubmit('user123@gmail.com', 'User123@')}>as user</a>
-</div>

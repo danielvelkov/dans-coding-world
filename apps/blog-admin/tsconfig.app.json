@@ -32,6 +32,9 @@
 	"include": ["src/**/*.js", "src/**/*.svelte", "src/**/*.ts"],
 	"references": [
 		{
+			"path": "../../libs/blog-admin/features/users-manager/tsconfig.lib.json"
+		},
+		{
 			"path": "../../libs/blog-admin/features/reports-manager/tsconfig.lib.json"
 		},
 		{
