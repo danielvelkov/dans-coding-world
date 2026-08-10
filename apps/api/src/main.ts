@@ -35,16 +35,30 @@ const publicBlogPort = process.env['VITE_PUBLIC_BLOG_PORT'];
 const adminBlogHost = process.env['VITE_ADMIN_BLOG_HOST'];
 const adminBlogPort = process.env['VITE_ADMIN_BLOG_PORT'];
 
-const isTest =
-  process.env.NODE_ENV === 'test' ||
-  process.env.NODE_ENV === 'development' ||
-  process.env.NODE_ENV === 'test_e2e' ||
-  process.env.NODE_ENV !== 'production'; // TODO: this is not right imo
+if (
+  !apiHost ||
+  !apiPort ||
+  !publicBlogHost ||
+  !publicBlogPort ||
+  !adminBlogHost ||
+  !adminBlogPort
+) {
+  console.error(
+    `Missing required environment variables: API_HOST, API_PORT, VITE_PUBLIC_BLOG_HOST,
+     VITE_PUBLIC_BLOG_PORT, VITE_ADMIN_BLOG_HOST, VITE_ADMIN_BLOG_PORT`,
+  );
+  process.exit(1);
+}
+
+const isProd = process.env.NODE_ENV === 'production';
+const isTest = ['test', 'development', 'test_e2e'].includes(
+  process.env.NODE_ENV ?? '',
+);
 
 const app = express();
 
 // This is per user. Each window is a specific IP address
-if (!isTest) {
+if (isProd) {
   app.use(
     slowDown({
       windowMs: 15 * 60 * 1000, // 15 mins
@@ -63,12 +77,38 @@ if (!isTest) {
 
 app.use(compression());
 
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-    contentSecurityPolicy: false,
-  }),
-);
+const apiHelmet = helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'none'"],
+      formAction: ["'none'"],
+    },
+  },
+  crossOriginResourcePolicy: { policy: 'same-origin' },
+});
+const swaggerHelmet = helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", 'data:'],
+    },
+  },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+});
+app.use((req, res, next) => {
+  if (req.path === '/api-docs' || req.path.startsWith('/api-docs/')) {
+    return swaggerHelmet(req, res, next);
+  }
+  return apiHelmet(req, res, next);
+});
 
 app.use(
   cors({
@@ -84,7 +124,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 const { strategy } = authInjector.get(
   PassportJwtStrategy,

@@ -55,11 +55,13 @@ export class AuthController {
         await this.authService.login(loginDto);
 
       res.cookie(ACCESS_TOKEN_COOKIE, accessToken, {
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: config.options.accessExpiration,
       });
 
       res.cookie(REFRESH_TOKEN_COOKIE, refreshToken, {
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: config.options.refreshExpiration,
       });
