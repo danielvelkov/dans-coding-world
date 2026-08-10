@@ -1,7 +1,7 @@
 # DansCodingWorld
 
 A task project for The Odin Project (TOP).
-A basic blog full stack app with an express backend and two React front ends:
+A basic blog full stack app with an express backend and two front ends:
 
 - one for the author(s) writing the posts, the moderators and admins (blog-admin)
 - one for the readers (public-blog)
@@ -20,9 +20,10 @@ This is a monorepo containing:
 
 - Backend: REST API built with Express
 - Frontend 1 - Public Blog: Web app built with React
-- Frontend 2 - Blog Editor: Web app built with React
+- Frontend 2 - Blog Editor: Web app built with Svelte-kit
 
 - Database: PostgreSQL
+- Image storage: Cloudinary
 
 ## Data-model
 
@@ -103,7 +104,7 @@ This is a monorepo containing:
 
    ```sh
    # Create .env files for each configuration in the root directory
-   # See all .env.example files for what to setup exactly
+   # See all .*.example files for what to setup exactly
    # Add necessary environment variables for database connection
    ```
 
