@@ -109,19 +109,18 @@
         {
           onSuccess: () => {
             onUserDelete({ id });
+            const isLastUser =
+              users.at(-1)?.id === id && users.length === 1 && total > 1;
+            if (isLastUser && params?.pageOffset && params.pageOffset > 0)
+              onParamsChange({
+                ...params,
+                pageOffset:
+                  params.pageOffset -
+                  (params.pageSize ?? PAGINATION.USERS.DEFAULT_ITEMS_PER_PAGE),
+              });
           },
         },
       );
-      // Go to previous page if deleting last user on current page
-      const isLastUser =
-        users.at(-1)?.id === id && users.length === 1 && total > 1;
-      if (isLastUser && params?.pageOffset && params.pageOffset > 0)
-        onParamsChange({
-          ...params,
-          pageOffset:
-            params.pageOffset -
-            (params.pageSize ?? PAGINATION.USERS.DEFAULT_ITEMS_PER_PAGE),
-        });
     }
   };
 

@@ -331,7 +331,7 @@ test.describe('User management page', () => {
           (r) => r !== user.role && r !== 'ADMIN',
         );
         const newRole = randomSelect(expectedRoles);
-        roleFilter.selectOption([newRole]);
+        await roleFilter.selectOption([newRole]);
         await dialog.getByRole('button', { name: /confirm change/i }).click();
         await waitOutLoader(page);
         await expect(dialog).not.toBeInViewport();
