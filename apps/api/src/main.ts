@@ -148,3 +148,28 @@ const server = app.listen(apiPort, () => {
   console.log(`Listening at http://${apiHost}:${apiPort}/api`);
 });
 server.on('error', console.error);
+
+const shutdownHandler = (signal: string) => {
+  console.log(`\n${signal} received. Starting graceful shutdown...`);
+
+  server.close((err) => {
+    if (err) {
+      console.error('Error during server shutdown:', err);
+      process.exit(1);
+    }
+
+    console.log('Server closed. No longer accepting connections.');
+    process.exit(0);
+  });
+
+  // Force shutdown if it takes too long
+  setTimeout(() => {
+    console.error(
+      'Could not close connections in time, forcefully shutting down',
+    );
+    process.exit(1);
+  }, 10000); // 10 seconds timeout
+};
+
+process.on('SIGTERM', () => shutdownHandler('SIGTERM'));
+process.on('SIGINT', () => shutdownHandler('SIGINT'));
