@@ -124,7 +124,7 @@ export class UsersController {
       return next(error);
     }
   }
-
+  
   @Authorized()
   async changePassword(req: Request, res: Response, next: NextFunction) {
     try {
