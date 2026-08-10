@@ -27,7 +27,7 @@ import {
 } from '@dans-coding-world/helpers';
 import { waitOutLoader } from '../../helpers/loading.helper';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 import type { ReportDetailExtended } from '@dans-coding-world/report-data-access';
 import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
 import { generateRandomComments } from '@dans-coding-world/shared-post-testing';

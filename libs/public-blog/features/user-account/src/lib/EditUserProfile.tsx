@@ -27,14 +27,14 @@ import {
   UserAvatar,
 } from '@dans-coding-world/public-blog-ui-common';
 import styled from 'styled-components';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 import { ShimmerProfile } from './components/ShimmerProfile';
 
 type ErrorMap<T> = Partial<Record<keyof T, string>>;
 type UpdateProfileErrors = ErrorMap<UpdateUserDto>;
 
 const allowedFileTypes = USER_CONSTRAINTS.AVATAR_IMAGE_ALLOWED_EXTENSIONS.map(
-  (ext) => `image/${ext.substring(1)}, ${ext}`
+  (ext) => `image/${ext.substring(1)}, ${ext}`,
 );
 
 const StyledFormContainer = styled(FormContainer)`
@@ -171,7 +171,7 @@ export function EditUserProfile({ userId }: { userId: number }) {
       });
     } else if (isAuthenticated && loggedInUser?.id !== userId) {
       const { error } = generateErrorResponseByErrorCode(
-        ERROR_CODES.SERVER.FORBIDDEN
+        ERROR_CODES.SERVER.FORBIDDEN,
       );
       throw error;
     } else if (isAuthenticated && loggedInUser?.profile)
@@ -210,7 +210,7 @@ export function EditUserProfile({ userId }: { userId: number }) {
   }, [apiError]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.currentTarget;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -221,7 +221,7 @@ export function EditUserProfile({ userId }: { userId: number }) {
     const file = e.target.files?.[0];
     if (file) {
       const isWrongType = !allowedFileTypes.some((type) =>
-        type.includes(file.type)
+        type.includes(file.type),
       );
       const isWrongSize = file.size >= USER_CONSTRAINTS.MAX_SIZE_AVATAR_IMAGE;
       if (!isWrongType && !isWrongSize) setAvatar(file);
@@ -294,7 +294,7 @@ export function EditUserProfile({ userId }: { userId: number }) {
           <p className="info">
             The supported image formats are{' '}
             {USER_CONSTRAINTS.AVATAR_IMAGE_ALLOWED_EXTENSIONS.map(
-              (ext) => ext.toUpperCase().substring(1) + 's'
+              (ext) => ext.toUpperCase().substring(1) + 's',
             ).join(' ') +
               ` under ${
                 USER_CONSTRAINTS.MAX_SIZE_AVATAR_IMAGE / 1024 / 1024

@@ -28,7 +28,7 @@ import {
   USER_REPOSITORY_TOKEN,
   POST_REPOSITORY_TOKEN,
 } from './posts.service.js';
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import {
   COMMENT_CONSTRAINTS,
   ERROR_CODES,

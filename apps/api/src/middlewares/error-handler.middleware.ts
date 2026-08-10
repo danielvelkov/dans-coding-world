@@ -3,7 +3,7 @@ import {
   ApiException,
   generateErrorResponse,
   generateErrorResponseByErrorCode,
-} from '@dans-coding-world/exceptions';
+} from '@dans-coding-world/api-exceptions';
 import {
   ERROR_CODES,
   ERROR_HTTP_STATUS,

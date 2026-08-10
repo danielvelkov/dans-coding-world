@@ -13,7 +13,7 @@ import {
 import { waitOutLoader } from '../helpers/loading.helper';
 import { expandPostRow, getPostRow } from '../helpers/posts-actions.helper';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 
 const publicBlogHost = process.env['VITE_PUBLIC_BLOG_HOST'];
 const publicBlogPort = process.env['VITE_PUBLIC_BLOG_PORT'];

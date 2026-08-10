@@ -5,7 +5,7 @@ import {
   JWT_STRATEGY_NAME,
   PassportJwtStrategy,
 } from '../strategies/jwt.strategy.js';
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 
 /**

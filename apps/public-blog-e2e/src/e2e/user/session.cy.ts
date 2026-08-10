@@ -5,7 +5,7 @@ import {
   ERROR_CODES,
   TOKEN_CONSTRAINTS,
 } from '@dans-coding-world/shared-constants';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 import { generateMockLoginResponse } from '@dans-coding-world/shared-user-testing';
 
 describe('User session', () => {

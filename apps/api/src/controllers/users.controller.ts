@@ -31,6 +31,7 @@ export class UsersController {
     this.changeBanStatus = this.changeBanStatus.bind(this);
     this.delete = this.delete.bind(this);
   }
+
   @Authorized()
   @BlockBanned()
   @RequiredRole('MOD', 'ADMIN')

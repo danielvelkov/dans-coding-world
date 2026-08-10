@@ -3,7 +3,7 @@ import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { waitFor } from '@testing-library/dom';
 import { useReportComment } from '../posts/useReportComment';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 
 vi.mock('@dans-coding-world/public-blog-data-access-api');
 

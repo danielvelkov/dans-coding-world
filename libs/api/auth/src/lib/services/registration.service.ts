@@ -7,7 +7,7 @@ import { IRegistrationService } from '../interfaces/registration-service.interfa
 import { Injectable, Inject } from 'injection-js';
 import type { IUserRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { transformAndValidateDto } from '@dans-coding-world/validation';
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { hashPassword } from '@dans-coding-world/helpers';
 

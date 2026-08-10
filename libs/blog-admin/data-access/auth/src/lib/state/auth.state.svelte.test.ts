@@ -6,7 +6,7 @@ import Wrapper from './Wrapper.test.svelte';
 import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { BaseResponse, ErrorResponse } from '@dans-coding-world/api-types';
 import { generateMockLoginResponse } from '@dans-coding-world/shared-user-testing';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 import {
   ERROR_CODES,
   TOKEN_CONSTRAINTS,

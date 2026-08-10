@@ -2,7 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import * as path from 'path';
 import authRouter from './routes/auth.router.js';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';

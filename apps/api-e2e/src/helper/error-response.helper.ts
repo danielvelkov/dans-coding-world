@@ -1,6 +1,6 @@
 import { ResponseErrorDetails } from '@dans-coding-world/api-types';
 import { AxiosError } from 'axios';
-import type { ValidationErrorDetails } from '@dans-coding-world/exceptions';
+import type { ValidationErrorDetails } from '@dans-coding-world/api-exceptions';
 import {
   type ErrorCode,
   ERROR_HTTP_STATUS,
