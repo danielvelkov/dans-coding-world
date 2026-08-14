@@ -16,7 +16,7 @@ const E2E_DB_NAME = process.env.E2E_DB_NAME || 'blog_db_e2e';
 
 const pgConfig = {
   user: process.env.PG_USER,
-  host: process.env.PG_API_HOST,
+  host: process.env.PG_HOST,
   password: process.env.PG_PASSWORD,
   database: process.env.PG_NAME,
   port: process.env.PG_PORT,
