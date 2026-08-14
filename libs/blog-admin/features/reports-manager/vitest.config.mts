@@ -1,27 +1,13 @@
 import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { playwright } from '@vitest/browser-playwright';
-import { loadEnv } from 'vite';
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-
-  const publicBlogHost = env.VITE_PUBLIC_BLOG_HOST;
-  const publicBlogPort = env.VITE_PUBLIC_BLOG_PORT;
-
-  if (!publicBlogHost || !publicBlogPort)
-    throw new Error(`Missing env variables`);
-
+export default defineConfig(() => {
   return {
     plugins: [svelte()],
     root: __dirname,
     cacheDir:
       '../../../../node_modules/.vite/blog-admin/features/reports-manager',
-    define: {
-      __PUBLIC_BLOG_URL__: JSON.stringify(
-        `http://${publicBlogHost}:${publicBlogPort}`,
-      ),
-    },
     // Configured for svelte
     test: {
       globals: true,

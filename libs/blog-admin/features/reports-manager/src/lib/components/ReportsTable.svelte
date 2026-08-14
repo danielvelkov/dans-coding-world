@@ -24,7 +24,7 @@
   import type { ReportsManagerParams } from '../types/reportsManagerParams.js';
   import ReportsFilter from './ReportsFilter.svelte';
 
-  const blogURL = __PUBLIC_BLOG_URL__;
+  const blogURL = import.meta.env.VITE_PUBLIC_BLOG_URL;
 
   interface Props {
     reports?: ReportDetail[];

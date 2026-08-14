@@ -1,27 +1,16 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { playwright } from '@vitest/browser-playwright';
 
-export default defineConfig(({ mode }) => {
-	const env = loadEnv(mode, process.cwd(), '');
-	const adminBlogPort = env.VITE_ADMIN_BLOG_PORT;
-	const publicBlogHost = env.VITE_PUBLIC_BLOG_HOST;
-	const publicBlogPort = env.VITE_PUBLIC_BLOG_PORT;
-	if (!adminBlogPort || !publicBlogHost || !publicBlogPort)
-		throw new Error(`Missing env variables`);
-
+export default defineConfig(() => {
 	return {
 		plugins: [tailwindcss(), sveltekit()],
-		define: {
-			// You need to stringify because because define doesn't accept arbitrary strings
-			__PUBLIC_BLOG_URL__: JSON.stringify(`http://${publicBlogHost}:${publicBlogPort}`)
-		},
 		ssr: {
 			noExternal: ['@tanstack/svelte-query']
 		},
 		server: {
-			port: +adminBlogPort,
+			port: 5173,
 			strictPort: true
 		},
 		preview: {

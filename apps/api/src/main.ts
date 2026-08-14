@@ -26,26 +26,17 @@ import tagsRouter from './routes/tags.router.js';
 import commentReportsRouter from './routes/comment-reports.router.js';
 import testDataRouter from './routes/test-data.router.js';
 
-const apiHost = process.env['API_HOST'];
-const apiPort = process.env['API_PORT'];
+const host = process.env['HOST'] ?? 'localhost';
+const port = process.env['PORT'] ?? 3000;
 
-const publicBlogHost = process.env['VITE_PUBLIC_BLOG_HOST'];
-const publicBlogPort = process.env['VITE_PUBLIC_BLOG_PORT'];
+const publicBlogURL = process.env['VITE_PUBLIC_BLOG_URL'];
+const adminBlogURL = process.env['VITE_ADMIN_BLOG_URL'];
+let apiURL = process.env['API_URL'];
 
-const adminBlogHost = process.env['VITE_ADMIN_BLOG_HOST'];
-const adminBlogPort = process.env['VITE_ADMIN_BLOG_PORT'];
-
-if (
-  !apiHost ||
-  !apiPort ||
-  !publicBlogHost ||
-  !publicBlogPort ||
-  !adminBlogHost ||
-  !adminBlogPort
-) {
+if (!publicBlogURL || !adminBlogURL) {
   console.error(
-    `Missing required environment variables: API_HOST, API_PORT, VITE_PUBLIC_BLOG_HOST,
-     VITE_PUBLIC_BLOG_PORT, VITE_ADMIN_BLOG_HOST, VITE_ADMIN_BLOG_PORT`,
+    `Missing required environment variables:
+     VITE_PUBLIC_BLOG_URL, VITE_ADMIN_BLOG_URL`,
   );
   process.exit(1);
 }
@@ -54,6 +45,14 @@ const isProd = process.env.NODE_ENV === 'production';
 const isTest = ['test', 'development', 'test_e2e'].includes(
   process.env.NODE_ENV ?? '',
 );
+
+if (isProd && !apiURL) {
+  console.error(
+    `Missing required environment variables:
+     API_URL`,
+  );
+  process.exit(1);
+} else apiURL = `http://${host}:${port}`;
 
 const app = express();
 if (isProd) app.set('trust proxy', true); // in production the app will likely run behind a reverse proxy. For cookies and rate limiting to work we must enable this val
@@ -114,11 +113,7 @@ app.use((req, res, next) => {
 app.use(
   cors({
     // allow only requests from that origin (*PORT is also part of origin)
-    origin: [
-      `http://${apiHost}:${apiPort}`,
-      `http://${publicBlogHost}:${publicBlogPort}`,
-      `http://${adminBlogHost}:${adminBlogPort}`,
-    ],
+    origin: [apiURL, publicBlogURL, adminBlogURL],
     credentials: true,
     exposedHeaders: ['set-cookie'],
   }),
@@ -161,7 +156,7 @@ const swaggerDocOptions = {
     },
     servers: [
       {
-        url: `http://${apiHost}:${apiPort}/api/v1`,
+        url: `${apiURL}/api/v1`,
       },
     ],
   },
@@ -185,8 +180,8 @@ app.use((req, res, next) => {
 
 app.use(errorHandler);
 
-const server = app.listen(apiPort, () => {
-  console.log(`Listening at http://${apiHost}:${apiPort}/api/v1`);
+const server = app.listen(port, () => {
+  console.log(`Listening at ${apiURL}/api/v1`);
 });
 server.on('error', console.error);
 

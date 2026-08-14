@@ -36,8 +36,8 @@ export interface Db {
 
 export const test = base.extend<{ db: Db }>({
   db: async ({ baseURL }, use) => {
-    const host = process.env.API_HOST ?? 'localhost';
-    const port = process.env.API_PORT ?? '3000';
+    const host = process.env.HOST ?? 'localhost';
+    const port = process.env.PORT ?? '3000';
     axios.defaults.baseURL = `http://${host}:${port}`;
 
     const db: Db = {

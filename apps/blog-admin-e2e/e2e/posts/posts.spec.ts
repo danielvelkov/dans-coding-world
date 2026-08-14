@@ -15,12 +15,7 @@ import { expandPostRow, getPostRow } from '../helpers/posts-actions.helper';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
 import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 
-const publicBlogHost = process.env['VITE_PUBLIC_BLOG_HOST'];
-const publicBlogPort = process.env['VITE_PUBLIC_BLOG_PORT'];
-if (!publicBlogHost || !publicBlogPort)
-  throw new Error('Missing env variables');
-
-const blogURL = `http://${publicBlogHost}:${publicBlogPort}`;
+const blogURL = process.env['VITE_PUBLIC_BLOG_URL'];
 
 function getVisiblePostsForUser(
   posts: Post[],

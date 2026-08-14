@@ -36,12 +36,10 @@ jobs:
       DATABASE_URL: postgresql://username:password@localhost:5432/blogs_db
       ACCESS_TOKEN_SECRET: 102j4102jas0f9j
       REFRESH_TOKEN_SECRET: 039j9309j3290j4
-      API_HOST: localhost
-      API_PORT: 3000
-      VITE_PUBLIC_BLOG_HOST: localhost
-      VITE_PUBLIC_BLOG_PORT: 4200
-      VITE_ADMIN_BLOG_HOST: localhost
-      VITE_ADMIN_BLOG_PORT: 5173
+      HOST: localhost
+      PORT: 3000
+      VITE_PUBLIC_BLOG_URL: http://localhost:4200
+      VITE_ADMIN_BLOG_URL: http://localhost:5173
 
     steps:
       - uses: actions/checkout@v4

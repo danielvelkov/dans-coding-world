@@ -33,12 +33,7 @@ import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
 import { generateRandomComments } from '@dans-coding-world/shared-post-testing';
 import { generateRandomCommentReports } from '@dans-coding-world/shared-report-testing';
 
-const publicBlogHost = process.env['VITE_PUBLIC_BLOG_HOST'];
-const publicBlogPort = process.env['VITE_PUBLIC_BLOG_PORT'];
-if (!publicBlogHost || !publicBlogPort)
-  throw new Error('Missing env variables');
-
-const blogURL = `http://${publicBlogHost}:${publicBlogPort}`;
+const blogURL = process.env['VITE_PUBLIC_BLOG_URL'];
 
 async function visitReport(page: Page, id: number) {
   await page.goto(`/reports/comments/${id}`);

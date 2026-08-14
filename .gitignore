@@ -51,3 +51,5 @@ test-output
 .claude/worktrees
 .nx/polygraph
 .nx/self-healing
+
+apps/public-blog-e2e/src/fixtures/user/avatar.*

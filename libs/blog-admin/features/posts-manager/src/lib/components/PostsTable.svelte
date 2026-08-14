@@ -29,7 +29,7 @@
   import { debounceCallback } from '@dans-coding-world/blog-admin-data-access-operations';
   import PostsFilter from './PostsFilter.svelte';
 
-  const blogURL = __PUBLIC_BLOG_URL__;
+  const blogURL = import.meta.env.VITE_PUBLIC_BLOG_URL;
 
   interface Props {
     posts?: PostFull[];

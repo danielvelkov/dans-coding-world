@@ -9,25 +9,29 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '../../libs/shared/data-access/api/src/lib/routes';
 import fs from 'fs/promises';
 
-const host = process.env.API_HOST ?? 'localhost';
-const port = process.env.API_PORT ?? '3000';
+const host = process.env.HOST ?? 'localhost';
+const port = process.env.PORT ?? '3000';
 axios.defaults.baseURL = `http://${host}:${port}`;
 
 const nxConfig = nxE2EPreset(__filename, {
   cypressDir: 'src',
   bundler: 'vite',
   webServerCommands: {
-    default: 'npx nx run public-blog:serve:e2e',
+    default: 'npx nx run public-blog:preview:e2e',
   },
-  ciWebServerCommand: 'npx nx run public-blog:serve:e2e',
+  ciWebServerCommand: 'npx nx run public-blog:preview:e2e',
   ciBaseUrl: 'http://localhost:4200',
 });
 
 export default defineConfig({
   e2e: {
     ...nxConfig,
+    screenshotOnRunFailure: false,
+    retries: {
+      openMode: undefined,
+      runMode: 3,
+    },
     baseUrl: 'http://localhost:4200',
-    experimentalMemoryManagement: true,
     async setupNodeEvents(on, config) {
       // IMPORTANT: Execute the Nx preset's node events first
       if (nxConfig.setupNodeEvents) {
