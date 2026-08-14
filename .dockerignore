@@ -1,0 +1,16 @@
+.nx/
+dist/
+.prisma/
+
+tmp/
+uploads/
+
+\*.env
+.env
+
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+\*\*/.git
