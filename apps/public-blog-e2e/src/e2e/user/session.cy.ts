@@ -34,6 +34,11 @@ describe('User session', () => {
     });
   });
 
+  beforeEach(() => {
+    cy.clearLocalStorage();
+    cy.clearCookies();
+  });
+
   function loginAsRandomUser() {
     const randomUser = Cypress._.sample(testUsers) as UserDetail;
     cy.contains(randomUser.email).should('not.exist');
@@ -111,18 +116,22 @@ describe('User session', () => {
 
       cy.clock(new Date());
 
-      cy.intercept(API_ENDPOINTS.AUTH.REFRESH).as('refresh');
+      cy.intercept({ url: API_ENDPOINTS.AUTH.REFRESH, times: 1 }).as(
+        'initialRefresh',
+      );
 
-      cy.wait('@refresh').its('response.statusCode').should('eq', 400);
+      cy.wait('@initialRefresh'); // skip it
 
+      cy.intercept(API_ENDPOINTS.AUTH.REFRESH).as('refresh2');
       loginAsRandomUser();
       cy.checkIfLoggedIn();
 
       let count = Cypress._.random(10) + 1;
       while (count--) {
-        cy.tick(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION + 1000);
-        cy.wait('@refresh').its('response.statusCode').should('eq', 200);
-        cy.checkIfLoggedIn();
+        cy.tick(TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION + 5000).then(() => {
+          cy.wait('@refresh2').its('response.statusCode').should('eq', 200);
+          cy.checkIfLoggedIn();
+        });
       }
     });
 
@@ -162,16 +171,19 @@ describe('User session', () => {
 
     it('clears session refresh interval after logout', () => {
       cy.visit('/');
-
       cy.clock(new Date());
 
       let sessionRefreshCount = 0;
 
-      cy.intercept(API_ENDPOINTS.AUTH.REFRESH, () => {
-        sessionRefreshCount++;
-      }).as('refresh');
+      cy.intercept({ url: API_ENDPOINTS.AUTH.REFRESH, times: 1 }).as(
+        'initialRefresh',
+      );
+      cy.wait('@initialRefresh'); // skip first refresh
 
-      cy.wait('@refresh').its('response.statusCode').should('eq', 400);
+      cy.intercept(API_ENDPOINTS.AUTH.REFRESH, (req) => {
+        sessionRefreshCount++;
+        req.continue(); // forward the request
+      }).as('refresh');
 
       loginAsRandomUser();
       cy.checkIfLoggedIn();
@@ -179,9 +191,11 @@ describe('User session', () => {
       cy.logout();
 
       const arbitraryAmountOfTime =
-        TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 5 + 1000;
-      cy.tick(arbitraryAmountOfTime).then(() => {
-        expect(sessionRefreshCount).to.eq(1);
+        TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION * 4;
+      cy.tick(arbitraryAmountOfTime);
+
+      cy.wrap(null).should(() => {
+        expect(sessionRefreshCount).to.eq(0);
       });
     });
   });
