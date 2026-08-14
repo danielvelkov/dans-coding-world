@@ -1,27 +1,39 @@
-<script lang="ts">
-  import { Button, Modal } from '@dans-coding-world/blog-admin-ui-common';
-  import type { PostFull } from '@dans-coding-world/post-data-access';
+<script lang="ts" generics="T extends Record<string, unknown>">
+  import Button from './Button.svelte';
+  import Modal from './Modal.svelte';
 
-  interface Props {
-    postForDeletion: PostFull | null;
-    onPostDelete?: (id: number) => void;
+  type Props = {
+    entityLabel: string;
+    entity: (T & { id: number }) | null;
+    displayKey: keyof T & string;
+    onDelete?: (id: number) => void;
+    onClose?: () => void;
+  };
+
+  let {
+    entityLabel,
+    entity = $bindable(),
+    displayKey,
+    onDelete,
+    onClose,
+  }: Props = $props();
+
+  function handleClose() {
+    entity = null;
+    onClose?.();
   }
 
-  let { postForDeletion = $bindable(), onPostDelete }: Props = $props();
+  function handleDelete() {
+    if (entity) onDelete?.(entity.id);
+    entity = null;
+  }
 </script>
 
-<Modal
-  open
-  modalTitle={'Confirm Delete'}
-  closedby="none"
-  onClose={() => {
-    postForDeletion = null;
-  }}
->
+<Modal open modalTitle="Confirm Delete" closedby="none" onClose={handleClose}>
   <div class="flex flex-col gap-6 max-w-sm">
     <div class="flex flex-col gap-2 text-sm text-(--color-text-secondary)">
       <p class="leading-relaxed">
-        You are about to permanently delete this post:
+        You are about to permanently delete this {entityLabel}:
       </p>
 
       <div
@@ -31,9 +43,9 @@
         <i
           class="not-italic font-medium text-(--color-text-primary) block
              truncate line-clamp-1"
-          title={postForDeletion?.title}
+          title={String(entity?.[displayKey])}
         >
-          {postForDeletion?.title}
+          {entity?.[displayKey]}
         </i>
       </div>
 
@@ -48,9 +60,7 @@
     >
       <button
         type="button"
-        onclick={() => {
-          postForDeletion = null;
-        }}
+        onclick={handleClose}
         class="px-4 py-2 text-sm font-medium rounded-md text-(--color-text-secondary)
            hover:bg-(--color-bg-surface-hover) active:bg-(--color-bg-surface-active)
             transition-colors"
@@ -59,14 +69,11 @@
       </button>
 
       <Button
-        onclick={() => {
-          if (postForDeletion) onPostDelete?.(postForDeletion.id);
-          postForDeletion = null;
-        }}
+        onclick={handleDelete}
         class="disabled:bg-(--color-error-muted) hover:bg-(--color-error-muted) text-white
            font-medium px-4 py-2 rounded-md shadow-xs transition-colors text-sm"
       >
-        Delete Post
+        Delete {entityLabel}
       </Button>
     </div>
   </div>

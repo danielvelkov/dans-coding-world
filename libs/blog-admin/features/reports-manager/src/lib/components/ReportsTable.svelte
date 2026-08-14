@@ -19,10 +19,10 @@
     Select,
     Table,
     ReportStatusPill,
+    GenericDeleteDialog,
   } from '@dans-coding-world/blog-admin-ui-common';
   import type { ReportsManagerParams } from '../types/reportsManagerParams.js';
   import ReportsFilter from './ReportsFilter.svelte';
-  import ReportDeleteDialog from './ReportDeleteDialog.svelte';
 
   const blogURL = __PUBLIC_BLOG_URL__;
 
@@ -403,6 +403,10 @@
 {/snippet}
 
 {#if reportForDeletion}
-  <ReportDeleteDialog bind:reportForDeletion {onReportDelete}
-  ></ReportDeleteDialog>
+  <GenericDeleteDialog
+    entityLabel="report"
+    bind:entity={reportForDeletion}
+    displayKey="reason"
+    onDelete={onReportDelete}
+  ></GenericDeleteDialog>
 {/if}

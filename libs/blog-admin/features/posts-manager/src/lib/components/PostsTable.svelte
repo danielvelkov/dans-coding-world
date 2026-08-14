@@ -23,11 +23,11 @@
     Table,
     Input,
     Pill,
+    GenericDeleteDialog,
   } from '@dans-coding-world/blog-admin-ui-common';
   import type { PostsManagerParams } from '../types/postsManagerParams.js';
   import { debounceCallback } from '@dans-coding-world/blog-admin-data-access-operations';
   import PostsFilter from './PostsFilter.svelte';
-  import PostDeleteDialog from './PostDeleteDialog.svelte';
 
   const blogURL = __PUBLIC_BLOG_URL__;
 
@@ -390,5 +390,10 @@
 {/snippet}
 
 {#if postForDeletion}
-  <PostDeleteDialog bind:postForDeletion {onPostDelete}></PostDeleteDialog>
+  <GenericDeleteDialog
+    entityLabel="post"
+    bind:entity={postForDeletion}
+    displayKey="title"
+    onDelete={onPostDelete}
+  ></GenericDeleteDialog>
 {/if}
