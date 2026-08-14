@@ -6,11 +6,10 @@ import { loadEnv } from 'vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
-  const adminBlogPort = env.VITE_ADMIN_BLOG_PORT;
   const publicBlogHost = env.VITE_PUBLIC_BLOG_HOST;
   const publicBlogPort = env.VITE_PUBLIC_BLOG_PORT;
 
-  if (!adminBlogPort || !publicBlogHost || !publicBlogPort)
+  if (!publicBlogHost || !publicBlogPort)
     throw new Error(`Missing env variables`);
   return {
     plugins: [svelte()],

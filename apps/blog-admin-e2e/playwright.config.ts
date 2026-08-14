@@ -22,8 +22,6 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     baseURL: `http://${adminBlogHost}:${adminBlogPort}`,
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
   },
   maxFailures: process.env.CI ? 1 : 0,
   // (DO NOT CHANGE) Specify workers to 1 to provide stability and reproductivity

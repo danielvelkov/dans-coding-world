@@ -186,7 +186,7 @@ app.use((req, res, next) => {
 app.use(errorHandler);
 
 const server = app.listen(apiPort, () => {
-  console.log(`Listening at http://${apiHost}:${apiPort}/api`);
+  console.log(`Listening at http://${apiHost}:${apiPort}/api/v1`);
 });
 server.on('error', console.error);
 
