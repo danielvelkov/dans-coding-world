@@ -1,0 +1,42 @@
+FROM node:20-slim
+
+### Build time env - these variables are used during build time in vitest/vite config files
+ARG VITE_PUBLIC_BLOG_HOST
+ENV VITE_PUBLIC_BLOG_HOST=$VITE_PUBLIC_BLOG_HOST
+ARG VITE_PUBLIC_BLOG_PORT
+ENV VITE_PUBLIC_BLOG_PORT=$VITE_PUBLIC_BLOG_PORT
+ARG API_HOST
+ENV API_HOST=$API_HOST
+ARG API_PORT
+ENV API_PORT=$API_PORT
+ARG VITE_ADMIN_BLOG_PORT
+ENV VITE_ADMIN_BLOG_PORT=$VITE_ADMIN_BLOG_PORT
+
+# Disable nx daemon for nx project graph to sync
+ENV NX_DAEMON=false 
+
+WORKDIR /app
+
+RUN apt-get update -y && apt-get install -y openssl
+
+# Copy package files first for layer caching
+COPY package*.json ./
+# Nested packages: because blog-admin project is imported into nx it has its own package.json
+COPY apps/blog-admin/package*.json ./apps/blog-admin/
+
+# Install root dependencies
+RUN npm ci
+
+# Install nested project dependencies
+RUN cd apps/blog-admin && npm ci
+
+# Copy the rest of the source code
+COPY . .
+# Force npm ci to install devDependencies (where 'nx' lives)
+RUN npm ci --include=dev
+
+# Call local nx directly from node_modules (bypasses npx search entirely)
+RUN ./node_modules/.bin/nx run-many -t build --skipNxCache
+
+RUN npm run create-db
+CMD ["npx", "nx", "generate-types", "prisma-schema"]
