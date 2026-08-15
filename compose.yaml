@@ -4,11 +4,10 @@ services:
       context: .
       dockerfile: ./Dockerfile.setup
       args:
-        VITE_PUBLIC_BLOG_HOST: ${VITE_PUBLIC_BLOG_HOST}
-        VITE_PUBLIC_BLOG_PORT: ${VITE_PUBLIC_BLOG_PORT}
-        VITE_ADMIN_BLOG_PORT: ${VITE_ADMIN_BLOG_PORT}
-        API_HOST: ${API_HOST}
-        API_PORT: ${API_PORT}
+        VITE_PUBLIC_BLOG_URL: ${VITE_PUBLIC_BLOG_URL}
+        VITE_ADMIN_BLOG_URL: ${VITE_ADMIN_BLOG_URL}
+        HOST: ${HOST}
+        PORT: ${PORT}
     env_file:
       - .env
     environment:
