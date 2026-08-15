@@ -25,6 +25,7 @@ services:
     env_file:
       - .env
     environment:
+      NODE_ENV: test
       NX_WORKSPACE_ROOT: /app
       PRISMA_QUERY_ENGINE_LIBRARY: /app/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
       DATABASE_URL: postgresql://username:password@postgres:5432/blogs_db
@@ -53,7 +54,6 @@ services:
       NX_WORKSPACE_ROOT: /app
       PRISMA_QUERY_ENGINE_LIBRARY: /app/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
       DATABASE_URL: postgresql://username:password@postgres:5432/blogs_db
-      PORT: 4200
     depends_on:
       setup:
         condition: service_completed_successfully
@@ -61,6 +61,62 @@ services:
         condition: service_started
       postgres:
         condition: service_healthy
+
+  admin-blog:
+    image: node:20-slim
+    working_dir: /app/apps/blog-admin
+    command: npx vite preview --host 0.0.0.0 --port 5173
+    volumes:
+      - build-output:/app
+    ports:
+      - 5173:5173
+    env_file:
+      - .env
+    environment:
+      NX_WORKSPACE_ROOT: /app
+      PRISMA_QUERY_ENGINE_LIBRARY: /app/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+      DATABASE_URL: postgresql://username:password@postgres:5432/blogs_db
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+  seed-db:
+    image: curlimages/curl:latest
+    command: >
+      sh -c "
+        echo '⏳ Waiting for API to be ready...' &&
+        until curl -s http://api:3000/health > /dev/null; do sleep 1; done &&
+        
+        echo '🌱 Seeding Users...' &&
+        curl -X POST 'http://api:3000/test/users?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Profiles...' &&
+        curl -X POST 'http://api:3000/test/profiles?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Tags...' &&
+        curl -X POST 'http://api:3000/test/tags?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Posts...' &&
+        curl -X POST 'http://api:3000/test/posts?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Comments...' &&
+        curl -X POST 'http://api:3000/test/comments?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Reports...' &&
+        curl -X POST 'http://api:3000/test/reports?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Report Histories...' &&
+        curl -X POST 'http://api:3000/test/report-history?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🎉 Database seeding complete!'
+      "
+    depends_on:
+      api:
+        condition: service_started
 
   postgres:
     image: postgres:15
