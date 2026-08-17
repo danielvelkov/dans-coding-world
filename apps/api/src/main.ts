@@ -55,7 +55,7 @@ if (isProd && !apiURL) {
 } else apiURL = `http://${host}:${port}`;
 
 const app = express();
-if (isProd) app.set('trust proxy', true); // in production the app will likely run behind a reverse proxy. For cookies and rate limiting to work we must enable this val
+if (isProd) app.set('trust proxy', 1); // in production the app will likely run behind a reverse proxy. For cookies and rate limiting to work we must set this to 1
 
 // This is per user. Each window is a specific IP address
 if (isProd) {

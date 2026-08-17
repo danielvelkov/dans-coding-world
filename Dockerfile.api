@@ -1,0 +1,41 @@
+FROM node:20-slim AS builder
+ENV NX_DAEMON=false 
+ENV NX_WORKSPACE_ROOT=/app
+
+WORKDIR /app
+
+# Copy workspace files first (better layer caching)
+COPY package*.json ./
+RUN npm ci 
+
+COPY . .
+RUN npm ci --include=dev
+
+# Generate prisma types for api
+RUN cd libs/prisma-schema && npx prisma generate --schema=./prisma/schema.prisma
+RUN ./node_modules/.bin/nx build api --skipNxCache --configuration=production
+
+# --- Production stage ---
+FROM node:20-slim
+
+WORKDIR /app
+# Prisma requires openssl
+RUN apt-get update -y && apt-get install -y openssl
+
+# Copy only what's needed to run
+COPY --from=builder /app/apps/api/dist ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/libs/prisma-schema ./libs/prisma-schema
+COPY package.json ./
+
+ENV NODE_ENV=production
+ENV NX_DAEMON=false 
+# We use this for the file upload middleware
+ENV NX_WORKSPACE_ROOT=/app
+# This is because prisma can't find the engine if the prisma folder is somewhere different than root 
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+
+EXPOSE 3000
+
+# This runs at CONTAINER START, not build time — DATABASE_URL is available here through env variables
+CMD npx prisma migrate deploy --schema=./libs/prisma-schema/prisma/schema.prisma && node main.js
