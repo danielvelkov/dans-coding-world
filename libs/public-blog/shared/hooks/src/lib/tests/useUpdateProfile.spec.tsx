@@ -8,7 +8,7 @@ import {
 } from '@dans-coding-world/shared-user-testing';
 import { useUpdateProfile } from '../users/useUpdateProfile';
 import { AuthProvider } from '../users/providers/AuthProvider';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 import { QueryClient } from '@tanstack/react-query';
 
 const mockLoginResponse = generateMockLoginResponse({});

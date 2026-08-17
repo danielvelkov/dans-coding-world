@@ -21,7 +21,7 @@
     type ReportAction,
   } from './shared/report-details.constants.js';
 
-  const blogURL = __PUBLIC_BLOG_URL__;
+  const blogURL = import.meta.env.VITE_PUBLIC_BLOG_URL
   let errorEl: HTMLElement | null = null;
 
   let currentAction: ReportAction | null = $state(null);

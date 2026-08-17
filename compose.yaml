@@ -1,0 +1,136 @@
+services:
+  setup:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.setup
+      args:
+        VITE_PUBLIC_BLOG_URL: ${VITE_PUBLIC_BLOG_URL}
+        VITE_ADMIN_BLOG_URL: ${VITE_ADMIN_BLOG_URL}
+        HOST: ${HOST}
+        PORT: ${PORT}
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://username:password@postgres:5432/blogs_db
+    volumes:
+      - build-output:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    image: node:20-slim
+    working_dir: /app
+    command: sh -c "apt-get update -y && apt-get install -y openssl && node apps/api/dist/main.js"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: test
+      NX_WORKSPACE_ROOT: /app
+      PRISMA_QUERY_ENGINE_LIBRARY: /app/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+      DATABASE_URL: postgresql://username:password@postgres:5432/blogs_db
+      PORT: 3000
+    ports:
+      - 3000:3000
+    volumes:
+      - build-output:/app
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+  public-blog:
+    image: node:20-slim
+    working_dir: /app
+    command: npx serve -s apps/public-blog/dist -l 4200
+    volumes:
+      - build-output:/app
+    ports:
+      - 4200:4200
+    env_file:
+      - .env
+    environment:
+      NX_WORKSPACE_ROOT: /app
+      PRISMA_QUERY_ENGINE_LIBRARY: /app/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+      DATABASE_URL: postgresql://username:password@postgres:5432/blogs_db
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+  blog-admin:
+    image: node:20-slim
+    working_dir: /app/apps/blog-admin
+    command: npx vite preview --host 0.0.0.0 --port 5173
+    volumes:
+      - build-output:/app
+    ports:
+      - 5173:5173
+    env_file:
+      - .env
+    environment:
+      NX_WORKSPACE_ROOT: /app
+      PRISMA_QUERY_ENGINE_LIBRARY: /app/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+      DATABASE_URL: postgresql://username:password@postgres:5432/blogs_db
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+  seed-db:
+    image: curlimages/curl:latest
+    command: >
+      sh -c "
+        echo '⏳ Waiting for API to be ready...' &&
+        until curl -s http://api:3000/health > /dev/null; do sleep 1; done &&
+        
+        echo '🌱 Seeding Users...' &&
+        curl -X POST 'http://api:3000/test/users?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Profiles...' &&
+        curl -X POST 'http://api:3000/test/profiles?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Tags...' &&
+        curl -X POST 'http://api:3000/test/tags?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Posts...' &&
+        curl -X POST 'http://api:3000/test/posts?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Comments...' &&
+        curl -X POST 'http://api:3000/test/comments?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Reports...' &&
+        curl -X POST 'http://api:3000/test/reports?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🌱 Seeding Report Histories...' &&
+        curl -X POST 'http://api:3000/test/report-history?useDefaults=true' -H 'Content-Type: application/json' -d '{}' &&
+        
+        echo '\n🎉 Database seeding complete!'
+      "
+    depends_on:
+      api:
+        condition: service_started
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: blogs_db
+    ports:
+      - 6543:5432
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  build-output:

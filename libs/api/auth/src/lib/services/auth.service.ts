@@ -10,7 +10,7 @@ import {
   RefreshTokenDto,
 } from '@dans-coding-world/shared-auth-dto';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import { validPassword } from '@dans-coding-world/helpers';
 import { Inject, Injectable } from 'injection-js';
 import type { AuthConfiguration } from '../config/auth.config.js';

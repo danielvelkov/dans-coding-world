@@ -6,7 +6,11 @@ import {
   GetReportsDto,
   UpdateReportDto,
 } from '@dans-coding-world/shared-report-dto';
-import { Authorized, RequiredRole } from '@dans-coding-world/api-auth';
+import {
+  Authorized,
+  BlockBanned,
+  RequiredRole,
+} from '@dans-coding-world/api-auth';
 import { SUCCESS_MESSAGES } from '@dans-coding-world/shared-constants';
 import { ICommentReportsService } from '@dans-coding-world/api-reports';
 import type { User } from '@dans-coding-world/prisma-schema';
@@ -60,6 +64,7 @@ export class CommentReportsController {
   }
 
   @Authorized()
+  @BlockBanned()
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as User;
@@ -71,7 +76,7 @@ export class CommentReportsController {
 
       const report = await this.reportsService.create(createReportDto);
 
-      return res.status(StatusCodes.OK).json({
+      return res.status(StatusCodes.CREATED).json({
         message: SUCCESS_MESSAGES.REPORTS.create,
         report,
       });

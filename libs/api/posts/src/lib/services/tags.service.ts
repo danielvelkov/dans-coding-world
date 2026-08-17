@@ -10,7 +10,7 @@ import {
 import { Inject, Injectable } from 'injection-js';
 import type { ITagRepository } from '@dans-coding-world/shared-data-access-interfaces';
 import { transformAndValidateDto } from '@dans-coding-world/validation';
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { ITagsService } from '../interfaces/tags-service.interface.js';
 

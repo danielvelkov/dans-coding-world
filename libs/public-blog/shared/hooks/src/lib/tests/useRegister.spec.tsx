@@ -9,7 +9,7 @@ import {
 } from '@dans-coding-world/shared-user-testing';
 import { useRegister } from '../users/useRegister';
 import { AuthProvider } from '../users/providers/AuthProvider';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 
 const mockLoginResponse = generateMockLoginResponse({});
 const mockUserResponse = generateMockUserResponse({

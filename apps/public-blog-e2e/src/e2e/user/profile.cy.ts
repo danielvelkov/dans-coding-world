@@ -155,10 +155,10 @@ describe('User - profile page', () => {
 
     beforeEach(() => {
       currentTestUser = Cypress._.sample(testUsers) as UserDetail;
-      cy.visit(`/users/${currentTestUser.id}/edit`);
     });
 
     it('if not logged in - should navigate to login page ', () => {
+      cy.visit(`/users/${currentTestUser.id}/edit`);
       cy.url().should('include', `/login`);
     });
 

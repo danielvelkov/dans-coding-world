@@ -28,16 +28,6 @@ module.exports = {
     }),
     new CopyWebpackPlugin({
       patterns: [
-        // {
-        //   from: enginePath,
-        //   to: 'src/generated/prisma/',
-        //   noErrorOnMissing: false,
-        // },
-        // {
-        //   from: enginePath,
-        //   to: '.prisma/client/',
-        //   noErrorOnMissing: false,
-        // },
         ...(!isCI
           ? [
               {

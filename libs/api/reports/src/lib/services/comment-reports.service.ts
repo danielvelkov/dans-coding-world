@@ -28,7 +28,7 @@ import type {
   IUserRepository,
 } from '@dans-coding-world/shared-data-access-interfaces';
 import { transformAndValidateDto } from '@dans-coding-world/validation';
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import {
   ERROR_CODES,
   PAGINATION,

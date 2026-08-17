@@ -3,7 +3,7 @@ import {
   ApiException,
   generateErrorResponse,
   generateErrorResponseByErrorCode,
-} from '@dans-coding-world/exceptions';
+} from '@dans-coding-world/api-exceptions';
 import {
   ERROR_CODES,
   ERROR_HTTP_STATUS,
@@ -24,6 +24,9 @@ export function errorHandler(
     );
     res.status(err.statusCode).json(response);
   } else {
+    if (process.env.NODE_ENV === 'production') {
+      console.error(err);
+    }
     const response = generateErrorResponseByErrorCode(
       ERROR_CODES.SERVER.INTERNAL_ERROR,
     );
@@ -31,5 +34,4 @@ export function errorHandler(
       .status(ERROR_HTTP_STATUS[ERROR_CODES.SERVER.INTERNAL_ERROR])
       .json(response);
   }
-  next();
 }

@@ -1,4 +1,4 @@
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import type { User } from '@dans-coding-world/prisma-schema';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { Request, Response, NextFunction } from 'express';

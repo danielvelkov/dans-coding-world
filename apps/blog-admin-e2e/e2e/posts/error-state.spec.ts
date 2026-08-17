@@ -5,7 +5,7 @@ import {
   loginAsRandomUser,
 } from '../helpers/user-login.helper';
 import type { User } from '@dans-coding-world/prisma-schema';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 
 test.describe('Posts page - error state', () => {

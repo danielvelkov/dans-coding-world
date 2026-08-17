@@ -91,7 +91,7 @@ export class CommentsController {
 
       const comment = await this.commentService.create(createCommentDto);
 
-      return res.status(StatusCodes.OK).json({
+      return res.status(StatusCodes.CREATED).json({
         message: SUCCESS_MESSAGES.COMMENTS.create,
         comment,
       });

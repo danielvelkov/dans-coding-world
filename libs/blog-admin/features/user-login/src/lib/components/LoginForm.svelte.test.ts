@@ -2,7 +2,7 @@ import { type ComponentProps } from 'svelte';
 import { render } from 'vitest-browser-svelte';
 import { expect, it, describe } from 'vitest';
 import LoginForm from './LoginForm.svelte';
-import { createValidationErrorDetailsList } from '@dans-coding-world/exceptions';
+import { createValidationErrorDetailsList } from '@dans-coding-world/api-exceptions';
 import type { ResponseErrorDetails } from '@dans-coding-world/api-types';
 
 describe('LoginForm', () => {

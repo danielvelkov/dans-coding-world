@@ -2,7 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import * as path from 'path';
 import authRouter from './routes/auth.router.js';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
@@ -26,25 +26,39 @@ import tagsRouter from './routes/tags.router.js';
 import commentReportsRouter from './routes/comment-reports.router.js';
 import testDataRouter from './routes/test-data.router.js';
 
-const apiHost = process.env['API_HOST'];
-const apiPort = process.env['API_PORT'];
+const host = process.env['HOST'] ?? 'localhost';
+const port = process.env['PORT'] ?? 3000;
 
-const publicBlogHost = process.env['VITE_PUBLIC_BLOG_HOST'];
-const publicBlogPort = process.env['VITE_PUBLIC_BLOG_PORT'];
+const publicBlogURL = process.env['VITE_PUBLIC_BLOG_URL'];
+const adminBlogURL = process.env['VITE_ADMIN_BLOG_URL'];
+let apiURL = process.env['API_URL'];
 
-const adminBlogHost = process.env['VITE_ADMIN_BLOG_HOST'];
-const adminBlogPort = process.env['VITE_ADMIN_BLOG_PORT'];
+if (!publicBlogURL || !adminBlogURL) {
+  console.error(
+    `Missing required environment variables:
+     VITE_PUBLIC_BLOG_URL, VITE_ADMIN_BLOG_URL`,
+  );
+  process.exit(1);
+}
 
-const isTest =
-  process.env.NODE_ENV === 'test' ||
-  process.env.NODE_ENV === 'development' ||
-  process.env.NODE_ENV === 'test_e2e' ||
-  process.env.NODE_ENV !== 'production'; // TODO: this is not right imo
+const isProd = process.env.NODE_ENV === 'production';
+const isTest = ['test', 'development', 'test_e2e'].includes(
+  process.env.NODE_ENV ?? '',
+);
+
+if (isProd && !apiURL) {
+  console.error(
+    `Missing required environment variables:
+     API_URL`,
+  );
+  process.exit(1);
+} else if (!apiURL) apiURL = `http://${host}:${port}`;
 
 const app = express();
+if (isProd) app.set('trust proxy', 1); // in production the app will likely run behind a reverse proxy. For cookies and rate limiting to work we must set this to 1
 
 // This is per user. Each window is a specific IP address
-if (!isTest) {
+if (isProd) {
   app.use(
     slowDown({
       windowMs: 15 * 60 * 1000, // 15 mins
@@ -63,28 +77,50 @@ if (!isTest) {
 
 app.use(compression());
 
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-    contentSecurityPolicy: false,
-  }),
-);
+const apiHelmet = helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'none'"],
+      formAction: ["'none'"],
+    },
+  },
+  crossOriginResourcePolicy: { policy: 'same-origin' },
+});
+const swaggerHelmet = helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", 'data:'],
+    },
+  },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+});
+app.use((req, res, next) => {
+  if (req.path === '/api-docs' || req.path.startsWith('/api-docs/')) {
+    return swaggerHelmet(req, res, next);
+  }
+  return apiHelmet(req, res, next);
+});
 
 app.use(
   cors({
     // allow only requests from that origin (*PORT is also part of origin)
-    origin: [
-      `http://${apiHost}:${apiPort}`,
-      `http://${publicBlogHost}:${publicBlogPort}`,
-      `http://${adminBlogHost}:${adminBlogPort}`,
-    ],
+    origin: [apiURL, publicBlogURL, adminBlogURL],
     credentials: true,
     exposedHeaders: ['set-cookie'],
   }),
 );
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 const { strategy } = authInjector.get(
   PassportJwtStrategy,
@@ -120,7 +156,7 @@ const swaggerDocOptions = {
     },
     servers: [
       {
-        url: `http://${apiHost}:${apiPort}/api/v1`,
+        url: `${apiURL}/api/v1`,
       },
     ],
   },
@@ -144,7 +180,32 @@ app.use((req, res, next) => {
 
 app.use(errorHandler);
 
-const server = app.listen(apiPort, () => {
-  console.log(`Listening at http://${apiHost}:${apiPort}/api`);
+const server = app.listen(port, () => {
+  console.log(`Listening at ${apiURL}/api/v1`);
 });
 server.on('error', console.error);
+
+const shutdownHandler = (signal: string) => {
+  console.log(`\n${signal} received. Starting graceful shutdown...`);
+
+  server.close((err) => {
+    if (err) {
+      console.error('Error during server shutdown:', err);
+      process.exit(1);
+    }
+
+    console.log('Server closed. No longer accepting connections.');
+    process.exit(0);
+  });
+
+  // Force shutdown if it takes too long
+  setTimeout(() => {
+    console.error(
+      'Could not close connections in time, forcefully shutting down',
+    );
+    process.exit(1);
+  }, 10000); // 10 seconds timeout
+};
+
+process.on('SIGTERM', () => shutdownHandler('SIGTERM'));
+process.on('SIGINT', () => shutdownHandler('SIGINT'));

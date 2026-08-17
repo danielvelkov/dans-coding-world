@@ -1,7 +1,7 @@
 # DansCodingWorld
 
 A task project for The Odin Project (TOP).
-A basic blog full stack app with an express backend and two React front ends:
+A basic blog full stack app with an express backend and two front ends:
 
 - one for the author(s) writing the posts, the moderators and admins (blog-admin)
 - one for the readers (public-blog)
@@ -14,15 +14,22 @@ Whats the point of adding content moderation to this simple blog project?
 Idk, it seemed nice to have at the beginning, but now I regret it immensely.
 At its current state it doesn't even work properly.
 
+## [LIVE PREVIEW API 📺](https://dans-coding-world-api-production.up.railway.app/api-docs/)
+
+## [LIVE PREVIEW PUBLIC BLOG 📺](https://danscodingworld.netlify.app/)
+
+## [LIVE PREVIEW ADMIN BLOG 📺](https://danscodingworld-dashboard.netlify.app/)
+
 ## Architecture
 
-This is a monorepo containing:
+This is an Nx monorepo containing:
 
-- Backend: REST API built with Express
-- Frontend 1 - Public Blog: Web app built with React
-- Frontend 2 - Blog Editor: Web app built with React
+- Backend: REST API built with Express + Prisma, deployed via Docker to Railway
+- Frontend 1 - Public Blog: Web app built with React + Vite, deployed to Netlify
+- Frontend 2 - Blog Admin: Web app built with SvelteKit (static adapter), deployed to Netlify
 
-- Database: PostgreSQL
+- Database: PostgreSQL (hosted on Neon)
+- Image storage: Cloudinary
 
 ## Data-model
 
@@ -78,11 +85,21 @@ This is a monorepo containing:
 
 ## Project Setup
 
+## Running Locally
+
+This is the easiest way to spin it up using docker compose. Don't forget to create an .env file based on the example. CLOUDINARY_URL and DATABASE_URL are not important you can leave them as is.
+
+```sh
+docker compose up
+```
+
+Apps are on whatever URL's you set in the .env file
+
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v20 or higher)
 - npm (v6 or higher)
-- PostgreSQL (for database functionality)
+- Docker (for running Postgres + services locally)
 
 ### Installation
 
@@ -103,7 +120,7 @@ This is a monorepo containing:
 
    ```sh
    # Create .env files for each configuration in the root directory
-   # See all .env.example files for what to setup exactly
+   # See all .*.example files for what to setup exactly
    # Add necessary environment variables for database connection
    ```
 
@@ -123,3 +140,19 @@ This is a monorepo containing:
    # Generate e2e prisma types
    nx generate-types:e2e prisma-schema
    ```
+
+1. Run/build something:
+
+   ```sh
+   # See all the apps and libs - run targets
+   nx graph
+
+   # See available targets (build, serve; etc) for project
+   nx show project <appname>
+   ```
+
+## Deployment
+
+- **API**: Built via the multi-stage Dockerfile "Dockerfile.api", deployed to Railway
+- **Public Blog**: Deployed to Netlify, built via `nx run @dans-coding-world/public-blog:build`.
+- **Blog Admin**: Deployed to Netlify as a SvelteKit static SPA. built via `nx run @dans-coding-world/blog-admin:build`.

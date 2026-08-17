@@ -15,7 +15,7 @@
 		"test:unit": "vitest"
 	},
 	"dependencies": {
-		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.54.0",
 		"@sveltejs/vite-plugin-svelte": "^6.0.0",
 		"svelte": "^5.55.8",
@@ -36,7 +36,7 @@
 						"nx run @dans-coding-world/api:serve:e2e"
 					],
 					"parallel": true,
-					"readyWhen": "Listening at http://localhost:3000/api"
+					"readyWhen": "Listening at http://localhost:3000/api/v1"
 				}
 			},
 			"test": {

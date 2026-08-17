@@ -23,7 +23,7 @@ import {
   goToPage,
   selectRowEntriesPerPage,
 } from '../../helpers/pagination.helper';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 import { ReportDetail } from '@dans-coding-world/report-data-access';
 import { generateRandomComments } from '@dans-coding-world/shared-post-testing';
 import { generateRandomCommentReports } from '@dans-coding-world/shared-report-testing';

@@ -22,9 +22,9 @@
     UserRoleBadge,
     Modal,
     SpinnerLoader,
+    GenericDeleteDialog,
   } from '@dans-coding-world/blog-admin-ui-common';
   import type { UsersManagerParams } from '../types/usersManagerParams.js';
-  import UserDeleteDialog from './UserDeleteDialog.svelte';
 
   interface Props {
     users?: UserDetail[];
@@ -405,7 +405,12 @@
 {/snippet}
 
 {#if userForDeletion}
-  <UserDeleteDialog bind:userForDeletion {onUserDelete}></UserDeleteDialog>
+  <GenericDeleteDialog
+    entityLabel="user"
+    bind:entity={userForDeletion}
+    displayKey="username"
+    onDelete={onUserDelete}
+  ></GenericDeleteDialog>
 {:else if userForRoleChange}
   {@const availableOptions = FILTER_OPTIONS.filter(
     (o) =>

@@ -16,7 +16,7 @@ import {
   getUserRow,
 } from '../helpers/users-management-actions.helper';
 import { API_ENDPOINTS } from '@dans-coding-world/shared-data-access-api';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 import { generateRandomUser } from '@dans-coding-world/shared-user-testing';
 
 const USER_ROLES = ['ADMIN', 'AUTHOR', 'MOD', 'USER'] as UserDetail['role'][];

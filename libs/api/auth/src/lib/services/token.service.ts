@@ -7,7 +7,7 @@ import {
 } from '../interfaces/token-service.interface.js';
 import type { AuthConfiguration } from '../config/auth.config.js';
 import type { IRefreshTokenRepository } from '@dans-coding-world/shared-data-access-interfaces';
-import { ApiException } from '@dans-coding-world/exceptions';
+import { ApiException } from '@dans-coding-world/api-exceptions';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import {
   RefreshTokenDto,

@@ -3,7 +3,7 @@ import { api } from '@dans-coding-world/public-blog-data-access-api';
 import { ERROR_CODES } from '@dans-coding-world/shared-constants';
 import { waitFor } from '@testing-library/dom';
 import { useCreateComment } from '../posts/useCreateComment';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 import { QueryClient } from '@tanstack/react-query';
 import { AuthProvider } from '../users/providers/AuthProvider';
 import { generateMockCommentResponse } from '@dans-coding-world/shared-post-testing';

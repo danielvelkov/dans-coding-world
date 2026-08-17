@@ -29,7 +29,7 @@ import {
   goToPage,
   selectRowEntriesPerPage,
 } from '../helpers/pagination.helper';
-import { generateErrorResponseByErrorCode } from '@dans-coding-world/exceptions';
+import { generateErrorResponseByErrorCode } from '@dans-coding-world/api-exceptions';
 
 const STATUSES = Object.values(PostStatusEnum);
 const VISIBILITIES = Object.values(PostVisibilityEnum);

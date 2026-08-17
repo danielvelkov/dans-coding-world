@@ -3,7 +3,7 @@ import { render } from 'vitest-browser-svelte';
 import { page, userEvent } from 'vitest/browser';
 import { expect, it, describe } from 'vitest';
 import PostForm from './PostForm.svelte';
-import { createValidationErrorDetailsList } from '@dans-coding-world/exceptions';
+import { createValidationErrorDetailsList } from '@dans-coding-world/api-exceptions';
 import { ResponseErrorDetails } from '@dans-coding-world/api-types';
 import { generateRandomPosts } from '@dans-coding-world/shared-post-testing';
 import { FormAction } from '../types/form-actions.type.js';

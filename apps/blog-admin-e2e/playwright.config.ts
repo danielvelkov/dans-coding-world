@@ -2,11 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 import { nxE2EPreset } from '@nx/playwright/preset';
 import { workspaceRoot } from '@nx/devkit';
 
-const apiHost = process.env.API_HOST ?? 'localhost';
-const apiPort = process.env.API_PORT ?? '3000';
+const apiHost = process.env.HOST ?? 'localhost';
+const apiPort = process.env.PORT ?? '3000';
 
-const adminBlogHost = process.env.VITE_ADMIN_BLOG_HOST ?? 'localhost';
-const adminBlogPort = process.env.VITE_ADMIN_BLOG_PORT ?? '5173';
+const adminBlogURL = process.env.VITE_ADMIN_BLOG_URL ?? 'http://localhost:5173';
 
 /**
  * Read environment variables from file.
@@ -21,9 +20,7 @@ export default defineConfig({
   ...nxE2EPreset(__filename, { testDir: './e2e' }),
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    baseURL: `http://${adminBlogHost}:${adminBlogPort}`,
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    baseURL: adminBlogURL,
   },
   maxFailures: process.env.CI ? 1 : 0,
   // (DO NOT CHANGE) Specify workers to 1 to provide stability and reproductivity
@@ -39,7 +36,7 @@ export default defineConfig({
     },
     {
       command: 'npx nx dev blog-admin',
-      url: `http://${adminBlogHost}:${adminBlogPort}`,
+      url: adminBlogURL,
       reuseExistingServer: !process.env.CI,
       cwd: workspaceRoot,
     },
