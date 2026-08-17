@@ -23,7 +23,8 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl
 
 # Copy only what's needed to run
-COPY --from=builder /app/apps/api/dist ./
+COPY --from=builder /app/apps ./apps
+COPY --from=builder /app/apps/api/dist/.prisma ./.prisma
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/libs/prisma-schema ./libs/prisma-schema
 COPY package.json ./
@@ -38,4 +39,4 @@ ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/.prisma/client/libquery_engine-debian-opens
 EXPOSE 3000
 
 # This runs at CONTAINER START, not build time — DATABASE_URL is available here through env variables
-CMD npx prisma migrate deploy --schema=./libs/prisma-schema/prisma/schema.prisma && node main.js
+CMD npx prisma migrate deploy --schema=./libs/prisma-schema/prisma/schema.prisma && node apps/api/dist/main.js

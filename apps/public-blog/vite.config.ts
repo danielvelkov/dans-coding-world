@@ -4,7 +4,6 @@ import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig(() => {
-  console.log('VITE_API_URL at build time:', process.env.VITE_API_URL);
   return {
     root: __dirname,
     cacheDir: '../../node_modules/.vite/apps/public-blog',

@@ -52,7 +52,7 @@ if (isProd && !apiURL) {
      API_URL`,
   );
   process.exit(1);
-} else apiURL = `http://${host}:${port}`;
+} else if (!apiURL) apiURL = `http://${host}:${port}`;
 
 const app = express();
 if (isProd) app.set('trust proxy', 1); // in production the app will likely run behind a reverse proxy. For cookies and rate limiting to work we must set this to 1
