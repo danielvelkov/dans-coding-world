@@ -140,9 +140,7 @@ test.describe('User session', () => {
       await loginAsRandomUser(page, [randomUser]);
       expect(await checkIfLoggedIn(page)).toBe(true);
 
-      await page.goto('/posts');
-
-      const tokenExpiryInMs = TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION - 1000; // add some leeway after expiry
+      const tokenExpiryInMs = TOKEN_CONSTRAINTS.ACCESS_TOKEN_EXPIRATION;
 
       await page.clock.runFor(tokenExpiryInMs);
       await expect(page.getByText(/403/i)).toBeVisible();
