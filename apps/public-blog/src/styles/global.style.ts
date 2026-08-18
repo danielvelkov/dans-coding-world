@@ -2,6 +2,7 @@ import { createGlobalStyle } from 'styled-components';
 
 import BangersFont from './fonts/Bangers-Regular.ttf';
 import InterFont from './fonts/Inter-Variable.ttf';
+import 'quill/dist/quill.snow.css';
 
 export const GlobalStyle = createGlobalStyle`
   @font-face {

@@ -148,10 +148,10 @@ export function PostItem({
     ? `${author.profile.firstName} ${author.profile.lastName}`
     : author.username;
   const formattedPublishedDate = formatDateTo_DD_MMM_YYYY(
-    new Date(postData.publishedAt)
+    new Date(postData.publishedAt),
   );
   const formattedUpdatedDate = formatDateTo_DD_MMM_YYYY(
-    new Date(postData.updatedAt)
+    new Date(postData.updatedAt),
   );
 
   const showUpdatedDate =
@@ -242,7 +242,13 @@ export function PostItem({
           </div>
         ) : (
           <>
-            <p className="excerpt">{excerpt}</p>
+            <p
+              dangerouslySetInnerHTML={{
+                __html: excerpt,
+              }}
+              className="excerpt"
+            ></p>
+
             <Link className="more-link" to={`/blog/${post.id}`}>
               Continue reading
             </Link>

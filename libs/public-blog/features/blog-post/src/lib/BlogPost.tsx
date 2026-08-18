@@ -190,6 +190,7 @@ export function BlogPost({
 
       <StyledContent
         data-testid="post-content"
+        className="ql-editor"
         dangerouslySetInnerHTML={{
           __html: DOMPurify.sanitize(data.post.content),
         }}
