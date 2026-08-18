@@ -4,7 +4,12 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
-		<script src="https://kit.fontawesome.com/bd7eaccee9.js" crossorigin="anonymous"></script>
+		<script
+			src="https://kit.fontawesome.com/bd7eaccee9.js"
+			crossorigin="anonymous"
+			defer
+			onerror="console.warn('FontAwesome kit failed to load, ignoring')"
+		></script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

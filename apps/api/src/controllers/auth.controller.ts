@@ -55,12 +55,14 @@ export class AuthController {
         await this.authService.login(loginDto);
 
       res.cookie(ACCESS_TOKEN_COOKIE, accessToken, {
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: config.options.accessExpiration,
       });
 
       res.cookie(REFRESH_TOKEN_COOKIE, refreshToken, {
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: config.options.refreshExpiration,
@@ -81,9 +83,13 @@ export class AuthController {
 
       // Clear cookies
       res.clearCookie(ACCESS_TOKEN_COOKIE, {
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
       });
       res.clearCookie(REFRESH_TOKEN_COOKIE, {
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
       });
 
@@ -110,11 +116,15 @@ export class AuthController {
       const result = await this.authService.refreshToken(refreshDto);
 
       res.cookie(ACCESS_TOKEN_COOKIE, result.accessToken, {
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: config.options.accessExpiration,
       });
 
       res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, {
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: config.options.refreshExpiration,
       });
