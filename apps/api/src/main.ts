@@ -119,7 +119,7 @@ app.use(
   }),
 );
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ limit: '10mb', extended: false }));
 app.use(express.json({ limit: '10mb' }));
 
 const { strategy } = authInjector.get(
