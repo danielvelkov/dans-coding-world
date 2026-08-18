@@ -47,6 +47,11 @@ module.exports = {
               },
             ]
           : []),
+        {
+          from: enginePath,
+          to: join(workspaceRoot, 'apps/api/dist/.prisma/client'),
+          noErrorOnMissing: false,
+        },
       ],
     }),
   ],

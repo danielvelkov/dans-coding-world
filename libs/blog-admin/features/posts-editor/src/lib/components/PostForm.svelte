@@ -89,6 +89,17 @@
   onMount(() => {
     quill = new Quill(editor, {
       theme: 'snow',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline', 'strike'],
+          ['code', 'blockquote', 'code-block', 'link'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ header: [1, 2, 3, false] }],
+          [{ indent: '-1' }, { indent: '+1' }],
+          [{ color: [] }, { background: [] }],
+          ['clean'],
+        ],
+      },
     });
     quill.on('text-change', () => {
       const html = quill.root.innerHTML
