@@ -53,6 +53,13 @@
 		word-break: break-word;
 		border: none !important;
 	}
+	.ql-code-block-container {
+		padding: 1em 1.5em;
+		font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+		border-radius: 1em;
+		background-color: var(--color-bg-surface-hover);
+		margin: 1em 0em;
+	}
 }
 
 /* You have to do this for every lib... */

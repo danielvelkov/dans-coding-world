@@ -96,11 +96,24 @@
           [{ list: 'ordered' }, { list: 'bullet' }],
           [{ header: [1, 2, 3, false] }],
           [{ indent: '-1' }, { indent: '+1' }],
-          [{ color: [] }, { background: [] }],
           ['clean'],
         ],
       },
     });
+    editor.addEventListener('paste', (e: ClipboardEvent) => {
+      const html = e.clipboardData?.getData('text/html');
+
+      if (html) {
+        e.preventDefault();
+        // Clean inline styles
+        const cleanHtml = DOMPurify.sanitize(html, {
+          FORBID_ATTR: ['style', 'color', 'bgcolor', 'face'],
+        });
+        // Insert cleaned HTML into Quill
+        quill.clipboard.dangerouslyPasteHTML(cleanHtml);
+      }
+    });
+
     quill.on('text-change', () => {
       const html = quill.root.innerHTML
         .replace(/<p><br><\/p>/g, '<br>')
@@ -183,7 +196,7 @@
     onsubmit={(e) => {
       e.preventDefault();
     }}
-    class="flex flex-1/5 flex-col gap-5"
+    class="flex basis-5 flex-1 flex-col gap-5"
   >
     <label for="title" class="text-sm font-semibold">Title</label>
     <Input
@@ -200,6 +213,9 @@
     {/if}
 
     <label for="content" class="text-sm font-semibold">Content</label>
+    <p class="-mt-2 text-sm text-(--color-text-tertiary)">
+      The text editor removes color formatting when pasting
+    </p>
     <div
       class="flex flex-col h-[30vh] w-auto mb-5 md:mb-5 border border-(--color-border-default)
       focus-within:outline-none focus-within:border-(--color-border-focus)
@@ -350,7 +366,7 @@
 
   <!-- Preview -->
   <div
-    class="mt-5 flex flex-1 flex-col gap-5 relative min-w-0 overflow-hidden pt-5"
+    class="mt-5 flex flex-1/5 flex-col gap-5 relative min-w-0 overflow-hidden pt-5"
   >
     <h2
       class="text-xl font-bold absolute top-1 border rounded-md left-4 bg-(--color-bg-base) px-2"
@@ -358,7 +374,10 @@
       Preview
     </h2>
     <div class="rounded border p-4 min-h-50 w-full bg-(--color-bg-elevated)">
-      <output data-testid="preview" class="wrap-break-word break-all block">
+      <output
+        data-testid="preview"
+        class="wrap-break-word break-all block ql-editor"
+      >
         {@html DOMPurify.sanitize(content)}
       </output>
     </div>
@@ -445,7 +464,7 @@
 {#snippet Action(name: FormAction, onclick: () => void)}
   <Button
     type="button"
-    class="flex-1 flex flex-col items-center rounded-l-none text-sm
+    class="flex flex-2 flex-col items-center rounded-l-none text-sm
      rounded-r-none first:rounded-l-lg last:rounded-r-lg"
     onclick={() => {
       if (validateForm()) {

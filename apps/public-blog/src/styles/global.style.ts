@@ -34,6 +34,14 @@ p {
 code, pre, kbd, samp {
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
+
+.ql-code-block-container{
+  padding: 1em 1.5em;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  background-color: ${({ theme }) => theme.background.elevated};
+  border-radius: 1em;
+	margin: 1em 0em;
+}
 `;
 
 export default GlobalStyle;
