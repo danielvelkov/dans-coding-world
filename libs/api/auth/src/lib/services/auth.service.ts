@@ -68,13 +68,14 @@ export class AuthService implements IAuthService {
   }
 
   private async generateLoginResponse(user: User): Promise<LoginResponseDto> {
+    const { password: _, ...userWithoutPass } = user;
     const payload = { sub: user.id };
     const accessToken = this.tokenService.generateAccessToken(payload);
-    const refreshToken = this.tokenService.generateRefreshToken(user);
+    const refreshToken = this.tokenService.generateRefreshToken(
+      userWithoutPass as User,
+    );
 
     await this.storeUserRefreshToken(refreshToken, user.id.toString());
-
-    const { password: _, ...userWithoutPass } = user;
 
     return {
       accessToken,

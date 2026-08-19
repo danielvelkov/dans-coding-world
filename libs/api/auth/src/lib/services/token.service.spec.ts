@@ -43,7 +43,7 @@ describe('Token service', () => {
       () =>
         tokenService.generateAccessToken(payload, {
           secret: tokenSecret,
-          expiresIn: 1,
+          expiresIn: 1000,
         }),
       tokenSecret,
       payload,
@@ -54,7 +54,7 @@ describe('Token service', () => {
       () =>
         tokenService.generateRefreshToken(user as User, {
           secret: tokenSecret,
-          expiresIn: 1,
+          expiresIn: 1000,
         }),
       tokenSecret,
       payload,
@@ -64,7 +64,7 @@ describe('Token service', () => {
       expect(() => {
         tokenService.generateAccessToken(payload, {
           secret: '',
-          expiresIn: 1,
+          expiresIn: 1000,
         });
       }).toThrow('secretOrPrivateKey must have a value');
     });
