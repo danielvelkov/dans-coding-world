@@ -39,7 +39,7 @@ export class TokenService implements ITokenService {
     },
   ): string {
     return jwt.sign(payload, options.secret, {
-      expiresIn: options.expiresIn,
+      expiresIn: options.expiresIn / 1000,
       jwtid: crypto.randomUUID(),
     });
   }
@@ -52,7 +52,7 @@ export class TokenService implements ITokenService {
     },
   ): string {
     return jwt.sign(user, options.secret, {
-      expiresIn: options.expiresIn,
+      expiresIn: options.expiresIn / 1000,
       jwtid: crypto.randomUUID(),
       subject: user.id.toString(),
     });

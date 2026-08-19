@@ -34,7 +34,7 @@ export interface ITokenService {
    *    {sub:user.id, user},
    *    {
    *      secret:ACCESS_TOKEN_SECRET,
-   *      expiresIn: 1000 * 60 * 15 // 15 mins
+   *      expiresIn: 60 * 15 // 15 mins in seconds
    *    }
    * );
    * ```
@@ -52,7 +52,7 @@ export interface ITokenService {
    *    user.id,
    *    {
    *      secret:REFRESH_TOKEN_SECRET,
-   *      expiresIn: 1000 * 60 * 60 * 24 * 30 // 1 month
+   *      expiresIn: 60 * 60 * 24 * 30 // 1 month in seconds
    *    }
    * );
    * ```

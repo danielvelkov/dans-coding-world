@@ -5,15 +5,19 @@ import { useAuth } from '@dans-coding-world/public-blog-shared-hooks';
 import UserProfileDropdown from './components/UserProfileDropdown';
 
 const StyledHeader = styled.header`
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  margin: 1em 0em;
-  padding: 1em 0em;
-  gap: 5px;
+  margin-bottom: 2rem;
 
-  @media screen and (max-width: 660px) {
+  @media (max-width: 660px) {
     flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    text-align: center;
+  }
+
+  nav {
+    padding: 0.8em;
+    background-color: ${({ theme }) => theme.background.surface};
+    box-shadow: 0 1px 2px ${({ theme }) => theme.border.primary};
   }
 
   ul {
@@ -21,8 +25,9 @@ const StyledHeader = styled.header`
     padding: 0;
     list-style: none;
     display: flex;
-    gap: 2em;
+    gap: 4em;
     align-items: center;
+    justify-content: center;
   }
 `;
 
@@ -36,7 +41,7 @@ const StyledSiteLogo = styled(Link)`
   text-transform: capitalize;
   color: inherit;
   text-align: center;
-  font-size: larger;
+  font-size: large;
   font-family: 'Bangers';
 `;
 

@@ -447,17 +447,23 @@ test.describe('Posts - filtering', () => {
         }
       });
 
-      test('shows loading indicator while fetching users', async ({ page }) => {
-        await page.route(`**${API_ENDPOINTS.USERS.LIST}**`, async (route) => {
-          await new Promise((resolve) => setTimeout(resolve, 4000));
-          await route.fulfill({ json: [] });
+      test.describe('loading users', () => {
+        test.beforeEach(async ({ page }) => {
+          await page.route(`**${API_ENDPOINTS.USERS.LIST}**`, async (route) => {
+            await new Promise((resolve) => setTimeout(resolve, 40000));
+            await route.fulfill({ json: [] });
+          });
         });
+        test('shows loading indicator while fetching users', async ({
+          page,
+        }) => {
+          await page.reload();
+          await page.getByRole('searchbox', { name: 'Search for:' }).click();
 
-        await page.getByRole('searchbox', { name: 'Search for:' }).click();
-
-        await expect(page.getByTestId('dropdown-search-listbox')).toContainText(
-          /searching/i,
-        );
+          await expect(
+            page.getByTestId('dropdown-search-listbox'),
+          ).toContainText(/searching/i);
+        });
       });
 
       test('scrolling to the last option triggers loading the next page', async ({
